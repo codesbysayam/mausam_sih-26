@@ -1,0 +1,6 @@
+{
+  "name": "MAUSAM — Atmospheric Intelligence",
+  "description": "National meteorological observation, radar nowcasting, and environmental intelligence platform.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
