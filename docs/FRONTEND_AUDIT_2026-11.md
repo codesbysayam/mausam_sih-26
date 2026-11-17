@@ -152,6 +152,20 @@ The workflow runs `npm ci`, `npm run lint` and `npm run build`. The package's `l
 
 ---
 
+### Additional P0 evidence — specific fallback paths
+
+A deeper trace found further cases that must be corrected before a page can be called live:
+
+- `src/services/weatherService.ts` contains `generateFallbackBundle()`, whose comments explicitly describe synthetic hourly and daily data. The fallback assigns plausible temperatures, humidity, pressure, AQI, pollutant values, rainfall probabilities, solar times and a fabricated station/source label, even though the returned bundle is marked `isLive: false`. A non-live flag is not sufficient if child components subsequently render those values as measured observations.
+- `transformOpenMeteoResponse()` applies numeric defaults such as temperature 31°C, humidity 65%, pressure 1012 hPa, wind 14 km/h, wind direction 180°, cloud cover 20%, daily high/low offsets and visibility 10 km when raw fields are missing. Missing provider fields should remain unavailable unless a documented derivation is scientifically valid and explicitly identified.
+- `src/components/weather/WeatherTelemetryGrid.tsx` substitutes plausible numbers for missing metrics (for example 24°C, 75% humidity, 8 km/h wind, 1008.4 hPa pressure, 10 km visibility, UV 5.4, 85% cloud cover, 420 W/m² solar radiation, 28.4% soil moisture and 3.8 mm/day ET0). It also labels values with instrument/provider descriptions such as IMD thermometric sensor, AWS hygrometer, INSAT-3DR satellite and WRF ensemble even though the component itself does not verify those sources.
+- The same telemetry grid derives rainfall windows by multiplying the current precipitation value when actual 1h/3h/24h accumulations are absent. These are not observed accumulations and must not be displayed as such.
+- `src/pages/Agromet.tsx` computes `isLive = Boolean(weatherBundle?.current?.temp)`. A numeric value does not establish freshness or provider status; stale cached or fallback values can therefore be mislabelled LIVE.
+- `src/pages/AirQuality.tsx` hardcodes a regional comparison table for several cities and marks the selected-location row `isLiveSelected: true` independently of whether `activeAqi`, PM2.5 or PM10 are available. Reference rows must be clearly labelled as static reference data (or replaced with sourced observations); the selected row's live state must derive from provider metadata.
+- `src/App.tsx` constructs assistant station context with `weatherBundle.current.aqiPm25 || 42`, which converts a missing or zero value into 42. Missing station data must remain missing in assistant context.
+
+These findings are directly inconsistent with `docs/RULES.md` §1.1–1.3 and the README's zero-synthetic-data objective. The data-integrity work must therefore precede any visual polish on affected components.
+
 ## 4. Screenshot-to-source mapping
 
 | Supplied screenshot | Relevant source composition | Audit conclusion |
