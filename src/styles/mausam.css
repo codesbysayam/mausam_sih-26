@@ -1,49 +1,50 @@
 :root {
-  --primary: #0B3D91;
-  --primary-dark: #062A63;
-  --primary-light: #1565C0;
-  --secondary: #1565C0;
+  --primary: #0B72B9;
+  --primary-dark: #07538A;
+  --primary-light: #38BDF8;
+  --secondary: #1499E8;
 
-  --background: #061827;
-  --background-alt: #081F30;
-  --surface: #101E2C;
-  --surface-secondary: #172738;
-  --surface-hover: #1C334A;
+  --background: #0B1219;
+  --background-alt: #0E1721;
+  --surface: #101B26;
+  --surface-secondary: #162331;
+  --surface-hover: #1B2C3D;
 
-  --text-primary: #F5F9FC;
-  --text-secondary: #B8C7D9;
-  --text: #F5F9FC;
-  --text-body: #B8C7D9;
+  --text-primary: #F4F7FA;
+  --text-secondary: #B6C7D8;
+  --text: #F4F7FA;
+  --text-body: #B6C7D8;
 
-  --border: #1E3852;
-  --border-light: rgba(184, 199, 217, 0.15);
+  --border: rgba(148, 179, 206, 0.14);
+  --border-light: rgba(148, 179, 206, 0.08);
 
-  --accent: #18A7E8;
-  --accent-teal: #00C897;
+  --accent: #38BDF8;
+  --accent-teal: #22C7A0;
 
   /* Weather severity colors */
-  --status-normal: #00C897;
+  --status-normal: #22C7A0;
   --status-watch: #F59E0B;
   --status-alert: #F97316;
   --status-severe: #EF4444;
 
-  --success: #00C897;
+  --success: #22C7A0;
   --watch: #F59E0B;
   --alert: #F97316;
   --danger: #EF4444;
 
   /* Dark palette aliases */
-  --bg: #061827;
-  --bg-alt: #081F30;
-  --dark-background: #061827;
-  --dark-surface: #101E2C;
-  --dark-surface-2: #172738;
-  --dark-border: #1E3852;
-  --dark-text: #F5F9FC;
-  --dark-muted: #B8C7D9;
+  --bg: #0B1219;
+  --bg-alt: #0E1721;
+  --dark-background: #0B1219;
+  --dark-surface: #101B26;
+  --dark-surface-2: #162331;
+  --dark-border: rgba(148, 179, 206, 0.14);
+  --dark-text: #F4F7FA;
+  --dark-muted: #8EA3B8;
 
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Noto Sans Oriya", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Nastaliq Urdu", "Segoe UI", Roboto, Arial, sans-serif;
-  --radius: 14px;
+  --font: "IBM Plex Sans", "Noto Sans", "Noto Sans Oriya", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Nastaliq Urdu", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius: 12px;
   --radius-small: 8px;
   --radius-pill: 9999px;
   --border-width: 1px;
@@ -53,23 +54,22 @@
   --indic-letter-spacing: 0.01em;
 
   /* ========================================================
-     MAUSAM LIQUID GLASS AESTHETIC DESIGN TOKENS
-     Apple-inspired frosted glass hierarchy with government rigor
+     MAUSAM OBSERVATORY SURFACE TOKENS
      ======================================================== */
-  --glass-bg: rgba(16, 30, 44, 0.72);
-  --glass-bg-subtle: rgba(16, 30, 44, 0.48);
-  --glass-bg-elevated: rgba(23, 39, 56, 0.85);
-  --glass-bg-card: rgba(11, 26, 40, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-subtle: rgba(255, 255, 255, 0.05);
-  --glass-border-focus: rgba(24, 167, 232, 0.5);
-  --glass-blur: blur(18px);
-  --glass-blur-lg: blur(28px);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
-  --glass-shadow-sm: 0 4px 16px 0 rgba(0, 0, 0, 0.24);
-  --glass-radius: 16px;
-  --glass-radius-sm: 10px;
+  --glass-bg: rgba(16, 27, 38, 0.86);
+  --glass-bg-subtle: rgba(16, 27, 38, 0.62);
+  --glass-bg-elevated: rgba(22, 35, 49, 0.94);
+  --glass-bg-card: rgba(16, 27, 38, 0.9);
+  --glass-border: rgba(148, 179, 206, 0.14);
+  --glass-border-subtle: rgba(148, 179, 206, 0.08);
+  --glass-border-focus: rgba(56, 189, 248, 0.5);
+  --glass-blur: blur(14px);
+  --glass-blur-lg: blur(22px);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 8px 28px 0 rgba(0, 0, 0, 0.34);
+  --glass-shadow-sm: 0 4px 14px 0 rgba(0, 0, 0, 0.22);
+  --glass-radius: 12px;
+  --glass-radius-sm: 8px;
 
   /* iOS Safe Area Insets (iPhone notch / Dynamic Island / Home Indicator) */
   --sat: env(safe-area-inset-top, 0px);
@@ -90,8 +90,8 @@ body,
   min-height: 100dvh;
   margin: 0;
   padding: 0;
-  background: #061827;
-  color: #F5F9FC;
+  background: #0B1219;
+  color: #F4F7FA;
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -103,8 +103,20 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.55;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tabular-nums,
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Prevent image, canvas and video media from overflowing their containers */
@@ -1541,7 +1553,7 @@ img, svg, canvas, video {
 }
 
 .ask-mausam-pulse-shadow {
-  animation: ask-mausam-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 2px 10px -2px rgba(11, 114, 185, 0.35);
 }
 
 /* ====================================================================
@@ -1550,47 +1562,45 @@ img, svg, canvas, video {
 @keyframes alert-card-enter {
   0% {
     opacity: 0;
-    transform: translateY(10px) scale(0.985);
+    transform: translateY(8px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
 @keyframes alert-card-exit {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translateY(-8px) scale(0.985);
+    transform: translateY(-6px);
   }
 }
 
 .animate-alert-entry {
-  animation: alert-card-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  animation: alert-card-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-alert-exit {
-  animation: alert-card-exit 200ms cubic-bezier(0.4, 0, 1, 1) both;
-  will-change: transform, opacity;
+  animation: alert-card-exit 180ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 .alerts-grid-transition {
-  transition: opacity 250ms ease-out, transform 250ms ease-out;
+  transition: opacity 220ms ease-out, transform 220ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-alert-entry,
-  .animate-alert-exit,
-  .alerts-grid-transition {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -1608,27 +1618,27 @@ img, svg, canvas, video {
   --space-10: 40px;
   --space-12: 48px;
 
-  --nwp-bg: #061A2B;
-  --nwp-surface: #0B263D;
-  --nwp-surface-alt: #102D44;
-  --nwp-border: #1D5278;
-  --nwp-accent: #1565C0;
-  --nwp-cyan: #29B6F6;
-  --nwp-text: #F5F9FC;
-  --nwp-text-muted: #AFC4D8;
+  --nwp-bg: #0B1219;
+  --nwp-surface: #101B26;
+  --nwp-surface-alt: #162331;
+  --nwp-border: rgba(148, 179, 206, 0.14);
+  --nwp-accent: #1499E8;
+  --nwp-cyan: #38BDF8;
+  --nwp-text: #F4F7FA;
+  --nwp-text-muted: #8EA3B8;
 }
 
 .nwp-card {
-  background: rgba(11, 38, 61, 0.72);
-  border: 1px solid rgba(160, 200, 230, 0.14);
-  border-radius: 18px;
+  background: #101B26;
+  border: 1px solid rgba(148, 179, 206, 0.14);
+  border-radius: 12px;
   padding: 20px;
   min-width: 0;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+  transition: border-color 180ms ease;
 }
 
 .nwp-card:hover {
-  border-color: rgba(80, 180, 240, 0.28);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 

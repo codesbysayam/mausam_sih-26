@@ -8,6 +8,7 @@ import {
   Activity,
   Wheat,
   FileText,
+  Database,
   LucideIcon,
   Disc,
 } from 'lucide-react';
@@ -17,14 +18,15 @@ import { triggerHaptic } from '../../utils/haptics';
 
 export type MainNavTab =
   | 'home'
-  | 'weather'
+  | 'radar'
   | 'forecast'
   | 'warnings'
-  | 'radar'
-  | 'cyclone-tracker'
   | 'aqi'
   | 'agromet'
-  | 'reports';
+  | 'cyclone-tracker'
+  | 'weather'
+  | 'reports'
+  | 'debug';
 
 interface MainNavigationProps {
   activeTab: MainNavTab | string;
@@ -36,93 +38,80 @@ interface NavItemConfig {
   id: MainNavTab;
   labelKey: keyof TranslationDictionary;
   defaultLabel: string;
-  shortLabel: string;
   icon: LucideIcon;
-  color: string;
-  bgHover: string;
+  accentColor: string;
 }
 
 const NAV_CONFIG: NavItemConfig[] = [
   {
     id: 'home',
     labelKey: 'home',
-    defaultLabel: 'HOME',
-    shortLabel: 'HOME',
+    defaultLabel: 'Overview',
     icon: Home,
-    color: 'text-[#38BDF8]',
-    bgHover: 'hover:border-[#38BDF8]',
-  },
-  {
-    id: 'weather',
-    labelKey: 'weather',
-    defaultLabel: 'WEATHER',
-    shortLabel: 'WEATHER',
-    icon: ThermometerSun,
-    color: 'text-[#FB923C]',
-    bgHover: 'hover:border-[#FB923C]',
-  },
-  {
-    id: 'forecast',
-    labelKey: 'forecast',
-    defaultLabel: 'FORECAST',
-    shortLabel: 'FORECAST',
-    icon: TrendingUp,
-    color: 'text-[#818CF8]',
-    bgHover: 'hover:border-[#818CF8]',
-  },
-  {
-    id: 'warnings',
-    labelKey: 'warnings',
-    defaultLabel: 'WARNINGS',
-    shortLabel: 'WARNINGS',
-    icon: AlertTriangle,
-    color: 'text-[#E74C3C]',
-    bgHover: 'hover:border-[#E74C3C]',
+    accentColor: 'text-[#38BDF8]',
   },
   {
     id: 'radar',
     labelKey: 'radar',
-    defaultLabel: 'RADAR & MAPS',
-    shortLabel: 'RADAR',
+    defaultLabel: 'Weather Map',
     icon: Radio,
-    color: 'text-[#2ECC71]',
-    bgHover: 'hover:border-[#2ECC71]',
+    accentColor: 'text-[#22C7A0]',
   },
   {
-    id: 'cyclone-tracker',
-    labelKey: 'cycloneTracker' as any,
-    defaultLabel: 'CYCLONE TRACKER',
-    shortLabel: 'CYCLONE',
-    icon: Disc,
-    color: 'text-[#38BDF8]',
-    bgHover: 'hover:border-[#38BDF8]',
+    id: 'forecast',
+    labelKey: 'forecast',
+    defaultLabel: 'Forecast & NWP',
+    icon: TrendingUp,
+    accentColor: 'text-[#60A5FA]',
+  },
+  {
+    id: 'warnings',
+    labelKey: 'warnings',
+    defaultLabel: 'Alerts',
+    icon: AlertTriangle,
+    accentColor: 'text-[#EF4444]',
   },
   {
     id: 'aqi',
     labelKey: 'airQuality',
-    defaultLabel: 'AQI & AIR',
-    shortLabel: 'AQI',
+    defaultLabel: 'Air Quality',
     icon: Activity,
-    color: 'text-[#F1C40F]',
-    bgHover: 'hover:border-[#F1C40F]',
+    accentColor: 'text-[#F59E0B]',
   },
   {
     id: 'agromet',
     labelKey: 'agromet',
-    defaultLabel: 'AGROMET',
-    shortLabel: 'AGROMET',
+    defaultLabel: 'Agromet',
     icon: Wheat,
-    color: 'text-[#1ABC9C]',
-    bgHover: 'hover:border-[#1ABC9C]',
+    accentColor: 'text-[#22C7A0]',
+  },
+  {
+    id: 'cyclone-tracker',
+    labelKey: 'cycloneTracker' as any,
+    defaultLabel: 'Cyclones',
+    icon: Disc,
+    accentColor: 'text-[#38BDF8]',
+  },
+  {
+    id: 'weather',
+    labelKey: 'weather',
+    defaultLabel: 'Local Detail',
+    icon: ThermometerSun,
+    accentColor: 'text-[#FB923C]',
   },
   {
     id: 'reports',
     labelKey: 'reports',
-    defaultLabel: 'REPORTS',
-    shortLabel: 'REPORTS',
+    defaultLabel: 'Reports',
     icon: FileText,
-    color: 'text-[#9B59B6]',
-    bgHover: 'hover:border-[#9B59B6]',
+    accentColor: 'text-[#B6C7D8]',
+  },
+  {
+    id: 'debug',
+    labelKey: 'apiDebug' as any,
+    defaultLabel: 'Data & Sources',
+    icon: Database,
+    accentColor: 'text-[#38BDF8]',
   },
 ];
 
@@ -136,16 +125,16 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
   return (
     <nav
       id="primary-main-navigation"
-      className="hidden md:block w-full bg-[#131B26] border-b border-[#223246] py-2 px-3 sm:px-4 lg:px-6 shadow-md select-none"
+      className="hidden md:block w-full bg-[#0E1721] border-b border-white/10 select-none"
       aria-label="Primary Navigation"
     >
-      <div className="max-w-[1440px] mx-auto">
-        <div className="grid grid-cols-9 gap-1 sm:gap-1.5 md:gap-2 w-full">
+      <div className="max-w-[1560px] mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-thin">
           {NAV_CONFIG.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             const badgeCount = item.id === 'warnings' ? activeAlertCount : 0;
-            const displayLabel = t(item.labelKey, item.defaultLabel);
+            const translated = t(item.labelKey, item.defaultLabel);
 
             return (
               <button
@@ -156,35 +145,26 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
                   triggerHaptic('light');
                   onTabChange(item.id);
                 }}
-                className={`w-full min-w-0 flex items-center justify-center gap-1.5 py-2 px-1 sm:px-2 rounded-xl border text-[11px] xl:text-xs font-bold transition-all duration-150 cursor-pointer select-none relative ${
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 border-b-2 ${
                   isActive
-                    ? 'bg-[#0B72B9] text-white border-[#0B72B9] shadow-md shadow-[#0B72B9]/30 ring-1 ring-[#38BDF8]/40'
-                    : `bg-[#1E2733] text-[#D7DEE8] border-[#334155] ${item.bgHover} hover:text-white hover:bg-[#253243]`
+                    ? 'border-[#38BDF8] text-[#F4F7FA] bg-[#162331]/65 font-semibold'
+                    : 'border-transparent text-[#B6C7D8] hover:text-[#F4F7FA] hover:bg-[#101B26]'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <Icon
-                  className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : item.color
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isActive ? item.accentColor : 'text-[#8EA3B8]'
                   }`}
                 />
-                <span className="tracking-wide uppercase whitespace-nowrap font-bold truncate">
-                  {item.shortLabel !== item.defaultLabel ? (
-                    <>
-                      <span className="hidden 2xl:inline">{displayLabel}</span>
-                      <span className="2xl:hidden">{item.shortLabel}</span>
-                    </>
-                  ) : (
-                    displayLabel
-                  )}
-                </span>
+                <span>{translated}</span>
 
                 {badgeCount > 0 && (
                   <span
-                    className={`ml-0.5 px-1 py-0.2 rounded-full text-[9px] font-black leading-none shrink-0 ${
+                    className={`ml-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums font-semibold leading-none ${
                       isActive
-                        ? 'bg-white text-[#0B72B9]'
-                        : 'bg-[#E74C3C] text-white shadow-xs animate-pulse'
+                        ? 'bg-[#EF4444]/25 text-[#FCA5A5]'
+                        : 'bg-[#EF4444]/20 text-[#FCA5A5]'
                     }`}
                   >
                     {badgeCount}
@@ -198,4 +178,3 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
     </nav>
   );
 };
-

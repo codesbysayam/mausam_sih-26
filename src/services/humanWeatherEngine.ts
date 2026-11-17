@@ -434,12 +434,12 @@ export function buildHumanWeatherStory(
   const rainProb = weather.precipitationProbability || 20;
   const windSpeed = weather.windSpeed || 14;
   const windDir = weather.windDirection || 'NE';
-  const aqi = weather.aqi || 82;
+  const aqi = typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0 ? Math.round(weather.aqi) : null;
 
   const tempInfo = getTemperatureMeaning(temp, feelsLike);
   const rainInfo = getRainProbabilityMeaning(rainProb);
   const windInfo = getWindMeaning(windSpeed, windDir);
-  const aqiInfo = getAqiMeaning(aqi);
+  const aqiInfo = aqi !== null ? getAqiMeaning(aqi) : null;
 
   // Look ahead in next 6-8 hours for rain or temp peak
   const nextHours = hourly.slice(0, 8);
@@ -454,7 +454,9 @@ export function buildHumanWeatherStory(
     whatWillHappen = `Atmosphere will remain predominantly dry and ${condition.toLowerCase()} through the next 8 hours with stable temperatures around ${maxUpcomingTemp}°C.`;
   }
 
-  let whatShouldIKnow = `${aqiInfo.headline} (AQI ${aqi}, ${aqiInfo.category}). ${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`;
+  let whatShouldIKnow = aqiInfo
+    ? `${aqiInfo.headline} (AQI ${aqi}, ${aqiInfo.category}). ${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`
+    : `${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`;
   let recommendedAction = '';
 
   if (alerts.length > 0) {

@@ -45,50 +45,51 @@ export const tokens = {
 
     // 4. Semantic Status System
     status: {
-      good: '#008000',     // Normal / Good AQI / Routine (Green)
-      warning: '#FFFF00',  // Watch / Moderate / Yellow
-      prepare: '#FFA500',  // Alert / Poor AQI / Orange
-      danger: '#FF0000',   // Warning / Red Alert / Action Required
-      info: '#1565C0',     // Advisory / Royal Blue
+      good: '#22C7A0',     // Normal / Good AQI / Live
+      warning: '#F59E0B',  // Watch / Moderate / Stale
+      prepare: '#F97316',  // Alert / Poor AQI
+      danger: '#EF4444',   // Warning / Red Alert / Error
+      info: '#38BDF8',     // Telemetry Sky Blue
     },
 
-    // 5. Sophisticated Government Dark Surfaces
+    // 5. Calibrated Observatory Dark Surfaces
     dark: {
-      background: '#071A2D',
-      backgroundAlt: '#0B2239',
-      surface: '#0B2239',
-      surfaceSecondary: '#102D47',
-      surfaceHover: '#153658',
-      textPrimary: '#FFFFFF',
-      textSecondary: '#D7DEE8',
-      textMuted: '#B8C7D9',
-      border: '#1D4E73',
-      borderSubtle: 'rgba(29, 78, 115, 0.4)',
-      borderHover: '#1565C0',
+      background: '#0B1219',
+      backgroundAlt: '#0E1721',
+      surface: '#101B26',
+      surfaceSecondary: '#162331',
+      surfaceHover: '#1B2C3D',
+      textPrimary: '#F4F7FA',
+      textSecondary: '#B6C7D8',
+      textMuted: '#8EA3B8',
+      border: 'rgba(148, 179, 206, 0.14)',
+      borderSubtle: 'rgba(148, 179, 206, 0.08)',
+      borderHover: 'rgba(56, 189, 248, 0.35)',
     },
 
-    // 6. Light Surfaces (Government Palette)
+    // 6. Light Surfaces (Print & Export Palette)
     light: {
       background: '#F5F9FC',
       surface: '#FFFFFF',
       surfaceRaised: '#EEF4F9',
       textPrimary: '#172B4D',
-      textSecondary: '#607D8B',
-      textMuted: '#8A94A6',
-      border: '#D9E2EC',
+      textSecondary: '#475569',
+      textMuted: '#64748B',
+      border: '#CBD5E1',
     },
 
     // 7. Atmospheric Gradients
     gradients: {
-      daySky: 'linear-gradient(135deg, rgba(21, 101, 192, 0.15) 0%, rgba(227, 242, 253, 0.05) 100%)',
-      sunset: 'linear-gradient(135deg, rgba(255, 165, 0, 0.18) 0%, rgba(255, 255, 0, 0.06) 100%)',
-      night: 'linear-gradient(135deg, #0B2239 0%, #071A2D 100%)',
-      storm: 'linear-gradient(135deg, rgba(255, 0, 0, 0.15) 0%, #0B2239 100%)',
+      daySky: 'linear-gradient(145deg, rgba(56, 189, 248, 0.10) 0%, #101B26 100%)',
+      sunset: 'linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, #101B26 100%)',
+      night: 'linear-gradient(145deg, #101B26 0%, #0B1219 100%)',
+      storm: 'linear-gradient(145deg, rgba(239, 68, 68, 0.12) 0%, #101B26 100%)',
     },
   },
 
   typography: {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontFamily: "'IBM Plex Sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    monoFamily: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
     display: 'font-display',
   },
 

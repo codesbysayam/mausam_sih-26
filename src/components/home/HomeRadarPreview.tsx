@@ -465,23 +465,13 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
         }
       }
 
-      // 3. Resilient fallback structure if external networks are restricted
+      // 3. Truthful unavailable handling when RainViewer returns no frames
       if (!data || !data.radar?.past || data.radar.past.length === 0) {
-        const nowUnix = Math.floor(Date.now() / 1000);
-        data = {
-          host: 'https://tilecache.rainviewer.com',
-          radar: {
-            past: [
-              { time: nowUnix - 3000, path: `/v2/radar/${nowUnix - 3000}/512` },
-              { time: nowUnix - 2400, path: `/v2/radar/${nowUnix - 2400}/512` },
-              { time: nowUnix - 1800, path: `/v2/radar/${nowUnix - 1800}/512` },
-              { time: nowUnix - 1200, path: `/v2/radar/${nowUnix - 1200}/512` },
-              { time: nowUnix - 600, path: `/v2/radar/${nowUnix - 600}/512` },
-              { time: nowUnix, path: `/v2/radar/${nowUnix}/512` },
-            ],
-            nowcast: [],
-          },
-        };
+        setFrames([]);
+        setRadarTimestamp(null);
+        setRadarStatus('error');
+        setFetchError('Live radar composite temporarily unavailable from upstream');
+        return;
       }
 
       const hostUrl = data.host || 'https://tilecache.rainviewer.com';

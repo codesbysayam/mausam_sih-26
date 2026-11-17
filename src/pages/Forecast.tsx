@@ -34,7 +34,7 @@ export const ForecastPage: React.FC<ForecastPageProps> = ({
   return (
     <div
       id="forecast-view-container"
-      className="flex flex-col gap-6 w-full max-w-[1520px] mx-auto min-h-screen text-[#F5F9FC]"
+      className="flex flex-col gap-6 w-full max-w-[1520px] mx-auto text-[#F4F7FA]"
     >
       {/* Official Government Print Report Header (Printed documents only) */}
       <PrintReportHeader

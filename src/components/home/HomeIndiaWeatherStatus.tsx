@@ -1,5 +1,5 @@
 import React from 'react';
-import { Thermometer, CloudRain, AlertTriangle, Wind, Droplets, Activity, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import { INDIA_WEATHER_DATA } from '../../data/indiaWeatherData';
 
 interface HomeIndiaWeatherStatusProps {
@@ -11,7 +11,6 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
   onNavigate,
   lastUpdated,
 }) => {
-  // Aggregate real stats from actual state observation network
   const totalStations = INDIA_WEATHER_DATA.length;
   const reportingStations = INDIA_WEATHER_DATA.filter((s) => s.temperature !== undefined).length;
 
@@ -36,142 +35,127 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
   const validHumidity = INDIA_WEATHER_DATA.map((s) => s.humidity).filter((h): h is number => h !== undefined);
   const avgHumidity = validHumidity.length > 0 ? Math.round(validHumidity.reduce((a, b) => a + b, 0) / validHumidity.length) : null;
 
-  const displayTime = lastUpdated || INDIA_WEATHER_DATA[0]?.updatedAt || '06:31 PM IST';
+  const displayTime = INDIA_WEATHER_DATA[0]?.updatedAt || lastUpdated || 'Synoptic Reference';
 
-  // 8 standardized national weather status cards per Requirement 8
   const cards = [
     {
       id: 'status-card-temp',
-      title: 'TEMPERATURE',
+      title: 'NATIONAL MEAN TEMP',
       value: avgTemp !== null ? avgTemp : 'N/A',
       unit: avgTemp !== null ? '°C' : '',
-      subtext: avgTemp !== null ? `Range: ${minTemp}° – ${maxTemp}°C` : 'National aggregation unavailable',
-      source: 'IMD Synoptic Network',
-      obsTime: `Updated ${displayTime}`,
-      status: 'LIVE',
-      statusColor: '#00C897',
+      subtext: avgTemp !== null ? `Across 36 capitals (${minTemp}° – ${maxTemp}°C)` : 'Aggregation unavailable',
+      source: '36-Region Reference Dataset',
+      status: 'REF',
+      statusColor: '#38BDF8',
       tab: 'weather',
     },
     {
       id: 'status-card-rain',
-      title: 'RAINFALL ACTIVITY',
+      title: 'RAINFALL ZONES',
       value: stationsWithRain > 0 ? `${stationsWithRain}` : 'Dry',
-      unit: stationsWithRain > 0 ? 'Subdivisions' : '',
-      subtext: stationsWithRain > 0 ? `Peak: ${maxRain} mm (24h)` : 'No widespread rainfall reported',
-      source: 'IMD AWS Telemetry',
-      obsTime: `Updated ${displayTime}`,
-      status: 'LIVE',
-      statusColor: '#00C897',
-      tab: 'weather',
+      unit: stationsWithRain > 0 ? 'Regions' : '',
+      subtext: stationsWithRain > 0 ? `Reference peak: ${maxRain} mm` : 'No widespread rainfall in snapshot',
+      source: 'Regional Baseline',
+      status: 'REF',
+      statusColor: '#38BDF8',
+      tab: 'radar',
     },
     {
       id: 'status-card-warnings',
-      title: 'SEVERE WARNINGS',
+      title: 'REGIONAL WATCH TIERS',
       value: `${severeAlerts}`,
-      unit: severeAlerts === 1 ? 'Alert' : 'Alerts',
-      subtext: severeAlerts > 0 ? `${severeAlerts} Active Warnings in effect` : 'Routine: No severe warnings',
-      source: 'IMD Warning Bulletin',
-      obsTime: `Updated ${displayTime}`,
-      status: severeAlerts > 0 ? 'ALERT' : 'NORMAL',
-      statusColor: severeAlerts > 0 ? '#EF4444' : '#00C897',
+      unit: severeAlerts === 1 ? 'Zone' : 'Zones',
+      subtext: severeAlerts > 0 ? `${severeAlerts} elevated baseline regions` : 'Routine baseline conditions',
+      source: 'Threshold Classifier',
+      status: severeAlerts > 0 ? 'WATCH' : 'ROUTINE',
+      statusColor: severeAlerts > 0 ? '#F59E0B' : '#22C7A0',
       tab: 'warnings',
     },
     {
       id: 'status-card-aqi',
-      title: 'AQI',
+      title: 'MEAN REGIONAL AQI',
       value: avgAQI !== null ? `${avgAQI}` : 'N/A',
       unit: avgAQI !== null ? 'AQI' : '',
-      subtext: avgAQI !== null ? 'Mean National Category: Moderate' : 'National aggregation unavailable',
-      source: 'CPCB CAAQMS Network',
-      obsTime: `Updated ${displayTime}`,
-      status: 'OPERATIONAL',
-      statusColor: '#00C897',
+      subtext: avgAQI !== null ? '36-Capital Reference Mean' : 'Aggregation unavailable',
+      source: 'Reference Summary',
+      status: 'REF',
+      statusColor: '#38BDF8',
       tab: 'aqi',
     },
     {
       id: 'status-card-wind',
-      title: 'WIND',
+      title: 'MEAN SURFACE WIND',
       value: avgWind !== null ? `${avgWind}` : 'N/A',
       unit: avgWind !== null ? 'km/h' : '',
-      subtext: maxWind !== null ? `Peak Gusts to ${maxWind} km/h` : 'National aggregation unavailable',
-      source: 'IMD Synoptic Network',
-      obsTime: `Updated ${displayTime}`,
-      status: 'LIVE',
-      statusColor: '#00C897',
+      subtext: maxWind !== null ? `Reference max ${maxWind} km/h` : 'Aggregation unavailable',
+      source: 'Regional Baseline',
+      status: 'REF',
+      statusColor: '#38BDF8',
       tab: 'weather',
     },
     {
       id: 'status-card-humidity',
-      title: 'HUMIDITY',
+      title: 'MEAN HUMIDITY',
       value: avgHumidity !== null ? `${avgHumidity}` : 'N/A',
       unit: avgHumidity !== null ? '% RH' : '',
-      subtext: avgHumidity !== null ? 'Mean relative humidity' : 'National aggregation unavailable',
-      source: 'IMD Surface Observation',
-      obsTime: `Updated ${displayTime}`,
-      status: 'LIVE',
-      statusColor: '#00C897',
+      subtext: avgHumidity !== null ? 'Mean national snapshot RH' : 'Aggregation unavailable',
+      source: 'Regional Baseline',
+      status: 'REF',
+      statusColor: '#38BDF8',
       tab: 'weather',
     },
     {
       id: 'status-card-stations',
-      title: 'STATIONS REPORTING',
+      title: 'CENTRES INDEXED',
       value: `${reportingStations} / ${totalStations}`,
-      unit: 'Stations',
-      subtext: '36 State & UT Central Observatories',
-      source: 'Station Network',
-      obsTime: `Updated ${displayTime}`,
-      status: 'OPERATIONAL',
-      statusColor: '#00C897',
+      unit: 'States & UTs',
+      subtext: 'All-India State & UT Capitals',
+      source: 'Regional Registry',
+      status: 'INDEXED',
+      statusColor: '#22C7A0',
       tab: 'reports',
     },
     {
       id: 'status-card-last-update',
-      title: 'LAST DATA UPDATE',
+      title: 'REFERENCE CYCLE',
       value: displayTime.replace(' IST', ''),
-      unit: 'IST',
-      subtext: 'Synchronized synoptic cycle',
-      source: 'National Data Gateway',
-      obsTime: `Cycle: ${displayTime}`,
-      status: 'VERIFIED',
-      statusColor: '#00C897',
-      tab: 'reports',
+      unit: displayTime.includes('IST') ? 'IST' : '',
+      subtext: 'National baseline reference',
+      source: 'Synoptic Snapshot',
+      status: 'SNAPSHOT',
+      statusColor: '#8EA3B8',
+      tab: 'radar',
     },
   ];
 
   return (
     <section
       id="india-weather-status-panel"
-      className="bg-[#101E2C] border border-[#1E3852] rounded-xl p-4 sm:p-5 shadow-lg"
-      aria-label="National Weather Status"
+      className="bg-[#101B26] border border-white/12 rounded-xl p-4 sm:p-5"
+      aria-label="National Regional Reference Overview"
     >
-      {/* Header bar with Live Status Indicator */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E3852] pb-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#0B3D91] border border-[#1565C0] flex items-center justify-center text-[#18A7E8]">
+          <div className="w-8 h-8 rounded-lg bg-[#162331] border border-white/10 flex items-center justify-center text-[#38BDF8]">
             <Radio className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-[#F5F9FC] tracking-wide uppercase flex items-center gap-2">
-              NATIONAL WEATHER STATUS
+            <h2 className="text-sm font-semibold text-[#F4F7FA] tracking-tight">
+              National Regional Reference Summary
             </h2>
-            <p className="text-xs text-[#B8C7D9]">
-              Real-time synoptic overview across all state meteorological centres
+            <p className="text-xs text-[#8EA3B8]">
+              Aggregated baseline across 36 State &amp; Union Territory capitals (separate from your selected city&apos;s live telemetry)
             </p>
           </div>
         </div>
 
-        {/* Live status badge with real data timestamp */}
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-[#172738] border border-[#1E3852] px-3 py-1.5 rounded-lg text-xs">
-          <span className="w-2 h-2 rounded-full bg-[#00C897] animate-pulse" />
-          <span className="font-bold text-[#00C897] tracking-wider uppercase">SYNCHRONIZED</span>
-          <span className="text-[#1E3852]">•</span>
-          <span className="text-[#B8C7D9] font-mono text-[11px]">
-            Observed: <strong className="text-[#F5F9FC]">{displayTime}</strong>
-          </span>
+        <div className="flex items-center gap-2 self-start sm:self-auto bg-[#162331] border border-white/10 px-3 py-1.5 rounded-lg text-xs">
+          <span className="font-mono text-[#38BDF8] font-semibold uppercase">Reference Snapshot</span>
+          <span className="text-white/20">•</span>
+          <span className="text-[#B6C7D8] font-mono text-[11px] tabular-nums">{displayTime}</span>
         </div>
       </div>
 
-      {/* 4x2 Responsive Metric Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map((card) => (
           <button
@@ -179,50 +163,39 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
             id={card.id}
             type="button"
             onClick={() => onNavigate?.(card.tab)}
-            className="text-left bg-[#172738] hover:bg-[#1C334A] border border-[#1E3852] hover:border-[#18A7E8]/60 rounded-xl p-3.5 transition-all cursor-pointer group flex flex-col justify-between"
+            className="text-left bg-[#162331] hover:bg-[#1B2C3D] border border-white/10 hover:border-[#38BDF8]/40 rounded-xl p-3.5 transition-colors cursor-pointer group flex flex-col justify-between"
           >
-            {/* Top row: Title + Status */}
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-bold tracking-wider text-[#B8C7D9] uppercase">
+              <span className="text-[11px] font-semibold tracking-wider text-[#B6C7D8] uppercase">
                 {card.title}
               </span>
               <span
-                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
+                className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
                 style={{
                   color: card.statusColor,
                   backgroundColor: `${card.statusColor}18`,
                   border: `1px solid ${card.statusColor}33`,
                 }}
               >
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: card.statusColor }}
-                />
                 {card.status}
               </span>
             </div>
 
-            {/* Value and Unit */}
             <div className="my-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-[#F5F9FC] tracking-tight">
+              <div className="flex items-baseline gap-1.5 tabular-nums">
+                <span className="text-2xl sm:text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
                   {card.value}
                 </span>
                 {card.unit && (
-                  <span className="text-xs font-semibold text-[#8EA3B8]">
-                    {card.unit}
-                  </span>
+                  <span className="text-xs font-medium text-[#8EA3B8]">{card.unit}</span>
                 )}
               </div>
-              <p className="text-[11px] text-[#B8C7D9] mt-0.5 truncate">
-                {card.subtext}
-              </p>
+              <p className="text-[11px] text-[#8EA3B8] mt-0.5 truncate">{card.subtext}</p>
             </div>
 
-            {/* Source and Observation Time footer */}
-            <div className="mt-2.5 pt-2 border-t border-[#1E3852]/60 flex items-center justify-between text-[10px] text-[#8EA3B8] font-mono">
+            <div className="mt-2.5 pt-2 border-t border-white/8 flex items-center justify-between text-[10px] text-[#8EA3B8] font-mono">
               <span className="truncate">{card.source}</span>
-              <span className="shrink-0 text-[#18A7E8] group-hover:translate-x-0.5 transition-transform">
+              <span className="shrink-0 text-[#38BDF8] group-hover:translate-x-0.5 transition-transform">
                 →
               </span>
             </div>
@@ -232,3 +205,4 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
     </section>
   );
 };
+

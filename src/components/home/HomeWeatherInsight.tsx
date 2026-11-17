@@ -15,8 +15,13 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
   const currentTemp = typeof weather.temp === 'number' ? Math.round(weather.temp) : 28;
   const humidity = typeof weather.humidity === 'number' ? Math.round(weather.humidity) : 72;
   const rainProb = typeof weather.precipitationProbability === 'number' ? Math.round(weather.precipitationProbability) : 20;
-  const aqi = weather.aqi || 82;
-  const aqiInfo = getAqiMeaning(aqi);
+  const aqi: number | null =
+    typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0
+      ? Math.round(weather.aqi)
+      : null;
+  const aqiInfo = aqi !== null
+    ? getAqiMeaning(aqi)
+    : { category: 'Unavailable', severityColor: '#93A4B8', healthImpact: 'Air quality particulate reading is awaiting upstream sync.' };
 
   // Derive human meaning statements
   const commuteInsight = rainProb >= 60
@@ -25,7 +30,7 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
     ? 'Air conditioning load will be elevated. Guard against high in-cabin heat buildup.'
     : 'Road surfaces clear and visibility optimal for normal urban movement.';
 
-  const fitnessInsight = aqi > 150
+  const fitnessInsight = aqi !== null && aqi > 150
     ? 'Air pollution levels unfavorable for heavy cardio. Prefer indoor exercise with filtration.'
     : rainProb >= 70
     ? 'Intermittent showers will disrupt outdoor sessions. Best window is during early morning dry breaks.'
@@ -37,7 +42,7 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
     ? 'High moisture may aggravate joint stiffness and allergen mold count. Keep living spaces well ventilated.'
     : 'Atmospheric pressure and humidity in healthy equilibrium.');
 
-  const solarInsight = (weather.uvIndex || 5.4) >= 7
+  const solarInsight = (weather.uvIndex || 0) >= 7
     ? 'High UV radiation index. Sunscreen (SPF 30+) and eye protection advised between 11:00 AM and 3:00 PM.'
     : 'Moderate solar intensity. Standard sun awareness is adequate for short exposure.';
 
@@ -100,8 +105,8 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
           <p className="text-xs text-[#D1DCE8] leading-relaxed">
             {healthInsight}
           </p>
-          <span className="text-[10px] text-[#93A4B8] pt-2 border-t border-[#162331]">
-            AQI {aqi} • {aqiInfo.category}
+          <span className="text-[10px] text-[#93A4B8] pt-2 border-t border-[#162331] tabular-nums">
+            {aqi !== null ? `AQI ${aqi} • ${aqiInfo.category}` : 'AQI Unavailable'}
           </span>
         </div>
 

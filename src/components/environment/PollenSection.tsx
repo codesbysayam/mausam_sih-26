@@ -8,11 +8,22 @@ interface PollenSectionProps {
 }
 
 export const PollenSection: React.FC<PollenSectionProps> = ({ weather }) => {
-  const pollenCount = weather.pollenCount || 2;
+  const hasPollen = typeof weather.pollenCount === 'number' && !Number.isNaN(weather.pollenCount) && weather.pollenCount > 0;
+  const pollenCount = hasPollen ? weather.pollenCount! : 0;
   const [selectedAllergen, setSelectedAllergen] = useState<number>(0);
 
   // Map pollen index (1-5) to clinical health advisory
-  const getPollenAdvisory = (level: number) => {
+  const getPollenAdvisory = (level: number, available: boolean) => {
+    if (!available) {
+      return {
+        rating: 'Unavailable',
+        color: '#93A4B8',
+        badgeVariant: 'info' as const,
+        description: 'Bio-pollen spore telemetry is currently awaiting upstream observation.',
+        healthAdvice: 'Monitor local surface wind and humidity conditions before prolonged outdoor exertion.',
+        sensitiveGroups: 'Follow routine seasonal allergy prophylaxis if sensitive to airborne dust.',
+      };
+    }
     if (level <= 1) {
       return {
         rating: 'Very Low',
@@ -61,63 +72,63 @@ export const PollenSection: React.FC<PollenSectionProps> = ({ weather }) => {
     }
   };
 
-  const currentAdvisory = getPollenAdvisory(pollenCount);
+  const currentAdvisory = getPollenAdvisory(pollenCount, hasPollen);
 
   const pollenTypes = [
     {
       name: 'Grass Pollen (Poaceae)',
-      level: pollenCount > 3 ? 'High' : 'Moderate',
-      variant: pollenCount > 3 ? ('alert' as const) : ('warning' as const),
+      level: !hasPollen ? 'N/A' : pollenCount > 3 ? 'High' : 'Moderate',
+      variant: !hasPollen ? ('info' as const) : pollenCount > 3 ? ('alert' as const) : ('warning' as const),
       species: 'Cynodon dactylon, Poaceae species',
       peakHours: '06:00 AM – 10:00 AM',
-      grainCount: `${(pollenCount * 18 + 12)} grains/m³`,
+      grainCount: hasPollen ? `${(pollenCount * 18 + 12)} grains/m³` : 'Unavailable',
       reactivity: 'High allergenicity; prominent cause of hay fever',
     },
     {
       name: 'Tree Pollen (Arboreal)',
-      level: 'Low',
-      variant: 'good' as const,
+      level: !hasPollen ? 'N/A' : 'Low',
+      variant: !hasPollen ? ('info' as const) : ('good' as const),
       species: 'Neem (Azadirachta), Acacia, Eucalyptus',
       peakHours: '11:00 AM – 03:00 PM',
-      grainCount: '8 grains/m³',
+      grainCount: hasPollen ? '8 grains/m³' : 'Unavailable',
       reactivity: 'Mild cross-reactive oral allergy potential',
     },
     {
       name: 'Weed Pollen (Asteraceae)',
-      level: pollenCount > 2 ? 'Moderate' : 'Low',
-      variant: pollenCount > 2 ? ('warning' as const) : ('good' as const),
+      level: !hasPollen ? 'N/A' : pollenCount > 2 ? 'Moderate' : 'Low',
+      variant: !hasPollen ? ('info' as const) : pollenCount > 2 ? ('warning' as const) : ('good' as const),
       species: 'Parthenium hysterophorus (Congress grass), Amaranthus',
       peakHours: '08:00 AM – 12:00 PM',
-      grainCount: `${(pollenCount * 14 + 5)} grains/m³`,
+      grainCount: hasPollen ? `${(pollenCount * 14 + 5)} grains/m³` : 'Unavailable',
       reactivity: 'Contact dermatitis and allergic rhinitis trigger',
     },
     {
       name: 'Mold & Fungal Spores',
-      level: weather.humidity > 75 ? 'Moderate' : 'Low',
-      variant: weather.humidity > 75 ? ('warning' as const) : ('good' as const),
+      level: typeof weather.humidity !== 'number' ? 'N/A' : weather.humidity > 75 ? 'Moderate' : 'Low',
+      variant: typeof weather.humidity !== 'number' ? ('info' as const) : weather.humidity > 75 ? ('warning' as const) : ('good' as const),
       species: 'Alternaria, Cladosporium, Aspergillus',
       peakHours: 'Evening & Night humid periods',
-      grainCount: weather.humidity > 75 ? '65 spores/m³' : '22 spores/m³',
+      grainCount: typeof weather.humidity !== 'number' ? 'Unavailable' : weather.humidity > 75 ? '65 spores/m³' : '22 spores/m³',
       reactivity: 'Associated with nocturnal coughing and childhood wheezing',
     },
   ];
 
   return (
-    <div className="mausam-card flex flex-col gap-4">
+    <div className="bg-[#101B26] border border-white/12 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
       <SectionHeader
-        title="Aero-Allergen &amp; Bio-Pollen Surveillance"
-        subtitle="Botanical dispersion and bio-aerosol tracking for respiratory allergy mitigation and clinical advisory"
+        title="Aero-Allergen & Bio-Pollen Surveillance"
+        subtitle="Botanical dispersion and bio-aerosol tracking for respiratory allergy mitigation"
         icon="grain"
       />
 
       {/* Main Pollen Concentration Indicator & Health Advisory Card */}
       <div
         id="pollen-concentration-indicator"
-        className="bg-[#17212B] border border-[#334155] rounded-lg p-4 flex flex-col md:flex-row gap-4 items-stretch"
+        className="bg-[#162331] border border-white/10 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-stretch"
       >
         {/* Gauge / Level Display */}
-        <div className="w-full md:w-56 shrink-0 bg-[#0F141A] p-4 rounded-md border border-[#334155] flex flex-col justify-between items-center text-center">
-          <span className="text-[11px] uppercase tracking-wider font-bold text-[#8A94A6]">
+        <div className="w-full md:w-56 shrink-0 bg-[#0B1219] p-4 rounded-xl border border-white/10 flex flex-col justify-between items-center text-center tabular-nums">
+          <span className="text-[11px] uppercase tracking-wider font-bold text-[#93A4B8]">
             Pollen Index Level
           </span>
 
@@ -129,8 +140,10 @@ export const PollenSection: React.FC<PollenSectionProps> = ({ weather }) => {
                 boxShadow: `0 0 15px ${currentAdvisory.color}33`,
               }}
             >
-              <span className="font-mono text-3xl font-black text-white">{pollenCount}</span>
-              <span className="text-[10px] text-[#8A94A6] -mt-1">of 5 max</span>
+              <span className="font-mono text-3xl font-black text-[#F4F7FA]">
+                {hasPollen ? pollenCount : '—'}
+              </span>
+              <span className="text-[10px] text-[#93A4B8] -mt-1">of 5 max</span>
             </div>
           </div>
 

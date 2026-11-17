@@ -20,6 +20,8 @@ import { buildHumanWeatherStory } from '../services/humanWeatherEngine';
 import { LocatingPhase, GeolocationServiceError, NearestStationResult } from '../services/geolocationService';
 import { LocationStatusBar } from '../components/location/LocationStatusBar';
 import { PrintReportHeader } from '../components/common/PrintReportHeader';
+import { useProvider } from '../store/providerStore';
+import { getProviderStatusVisual } from '../services/providers/providerStatus';
 import {
   Activity,
   Radio,
@@ -64,6 +66,9 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
 }) => {
   const { t } = useLanguage();
   const { current, hourly = [], daily = [], alerts = [], lastFetchedAt, isLive = true } = weatherBundle;
+  const { state: radarProvider } = useProvider('RADAR');
+  const { state: aqiProvider } = useProvider<any>('AQI');
+  const radarBadge = getProviderStatusVisual(radarProvider.status);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const formattedLastUpdated = new Intl.DateTimeFormat('en-IN', {
@@ -87,10 +92,19 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
     return buildHumanWeatherStory(current, hourly, daily, alerts, 'general');
   }, [current, hourly, daily, alerts]);
 
-  // AQI calculations
-  const aqiVal = current.aqi || 82;
+  // Authentic AQI calculation from AQI provider or current bundle (no fabricated 82 fallback)
+  const rawAqi =
+    typeof aqiProvider.data?.aqi === 'number'
+      ? aqiProvider.data.aqi
+      : typeof current.aqi === 'number' && !Number.isNaN(current.aqi)
+      ? current.aqi
+      : null;
+
+  const aqiVal = rawAqi;
   const aqiCategory =
-    aqiVal <= 50
+    aqiVal === null
+      ? 'Unavailable'
+      : aqiVal <= 50
       ? 'Good'
       : aqiVal <= 100
       ? 'Satisfactory'
@@ -103,7 +117,9 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
       : 'Severe';
 
   const aqiBadgeColor =
-    aqiVal <= 50
+    aqiVal === null
+      ? 'bg-slate-500/15 text-slate-300 border-slate-500/40'
+      : aqiVal <= 50
       ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/40'
       : aqiVal <= 100
       ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/40'
@@ -111,7 +127,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
       ? 'bg-[#FFC857]/15 text-[#FFC857] border-[#FFC857]/40'
       : aqiVal <= 300
       ? 'bg-[#FF9F43]/15 text-[#FF9F43] border-[#FF9F43]/40'
-      : 'bg-[#EF5350]/15 text-[#EF5350] border-[#EF5350]/40';
+      : 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40';
 
   return (
     <div id="weather-comprehensive-view-container" className="flex flex-col gap-6 w-full pb-12">
@@ -234,8 +250,8 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                     Doppler Radar Link
                   </h3>
                 </div>
-                <span className="text-[10px] font-mono text-[#22C7A0] bg-[#22C7A0]/10 px-2 py-0.5 rounded-full border border-[#22C7A0]/30">
-                  ONLINE
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${radarBadge.textClass} ${radarBadge.bgClass} ${radarBadge.borderClass}`}>
+                  {radarBadge.label}
                 </span>
               </div>
 
@@ -352,71 +368,85 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                 {aqiCategory}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1">
-              <span className="text-3xl font-bold text-[#F4F7FA] tracking-tight">{aqiVal}</span>
-              <span className="text-xs text-[#93A4B8]">NAQI Index</span>
+            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
+              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
+                {aqiVal !== null ? aqiVal : '—'}
+              </span>
+              <span className="text-xs text-[#8EA3B8]">
+                {aqiVal !== null ? 'NAQI Index' : 'Unavailable'}
+              </span>
             </div>
-            <span className="text-[11px] text-[#93A4B8]">
-              Dominant: PM2.5 (Fine Respirable)
+            <span className="text-[11px] text-[#8EA3B8]">
+              {aqiVal !== null ? 'Open-Meteo Air Quality Feed' : 'AQI feed currently unavailable'}
             </span>
           </div>
 
           {/* Particulate Matter PM2.5 & PM10 */}
           <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
-            <span className="text-[11px] text-[#93A4B8] uppercase font-bold">Particulate Concentrations</span>
-            <div className="grid grid-cols-2 gap-2 my-1">
-              <div className="bg-[#111C27] p-2 rounded-lg border border-[#162331]">
-                <span className="text-[10px] text-[#93A4B8] block">PM2.5</span>
-                <span className="text-base font-bold text-[#F4F7FA]">
-                  {current.aqiPm25 || 42}{' '}
-                  <span className="text-[10px] text-[#93A4B8] font-normal">µg/m³</span>
+            <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Particulate Concentrations</span>
+            <div className="grid grid-cols-2 gap-2 my-1 tabular-nums">
+              <div className="bg-[#111C27] p-2 rounded-lg border border-white/10">
+                <span className="text-[10px] text-[#8EA3B8] block">PM2.5</span>
+                <span className="text-base font-mono font-bold text-[#F4F7FA]">
+                  {typeof (aqiProvider.data?.pm25 ?? current.aqiPm25) === 'number'
+                    ? `${aqiProvider.data?.pm25 ?? current.aqiPm25} `
+                    : '— '}
+                  <span className="text-[10px] text-[#8EA3B8] font-normal">µg/m³</span>
                 </span>
               </div>
-              <div className="bg-[#111C27] p-2 rounded-lg border border-[#162331]">
-                <span className="text-[10px] text-[#93A4B8] block">PM10</span>
-                <span className="text-base font-bold text-[#F4F7FA]">
-                  {current.aqiPm10 || 78}{' '}
-                  <span className="text-[10px] text-[#93A4B8] font-normal">µg/m³</span>
+              <div className="bg-[#111C27] p-2 rounded-lg border border-white/10">
+                <span className="text-[10px] text-[#8EA3B8] block">PM10</span>
+                <span className="text-base font-mono font-bold text-[#F4F7FA]">
+                  {typeof (aqiProvider.data?.pm10 ?? current.aqiPm10) === 'number'
+                    ? `${aqiProvider.data?.pm10 ?? current.aqiPm10} `
+                    : '— '}
+                  <span className="text-[10px] text-[#8EA3B8] font-normal">µg/m³</span>
                 </span>
               </div>
             </div>
-            <span className="text-[10px] text-[#22C7A0]">Within CPCB 24h Standards</span>
+            <span className="text-[10px] text-[#8EA3B8]">CPCB / Open-Meteo Particulates</span>
           </div>
 
           {/* Pollen */}
           <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-[#93A4B8] uppercase font-bold">Aero-Allergen Pollen</span>
+              <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Aero-Allergen Pollen</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#22C7A0]/15 text-[#22C7A0] border border-[#22C7A0]/40">
-                {current.pollen || 'Low-Mod'}
+                {current.pollen || 'N/A'}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1">
-              <span className="text-3xl font-bold text-[#F4F7FA] tracking-tight">
-                {current.pollenCount || 34}
+            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
+              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
+                {typeof current.pollenCount === 'number' ? current.pollenCount : '—'}
               </span>
-              <span className="text-xs text-[#93A4B8]">grains / m³</span>
+              <span className="text-xs text-[#8EA3B8]">grains / m³</span>
             </div>
-            <span className="text-[11px] text-[#93A4B8]">
-              Tree: {current.treePollen || 14} • Grass: {current.grassPollen || 12}
+            <span className="text-[11px] text-[#8EA3B8] font-mono tabular-nums">
+              Tree: {current.treePollen ?? '—'} • Grass: {current.grassPollen ?? '—'}
             </span>
           </div>
 
           {/* UV Radiation */}
           <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-[#93A4B8] uppercase font-bold">Solar UV Index</span>
+              <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Solar UV Index</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC857]/15 text-[#FFC857] border border-[#FFC857]/40">
-                {current.uvIndex >= 8 ? 'Very High' : current.uvIndex >= 6 ? 'High' : 'Moderate'}
+                {typeof current.uvIndex === 'number'
+                  ? current.uvIndex >= 8
+                    ? 'Very High'
+                    : current.uvIndex >= 6
+                    ? 'High'
+                    : 'Moderate'
+                  : 'N/A'}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1">
-              <span className="text-3xl font-bold text-[#F4F7FA] tracking-tight">
-                {current.uvIndex || 5.8}
+            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
+              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
+                {typeof current.uvIndex === 'number' ? current.uvIndex : '—'}
               </span>
-              <span className="text-xs text-[#93A4B8]">/ 11+ Index</span>
+              <span className="text-xs text-[#8EA3B8]">/ 11+ Index</span>
             </div>
-            <span className="text-[11px] text-[#93A4B8]">
+            <span className="text-[11px] text-[#8EA3B8]">
               Sun protection recommended around solar noon
             </span>
           </div>

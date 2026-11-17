@@ -52,48 +52,60 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
 
   // Dynamically generate a live district bulletin customized for the current selected location
   const dynamicDistrictBulletin: MeteorologicalPublication = useMemo(() => {
-    const temp = weatherBundle?.current?.temp ?? 28;
-    const humidity = weatherBundle?.current?.humidity ?? 78;
-    const condition = weatherBundle?.current?.condition ?? 'Partly Cloudy with Humid Atmospheric Flow';
-    const pressure = weatherBundle?.current?.pressure ?? 1008;
-    const windSpeed = weatherBundle?.current?.windSpeed ?? 14;
+    const cur = weatherBundle?.current;
+    const temp = typeof cur?.temp === 'number' && !Number.isNaN(cur.temp) ? `${cur.temp}°C` : 'Unavailable';
+    const humidity = typeof cur?.humidity === 'number' && !Number.isNaN(cur.humidity) ? `${cur.humidity}%` : 'Unavailable';
+    const condition = cur?.condition || 'Telemetry pending';
+    const pressure = typeof cur?.pressure === 'number' && !Number.isNaN(cur.pressure) ? `${cur.pressure} hPa` : 'Unavailable';
+    const windSpeed = typeof cur?.windSpeed === 'number' && !Number.isNaN(cur.windSpeed) ? `${cur.windSpeed} km/h` : 'Unavailable';
+    const sourceLabel = cur?.dataSource || 'Open-Meteo';
+
+    const refDate = weatherBundle?.lastFetchedAt ? new Date(weatherBundle.lastFetchedAt) : new Date();
+    const safeDate = Number.isNaN(refDate.getTime()) ? new Date() : refDate;
+    const formattedDate = safeDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'Asia/Kolkata',
+    });
+    const isoDate = safeDate.toISOString().slice(0, 10);
 
     return {
       id: `district-bulletin-${selectedLocation.id || 'live'}`,
       title: `District Meteorological Bulletin — ${selectedLocation.city}, ${selectedLocation.state}`,
       category: 'Sub-Divisional Report',
       type: 'PDF Bulletin',
-      date: '31 August 2026',
+      date: formattedDate,
       size: '1.1 MB',
-      issuingAuthority: `Regional Meteorological Centre (${selectedLocation.state})`,
-      documentNumber: `IMD-RMC-${selectedLocation.state.slice(0, 3).toUpperCase()}-${new Date().toISOString().slice(0, 10)}`,
-      author: 'State Meteorological & Aviation Services Division',
-      abstract: `Official sub-divisional observation and automated telemetry report for ${selectedLocation.city} (${selectedLocation.state}). Includes real-time AWS readings, boundary layer thermodynamics, convective index calculation, and 7-day numerical weather prediction guidance.`,
-      keywords: [selectedLocation.city, selectedLocation.state, 'AWS Telemetry', 'Surface Observation', 'Local Nowcast', 'Monsoon'],
-      synopticSummary: `Current synoptic observations at ${selectedLocation.city} station indicate surface temperature of ${temp}°C with relative humidity at ${humidity}% and mean sea-level pressure of ${pressure} hPa. Prevailing surface winds are ${windSpeed} km/h with general sky condition characterized as ${condition}.`,
+      issuingAuthority: `MAUSAM Regional Synthesis (${sourceLabel})`,
+      documentNumber: `MAUSAM-RMC-${selectedLocation.state.slice(0, 3).toUpperCase()}-${isoDate}`,
+      author: 'State Meteorological & Surface Synthesis Division',
+      abstract: `Location-specific meteorological summary and telemetry report for ${selectedLocation.city} (${selectedLocation.state}) derived from ${sourceLabel} point observations and 7-day numerical forecast guidance.`,
+      keywords: [selectedLocation.city, selectedLocation.state, 'Surface Telemetry', 'Local Nowcast', sourceLabel],
+      synopticSummary: `Latest readings for ${selectedLocation.city} (${sourceLabel}) indicate surface temperature of ${temp}, relative humidity at ${humidity}, mean sea-level pressure of ${pressure}, and surface wind at ${windSpeed} (${condition}).`,
       recommendations: [
-        `Public and district administration in ${selectedLocation.city} should monitor localized radar nowcast updates for convective thunder cell passage.`,
+        `Public and district authorities in ${selectedLocation.city} should monitor localized radar nowcasts during convective periods.`,
         'Agricultural workers in adjoining taluks should adjust field irrigation in accordance with 3-day precipitation probabilities.',
-        'Transport and municipal authorities should keep drainage pathways free of debris during convective downpours.'
+        'Transport and municipal authorities should keep drainage pathways clear during heavy rainfall periods.'
       ],
       sections: [
         {
-          title: `1. Live Surface Telemetry at ${selectedLocation.city} Observatory`,
-          content: `Real-time sensor values recorded at the primary Automatic Weather Station (Station ID: ${selectedLocation.stationId || '42971'}):`,
+          title: `1. Surface Telemetry at ${selectedLocation.city}`,
+          content: `Sensor and point model values for ${selectedLocation.city} (Source: ${sourceLabel}${selectedLocation.stationId ? `, Station ID: ${selectedLocation.stationId}` : ''}):`,
           tableData: {
-            headers: ['Atmospheric Metric', 'Observed Value', 'Historical Normal', 'Status'],
+            headers: ['Atmospheric Metric', 'Current Reading', 'Unit / Reference', 'Status'],
             rows: [
-              ['Surface Temperature', `${temp} °C`, '29.5 °C', 'Within Normal Range'],
-              ['Relative Humidity', `${humidity} %`, '72 %', 'Moist / Convective'],
-              ['Atmospheric Pressure', `${pressure} hPa`, '1009.2 hPa', 'Normal MSLP'],
-              ['Wind Velocity', `${windSpeed} km/h`, '12 km/h', 'Gentle Breeze'],
-              ['General Condition', condition, 'Seasonal Normal', 'Observed']
+              ['Surface Temperature', temp, '°C (2m Air)', cur?.temp !== undefined ? 'Observed / Modelled' : 'Unavailable'],
+              ['Relative Humidity', humidity, '% RH', cur?.humidity !== undefined ? 'Observed / Modelled' : 'Unavailable'],
+              ['Atmospheric Pressure', pressure, 'hPa (MSLP)', cur?.pressure !== undefined ? 'Normal Range' : 'Unavailable'],
+              ['Wind Velocity', windSpeed, 'km/h (10m)', cur?.windSpeed !== undefined ? 'Surface Flow' : 'Unavailable'],
+              ['General Condition', condition, 'Sky State', cur?.condition ? 'Current' : 'Pending']
             ]
           }
         },
         {
           title: '2. Sub-Divisional Quantitative Precipitation & Alert Status',
-          content: `Evaluation of regional convective potential index and 72-hour quantitative precipitation forecast (QPF) across ${selectedLocation.district || selectedLocation.city} district.`
+          content: `Evaluation of regional convective potential and 72-hour precipitation guidance across ${selectedLocation.district || selectedLocation.city} district.`
         }
       ]
     };

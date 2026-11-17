@@ -4,14 +4,16 @@ import { Sparkles, GripVertical } from 'lucide-react';
 interface DraggableAskMausamButtonProps {
   onClick: () => void;
   isVisible: boolean;
+  bottomOffsetPx?: number;
 }
 
-const PADDING = 24;
+const PADDING = 20;
 const DRAG_THRESHOLD = 6; // px moved to distinguish drag from click
 
 export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> = ({
   onClick,
   isVisible,
+  bottomOffsetPx = 20,
 }) => {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
@@ -203,23 +205,23 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
     setPosition(null);
   };
 
-  // By default, sits strictly fixed at bottom: max(20px, env(safe-area-inset-bottom)), right: max(20px, env(safe-area-inset-right))
+  // By default, sits cleanly at bottom-right with safe-area and timeline clearance
   const currentStyle: React.CSSProperties = {
     position: 'fixed',
-    right: position ? 'auto' : 'max(20px, env(safe-area-inset-right, 20px))',
-    bottom: position ? 'auto' : 'max(20px, env(safe-area-inset-bottom, 20px))',
+    right: position ? 'auto' : 'max(16px, env(safe-area-inset-right, 16px))',
+    bottom: position ? 'auto' : `max(${bottomOffsetPx}px, env(safe-area-inset-bottom, ${bottomOffsetPx}px))`,
     left: position ? `${position.x}px` : undefined,
     top: position ? `${position.y}px` : undefined,
     touchAction: 'none',
     userSelect: 'none',
     WebkitUserSelect: 'none',
-    zIndex: 50,
+    zIndex: 45,
     willChange: isDragging || isSnapping ? 'left, top' : 'auto',
     transition: isSnapping
-      ? 'left 0.42s cubic-bezier(0.16, 1, 0.3, 1), top 0.42s cubic-bezier(0.16, 1, 0.3, 1)'
+      ? 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
       : isDragging
       ? 'none'
-      : 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
+      : 'left 0.25s cubic-bezier(0.16, 1, 0.3, 1), top 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
   };
 
   return (
@@ -239,13 +241,13 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
           setIsSnapping(false);
         }
       }}
-      className={`mausam-draggable-ask-button z-50 select-none group transition-opacity duration-200 ${
+      className={`mausam-draggable-ask-button z-45 select-none group transition-opacity duration-200 ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       role="button"
       tabIndex={0}
-      aria-label="Ask MAUSAM AI Weather & Advisory"
-      title="Ask MAUSAM (Fixed at bottom-right • Double-click to reset)"
+      aria-label="Ask MAUSAM Weather & Advisory"
+      title="Ask MAUSAM (Double-click to reset position)"
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -254,14 +256,14 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
       }}
     >
       <div
-        className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-full bg-[#0B72B9] hover:bg-[#095991] active:bg-[#074773] text-white border border-[#38BDF8] shadow-2xl transition-all select-none ${
+        className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-full bg-[#101B26]/95 hover:bg-[#162331] text-[#F4F7FA] border border-[#38BDF8]/40 shadow-xl backdrop-blur-md transition-all select-none min-h-[40px] ${
           isDragging
-            ? 'scale-105 shadow-[0_12px_32px_rgba(11,114,185,0.65)] ring-2 ring-[#38BDF8] cursor-grabbing'
-            : 'cursor-grab hover:shadow-[0_8px_24px_rgba(11,114,185,0.45)]'
+            ? 'scale-105 ring-2 ring-[#38BDF8] cursor-grabbing'
+            : 'cursor-grab'
         }`}
       >
         <span
-          className="text-[#93C5FD] opacity-70 group-hover:opacity-100 transition-opacity hidden sm:flex items-center"
+          className="text-[#8EA3B8] group-hover:text-[#B6C7D8] transition-colors hidden sm:flex items-center"
           title="Drag to adjust position"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
@@ -269,23 +271,17 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
 
         <Sparkles className="w-4 h-4 text-[#38BDF8] shrink-0" aria-hidden="true" />
 
-        {/* Compact on mobile, full pill on desktop */}
-        <span className="font-bold tracking-wide text-[11px] sm:text-xs whitespace-nowrap hidden sm:inline">
+        <span className="font-semibold tracking-wide text-xs whitespace-nowrap hidden sm:inline">
           Ask MAUSAM
         </span>
-        <span className="font-bold tracking-wide text-[10px] whitespace-nowrap sm:hidden">
+        <span className="font-semibold tracking-wide text-[11px] whitespace-nowrap sm:hidden">
           Ask
-        </span>
-
-        <span className="relative flex h-2 w-2 shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2ECC71] opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2ECC71]" />
         </span>
       </div>
 
       {isHovered && !isDragging && (
         <div
-          className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[#0D1E33] border border-[#1E3A5F] text-[10px] text-[#93C5FD] whitespace-nowrap shadow pointer-events-none transition-all"
+          className="hidden sm:block absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[#101B26] border border-white/15 text-[10px] text-[#B6C7D8] whitespace-nowrap shadow pointer-events-none"
           aria-hidden="true"
         >
           Ask MAUSAM

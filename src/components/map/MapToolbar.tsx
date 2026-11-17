@@ -12,6 +12,7 @@ export interface MapToolbarProps {
   isLocked?: boolean;
   onToggleLock?: () => void;
   sectorName?: string;
+  hideMetricSelector?: boolean;
 }
 
 const METRICS: { id: WeatherMapMetric; label: string; icon: string }[] = [
@@ -34,39 +35,50 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
   isLocked = false,
   onToggleLock,
   sectorName,
+  hideMetricSelector = false,
 }) => {
   return (
-    <div className="bg-[#0B263D] border border-[#1D5278] rounded-t-lg px-3 py-2 flex items-center justify-between gap-3 text-xs overflow-x-auto no-scrollbar">
-      {/* Left: Layer Selector Buttons */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-[11px] font-bold text-[#AFC4D8] uppercase tracking-wider mr-1 hidden sm:inline">
-          Layer:
-        </span>
-        <div className="flex items-center gap-1 bg-[#102D44] p-0.5 rounded border border-[#1D5278]">
-          {METRICS.map((m) => {
-            const isActive = activeMetric === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => onSelectMetric(m.id)}
-                className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#1565C0] text-white shadow-sm'
-                    : 'text-[#AFC4D8] hover:text-white'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[14px]">{m.icon}</span>
-                <span>{m.label}</span>
-              </button>
-            );
-          })}
+    <div className="bg-[#101B26] border border-white/12 rounded-t-xl px-3 py-2 flex items-center justify-between gap-2.5 text-xs overflow-x-auto no-scrollbar">
+      {/* Left: Layer Selector Buttons (or active sector summary when rail is visible) */}
+      {!hideMetricSelector ? (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[11px] font-semibold text-[#8EA3B8] uppercase tracking-wider mr-1 hidden sm:inline">
+            Layer:
+          </span>
+          <div className="flex items-center gap-1 bg-[#162331] p-0.5 rounded-lg border border-white/10">
+            {METRICS.map((m) => {
+              const isActive = activeMetric === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onSelectMetric(m.id)}
+                  className={`min-h-[34px] px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#1499E8] text-white font-semibold'
+                      : 'text-[#B6C7D8] hover:text-white'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[14px]">{m.icon}</span>
+                  <span>{m.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-[#8EA3B8] shrink-0">
+            Sector
+          </span>
+          <span className="text-xs font-semibold text-[#F4F7FA] truncate">
+            {sectorName || 'India Meteorological Sector'}
+          </span>
+        </div>
+      )}
 
       {/* Center/Right: Map Controls & Sector Lock */}
       <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-        {/* Visual Lock/Unlock Toggle Control */}
         <button
           type="button"
           id="btn-radar-map-lock"
@@ -75,37 +87,35 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           aria-pressed={isLocked}
           title={
             isLocked
-              ? `Map locked to ${sectorName || 'current weather sector'}. Accidental pan/zoom prevented. Click to unlock.`
+              ? `Map locked to ${sectorName || 'current weather sector'}. Click to unlock.`
               : 'Lock view to current weather sector (prevents accidental panning & zooming)'
           }
-          className={`px-2.5 h-7 flex items-center gap-1.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+          className={`min-h-[34px] px-2.5 flex items-center gap-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
             isLocked
-              ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/70 shadow-sm ring-1 ring-[#F59E0B]/40'
-              : 'bg-[#102D44] text-[#AFC4D8] hover:text-white hover:bg-[#1D5278] border border-[#1D5278]'
+              ? 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/60'
+              : 'bg-[#162331] text-[#B6C7D8] hover:text-white hover:bg-[#1B2C3D] border border-white/10'
           }`}
         >
           <span className="material-symbols-outlined text-[15px]">
             {isLocked ? 'lock' : 'lock_open'}
           </span>
           <span className="font-mono uppercase tracking-wider text-[10px]">
-            {isLocked ? 'Sector Locked' : 'Lock View'}
+            {isLocked ? 'Locked' : 'Lock View'}
           </span>
-          {isLocked && (
-            <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
-          )}
         </button>
 
-        <div className="h-4 w-px bg-[#1D5278] mx-0.5 hidden sm:block" />
+        <div className="h-4 w-px bg-white/10 mx-0.5 hidden sm:block" />
 
         <button
           type="button"
           onClick={isLocked ? undefined : onZoomIn}
           disabled={isLocked}
+          aria-label="Zoom in"
           title={isLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom In'}
-          className={`w-7 h-7 flex items-center justify-center rounded border transition-colors ${
+          className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
             isLocked
-              ? 'bg-[#102D44]/50 text-[#8A94A6]/50 border-[#1D5278]/40 cursor-not-allowed'
-              : 'bg-[#102D44] text-[#AFC4D8] hover:text-white border-[#1D5278] cursor-pointer'
+              ? 'bg-[#162331]/50 text-[#8EA3B8]/40 border-white/5 cursor-not-allowed'
+              : 'bg-[#162331] text-[#B6C7D8] hover:text-white border-white/10 cursor-pointer'
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">add</span>
@@ -115,11 +125,12 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           type="button"
           onClick={isLocked ? undefined : onZoomOut}
           disabled={isLocked}
+          aria-label="Zoom out"
           title={isLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom Out'}
-          className={`w-7 h-7 flex items-center justify-center rounded border transition-colors ${
+          className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
             isLocked
-              ? 'bg-[#102D44]/50 text-[#8A94A6]/50 border-[#1D5278]/40 cursor-not-allowed'
-              : 'bg-[#102D44] text-[#AFC4D8] hover:text-white border-[#1D5278] cursor-pointer'
+              ? 'bg-[#162331]/50 text-[#8EA3B8]/40 border-white/5 cursor-not-allowed'
+              : 'bg-[#162331] text-[#B6C7D8] hover:text-white border-white/10 cursor-pointer'
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">remove</span>
@@ -130,14 +141,14 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           onClick={isLocked ? undefined : onResetView}
           disabled={isLocked}
           title={isLocked ? 'Map is locked to sector. Unlock to reset view.' : 'Reset Map to All India View'}
-          className={`px-2 h-7 flex items-center gap-1 rounded border text-[11px] font-semibold transition-colors ${
+          className={`min-h-[34px] px-2.5 flex items-center gap-1 rounded-lg border text-[11px] font-medium transition-colors ${
             isLocked
-              ? 'bg-[#102D44]/50 text-[#8A94A6]/50 border-[#1D5278]/40 cursor-not-allowed'
-              : 'bg-[#102D44] text-[#AFC4D8] hover:text-white border-[#1D5278] cursor-pointer'
+              ? 'bg-[#162331]/50 text-[#8EA3B8]/40 border-white/5 cursor-not-allowed'
+              : 'bg-[#162331] text-[#B6C7D8] hover:text-white border-white/10 cursor-pointer'
           }`}
         >
           <span className="material-symbols-outlined text-[14px]">restart_alt</span>
-          <span className="hidden md:inline">Reset View</span>
+          <span className="hidden md:inline">Reset</span>
         </button>
 
         {hasUserLocation && (
@@ -146,10 +157,10 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
             onClick={isLocked ? undefined : onMyLocation}
             disabled={isLocked}
             title={isLocked ? 'Map is locked to sector. Unlock to pan to location.' : 'Pan to My Detected Coordinates'}
-            className={`px-2 h-7 flex items-center gap-1 rounded border text-[11px] font-semibold transition-colors ${
+            className={`min-h-[34px] px-2.5 flex items-center gap-1 rounded-lg border text-[11px] font-medium transition-colors ${
               isLocked
-                ? 'bg-[#1565C0]/10 text-[#38BDF8]/40 border-[#1565C0]/20 cursor-not-allowed'
-                : 'bg-[#1565C0]/20 text-[#38BDF8] hover:bg-[#1565C0] hover:text-white border-[#1565C0]/40 cursor-pointer'
+                ? 'bg-[#1499E8]/10 text-[#38BDF8]/40 border-[#1499E8]/20 cursor-not-allowed'
+                : 'bg-[#1499E8]/15 text-[#38BDF8] hover:bg-[#1499E8] hover:text-white border-[#1499E8]/40 cursor-pointer'
             }`}
           >
             <span className="material-symbols-outlined text-[14px]">my_location</span>
@@ -162,3 +173,4 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
 };
 
 export default MapToolbar;
+

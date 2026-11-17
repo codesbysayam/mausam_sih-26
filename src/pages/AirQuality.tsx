@@ -13,6 +13,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { SectionHeader } from '../components/common/SectionHeader';
 import DateCalendar from '../components/DateCalendar';
 import { formatDateShort, formatDateISO, parseDateSafe } from '../utils/dateUtils';
+import { useProvider } from '../store/providerStore';
 import {
   Activity,
   Flower2,
@@ -169,6 +170,8 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
   onOpenLocationCenter,
 }) => {
   const { current } = weatherBundle;
+  const { state: aqiState } = useProvider<any>('AQI');
+  const aqiData = aqiState.data;
 
   // 1. Single Source of Truth for observation baseline date
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -359,26 +362,31 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     URL.revokeObjectURL(url);
   }, [historicalData, activeStateRecord, selectedDate]);
 
-  const activeAqi =
+  const activeAqi: number | null =
     typeof current.aqi === 'number' && !Number.isNaN(current.aqi) && current.aqi > 0
-      ? current.aqi
+      ? Math.round(current.aqi)
       : typeof current.aqiIndex === 'number' && !Number.isNaN(current.aqiIndex) && current.aqiIndex > 0
-      ? current.aqiIndex
-      : typeof current.aqiPm25 === 'number' && !Number.isNaN(current.aqiPm25) && current.aqiPm25 > 0
-      ? Math.round(current.aqiPm25 / 0.45)
-      : 82;
+      ? Math.round(current.aqiIndex)
+      : typeof aqiData?.aqi === 'number' && !Number.isNaN(aqiData.aqi) && aqiData.aqi > 0
+      ? Math.round(aqiData.aqi)
+      : null;
 
-  const activePm25 =
-    typeof current.aqiPm25 === 'number' && !Number.isNaN(current.aqiPm25) && current.aqiPm25 > 0
+  const activePm25: number | null =
+    typeof current.aqiPm25 === 'number' && !Number.isNaN(current.aqiPm25) && current.aqiPm25 >= 0
       ? Math.round(current.aqiPm25)
-      : Math.round(activeAqi * 0.45);
+      : typeof aqiData?.pm25 === 'number' && !Number.isNaN(aqiData.pm25)
+      ? Math.round(aqiData.pm25)
+      : null;
 
-  const activePm10 =
-    typeof current.aqiPm10 === 'number' && !Number.isNaN(current.aqiPm10) && current.aqiPm10 > 0
+  const activePm10: number | null =
+    typeof current.aqiPm10 === 'number' && !Number.isNaN(current.aqiPm10) && current.aqiPm10 >= 0
       ? Math.round(current.aqiPm10)
-      : Math.round(activePm25 * 1.8);
+      : typeof aqiData?.pm10 === 'number' && !Number.isNaN(aqiData.pm10)
+      ? Math.round(aqiData.pm10)
+      : null;
 
-  const getAqiCategory = (val: number) => {
+  const getAqiCategory = (val: number | null) => {
+    if (val === null || Number.isNaN(val)) return 'Unavailable';
     if (val <= 50) return 'Good';
     if (val <= 100) return 'Satisfactory';
     if (val <= 200) return 'Moderate';
@@ -389,20 +397,21 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
 
   const cityAqiData = [
     {
-      city: selectedLocation.city || 'Bhubaneswar',
+      city: `${selectedLocation.city || 'Selected Location'} (Live Telemetry)`,
       state: selectedLocation.state || 'Odisha',
       aqi: activeAqi,
       category: getAqiCategory(activeAqi),
       pm25: activePm25,
       pm10: activePm10,
+      isLiveSelected: true,
     },
-    { city: 'Cuttack', state: 'Odisha', aqi: 112, category: 'Moderate', pm25: 52, pm10: 94 },
-    { city: 'Rourkela', state: 'Odisha', aqi: 145, category: 'Moderate', pm25: 64, pm10: 120 },
-    { city: 'Puri', state: 'Odisha', aqi: 45, category: 'Good', pm25: 18, pm10: 42 },
-    { city: 'New Delhi', state: 'Delhi', aqi: 240, category: 'Poor', pm25: 110, pm10: 215 },
-    { city: 'Mumbai', state: 'Maharashtra', aqi: 92, category: 'Satisfactory', pm25: 38, pm10: 76 },
-    { city: 'Kolkata', state: 'West Bengal', aqi: 135, category: 'Moderate', pm25: 58, pm10: 110 },
-    { city: 'Bengaluru', state: 'Karnataka', aqi: 62, category: 'Satisfactory', pm25: 26, pm10: 54 },
+    { city: 'Cuttack (Ref)', state: 'Odisha', aqi: 112, category: 'Moderate', pm25: 52, pm10: 94 },
+    { city: 'Rourkela (Ref)', state: 'Odisha', aqi: 145, category: 'Moderate', pm25: 64, pm10: 120 },
+    { city: 'Puri (Ref)', state: 'Odisha', aqi: 45, category: 'Good', pm25: 18, pm10: 42 },
+    { city: 'New Delhi (Ref)', state: 'Delhi', aqi: 240, category: 'Poor', pm25: 110, pm10: 215 },
+    { city: 'Mumbai (Ref)', state: 'Maharashtra', aqi: 92, category: 'Satisfactory', pm25: 38, pm10: 76 },
+    { city: 'Kolkata (Ref)', state: 'West Bengal', aqi: 135, category: 'Moderate', pm25: 58, pm10: 110 },
+    { city: 'Bengaluru (Ref)', state: 'Karnataka', aqi: 62, category: 'Satisfactory', pm25: 26, pm10: 54 },
   ];
 
   const cityColumns: ColumnDef<any>[] = [
@@ -413,20 +422,22 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
           <button
             type="button"
             onClick={() => setActiveStateName(item.state)}
-            className="text-left font-bold text-white hover:text-[#4FA8E0] transition-colors text-xs cursor-pointer"
+            className="text-left font-bold text-[#F4F7FA] hover:text-[#38BDF8] transition-colors text-xs cursor-pointer"
             title={`Select ${item.state} on National Map`}
           >
             {item.city}
           </button>
-          <span className="text-[11px] text-[#8A94A6]">({item.state})</span>
+          <span className="text-[11px] text-[#93A4B8]">({item.state})</span>
         </div>
       ),
-      width: '180px',
+      width: '210px',
     },
     {
       header: 'NAQI Index',
       render: (item) => (
-        <span className="font-mono font-bold text-white text-sm">{item.aqi}</span>
+        <span className="font-mono font-bold text-[#F4F7FA] text-sm tabular-nums">
+          {item.aqi !== null && item.aqi !== undefined ? item.aqi : '—'}
+        </span>
       ),
       width: '110px',
     },
@@ -436,7 +447,9 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         <StatusBadge
           label={item.category}
           variant={
-            item.aqi <= 50
+            item.aqi === null || item.aqi === undefined
+              ? 'info'
+              : item.aqi <= 50
               ? 'good'
               : item.aqi <= 100
               ? 'good'
@@ -452,12 +465,20 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     },
     {
       header: 'PM2.5 (µg/m³)',
-      render: (item) => <span className="font-mono text-xs text-[#D7DEE8]">{item.pm25}</span>,
+      render: (item) => (
+        <span className="font-mono text-xs text-[#CBD5E1] tabular-nums">
+          {item.pm25 !== null && item.pm25 !== undefined ? item.pm25 : '—'}
+        </span>
+      ),
       width: '130px',
     },
     {
       header: 'PM10 (µg/m³)',
-      render: (item) => <span className="font-mono text-xs text-[#D7DEE8]">{item.pm10}</span>,
+      render: (item) => (
+        <span className="font-mono text-xs text-[#CBD5E1] tabular-nums">
+          {item.pm10 !== null && item.pm10 !== undefined ? item.pm10 : '—'}
+        </span>
+      ),
       width: '130px',
     },
     {
@@ -466,7 +487,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         <button
           type="button"
           onClick={() => setActiveStateName(item.state)}
-          className="px-2 py-1 bg-[#1E2733] hover:bg-[#0B72B9] text-[#D7DEE8] hover:text-white border border-[#334155] rounded text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+          className="px-2.5 py-1.5 bg-[#162331] hover:bg-[#0B72B9] text-[#CBD5E1] hover:text-white border border-white/12 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[13px]">map</span>
           <span>Focus Map</span>
@@ -475,10 +496,13 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     },
   ];
 
-  const currentPm25Value = historicalData?.current?.pm25 ?? Math.round((activeStateRecord.aqi || 75) * 0.45);
-  const currentPollenValue = historicalData?.current?.pollen ?? activeStateRecord.pollen ?? 2;
-  const sevenDayAvgPm25 = historicalData?.sevenDayAveragePm25 ?? currentPm25Value;
-  const trendStatus = historicalData?.trendStatus ?? 'Equilibrium';
+  const currentPm25Value: number | null =
+    historicalData?.current?.pm25 ?? activePm25 ?? null;
+  const currentPollenValue: number | null =
+    historicalData?.current?.pollen ?? (typeof current.pollenCount === 'number' ? current.pollenCount : null);
+  const sevenDayAvgPm25: number | null =
+    historicalData?.sevenDayAveragePm25 ?? currentPm25Value;
+  const trendStatus = historicalData?.trendStatus ?? (isLoadingHistory ? 'Syncing' : 'Unavailable');
 
   return (
     <div className="flex flex-col gap-5">
@@ -631,14 +655,14 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         {/* Statistical Summary Mini-Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {/* 1. Selected Observatory */}
-          <div className="p-3.5 rounded-xl bg-[#071018] border border-[#162331] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#0B1219] border border-white/10 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[#93A4B8] uppercase font-bold tracking-wider">
                 Observatory Station
               </span>
-              <span className="flex items-center gap-1 text-[10px] text-[#22C7A0] font-semibold bg-[#22C7A0]/10 px-2 py-0.5 rounded-full border border-[#22C7A0]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22C7A0] animate-pulse" />
-                {historicalData?.stationId ? 'Verified CAAQMS' : 'CAAQMS Network'}
+              <span className="flex items-center gap-1.5 text-[10px] text-[#22C7A0] font-semibold bg-[#22C7A0]/10 px-2 py-0.5 rounded border border-[#22C7A0]/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22C7A0]" />
+                {historicalData?.stationId ? 'Station Archive' : 'Regional Network'}
               </span>
             </div>
             <div className="my-1.5">
@@ -651,51 +675,57 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               </span>
             </div>
             <span className="text-[10px] text-[#93A4B8]">
-              Continuous optical telemetry for {formatDateShort(new Date(`${selectedDate}T00:00:00`))}
+              Archive baseline: {formatDateShort(new Date(`${selectedDate}T00:00:00`))}
             </span>
           </div>
 
           {/* 2. Current / Baseline PM2.5 */}
-          <div className="p-3.5 rounded-xl bg-[#071018] border border-[#162331] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#0B1219] border border-white/10 flex flex-col justify-between tabular-nums">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[#93A4B8] uppercase font-bold tracking-wider">
                 Baseline PM2.5 Fine Dust
               </span>
-              <span className="text-[10px] text-[#FFC857] font-semibold bg-[#FFC857]/10 px-2 py-0.5 rounded-full border border-[#FFC857]/30">
+              <span className="text-[10px] text-[#FFC857] font-semibold bg-[#FFC857]/10 px-2 py-0.5 rounded border border-[#FFC857]/30">
                 CPCB Std: 60 µg/m³
               </span>
             </div>
             <div className="my-1.5 flex items-baseline gap-2">
               <span className="text-2xl font-bold font-mono text-[#FFC857]">
-                {isLoadingHistory ? '—' : currentPm25Value}
+                {isLoadingHistory || currentPm25Value === null ? '—' : currentPm25Value}
               </span>
               <span className="text-xs font-normal text-[#93A4B8]">µg/m³</span>
             </div>
             <div className="w-full bg-[#162331] h-1.5 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
-                  currentPm25Value > 60 ? 'bg-[#EF5350]' : 'bg-[#22C7A0]'
+                  (currentPm25Value ?? 0) > 60 ? 'bg-[#EF5350]' : 'bg-[#22C7A0]'
                 }`}
                 style={{
-                  width: `${Math.min(100, (currentPm25Value / 60) * 100)}%`,
+                  width: `${currentPm25Value !== null ? Math.min(100, (currentPm25Value / 60) * 100) : 0}%`,
                 }}
               />
             </div>
           </div>
 
           {/* 3. Bio-Pollen Index */}
-          <div className="p-3.5 rounded-xl bg-[#071018] border border-[#162331] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#0B1219] border border-white/10 flex flex-col justify-between tabular-nums">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[#93A4B8] uppercase font-bold tracking-wider">
                 Bio-Pollen Index
               </span>
-              <span className="text-[10px] text-[#22C7A0] font-semibold bg-[#22C7A0]/10 px-2 py-0.5 rounded-full border border-[#22C7A0]/30">
-                {currentPollenValue >= 4 ? 'High Allergen' : currentPollenValue >= 3 ? 'Moderate' : 'Low Risk'}
+              <span className="text-[10px] text-[#22C7A0] font-semibold bg-[#22C7A0]/10 px-2 py-0.5 rounded border border-[#22C7A0]/30">
+                {currentPollenValue === null
+                  ? 'Unavailable'
+                  : currentPollenValue >= 4
+                  ? 'High Allergen'
+                  : currentPollenValue >= 3
+                  ? 'Moderate'
+                  : 'Low Risk'}
               </span>
             </div>
             <div className="my-1.5 flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-[#22C7A0]">
-                {isLoadingHistory ? '—' : `Level ${currentPollenValue}`}
+                {isLoadingHistory || currentPollenValue === null ? '—' : `Level ${currentPollenValue}`}
               </span>
               <span className="text-xs text-[#93A4B8]">/ 5 Scale</span>
             </div>
@@ -707,21 +737,23 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
           </div>
 
           {/* 4. 7-Day Trajectory */}
-          <div className="p-3.5 rounded-xl bg-[#071018] border border-[#162331] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#0B1219] border border-white/10 flex flex-col justify-between tabular-nums">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[#93A4B8] uppercase font-bold tracking-wider">
                 7-Day Trajectory
               </span>
-              <span className="text-[10px] text-[#43C7F4] font-semibold bg-[#1499E8]/10 px-2 py-0.5 rounded-full border border-[#1499E8]/30">
+              <span className="text-[10px] text-[#43C7F4] font-semibold bg-[#1499E8]/10 px-2 py-0.5 rounded border border-[#1499E8]/30">
                 {trendStatus}
               </span>
             </div>
             <div className="my-1.5 flex items-center gap-1.5 text-[#22C7A0] font-bold text-base">
               <ShieldCheck className="w-4 h-4 text-[#22C7A0]" />
-              <span className="font-mono text-sm">7d Avg: {sevenDayAvgPm25} µg/m³</span>
+              <span className="font-mono text-sm">
+                7d Avg: {sevenDayAvgPm25 !== null ? `${sevenDayAvgPm25} µg/m³` : '—'}
+              </span>
             </div>
             <span className="text-[10px] text-[#93A4B8]">
-              Peak: {historicalData?.peakConcentration ?? currentPm25Value} µg/m³ ({historicalData?.peakTime || 'Observed'})
+              Peak: {historicalData?.peakConcentration ?? currentPm25Value ?? '—'} µg/m³ ({historicalData?.peakTime || 'Archive'})
             </span>
           </div>
         </div>
@@ -930,18 +962,20 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
       />
 
       {/* Regional Station Table */}
-      <div className="mausam-card">
+      <div className="bg-[#101B26] border border-white/12 rounded-2xl p-4 sm:p-5 shadow-xl">
         <SectionHeader
-          title="Regional Continuous Ambient Air Quality Monitoring Stations"
-          subtitle="Real-time 24-hour rolling averages from Central & State Pollution Control Board monitors. Click any station to focus on the National Map."
+          title="Selected Location & Regional CAAQMS Reference Benchmarks"
+          subtitle="First row reflects live telemetry for your active location; subsequent rows display regional CPCB/SPCB baseline reference benchmarks."
           icon="location_city"
         />
 
-        <DataTable
-          data={cityAqiData}
-          columns={cityColumns}
-          keyExtractor={(item) => item.city}
-        />
+        <div className="table-wrapper">
+          <DataTable
+            data={cityAqiData}
+            columns={cityColumns}
+            keyExtractor={(item) => item.city}
+          />
+        </div>
       </div>
     </div>
   );

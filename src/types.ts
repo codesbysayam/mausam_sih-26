@@ -123,6 +123,7 @@ export interface CurrentWeather {
   tempMax?: number;
   tempMin?: number;
   feelsLike?: number;
+  dataSource?: string;
   condition: string;
   conditionKey?: CentralWeatherCondition;
   isDay?: boolean;

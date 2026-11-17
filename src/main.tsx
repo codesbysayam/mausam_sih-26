@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { LocationProvider } from './context/LocationContext';
+import { ProviderStoreProvider } from './store/providerStore';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import './index.css';
 
@@ -104,7 +105,9 @@ if (!rootElement) {
         <ErrorBoundary>
           <LanguageProvider>
             <LocationProvider>
-              <App />
+              <ProviderStoreProvider>
+                <App />
+              </ProviderStoreProvider>
             </LocationProvider>
           </LanguageProvider>
         </ErrorBoundary>

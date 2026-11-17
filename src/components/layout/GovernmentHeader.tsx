@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { MapPin } from 'lucide-react';
 import { LocationRecord } from '../../types';
 import { locationService } from '../../services/locationService';
 import { LocatingPhase } from '../../services/geolocationService';
@@ -36,15 +37,12 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
   onNavigateTab,
   activeAlertCount = 0,
   onDetectLocation,
-  onRefreshAll,
-  isRefreshing = false,
   isLocating = false,
   locatePhase = 'idle',
   locationSource = 'MANUAL_SEARCH',
   onOpenLocationCenter,
-  onOpenPrivacyModal,
 }) => {
-  const { t, formatDate } = useLanguage();
+  const { t } = useLanguage();
   const [now, setNow] = useState<Date>(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -52,7 +50,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
+    const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
@@ -60,11 +58,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
     timeZone: 'Asia/Kolkata',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
+    hour12: false,
   }).format(now);
-
-  const localizedDateString = formatDate(now);
 
   const smartResults = searchQuery.trim()
     ? locationService.smartSearch(searchQuery)
@@ -93,7 +88,6 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
     }
   };
 
-  // Search submit handler (on Enter key or explicit search execution)
   const handleSearchSubmit = () => {
     if (smartResults.length > 0) {
       const top = smartResults[0];
@@ -108,25 +102,22 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
 
   return (
     <>
-      <header className="w-full bg-[#071A2D] border-b border-[#1D4E73] sticky top-0 z-40 select-none">
-        {/* Top Atmosphere Accent Line */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-[#0B3D91] via-[#1565C0] to-[#E3F2FD]" />
-
-        <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="min-h-[72px] sm:min-h-[80px] md:min-h-[88px] py-1.5 flex items-center justify-between gap-3">
-            {/* Left: MAUSAM Brand Identity */}
+      <header className="w-full bg-[#0B1219]/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-40 select-none">
+        <div className="max-w-[1560px] mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
+            {/* Left: Brand Identity */}
             <BrandLogo onClick={() => onNavigateTab && onNavigateTab('home')} />
 
-            {/* Center: Search / Observatory Station Finder (Desktop/Tablet) */}
-            <div className="relative hidden md:flex items-center flex-1 max-w-lg lg:max-w-xl mx-2 lg:mx-4 min-w-0">
-              <div className="relative w-full">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#B8C7D9] text-[18px] pointer-events-none">
+            {/* Center: Search + Active Location Selector (Desktop/Tablet) */}
+            <div className="relative hidden md:flex items-center flex-1 max-w-xl mx-2 min-w-0 gap-2">
+              <div className="relative flex-1 min-w-0">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8EA3B8] text-[18px] pointer-events-none">
                   search
                 </span>
                 <input
                   type="text"
                   id="station-search-input-desktop"
-                  placeholder={t('searchPlaceholder', "Search city, state, or PIN code...")}
+                  placeholder={t('searchPlaceholder', 'Search city, state, or PIN code...')}
                   value={searchQuery}
                   onFocus={() => setIsSearchOpen(true)}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -136,15 +127,15 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       handleSearchSubmit();
                     }
                   }}
-                  className="w-full h-10 bg-[#0B2239] border border-[#1D4E73] hover:border-[#1565C0]/60 focus:border-[#1565C0] rounded-xl text-white text-xs pl-9 pr-16 focus:outline-none transition-colors shadow-inner"
-                  aria-label={t('searchPlaceholder', "Search city, state, or PIN code...")}
+                  className="w-full h-10 bg-[#101B26] border border-white/12 hover:border-[#38BDF8]/40 focus:border-[#38BDF8] rounded-lg text-[#F4F7FA] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none transition-colors"
+                  aria-label={t('searchPlaceholder', 'Search city, state, or PIN code...')}
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1 text-[#B8C7D9] hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                      className="p-1 text-[#8EA3B8] hover:text-white rounded hover:bg-white/10 transition-colors cursor-pointer"
                       aria-label="Clear search"
                     >
                       <span className="material-symbols-outlined text-[16px]">close</span>
@@ -156,150 +147,156 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       id="search-gps-locate-btn"
                       onClick={handleMyLocationClick}
                       disabled={isLocating}
-                      title={locationSource === 'DEVICE_GPS' ? 'GPS Active • Click to Refresh' : 'Detect My Location (GPS)'}
-                      className="p-1 rounded-lg text-[#38BDF8] hover:text-white hover:bg-[#1499E8]/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
+                      title={locationSource === 'DEVICE_GPS' ? 'GPS Active — Refresh coordinates' : 'Detect My Location (GPS)'}
+                      className="p-1.5 rounded text-[#38BDF8] hover:text-white hover:bg-[#1499E8]/20 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
                       aria-label="Detect GPS Location"
                     >
-                      <span className={`material-symbols-outlined text-[18px] ${isLocating ? 'animate-spin text-[#38BDF8]' : ''}`}>
+                      <span className={`material-symbols-outlined text-[17px] ${isLocating ? 'animate-spin' : ''}`}>
                         {isLocating ? 'progress_activity' : 'my_location'}
                       </span>
                     </button>
                   )}
                 </div>
-              </div>
 
-              {/* Desktop Search Dropdown */}
-              {isSearchOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsSearchOpen(false)}
-                  />
-                  <div className="absolute top-12 left-0 right-0 bg-[#0B2239] border border-[#1D4E73] rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto scrollbar-thin">
-                    {/* GPS Quick Action at top of search dropdown */}
-                    {onDetectLocation && (
-                      <div className="p-2 border-b border-[#1D4E73] bg-[#071A2D]">
-                        <UseMyLocationButton
-                          onDetect={handleMyLocationClick}
-                          isLocating={isLocating}
-                          phase={locatePhase}
-                          variant="compact"
-                          className="w-full justify-center"
-                        />
-                      </div>
-                    )}
+                {/* Desktop Search Dropdown */}
+                {isSearchOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsSearchOpen(false)}
+                    />
+                    <div className="absolute top-11 left-0 right-0 bg-[#101B26] border border-white/15 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto scrollbar-thin">
+                      {onDetectLocation && (
+                        <div className="p-2 border-b border-white/10 bg-[#0B1219]">
+                          <UseMyLocationButton
+                            onDetect={handleMyLocationClick}
+                            isLocating={isLocating}
+                            phase={locatePhase}
+                            variant="compact"
+                            className="w-full justify-center"
+                          />
+                        </div>
+                      )}
 
-                    <div className="p-2.5 border-b border-[#1D4E73] text-[11px] text-[#B8C7D9] font-semibold flex justify-between">
-                      <span>{t('selectStation', 'SELECT LOCATION')}</span>
-                      <span className="text-[#E3F2FD] truncate max-w-[150px]">{selectedLocation.city}, {selectedLocation.state}</span>
-                    </div>
-                    {smartResults.length > 0 ? (
-                      smartResults.slice(0, 10).map((res, idx) => (
-                        <div
-                          key={`${res.location.id}-${idx}`}
-                          onClick={() => {
-                            onSelectLocation(res.location);
-                            if (onNavigateTab && res.intentTab) {
-                              onNavigateTab(res.intentTab);
-                            }
-                            setIsSearchOpen(false);
-                            setSearchQuery('');
-                          }}
-                          className={`p-3 text-xs hover:bg-[#102D47] cursor-pointer flex justify-between items-center border-b border-[#1D4E73]/50 transition-colors ${
-                            selectedLocation.id === res.location.id ? 'bg-[#1565C0]/20 text-[#E3F2FD] font-semibold' : 'text-white'
-                          }`}
-                        >
-                          <div className="flex-1 pr-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-white">{res.displayTitle}</span>
-                              {res.matchedParameter && (
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1499E8]/25 text-[#4FA8E0] border border-[#1499E8]/40 font-bold uppercase">
-                                  {res.matchedParameter}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[10px] text-[#B8C7D9]">{res.displaySubtitle}</div>
-                          </div>
-                          <div className="text-[11px] text-[#B8C7D9] shrink-0 font-medium">{res.location.state}</div>
-                        </div>
-                      ))
-                    ) : searchQuery ? (
-                      <div className="p-4 text-xs text-[#B8C7D9] text-center">
-                        {t('noStationsFound', 'No matching locations found.')}
+                      <div className="px-3 py-2 border-b border-white/10 text-[11px] text-[#8EA3B8] font-medium flex justify-between">
+                        <span>{t('selectStation', 'Select Location')}</span>
+                        <span className="text-[#B6C7D8] truncate max-w-[180px]">
+                          {selectedLocation.city}, {selectedLocation.state}
+                        </span>
                       </div>
-                    ) : (
-                      <div>
-                        <div className="px-3 py-1.5 text-[10px] text-[#E3F2FD] font-bold bg-[#102D47]/60 tracking-wider">
-                          POPULAR CITIES
-                        </div>
-                        {[
-                          { city: 'New Delhi', state: 'Delhi NCR', id: 'delhi-safdarjung' },
-                          { city: 'Bhubaneswar', state: 'Odisha', id: 'odisha-bhubaneswar' },
-                          { city: 'Mumbai', state: 'Maharashtra', id: 'mumbai-colaba' },
-                          { city: 'Kolkata', state: 'West Bengal', id: 'kolkata-alipore' },
-                          { city: 'Chennai', state: 'Tamil Nadu', id: 'chennai-meenambakkam' },
-                          { city: 'Bengaluru', state: 'Karnataka', id: 'bengaluru-city' },
-                        ].map((hub) => (
+                      {smartResults.length > 0 ? (
+                        smartResults.slice(0, 10).map((res, idx) => (
                           <div
-                            key={hub.id}
+                            key={`${res.location.id}-${idx}`}
                             onClick={() => {
-                              const matched =
-                                locationService.findLocationById(hub.id) ||
-                                locationService.findLocationByName(hub.city) ||
-                                locationService.getLocationById(hub.id);
-                              if (matched) {
-                                onSelectLocation(matched);
+                              onSelectLocation(res.location);
+                              if (onNavigateTab && res.intentTab) {
+                                onNavigateTab(res.intentTab);
                               }
                               setIsSearchOpen(false);
                               setSearchQuery('');
                             }}
-                            className="p-2.5 text-xs text-[#D7DEE8] hover:bg-[#102D47] cursor-pointer flex justify-between items-center transition-colors"
+                            className={`px-3 py-2.5 text-xs hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 transition-colors ${
+                              selectedLocation.id === res.location.id ? 'bg-[#1499E8]/15 text-[#F4F7FA] font-semibold' : 'text-[#F4F7FA]'
+                            }`}
                           >
-                            <span className="font-medium">{hub.city}</span>
-                            <span className="text-[#B8C7D9] text-[11px]">{hub.state}</span>
+                            <div className="flex-1 pr-2 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-[#F4F7FA] truncate">{res.displayTitle}</span>
+                                {res.matchedParameter && (
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1499E8]/20 text-[#38BDF8] font-semibold uppercase">
+                                    {res.matchedParameter}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-[#8EA3B8] truncate">{res.displaySubtitle}</div>
+                            </div>
+                            <div className="text-[11px] text-[#8EA3B8] shrink-0">{res.location.state}</div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
+                        ))
+                      ) : searchQuery ? (
+                        <div className="p-4 text-xs text-[#8EA3B8] text-center">
+                          {t('noStationsFound', 'No matching locations found.')}
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[#162331]/70">
+                            Major Indian Cities
+                          </div>
+                          {[
+                            { city: 'New Delhi', state: 'Delhi NCR', id: 'delhi-safdarjung' },
+                            { city: 'Bhubaneswar', state: 'Odisha', id: 'odisha-bhubaneswar' },
+                            { city: 'Mumbai', state: 'Maharashtra', id: 'mumbai-colaba' },
+                            { city: 'Kolkata', state: 'West Bengal', id: 'kolkata-alipore' },
+                            { city: 'Chennai', state: 'Tamil Nadu', id: 'chennai-meenambakkam' },
+                            { city: 'Bengaluru', state: 'Karnataka', id: 'bengaluru-city' },
+                          ].map((hub) => (
+                            <div
+                              key={hub.id}
+                              onClick={() => {
+                                const matched =
+                                  locationService.findLocationById(hub.id) ||
+                                  locationService.findLocationByName(hub.city) ||
+                                  locationService.getLocationById(hub.id);
+                                if (matched) {
+                                  onSelectLocation(matched);
+                                }
+                                setIsSearchOpen(false);
+                                setSearchQuery('');
+                              }}
+                              className="px-3 py-2 text-xs text-[#B6C7D8] hover:text-[#F4F7FA] hover:bg-[#162331] cursor-pointer flex justify-between items-center transition-colors"
+                            >
+                              <span className="font-medium">{hub.city}</span>
+                              <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Active Location Trigger Button */}
+              {onOpenLocationCenter && (
+                <button
+                  type="button"
+                  onClick={onOpenLocationCenter}
+                  className="hidden lg:flex items-center gap-1.5 h-10 px-3 rounded-lg bg-[#101B26] hover:bg-[#162331] border border-white/12 text-xs text-[#F4F7FA] transition-colors shrink-0 max-w-[200px] cursor-pointer"
+                  title="Switch active location or manage saved places"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
+                  <span className="truncate font-medium">{selectedLocation.city}</span>
+                </button>
               )}
             </div>
 
-            {/* Right Controls: Ask MAUSAM, Audio Alert, Language Selector, Mobile Drawer */}
-            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-              {/* IST Clock (Large Screens Only) */}
-              <div className="hidden 2xl:flex flex-col text-right pr-3 border-r border-[#1D4E73]">
-                <div className="text-white font-semibold text-xs font-mono tracking-wide">
-                  {istTimeString} <span className="text-[#E3F2FD]">IST</span>
-                </div>
-                <div className="text-[#B8C7D9] text-[11px]">
-                  {localizedDateString}
-                </div>
+            {/* Right Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono tabular-nums text-[#8EA3B8] pr-2.5 border-r border-white/10">
+                <span className="text-[#F4F7FA] font-medium">{istTimeString}</span>
+                <span>IST</span>
               </div>
 
-              {/* Ask MAUSAM Assistant Trigger */}
               {onOpenAskMausam && (
                 <button
                   type="button"
                   id="header-ask-mausam-button"
                   onClick={onOpenAskMausam}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B2239] hover:bg-[#102D47] border border-[#1565C0]/50 hover:border-[#1565C0] text-white text-xs font-semibold transition-all shadow-sm shrink-0 cursor-pointer ask-mausam-pulse-shadow"
-                  title={t('askMausam', 'Ask MAUSAM AI Assistant')}
+                  className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-lg bg-[#101B26] hover:bg-[#162331] border border-white/14 hover:border-[#38BDF8]/40 text-[#F4F7FA] text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+                  title={t('askMausam', 'Ask MAUSAM')}
                 >
-                  <span className="material-symbols-outlined text-[17px] text-[#38BDF8]">
+                  <span className="material-symbols-outlined text-[16px] text-[#38BDF8]">
                     auto_awesome
                   </span>
-                  <span className="whitespace-nowrap">Ask MAUSAM</span>
+                  <span className="hidden sm:inline whitespace-nowrap">Ask MAUSAM</span>
                 </button>
               )}
 
-              {/* Optional Severe Audio Alert Toggle */}
               <div className="hidden sm:flex items-center shrink-0">
                 <AudioAlertToggle variant="pill" showLabel={false} />
               </div>
 
-              {/* Language Selector */}
               <div className="hidden sm:flex items-center shrink-0">
                 <LanguageSelector
                   stateOrRegion={selectedLocation?.state || selectedLocation?.city}
@@ -307,66 +304,44 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                 />
               </div>
 
-              {/* Accessibility Font Size Controls (2XL only) */}
-              <div
-                className="hidden 2xl:flex items-center bg-[#0B2239] border border-[#1D4E73] rounded-lg px-1.5 h-[36px]"
-                role="group"
-                aria-label="Font size controls"
-              >
+              {/* Mobile Location & Drawer Buttons (>= 44px touch targets) */}
+              {onOpenLocationCenter && (
                 <button
                   type="button"
-                  onClick={() => handleAdjustFontSize(-0.05)}
-                  className="px-1.5 text-xs text-[#B8C7D9] hover:text-white font-semibold"
-                  title="Decrease Font Size"
+                  onClick={onOpenLocationCenter}
+                  className="md:hidden h-11 px-2.5 rounded-lg bg-[#101B26] border border-white/12 text-[#F4F7FA] flex items-center gap-1 text-xs font-medium max-w-[120px] cursor-pointer"
+                  aria-label="Change active city"
                 >
-                  A-
+                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
+                  <span className="truncate">{selectedLocation.city}</span>
                 </button>
-                <span className="text-[#1D4E73]" aria-hidden="true">|</span>
-                <button
-                  type="button"
-                  onClick={handleResetFontSize}
-                  className="px-1.5 text-xs text-[#B8C7D9] hover:text-white font-semibold"
-                  title="Reset Font Size"
-                >
-                  A
-                </button>
-                <span className="text-[#1D4E73]" aria-hidden="true">|</span>
-                <button
-                  type="button"
-                  onClick={() => handleAdjustFontSize(0.05)}
-                  className="px-1.5 text-xs text-[#B8C7D9] hover:text-white font-semibold"
-                  title="Increase Font Size"
-                >
-                  A+
-                </button>
-              </div>
+              )}
 
-              {/* Mobile Drawer Button */}
               <button
                 type="button"
                 id="mobile-menu-toggle-btn"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden w-10 h-10 rounded-xl bg-[#0B2239] border border-[#1D4E73] text-white flex items-center justify-center cursor-pointer transition-colors relative"
+                className="md:hidden w-11 h-11 rounded-lg bg-[#101B26] border border-white/12 text-[#F4F7FA] flex items-center justify-center cursor-pointer transition-colors relative shrink-0"
                 aria-label="Open Navigation Menu"
               >
                 <span className="material-symbols-outlined text-[20px]">menu</span>
                 {activeAlertCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF0000] ring-2 ring-[#071A2D]" />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#EF4444] ring-2 ring-[#0B1219]" />
                 )}
               </button>
             </div>
           </div>
 
-          {/* Mobile Second Row Search & Location Trigger */}
-          <div className="md:hidden pb-3 pt-1 relative">
+          {/* Mobile Compact Search Strip */}
+          <div className="md:hidden pb-2.5 relative">
             <div className="relative w-full">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#B8C7D9] text-[18px] pointer-events-none">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8EA3B8] text-[18px] pointer-events-none">
                 search
               </span>
               <input
                 type="text"
                 id="station-search-input-mobile"
-                placeholder={t('searchPlaceholder', "Search city, state, or PIN code...")}
+                placeholder={t('searchPlaceholder', 'Search city, district, or PIN...')}
                 value={searchQuery}
                 onFocus={() => setIsSearchOpen(true)}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -376,15 +351,15 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     handleSearchSubmit();
                   }
                 }}
-                className="w-full h-10 bg-[#0B2239] border border-[#1D4E73] rounded-xl text-white text-xs pl-9 pr-16 focus:outline-none focus:border-[#1565C0] shadow-inner"
-                aria-label={t('searchPlaceholder', "Search city, state, or PIN code...")}
+                className="w-full h-11 bg-[#101B26] border border-white/12 rounded-lg text-[#F4F7FA] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none focus:border-[#38BDF8]"
+                aria-label={t('searchPlaceholder', 'Search city, district, or PIN...')}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="p-1 text-[#B8C7D9] hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                    className="w-9 h-9 flex items-center justify-center text-[#8EA3B8] hover:text-white rounded-lg"
                     aria-label="Clear search"
                   >
                     <span className="material-symbols-outlined text-[16px]">close</span>
@@ -396,11 +371,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     id="search-gps-locate-btn-mobile"
                     onClick={handleMyLocationClick}
                     disabled={isLocating}
-                    title={locationSource === 'DEVICE_GPS' ? 'GPS Active • Click to Refresh' : 'Detect My Location (GPS)'}
-                    className="p-1 rounded-lg text-[#38BDF8] hover:text-white hover:bg-[#1499E8]/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
+                    className="w-9 h-9 rounded-lg text-[#38BDF8] hover:bg-[#1499E8]/20 flex items-center justify-center cursor-pointer disabled:opacity-50"
                     aria-label="Detect GPS Location"
                   >
-                    <span className={`material-symbols-outlined text-[18px] ${isLocating ? 'animate-spin text-[#38BDF8]' : ''}`}>
+                    <span className={`material-symbols-outlined text-[18px] ${isLocating ? 'animate-spin' : ''}`}>
                       {isLocating ? 'progress_activity' : 'my_location'}
                     </span>
                   </button>
@@ -415,24 +389,19 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                   className="fixed inset-0 z-40"
                   onClick={() => setIsSearchOpen(false)}
                 />
-                <div className="absolute top-12 left-0 right-0 bg-[#0B2239] border border-[#1D4E73] rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto">
-                  {/* GPS Quick Action in mobile search dropdown */}
+                <div className="absolute top-12 left-0 right-0 bg-[#101B26] border border-white/15 rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto">
                   {onDetectLocation && (
-                    <div className="p-2 border-b border-[#1D4E73] bg-[#071A2D]">
+                    <div className="p-2 border-b border-white/10 bg-[#0B1219]">
                       <UseMyLocationButton
                         onDetect={handleMyLocationClick}
                         isLocating={isLocating}
                         phase={locatePhase}
                         variant="compact"
-                        className="w-full justify-center"
+                        className="w-full justify-center min-h-[44px]"
                       />
                     </div>
                   )}
 
-                  <div className="p-2.5 border-b border-[#1D4E73] text-[11px] text-[#B8C7D9] font-semibold flex justify-between bg-[#071A2D]">
-                    <span>{t('selectStation', 'SELECT LOCATION')}</span>
-                    <span className="text-[#E3F2FD] truncate max-w-[140px]">{selectedLocation.city}</span>
-                  </div>
                   {smartResults.length > 0 ? (
                     smartResults.map((res, idx) => (
                       <div
@@ -445,32 +414,23 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                           setIsSearchOpen(false);
                           setSearchQuery('');
                         }}
-                        className={`p-3 text-xs hover:bg-[#102D47] cursor-pointer flex justify-between items-center border-b border-[#1D4E73]/40 min-h-[44px] ${
-                          selectedLocation.id === res.location.id ? 'bg-[#1565C0]/20 text-[#E3F2FD] font-bold' : 'text-white'
-                        }`}
+                        className="px-3 py-2.5 text-xs hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 min-h-[44px]"
                       >
-                        <div className="flex-1 pr-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-white">{res.displayTitle}</span>
-                            {res.matchedParameter && (
-                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1499E8]/25 text-[#4FA8E0] border border-[#1499E8]/40 font-bold uppercase">
-                                {res.matchedParameter}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-[#B8C7D9]">{res.displaySubtitle}</div>
+                        <div className="flex-1 pr-2 min-w-0">
+                          <div className="font-semibold text-[#F4F7FA] truncate">{res.displayTitle}</div>
+                          <div className="text-[11px] text-[#8EA3B8] truncate">{res.displaySubtitle}</div>
                         </div>
-                        <div className="text-[11px] text-[#B8C7D9] shrink-0 font-medium">{res.location.state}</div>
+                        <div className="text-[11px] text-[#8EA3B8] shrink-0">{res.location.state}</div>
                       </div>
                     ))
                   ) : searchQuery ? (
-                    <div className="p-4 text-xs text-[#B8C7D9] text-center">
+                    <div className="p-4 text-xs text-[#8EA3B8] text-center">
                       {t('noStationsFound', 'No matching locations found.')}
                     </div>
                   ) : (
                     <div>
-                      <div className="px-3 py-1.5 text-[10px] text-[#E3F2FD] font-bold bg-[#102D47]/70">
-                        POPULAR OBSERVATORIES
+                      <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[#162331]">
+                        Major Cities
                       </div>
                       {[
                         { city: 'New Delhi', state: 'Delhi NCR', id: 'delhi-safdarjung' },
@@ -493,10 +453,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                             setIsSearchOpen(false);
                             setSearchQuery('');
                           }}
-                          className="p-3 text-xs text-[#D7DEE8] hover:bg-[#102D47] cursor-pointer flex justify-between items-center border-b border-[#1D4E73]/30 min-h-[44px]"
+                          className="px-3 py-2.5 text-xs text-[#B6C7D8] hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 min-h-[44px]"
                         >
                           <span className="font-medium">{hub.city}</span>
-                          <span className="text-[#B8C7D9] text-[11px]">{hub.state}</span>
+                          <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>
                         </div>
                       ))}
                     </div>

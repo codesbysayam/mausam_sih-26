@@ -93,7 +93,7 @@ function getTabFromPathname(path: string): AppView {
   if (cleanPath === '/privacy' || cleanPath === '/privacy-policy') return 'privacy';
   if (cleanPath === '/api' || cleanPath === '/open-data-api') return 'api';
   if (cleanPath === '/terms' || cleanPath === '/terms-of-observation' || cleanPath === '/terms-and-conditions') return 'terms';
-  if (cleanPath === '/debug' || cleanPath === '/api-debug') return 'debug';
+  if (cleanPath === '/debug' || cleanPath === '/api-debug' || cleanPath === '/sources' || cleanPath === '/data-sources') return 'debug';
   if (cleanPath === '/forecast') return 'forecast';
   if (cleanPath === '/warnings' || cleanPath === '/alerts') return 'warnings';
   if (cleanPath === '/radar' || cleanPath === '/maps') return 'radar';
@@ -353,7 +353,7 @@ export default function App() {
   });
 
   return (
-    <div className="mausam-app min-h-screen bg-[#0F141A] text-[#D7DEE8] flex flex-col font-sans w-full overflow-x-hidden">
+    <div className="mausam-app min-h-screen bg-[#0B1219] text-[#F4F7FA] flex flex-col font-sans w-full overflow-x-hidden">
       {/* Network Connectivity Status Listener Banner */}
       <NetworkStatusBanner
         isOnline={isOnline}
@@ -365,7 +365,7 @@ export default function App() {
         }}
       />
 
-      {/* 1. Official Government Header with Searchable Language Selector & Mobile Drawer */}
+      {/* 1. Streamlined Observatory Header & Search */}
       <GovernmentHeader
         selectedLocation={selectedLocation}
         onSelectLocation={handleSelectLocation}
@@ -385,7 +385,7 @@ export default function App() {
         onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
       />
 
-      {/* 2. Primary Navigation Bar (Desktop/Tablet) */}
+      {/* 2. Workstation Tab Strip (Desktop/Tablet) */}
       <MainNavigation
         activeTab={activeTab}
         onTabChange={(tab) => navigateToTab(tab)}
@@ -393,7 +393,7 @@ export default function App() {
       />
 
       {/* 3. Main Body Content */}
-      <main id="main-content" ref={swipeContainerRef} className="relative flex-1 w-full min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <main id="main-content" ref={swipeContainerRef} className="relative flex-1 w-full min-w-0">
         {/* Slim indeterminate progress bar while weather data is syncing */}
         {isLoadingWeather && (
           <div
@@ -407,7 +407,7 @@ export default function App() {
           </div>
         )}
 
-        <PageContainer id="mausam-main-page-container" className="grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <PageContainer id="mausam-main-page-container" fluid={activeTab === 'radar'}>
           {/* HOME: National Weather Overview */}
           {activeTab === 'home' && (
             <HomePage
@@ -561,16 +561,16 @@ export default function App() {
       </main>
 
       {/* 4. Official Institutional Footer with unified FooterNavigation component */}
-      <footer className="w-full bg-[#17212B] border-t border-[#334155] py-8 mt-12 text-xs text-[#8A94A6]">
-        <div className="max-w-[1440px] mx-auto px-4 lg:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-[#334155]">
+      <footer className="w-full bg-[#0E1721] border-t border-white/10 py-8 mt-10 text-xs text-[#8EA3B8]">
+        <div className="max-w-[1560px] mx-auto px-4 lg:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-white/10">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-white font-bold text-sm">
+                <span className="text-[#F4F7FA] font-bold text-sm">
                   {t('mausamPortal', 'MAUSAM PORTAL')}
                 </span>
-                <span className="bg-[#0B72B9]/20 text-[#4FA8E0] text-[10px] font-bold px-1.5 py-0.5 rounded border border-[#0B72B9]/40">
-                  OFFICIAL
+                <span className="text-[#38BDF8] text-[10px] font-mono font-semibold uppercase tracking-wider">
+                  India
                 </span>
               </div>
               <p className="text-[11px] leading-relaxed">
@@ -740,10 +740,11 @@ export default function App() {
         onClearSavedLocation={clearSavedLocation}
       />
 
-      {/* Floating Moveable Ask MAUSAM AI Quick Trigger */}
+      {/* Floating Moveable Ask MAUSAM Quick Trigger */}
       <DraggableAskMausamButton
         onClick={() => setIsAskMausamOpen(true)}
         isVisible={isFloatingBtnVisible}
+        bottomOffsetPx={activeTab === 'radar' ? 92 : 20}
       />
 
       {/* Severe Weather Alert Surge Floating Toast */}
@@ -752,12 +753,12 @@ export default function App() {
           id="global-severe-alert-surge-toast"
           role="alert"
           aria-live="assertive"
-          className="fixed bottom-16 sm:bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[#180B0D] border-2 border-[#E74C3C] text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
+          className="fixed bottom-16 sm:bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[#1A0D10] border border-[#EF4444]/60 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#FF8A80]">
-              <AlertTriangle className="w-5 h-5 text-[#E74C3C] animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-[#FCA5A5]">
+              <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
+              <span className="text-xs font-semibold uppercase tracking-wider">
                 Severe Warning Surge
               </span>
             </div>

@@ -30,13 +30,18 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
   const humidity = typeof weather.humidity === 'number' ? Math.round(weather.humidity) : 72;
   const windSpeed = typeof weather.windSpeed === 'number' ? Math.round(weather.windSpeed) : 14;
   const rainProb = typeof weather.precipitationProbability === 'number' ? Math.round(weather.precipitationProbability) : 20;
-  const aqiVal = weather.aqi || 82;
-  const uvVal = weather.uvIndex || 5.4;
-  const pressure = weather.pressure || 1008;
-  const visibility = weather.visibility || 7.5;
+  const aqiVal: number | null =
+    typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0
+      ? Math.round(weather.aqi)
+      : null;
+  const uvVal = typeof weather.uvIndex === 'number' ? weather.uvIndex : null;
+  const pressure = typeof weather.pressure === 'number' ? weather.pressure : null;
+  const visibility = typeof weather.visibility === 'number' ? weather.visibility : null;
   const dewPoint = Math.round(currentTemp - (100 - humidity) / 5);
 
-  const aqiInfo = getAqiMeaning(aqiVal);
+  const aqiInfo = aqiVal !== null
+    ? getAqiMeaning(aqiVal)
+    : { category: 'Unavailable', severityColor: '#93A4B8' };
   const humidityInfo = getHumidityMeaning(humidity);
   const windInfo = getWindMeaning(windSpeed, weather.windDirection || 'NE');
   const rainInfo = getRainProbabilityMeaning(rainProb);
@@ -215,16 +220,16 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between my-1">
+          <div className="flex items-baseline justify-between my-1 tabular-nums">
             <div>
               <span className="text-3xl font-light tracking-tight" style={{ color: aqiInfo.severityColor }}>
-                {aqiVal}
+                {aqiVal !== null ? aqiVal : '—'}
               </span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">PM2.5 Primary Pollutant</span>
             </div>
             <div className="text-right text-xs text-[#93A4B8]">
-              <div>PM2.5: <strong className="text-[#F4F7FA]">{weather.aqiPm25 || 38} µg/m³</strong></div>
-              <div>PM10: <strong className="text-[#F4F7FA]">{weather.aqiPm10 || 74} µg/m³</strong></div>
+              <div>PM2.5: <strong className="text-[#F4F7FA]">{typeof weather.aqiPm25 === 'number' ? `${Math.round(weather.aqiPm25)} µg/m³` : '—'}</strong></div>
+              <div>PM10: <strong className="text-[#F4F7FA]">{typeof weather.aqiPm10 === 'number' ? `${Math.round(weather.aqiPm10)} µg/m³` : '—'}</strong></div>
             </div>
           </div>
 
@@ -232,7 +237,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
             <div
               className="h-full rounded-full"
               style={{
-                width: `${Math.min(100, (aqiVal / 300) * 100)}%`,
+                width: `${aqiVal !== null ? Math.min(100, (aqiVal / 300) * 100) : 0}%`,
                 backgroundColor: aqiInfo.severityColor,
               }}
             />
@@ -284,23 +289,23 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
               </span>
             </div>
             <span className="text-[11px] font-semibold text-[#FFC857]">
-              {uvVal >= 8 ? 'Very High' : uvVal >= 6 ? 'High' : 'Moderate'}
+              {uvVal === null ? 'Unavailable' : uvVal >= 8 ? 'Very High' : uvVal >= 6 ? 'High' : 'Moderate'}
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between my-1">
+          <div className="flex items-baseline justify-between my-1 tabular-nums">
             <div>
-              <span className="text-3xl font-light text-[#FFC857] tracking-tight">{uvVal}</span>
+              <span className="text-3xl font-light text-[#FFC857] tracking-tight">{uvVal ?? '—'}</span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">/ 11+ Index (Solar Noon Peak)</span>
             </div>
             <div className="text-right text-xs">
               <div className="flex items-center gap-1 justify-end text-[#D1DCE8]">
                 <Eye className="w-3.5 h-3.5 text-[#22C7A0]" />
-                <span>{visibility} km Visibility</span>
+                <span>{visibility !== null ? `${visibility} km` : '—'} Visibility</span>
               </div>
               <div className="flex items-center gap-1 justify-end text-[#93A4B8] mt-0.5">
                 <Gauge className="w-3.5 h-3.5 text-[#1499E8]" />
-                <span>{pressure} hPa Pressure</span>
+                <span>{pressure !== null ? `${pressure} hPa` : '—'} Pressure</span>
               </div>
             </div>
           </div>

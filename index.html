@@ -6,7 +6,7 @@
     <title>MAUSAM — Atmospheric Intelligence</title>
     <meta name="description" content="National meteorological observation, radar nowcasting, and environmental intelligence platform." />
     <meta name="application-name" content="MAUSAM" />
-    <meta name="theme-color" content="#071A2D" />
+    <meta name="theme-color" content="#0B1219" />
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
@@ -44,12 +44,12 @@
         color-scheme: dark;
       }
       html, body {
-        background-color: #071A2D !important;
-        color: #FFFFFF !important;
+        background-color: #0B1219 !important;
+        color: #F4F7FA !important;
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+        font-family: "IBM Plex Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         -webkit-font-smoothing: antialiased;
       }
       .skip-link {
@@ -75,10 +75,6 @@
         font-weight: 600 !important;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
       }
-      @keyframes mausamPulse {
-        0%, 100% { opacity: 0.4; transform: scale(0.96); }
-        50% { opacity: 1; transform: scale(1.02); }
-      }
       @keyframes mausamSpin {
         to { transform: rotate(360deg); }
       }
@@ -87,7 +83,7 @@
     <!-- Fonts & Icons Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Noto+Sans+Oriya:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Noto+Sans+Oriya:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
     <!-- Vanilla Client Scripts (Deferred, Privacy-Preserving) -->
@@ -96,7 +92,7 @@
     <script src="/js/formValidation.js" defer></script>
     <script src="/js/seo.js" defer></script>
   </head>
-  <body class="bg-[#071A2D] text-[#FFFFFF] antialiased selection:bg-[#1565C0]/40 selection:text-[#E3F2FD]">
+  <body class="bg-[#0B1219] text-[#F4F7FA] antialiased selection:bg-[#38BDF8]/30 selection:text-[#F4F7FA]">
     <!-- Accessible Skip to Main Content Link -->
     <a
       href="#main-content"
@@ -107,14 +103,11 @@
     </a>
 
     <div id="root">
-      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #071A2D; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; gap: 18px;">
-        <div style="position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; inset: 0; border: 2.5px solid rgba(56, 189, 248, 0.2); border-top-color: #38BDF8; border-radius: 50%; animation: mausamSpin 0.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;"></div>
-          <div style="width: 14px; height: 14px; border-radius: 50%; background: #38BDF8; box-shadow: 0 0 16px rgba(56, 189, 248, 0.8); animation: mausamPulse 1.8s ease-in-out infinite;"></div>
-        </div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center;">
-          <div style="font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: #F8FAFC;">MAUSAM</div>
-          <div style="font-size: 11px; color: #94A3B8; font-family: monospace; letter-spacing: 0.04em;">Atmospheric Intelligence Platform • Connecting Telemetry...</div>
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0B1219; color: #F4F7FA; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 16px;">
+        <div style="width: 40px; height: 40px; border: 2px solid rgba(56, 189, 248, 0.2); border-top-color: #38BDF8; border-radius: 50%; animation: mausamSpin 0.9s linear infinite;"></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
+          <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #F4F7FA;">MAUSAM</div>
+          <div style="font-size: 11px; color: #8EA3B8; font-family: 'IBM Plex Mono', monospace;">Initializing meteorological workspace...</div>
         </div>
       </div>
     </div>

@@ -25,6 +25,8 @@ import { SafetyGuidanceSection } from '../components/warnings/SafetyGuidanceSect
 import { EmergencyResponseSection } from '../components/warnings/EmergencyResponseSection';
 import { NationalClassificationMatrix } from '../components/warnings/NationalClassificationMatrix';
 import { LocationStatusBar } from '../components/location/LocationStatusBar';
+import { useProvider } from '../store/providerStore';
+import { getAlertFeedAvailability } from '../services/providers/providerStatus';
 
 interface AlertsPageProps {
   weatherBundle?: WeatherDataBundle;
@@ -53,6 +55,10 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [alertSurgeNotice, setAlertSurgeNotice] = useState<string | null>(null);
+
+  const { state: sachetState, refresh: refreshSachetStore } = useProvider('SACHET');
+  const sachetAvailability = getAlertFeedAvailability(sachetState);
+  const effectiveUnavailable = isFeedUnavailable || sachetAvailability === 'UNAVAILABLE';
 
   // Monitor alert warnings and trigger audio chime when a genuinely new active warning arrives
   const { isAudioAlertEnabled } = useAlertAudio({
@@ -111,7 +117,8 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
     loadWarnings(true);
-  }, [loadWarnings]);
+    refreshSachetStore(true).catch(() => {});
+  }, [loadWarnings, refreshSachetStore]);
 
   // Handle drawer open
   const handleOpenWarningDetails = useCallback((warning: WarningRecord) => {
@@ -182,7 +189,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
       <LocationStatusBar location={selectedLocation} />
 
       {/* Official Warning Feed Unavailable Banner */}
-      {isFeedUnavailable && (
+      {effectiveUnavailable && (
         <div
           id="warning-feed-unavailable-banner"
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 rounded-xl bg-[#181109] border border-[#F59E0B]/50 text-white shadow-lg"
@@ -193,16 +200,16 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                 OFFICIAL WARNING FEED UNAVAILABLE
               </h3>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-xs text-[#93A4B8] mt-0.5">
                 The real-time SACHET / NDMA disaster alert stream is temporarily unreachable. Surface telemetry and NWP numerical model forecasts remain active.
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={() => loadWarnings(true)}
+            onClick={() => handleRefresh()}
             disabled={isRefreshing}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#241A0C] hover:bg-[#362713] border border-[#F59E0B]/60 text-xs font-bold text-[#FCD34D] transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#241A0C] hover:bg-[#362713] border border-[#F59E0B]/60 text-xs font-bold text-[#FCD34D] transition-colors shrink-0 cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Retry Feed Sync</span>
@@ -221,7 +228,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
       {alertSurgeNotice && (
         <div
           id="severe-alert-surge-banner"
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-lg bg-[#E74C3C]/20 border border-[#E74C3C] text-white shadow-lg animate-pulse"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-lg bg-[#E74C3C]/20 border border-[#E74C3C] text-white shadow-lg"
         >
           <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
             <Volume2 className="w-5 h-5 text-[#FF8A80] shrink-0" />
@@ -241,6 +248,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
           stats={stats}
           lastUpdated={stats.lastUpdatedIst}
           onViewRegionalAlerts={handleScrollToRegionalAlerts}
+          isUnavailable={effectiveUnavailable}
         />
         <WarningTicker
           warnings={warningsList}
@@ -298,15 +306,15 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
           </div>
 
           <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
-            <span className="text-xs text-[#AFC4D8] font-mono bg-[#081F33] border border-[#1D5278] px-2.5 py-1 rounded">
+            <span className="text-xs text-[#CBD5E1] font-mono tabular-nums bg-[#101B26] border border-white/12 px-2.5 py-1 rounded-lg">
               Showing <strong className="text-white">{filteredWarnings.length}</strong> of{' '}
-              <span className="text-[#AFC4D8]">{warningsList.length}</span> active bulletins
+              <span className="text-[#93A4B8]">{warningsList.length}</span> active bulletins
             </span>
             {filter.state !== 'all' && (
               <button
                 type="button"
                 onClick={() => setFilter((prev) => ({ ...prev, state: 'all' }))}
-                className="text-[11px] text-[#4FA8E0] hover:text-white hover:underline flex items-center gap-1 cursor-pointer bg-[#081F33] border border-[#1D5278] px-2 py-1 rounded transition-colors"
+                className="text-[11px] text-[#38BDF8] hover:text-white flex items-center gap-1 cursor-pointer bg-[#101B26] border border-white/12 px-2.5 py-1 rounded-lg transition-colors"
               >
                 <span>Filtered: {filter.state}</span>
                 <span className="material-symbols-outlined text-[12px]">close</span>

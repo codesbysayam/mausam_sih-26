@@ -53,7 +53,10 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
   const windSpeed = typeof weather.windSpeed === 'number' ? Math.round(weather.windSpeed) : 14;
   const rainProb = typeof weather.precipitationProbability === 'number' ? Math.round(weather.precipitationProbability) : 20;
 
-  const aqiInfo = getAqiMeaning(weather.aqi || 82);
+  const aqiVal = typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0 ? Math.round(weather.aqi) : null;
+  const aqiInfo = aqiVal !== null
+    ? getAqiMeaning(aqiVal)
+    : { category: 'Unavailable', severityColor: '#93A4B8' };
   const humidityInfo = getHumidityMeaning(humidity);
   const rainInfo = getRainProbabilityMeaning(rainProb);
 
@@ -72,7 +75,7 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
           {/* Eyebrow: Station details */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#22C7A0] animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#22C7A0]" />
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F4F7FA] tracking-tight">
                 {location.city}, {location.state}
               </h2>
@@ -80,11 +83,11 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
 
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#111C27] text-[#43C7F4] border border-[#162331]">
-                {location.imdStation || 'AWS Regional Station'}
+                {location.imdStation || 'Point Coordinate Telemetry'}
               </span>
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#22C7A0]/15 text-[#22C7A0] border border-[#22C7A0]/30 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Live Feed
+                {weather.dataSource || 'Open-Meteo'}
               </span>
             </div>
           </div>
@@ -155,8 +158,8 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
             </div>
             <div>
               <span className="text-[11px] text-[#93A4B8] block font-medium">Air Quality</span>
-              <span className="text-base font-bold" style={{ color: aqiInfo.severityColor }}>
-                {weather.aqi || 82} AQI
+              <span className="text-base font-bold tabular-nums" style={{ color: aqiInfo.severityColor }}>
+                {aqiVal !== null ? `${aqiVal} AQI` : '—'}
               </span>
               <span className="text-[10px] text-[#93A4B8] block">{aqiInfo.category}</span>
             </div>
@@ -198,7 +201,7 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
                   ? 'bg-[#FFC857]/15 text-[#FFC857]'
                   : 'bg-[#43C7F4]/15 text-[#43C7F4]'
               }`}>
-                <Timer className="w-5 h-5 animate-pulse" />
+                <Timer className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-[#93A4B8] block">

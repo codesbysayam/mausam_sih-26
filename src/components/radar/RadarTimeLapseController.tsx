@@ -109,7 +109,7 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
         onClick={handleContainerClick}
         onMouseDown={handleContainerMouseDown}
         onDoubleClick={(e) => e.stopPropagation()}
-        className={`bg-[#071727]/95 backdrop-blur-md border border-[#19456B] rounded-xl px-3 py-1.5 text-xs text-[#E1EEF8] shadow-2xl flex items-center justify-between gap-2.5 max-w-[calc(100vw-24px)] ${className}`}
+        className={`bg-[#0B1219]/95 backdrop-blur-md border border-white/14 rounded-xl px-3 py-1.5 text-xs text-[#F4F7FA] shadow-2xl flex items-center justify-between gap-2.5 max-w-[calc(100vw-24px)] ${className}`}
         role="region"
         aria-label="Radar Time-Lapse Playback Mini Bar"
       >
@@ -156,16 +156,16 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
 
         {/* Center Frame & Time Info */}
         <div className="flex items-center gap-2 truncate">
-          <span className="w-2 h-2 rounded-full bg-[#00C897] shrink-0 animate-pulse" />
-          <div className="flex items-center gap-1.5 font-mono text-[11px] truncate">
-            <span className="text-[#8A9FB4] hidden sm:inline">
+          <span className="w-2 h-2 rounded-full bg-[#22C7A0] shrink-0" />
+          <div className="flex items-center gap-1.5 font-mono text-[11px] truncate tabular-nums">
+            <span className="text-[#8EA3B8] hidden sm:inline">
               F{activeFrameIndex + 1}/{frames.length}
             </span>
-            <strong className="text-[#F0F6FC]">
+            <strong className="text-[#F4F7FA]">
               {currentFrame.formattedTime.split(',')[0]}
             </strong>
-            <span className="text-[#38BDF8] text-[10px] font-bold px-1 rounded bg-[#102C48] border border-[#1A4E7E]">
-              {currentFrame.relativeLabel || (isLatest ? 'LIVE' : `${currentFrame.ageMinutes}m`)}
+            <span className="text-[#38BDF8] text-[10px] font-bold px-1 rounded bg-[#162331] border border-white/10">
+              {currentFrame.relativeLabel || (isLatest ? 'LATEST' : `${currentFrame.ageMinutes}m`)}
             </span>
           </div>
         </div>
@@ -197,20 +197,16 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
       onClick={handleContainerClick}
       onMouseDown={handleContainerMouseDown}
       onDoubleClick={(e) => e.stopPropagation()}
-      className={`bg-[#071727]/95 backdrop-blur-md border border-[#19456B] rounded-xl p-2.5 sm:p-3 text-xs text-[#E1EEF8] shadow-2xl ${className}`}
+      className={`bg-[#0B1219]/95 backdrop-blur-md border border-white/14 rounded-xl p-2.5 sm:p-3 text-xs text-[#F4F7FA] shadow-2xl ${className}`}
       role="region"
       aria-label="Radar 6-Hour Time-Lapse Playback Workstation"
     >
       {/* 1. Header Strip: Title, Status, IST Timestamp & Collapse Button */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#15344F]">
-        {/* Left: Mode Title, Animation Pulse & Time Span Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10">
+        {/* Left: Mode Title, Animation Status & Time Span Switcher */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#102C48] border border-[#1A4E7E] text-[11px] font-bold text-[#38BDF8]">
-            <span
-              className={`material-symbols-outlined text-[15px] ${
-                isPlaying ? 'animate-spin text-[#38BDF8]' : 'text-[#38BDF8]'
-              }`}
-            >
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#162331] border border-white/10 text-[11px] font-semibold text-[#38BDF8]">
+            <span className="material-symbols-outlined text-[15px] text-[#38BDF8]">
               radar
             </span>
             <span>6-HOUR RADAR TIME-LAPSE</span>
@@ -220,8 +216,8 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
           <span
             className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
               isPlaying
-                ? 'bg-[#F97316]/20 text-[#FB923C] border-[#F97316]/40 animate-pulse'
-                : 'bg-[#1565C0]/20 text-[#38BDF8] border-[#1565C0]/40'
+                ? 'bg-[#F97316]/20 text-[#FB923C] border-[#F97316]/40'
+                : 'bg-[#1499E8]/15 text-[#38BDF8] border-[#1499E8]/35'
             }`}
           >
             <span
@@ -263,23 +259,23 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
           </div>
 
           {/* Active Frame Timestamp Badge */}
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#092238] border border-[#194C77]">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#162331] border border-white/10">
             <span
               className={`w-2 h-2 rounded-full ${
-                isLatest ? 'bg-[#00C897] animate-ping' : 'bg-[#38BDF8]'
+                isLatest ? 'bg-[#22C7A0]' : 'bg-[#38BDF8]'
               }`}
             />
-            <span className="font-mono font-bold text-[#F0F6FC] text-[11px]">
+            <span className="font-mono font-bold text-[#F4F7FA] text-[11px] tabular-nums">
               {currentFrame.formattedTime.split(',')[0]}
             </span>
             <span
               className={`text-[9px] font-bold px-1.5 py-0.2 rounded font-mono ${
                 isLatest
-                  ? 'bg-[#00C897]/20 text-[#00C897] border border-[#00C897]/40'
-                  : 'bg-[#1565C0]/25 text-[#38BDF8] border border-[#1565C0]/40'
+                  ? 'bg-[#22C7A0]/20 text-[#22C7A0] border border-[#22C7A0]/40'
+                  : 'bg-[#1499E8]/20 text-[#38BDF8] border border-[#1499E8]/40'
               }`}
             >
-              {currentFrame.relativeLabel || (isLatest ? 'LIVE' : `${currentFrame.ageMinutes}m ago`)}
+              {currentFrame.relativeLabel || (isLatest ? 'LATEST' : `${currentFrame.ageMinutes}m ago`)}
             </span>
           </div>
 

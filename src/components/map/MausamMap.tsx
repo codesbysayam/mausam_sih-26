@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import {
   WeatherMapMetric,
@@ -67,6 +67,8 @@ export interface MausamMapProps {
   onChangeTimeSpan?: (span: RadarTimeSpan) => void;
   motionVector?: RadarMotionVector;
   dataStatus?: RadarDataStatus;
+  inspectedCoords?: { lat: number; lng: number } | null;
+  onMapClick?: (lat: number, lng: number) => void;
 }
 
 /**
@@ -241,6 +243,22 @@ function MapInteractionLockController({ isLocked }: { isLocked: boolean }) {
   return null;
 }
 
+function MapClickHandler({
+  isLocked,
+  onMapClick,
+}: {
+  isLocked: boolean;
+  onMapClick?: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      if (isLocked || !onMapClick) return;
+      onMapClick(Number(e.latlng.lat.toFixed(4)), Number(e.latlng.lng.toFixed(4)));
+    },
+  });
+  return null;
+}
+
 /**
  * Helper to compute metric color and format
  */
@@ -343,6 +361,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
   onChangeTimeSpan,
   motionVector,
   dataStatus,
+  inspectedCoords = null,
+  onMapClick,
 }) => {
   const INDIA_CENTER: [number, number] = [22.8, 80.5];
   const DEFAULT_ZOOM = 4.8;
@@ -494,7 +514,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           <div class="relative flex items-center justify-center">
             ${
               isSelected
-                ? '<div class="absolute -inset-2 rounded-full border-2 border-[#38BDF8] animate-ping opacity-60 pointer-events-none"></div>'
+                ? '<div class="absolute -inset-1.5 rounded-full border border-[#38BDF8]/80 pointer-events-none"></div>'
                 : ''
             }
             <div class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-[10px] text-white transition-transform ${
@@ -529,7 +549,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
   return (
     <div
-      className={`relative w-full ${heightClass} bg-[#061A2B] rounded-lg overflow-hidden border border-[#1D5278] shadow-inner select-none ${
+      className={`relative w-full ${heightClass} bg-[#0B1219] rounded-lg overflow-hidden border border-white/12 select-none ${
         isLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
       } ${className}`}
       style={{ zIndex: 0 }}
@@ -569,15 +589,15 @@ export const MausamMap: React.FC<MausamMapProps> = ({
             {isLocked ? 'SECTOR LOCKED' : 'LOCK VIEW'}
           </span>
           {isLocked && (
-            <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping ml-0.5" />
+            <span className="w-2 h-2 rounded-full bg-[#F59E0B] ml-0.5" />
           )}
         </button>
       </div>
 
       {/* On-Map Sector Lock Notification Strip (Top-Left) */}
       {isLocked && (
-        <div className="absolute top-3 left-3 z-[400] bg-[#07131E]/95 border border-[#F59E0B]/70 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-lg pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse"></span>
+        <div className="absolute top-3 left-3 z-[400] bg-[#0B1219]/95 border border-[#F59E0B]/70 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-lg pointer-events-auto">
+          <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
           <span className="text-[#F59E0B] font-bold text-[10px] uppercase tracking-wider">LOCKED SECTOR:</span>
           <span className="text-[11px] font-semibold text-white truncate max-w-[150px] sm:max-w-[280px]">
             {activeSectorLabel}
@@ -648,8 +668,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* On-Map Precipitation Filter Banner when active */}
       {isPrecipFiltered && (
-        <div className="absolute top-3 right-14 z-[400] bg-[#07131E]/95 border border-[#F59E0B]/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-2xl pointer-events-auto animate-fadeIn">
-          <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse" />
+        <div className="absolute top-3 right-14 z-[400] bg-[#0B1219]/95 border border-[#F59E0B]/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-2xl pointer-events-auto">
+          <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
           <span className="text-[#F59E0B] font-bold text-[10px] uppercase">
             FILTER: {effectivePrecipLevels.length}/6 ON
           </span>
@@ -694,9 +714,10 @@ export const MausamMap: React.FC<MausamMapProps> = ({
         zoomControl={false}
         scrollWheelZoom={!isLocked}
         className="w-full h-full"
-        style={{ background: '#061A2B' }}
+        style={{ background: '#0B1219' }}
       >
         <MapResizeFix />
+        <MapClickHandler isLocked={isLocked} onMapClick={onMapClick} />
         <MapController
           center={center}
           zoom={zoom}
@@ -825,8 +846,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               className: 'custom-user-marker',
               html: `
                 <div class="relative flex items-center justify-center" style="transform: translate(-50%, -50%);">
-                  <div class="absolute w-6 h-6 rounded-full bg-[#00C897]/30 animate-ping"></div>
-                  <div class="w-3.5 h-3.5 rounded-full bg-[#00C897] border-2 border-white shadow-lg"></div>
+                  <div class="absolute w-6 h-6 rounded-full bg-[#22C7A0]/25 border border-[#22C7A0]/60"></div>
+                  <div class="w-3.5 h-3.5 rounded-full bg-[#22C7A0] border-2 border-white shadow-lg"></div>
                 </div>
               `,
               iconSize: [16, 16],
@@ -835,6 +856,31 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           >
             <Tooltip direction="top">
               <span className="text-xs font-bold text-white">Your Current Position</span>
+            </Tooltip>
+          </Marker>
+        )}
+
+        {/* Custom inspected coordinate pin when user clicks anywhere on map */}
+        {inspectedCoords && (
+          <Marker
+            position={[inspectedCoords.lat, inspectedCoords.lng]}
+            icon={L.divIcon({
+              className: 'custom-inspect-marker',
+              html: `
+                <div class="relative flex items-center justify-center" style="transform: translate(-50%, -50%);">
+                  <div class="w-6 h-6 rounded-full border-2 border-[#38BDF8] bg-[#0B1219]/60 flex items-center justify-center shadow-lg">
+                    <div class="w-2 h-2 rounded-full bg-[#38BDF8]"></div>
+                  </div>
+                </div>
+              `,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
+            })}
+          >
+            <Tooltip direction="top" offset={[0, -10]}>
+              <span className="text-[11px] font-mono text-white">
+                {inspectedCoords.lat.toFixed(3)}°N, {inspectedCoords.lng.toFixed(3)}°E
+              </span>
             </Tooltip>
           </Marker>
         )}
