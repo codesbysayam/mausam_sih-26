@@ -85,6 +85,24 @@ export const tokens = {
       night: 'linear-gradient(145deg, #101B26 0%, #0B1219 100%)',
       storm: 'linear-gradient(145deg, rgba(239, 68, 68, 0.12) 0%, #101B26 100%)',
     },
+
+    // 8. Spatial 3D Atmospheric Canvas & Floating HUD Tokens
+    spatial: {
+      canvasVoid: '#07111D',
+      oceanBase: '#0B1725',
+      landRelief: '#122438',
+      hudSurface: 'rgba(10, 24, 39, 0.92)',
+      hudSurfaceElevated: 'rgba(13, 30, 48, 0.96)',
+      hudBorder: 'rgba(132, 168, 204, 0.18)',
+      hudBorderStrong: 'rgba(53, 199, 232, 0.38)',
+      primaryCyan: '#35C7E8',
+      precipitationBlue: '#3189D8',
+      windTeal: '#36C6B0',
+      clearGreen: '#26B982',
+      watchAmber: '#E8B64D',
+      alertOrange: '#F28B45',
+      severeRed: '#E0525B',
+    },
   },
 
   typography: {

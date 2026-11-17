@@ -4,6 +4,7 @@ import App from './App.tsx';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { LocationProvider } from './context/LocationContext';
 import { ProviderStoreProvider } from './store/providerStore';
+import { ExperienceProvider } from './context/ExperienceContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import './index.css';
 
@@ -106,7 +107,9 @@ if (!rootElement) {
           <LanguageProvider>
             <LocationProvider>
               <ProviderStoreProvider>
-                <App />
+                <ExperienceProvider>
+                  <App />
+                </ExperienceProvider>
               </ProviderStoreProvider>
             </LocationProvider>
           </LanguageProvider>
