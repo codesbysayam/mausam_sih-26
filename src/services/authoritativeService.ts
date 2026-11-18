@@ -284,11 +284,7 @@ class ClientAuthoritativeService {
         lat: 28.6139,
         lng: 77.2090,
         addedAt: new Date().toISOString(),
-        weatherSummary: 'Hazy Sun • 34°C',
-        temp: 34,
-        condition: 'Haze',
-        activeAlert: 'AQI Moderate (145)',
-        packingTip: 'Pack N95 respirator mask & sunglasses',
+        packingTip: 'Check current forecast before departure',
       },
       {
         id: 'mumbai',
@@ -297,11 +293,7 @@ class ClientAuthoritativeService {
         lat: 19.0760,
         lng: 72.8777,
         addedAt: new Date().toISOString(),
-        weatherSummary: 'Passing Coastal Showers • 30°C',
-        temp: 30,
-        condition: 'Showers',
-        activeAlert: 'High Tide surge at 02:40 PM (3.8m)',
-        packingTip: 'Carry a sturdy raincoat & quick-dry clothing',
+        packingTip: 'Check current forecast and official coastal advisories before departure',
       },
       {
         id: 'london',
@@ -310,11 +302,7 @@ class ClientAuthoritativeService {
         lat: 51.5074,
         lng: -0.1278,
         addedAt: new Date().toISOString(),
-        weatherSummary: 'Light Rain & Overcast • 16°C',
-        temp: 16,
-        condition: 'Rain',
-        activeAlert: 'Precipitation probability 70%',
-        packingTip: 'Carry a raincoat in London & light thermal layers',
+        packingTip: 'Check current forecast before departure',
       },
     ];
 
@@ -344,9 +332,6 @@ class ClientAuthoritativeService {
       lat,
       lng,
       addedAt: new Date().toISOString(),
-      weatherSummary: 'Live Telemetry Active',
-      temp: 29,
-      condition: 'Clear',
       packingTip: 'Check destination forecast before departing',
     };
 
