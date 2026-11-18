@@ -179,46 +179,40 @@ class WeatherService {
 
     const fetchPromise = (async () => {
       try {
-        const weatherQuery = `latitude=${location.lat}&longitude=${location.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,visibility,cloud_cover,direct_normal_irradiance,soil_moisture_0_to_1cm,soil_temperature_0cm,et0_fao_evapotranspiration&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Asia%2FKolkata&forecast_days=7`;
+        const weatherQuery = `latitude=${location.lat}&longitude=${location.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,visibility,cloud_cover,direct_normal_irradiance,soil_moisture_0_to_1cm,soil_temperature_0cm,et0_fao_evapotranspiration&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Asia%2FKolkata&forecast_days=7`;
         const airQuery = `latitude=${location.lat}&longitude=${location.lng}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen,ammonia&timezone=Asia%2FKolkata`;
 
         let weatherData: any = null;
         let airData: any = null;
 
-        // Try local same-origin proxy first (guaranteed no CORS or sandbox blocking)
-        try {
-          const [wRes, aRes] = await Promise.all([
-            fetch(`/api/weather?mode=current&${weatherQuery}`, { signal: controller.signal }),
-            fetch(`/api/weather?mode=air&${airQuery}`, { signal: controller.signal }),
-          ]);
-          if (wRes.ok) weatherData = await wRes.json();
-          if (aRes.ok) airData = await aRes.json();
-        } catch (proxyErr: any) {
-          if (proxyErr.name === 'AbortError') throw proxyErr;
-          console.warn('[WeatherService] Proxy fetch attempt failed, trying direct Open-Meteo:', proxyErr);
+        // Use the raw Open-Meteo response schema expected by transformOpenMeteoResponse.
+        // The previous same-origin /api/weather?mode=current proxy returned a normalized
+        // envelope instead, causing raw.current/hourly/daily lookups to fall through to
+        // hard-coded defaults.
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?${weatherQuery}`;
+        const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${airQuery}`;
+        const [weatherRes, airRes] = await Promise.allSettled([
+          fetch(weatherUrl, { signal: controller.signal }),
+          fetch(airQualityUrl, { signal: controller.signal }),
+        ]);
+
+        if (weatherRes.status === 'fulfilled' && weatherRes.value.ok) {
+          weatherData = await weatherRes.value.json();
+        } else if (weatherRes.status === 'fulfilled') {
+          throw new Error(`Open-Meteo forecast API returned HTTP ${weatherRes.value.status}`);
+        } else {
+          throw weatherRes.reason;
         }
 
-        // If proxy didn't succeed, try direct Open-Meteo
-        if (!weatherData) {
-          const weatherUrl = `https://api.open-meteo.com/v1/forecast?${weatherQuery}`;
-          const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${airQuery}`;
-          const [weatherRes, airRes] = await Promise.allSettled([
-            fetch(weatherUrl, { signal: controller.signal }),
-            fetch(airQualityUrl, { signal: controller.signal }),
-          ]);
-
-          if (weatherRes.status === 'fulfilled' && weatherRes.value.ok) {
-            weatherData = await weatherRes.value.json();
+        if (airRes.status === 'fulfilled' && airRes.value.ok) {
+          try {
+            airData = await airRes.value.json();
+          } catch (parseError) {
+            console.warn('[WeatherService] Air-quality response was not valid JSON:', parseError);
           }
-          if (airRes.status === 'fulfilled' && airRes.value.ok) {
-            try {
-              airData = await airRes.value.json();
-            } catch (e) {
-              console.warn('[WeatherService] Direct Air quality JSON parse error:', e);
-            }
-          }
+        } else {
+          console.warn('[WeatherService] Air-quality feed unavailable; the weather forecast can still load.');
         }
-
         if (!weatherData) {
           throw new Error(`Weather API connection failed`);
         }
@@ -235,12 +229,10 @@ class WeatherService {
         return bundle;
       } catch (err: any) {
         if (err?.name === 'AbortError') {
-          // Graceful handling of aborted requests - return stale cache or fallback without throwing unhandled rejection
+          // Reuse only a previously observed bundle; never fabricate an observation.
           const stale = this.cache.get(cacheKey);
-          if (stale) {
-            return stale.data;
-          }
-          return this.generateFallbackBundle(location);
+          if (stale) return stale.data;
+          throw err;
         }
         console.warn(`[WeatherService] Live fetch failed for ${location.displayName}:`, err);
 
@@ -256,9 +248,8 @@ class WeatherService {
           };
         }
 
-        // Generate accurate seasonal synthetic data as clean fallback
-        const fallback = this.generateFallbackBundle(location);
-        return fallback;
+        // No cached observation exists. Let the caller render an unavailable state.
+        throw err;
       } finally {
         this.inFlightFetches.delete(cacheKey);
         this.abortControllers.delete(cacheKey);
