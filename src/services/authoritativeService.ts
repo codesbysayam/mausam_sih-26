@@ -192,7 +192,7 @@ class ClientAuthoritativeService {
       sunset?: string;
     },
     forceRefresh = false
-  ): Promise<PersonaDataBundle> {
+  ): Promise<PersonaDataBundle | null> {
     const key = `${location.id}_${location.lat.toFixed(2)}_${location.lng.toFixed(2)}`;
     const now = Date.now();
 
@@ -223,22 +223,39 @@ class ClientAuthoritativeService {
       if (currentTelemetry?.sunset) params.append('sunset', currentTelemetry.sunset);
 
       params.append('mode', 'bundle');
+      // The weather gateway's bundle mode is a forecast bundle, not a PersonaDataBundle.
+      // Do not cast incompatible payloads or fabricate persona measurements on failure.
       const res = await fetch(`/api/weather?${params.toString()}`);
       if (!res.ok) {
-        throw new Error(`Authoritative server endpoint responded with status ${res.status}`);
+        throw new Error(`Persona endpoint responded with status ${res.status}`);
+      }
+      const json = await res.json();
+      const data = json?.data;
+      const isPersonaBundle =
+        json?.status === 'success' &&
+        data &&
+        data.location &&
+        data.health &&
+        data.fitness &&
+        data.beachAndSurf &&
+        data.travel &&
+        data.familyCommute &&
+        data.agriculture &&
+        data.commuter &&
+        data.eventPlanner &&
+        typeof data.fetchedAt === 'string';
+
+      if (!isPersonaBundle) {
+        console.warn('[ClientAuthoritativeService] Persona bundle unavailable: API returned a different schema.', {
+          status: json?.status,
+          source: json?.source,
+          dataStatus: json?.dataStatus,
+        });
+        return null;
       }
 
-      const json = await res.json();
-      if (json.status === 'success' && json.data) {
-        const bundle = json.data as PersonaDataBundle;
-        this.cache.set(key, { bundle, timestamp: now });
-        return bundle;
-      }
-      throw new Error('Invalid response structure from authoritative bundle');
-    } catch (err) {
-      console.warn('[ClientAuthoritativeService] Live fetch failed, generating client fallback:', err);
-      const fallback = this.generateFallbackBundle(location, currentTelemetry);
-      return fallback;
+      this.cache.set(key, { bundle: data as PersonaDataBundle, timestamp: now });
+      return data as PersonaDataBundle;
     }
   }
 
@@ -345,162 +362,7 @@ class ClientAuthoritativeService {
     return updated;
   }
 
-  private generateFallbackBundle(
-    location: LocationRecord,
-    currentTelemetry?: {
-      temp?: number;
-      humidity?: number;
-      windSpeed?: number;
-      windDir?: string;
-      uvIndex?: number;
-      isRaining?: boolean;
-    }
-  ): PersonaDataBundle {
-    const isCoastal = location.coastalStatus === 'coastal' || location.city.toLowerCase().includes('mumbai') || location.city.toLowerCase().includes('puri');
-    const temp = currentTelemetry?.temp ?? 29;
-    const humidity = currentTelemetry?.humidity ?? 70;
-    const uv = currentTelemetry?.uvIndex ?? 6;
-    const isRaining = currentTelemetry?.isRaining ?? false;
 
-    return {
-      location: {
-        city: location.city,
-        state: location.state,
-        lat: location.lat,
-        lng: location.lng,
-        isCoastal,
-      },
-      health: {
-        aqi: {
-          source: 'CPCB NAQI Standard (IMD Observation)',
-          stationName: `${location.city} Station`,
-          aqi: 68,
-          category: 'Satisfactory',
-          dominantPollutant: 'PM2.5',
-          pm25: 41.2,
-          pm10: 72.0,
-          no2: 24.0,
-          so2: 10.5,
-          co: 390,
-          o3: 28.0,
-          healthAdvice: 'Air quality is satisfactory. Sensitive individuals should observe standard precautions.',
-          colorCode: '#27AE60',
-          lastUpdated: new Date().toISOString(),
-          isOfficialFeed: true,
-        },
-        pollen: {
-          source: 'Bio-Climatic Aero-Allergen Telemetry',
-          overallIndex: 8,
-          riskCategory: 'Moderate',
-          treePollen: 3,
-          grassPollen: 4,
-          weedPollen: 1,
-          allergyTip: 'Moderate botanical pollen count. Standard precautions for sensitive individuals.',
-          lastUpdated: new Date().toISOString(),
-        },
-        uvIndex: uv,
-        uvRiskLabel: uv >= 8 ? 'Very High Risk' : uv >= 6 ? 'High Risk' : 'Moderate Risk',
-        uvAdvice: uv >= 6 ? 'Avoid direct midday sun, wear UV sunglasses & broad-spectrum SPF 30+' : 'Low UV exposure',
-        humidity,
-      },
-      fitness: {
-        sunrise: '05:32 AM',
-        sunset: '06:18 PM',
-        bestRunningHours: '05:30 AM – 08:00 AM & 06:00 PM – 07:30 PM',
-        workoutSuitability: temp > 35 ? 'Fair' : 'Excellent',
-        heatAlertActive: temp >= 38,
-        heatAlertMessage: temp >= 38 ? 'Heat Alert: Take precautions, avoid intense midday outdoor workouts.' : null,
-        windSpeedKmh: currentTelemetry?.windSpeed ?? 12,
-        windDirection: currentTelemetry?.windDir ?? 'WSW',
-        hydrationRateMlHour: 600,
-        thermalStressLevel: temp >= 38 ? 'High' : 'Moderate',
-      },
-      beachAndSurf: {
-        isCoastal,
-        tides: isCoastal ? {
-          source: 'WorldTides & IMD Hydrographic Ephemeris',
-          isCoastal: true,
-          stationName: `${location.city} Port / Coast`,
-          nextHighTide: { time: '02:15 PM', heightMeters: 3.2 },
-          nextLowTide: { time: '08:40 PM', heightMeters: 0.4 },
-          upcomingExtremes: [
-            { time: '02:15 PM', type: 'High', heightMeters: 3.2 },
-            { time: '08:40 PM', type: 'Low', heightMeters: 0.4 },
-          ],
-          currentWaterLevelMeters: 2.1,
-          lastUpdated: new Date().toISOString(),
-        } : null,
-        marine: isCoastal ? {
-          source: 'Open-Meteo Global Marine Forecast',
-          isCoastal: true,
-          waveHeightMeters: 1.2,
-          wavePeriodSeconds: 7.2,
-          waveDirectionDegrees: 210,
-          seaSurfaceTemperatureC: 29.0,
-          surfCondition: 'Moderate Swell',
-          marineAdvisory: 'Normal sea state. Safe for authorized bathing zones.',
-          lastUpdated: new Date().toISOString(),
-        } : null,
-      },
-      travel: {
-        activeAlerts: isRaining ? [{
-          id: 'rain-adv',
-          source: 'IMD Nowcasting Bulletin',
-          title: 'Rain & Thunderstorm Advisory',
-          severity: 'Advisory',
-          category: 'Heavy Rain',
-          description: 'Passing rain showers with gusty surface winds.',
-          affectedArea: `${location.city}, ${location.state}`,
-          effectiveFrom: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 86400000).toISOString(),
-          actionItem: 'Carry rain protection gear and allow extra commute time.',
-          color: '#0B72B9',
-        }] : [],
-        packingSuggestions: isRaining
-          ? ['Carry a raincoat or umbrella (precipitation probable)', 'Waterproof backpack cover']
-          : ['Light breathable cottons', 'Sunglasses & SPF sunscreen', 'Reusable water bottle'],
-        travelSafetyRating: 'Favorable',
-      },
-      familyCommute: {
-        morningCommuteStatus: isRaining ? 'Caution' : 'Safe',
-        eveningCommuteStatus: 'Safe',
-        morningWindow: '07:00 AM – 09:00 AM',
-        eveningWindow: '02:30 PM – 05:30 PM',
-        rainExpectedDuringCommute: isRaining,
-        commuteRainSummary: isRaining ? 'Light rain expected during morning school commute.' : 'Dry roads during commute hours.',
-        schoolBusSafetyNote: isRaining ? 'Wet roads: Advise caution and carry umbrellas.' : 'Clear weather for school travel.',
-        severeWarnings: [],
-      },
-      agriculture: {
-        soilMoisturePercent: 48,
-        soilMoistureStatus: 'Optimal',
-        threeDayRainfallTotalMm: isRaining ? 18.5 : 2.0,
-        frostAlertActive: temp <= 2,
-        frostAlertMessage: temp <= 2 ? 'Possible frost tonight – protect tender plants.' : null,
-        currentCropSeason: 'Kharif',
-        seasonalPlantingTip: 'Monsoon season: Favorable for paddy transplantation, pulses, and oilseeds.',
-        irrigationRecommendation: 'Soil moisture is optimal; ensure field drainage channels are clear.',
-      },
-      commuter: {
-        roadCondition: isRaining ? 'Wet' : 'Dry',
-        roadSafetyIndex: isRaining ? 'Yellow' : 'Green',
-        roadSafetyLabel: isRaining ? 'Roads: Wet (Increased stopping distance)' : 'Roads: Dry (Normal driving conditions)',
-        visibilityKm: 6.5,
-        visibilityStatus: 'Clear',
-        travelHazards: isRaining ? ['Slippery asphalt on curves and flyovers'] : ['Clear traffic flow'],
-      },
-      eventPlanner: {
-        extendedForecast: [
-          { date: 'Today', dayOfWeek: 'Today', tempMax: temp + 2, tempMin: temp - 5, condition: isRaining ? 'Showers' : 'Clear', icon: isRaining ? 'rainy' : 'wb_sunny', rainProbabilityPercent: isRaining ? 75 : 15, comfortIndexValue: 74, comfortCategory: 'Comfortable' },
-          { date: 'Tomorrow', dayOfWeek: 'Tomorrow', tempMax: temp + 1, tempMin: temp - 6, condition: 'Partly Cloudy', icon: 'partly_cloudy_day', rainProbabilityPercent: 30, comfortIndexValue: 72, comfortCategory: 'Pleasant' },
-        ],
-        comfortIndexToday: 74,
-        comfortCategoryToday: 'Comfortable',
-        eventRecommendation: 'Comfortable outdoor conditions: Suitable for evening gatherings.',
-      },
-      fetchedAt: new Date().toISOString(),
-    };
-  }
 }
 
 export const authoritativeClient = new ClientAuthoritativeService();
