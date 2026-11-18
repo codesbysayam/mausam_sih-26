@@ -1,6 +1,7 @@
 import React from 'react';
-import { Radio } from 'lucide-react';
+import { Radio, ArrowRight } from 'lucide-react';
 import { INDIA_WEATHER_DATA } from '../../data/indiaWeatherData';
+import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
 
 interface HomeIndiaWeatherStatusProps {
   onNavigate?: (tab: string) => void;
@@ -41,12 +42,12 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
     {
       id: 'status-card-temp',
       title: 'NATIONAL MEAN TEMP',
-      value: avgTemp !== null ? avgTemp : 'N/A',
+      value: avgTemp !== null ? avgTemp : '—',
       unit: avgTemp !== null ? '°C' : '',
       subtext: avgTemp !== null ? `Across 36 capitals (${minTemp}° – ${maxTemp}°C)` : 'Aggregation unavailable',
       source: '36-Region Reference Dataset',
       status: 'REF',
-      statusColor: '#38BDF8',
+      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
       tab: 'weather',
     },
     {
@@ -57,7 +58,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: stationsWithRain > 0 ? `Reference peak: ${maxRain} mm` : 'No widespread rainfall in snapshot',
       source: 'Regional Baseline',
       status: 'REF',
-      statusColor: '#38BDF8',
+      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
       tab: 'radar',
     },
     {
@@ -68,40 +69,42 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: severeAlerts > 0 ? `${severeAlerts} elevated baseline regions` : 'Routine baseline conditions',
       source: 'Threshold Classifier',
       status: severeAlerts > 0 ? 'WATCH' : 'ROUTINE',
-      statusColor: severeAlerts > 0 ? '#F59E0B' : '#22C7A0',
+      statusClass: severeAlerts > 0
+        ? 'text-[#FCD34D] bg-[#F59E0B]/12 border-[#F59E0B]/30'
+        : 'text-[#6EE7B7] bg-[#22C7A0]/12 border-[#22C7A0]/30',
       tab: 'warnings',
     },
     {
       id: 'status-card-aqi',
       title: 'MEAN REGIONAL AQI',
-      value: avgAQI !== null ? `${avgAQI}` : 'N/A',
+      value: avgAQI !== null ? `${avgAQI}` : '—',
       unit: avgAQI !== null ? 'AQI' : '',
       subtext: avgAQI !== null ? '36-Capital Reference Mean' : 'Aggregation unavailable',
       source: 'Reference Summary',
       status: 'REF',
-      statusColor: '#38BDF8',
+      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
       tab: 'aqi',
     },
     {
       id: 'status-card-wind',
       title: 'MEAN SURFACE WIND',
-      value: avgWind !== null ? `${avgWind}` : 'N/A',
+      value: avgWind !== null ? `${avgWind}` : '—',
       unit: avgWind !== null ? 'km/h' : '',
       subtext: maxWind !== null ? `Reference max ${maxWind} km/h` : 'Aggregation unavailable',
       source: 'Regional Baseline',
       status: 'REF',
-      statusColor: '#38BDF8',
+      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
       tab: 'weather',
     },
     {
       id: 'status-card-humidity',
       title: 'MEAN HUMIDITY',
-      value: avgHumidity !== null ? `${avgHumidity}` : 'N/A',
+      value: avgHumidity !== null ? `${avgHumidity}` : '—',
       unit: avgHumidity !== null ? '% RH' : '',
       subtext: avgHumidity !== null ? 'Mean national snapshot RH' : 'Aggregation unavailable',
       source: 'Regional Baseline',
       status: 'REF',
-      statusColor: '#38BDF8',
+      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
       tab: 'weather',
     },
     {
@@ -112,7 +115,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: 'All-India State & UT Capitals',
       source: 'Regional Registry',
       status: 'INDEXED',
-      statusColor: '#22C7A0',
+      statusClass: 'text-[#6EE7B7] bg-[#22C7A0]/12 border-[#22C7A0]/30',
       tab: 'reports',
     },
     {
@@ -123,38 +126,25 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: 'National baseline reference',
       source: 'Synoptic Snapshot',
       status: 'SNAPSHOT',
-      statusColor: '#8EA3B8',
+      statusClass: 'text-[#B5C3D1] bg-[#8295A8]/12 border-[#38536A]',
       tab: 'radar',
     },
   ];
 
   return (
-    <section
-      id="india-weather-status-panel"
-      className="bg-[#101B26] border border-white/12 rounded-xl p-4 sm:p-5"
-      aria-label="National Regional Reference Overview"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#162331] border border-white/10 flex items-center justify-center text-[#38BDF8]">
-            <Radio className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-[#F4F7FA] tracking-tight">
-              National Regional Reference Summary
-            </h2>
-            <p className="text-xs text-[#8EA3B8]">
-              Aggregated baseline across 36 State &amp; Union Territory capitals (separate from your selected city&apos;s live telemetry)
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-[#162331] border border-white/10 px-3 py-1.5 rounded-lg text-xs">
-          <span className="font-mono text-[#38BDF8] font-semibold uppercase">Reference Snapshot</span>
-          <span className="text-white/20">•</span>
-          <span className="text-[#B6C7D8] font-mono text-[11px] tabular-nums">{displayTime}</span>
-        </div>
-      </div>
+    <DataPanel id="india-weather-status-panel" className="flex flex-col gap-4">
+      <SectionHeading
+        icon={<Radio className="w-4 h-4" />}
+        title="National Regional Reference Summary"
+        subtitle="Aggregated baseline across 36 State & Union Territory capitals (separate from your selected city telemetry)"
+        action={
+          <SourceStatus
+            status="REFERENCE"
+            labelOverride="REFERENCE SNAPSHOT"
+            updatedAt={displayTime}
+          />
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map((card) => (
@@ -163,46 +153,39 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
             id={card.id}
             type="button"
             onClick={() => onNavigate?.(card.tab)}
-            className="text-left bg-[#162331] hover:bg-[#1B2C3D] border border-white/10 hover:border-[#38BDF8]/40 rounded-xl p-3.5 transition-colors cursor-pointer group flex flex-col justify-between"
+            className="text-left m-panel-inset hover:bg-[#101F2E] hover:border-[#38536A] p-3.5 transition-colors cursor-pointer group flex flex-col justify-between m-focus-ring"
           >
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-semibold tracking-wider text-[#B6C7D8] uppercase">
+              <span className="text-[11px] font-semibold tracking-wider text-[#B5C3D1] uppercase truncate">
                 {card.title}
               </span>
               <span
-                className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded"
-                style={{
-                  color: card.statusColor,
-                  backgroundColor: `${card.statusColor}18`,
-                  border: `1px solid ${card.statusColor}33`,
-                }}
+                className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded border shrink-0 ${card.statusClass}`}
               >
                 {card.status}
               </span>
             </div>
 
             <div className="my-1">
-              <div className="flex items-baseline gap-1.5 tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
+              <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
+                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA] tracking-tight">
                   {card.value}
                 </span>
                 {card.unit && (
-                  <span className="text-xs font-medium text-[#8EA3B8]">{card.unit}</span>
+                  <span className="text-xs font-sans font-medium text-[#8295A8]">{card.unit}</span>
                 )}
               </div>
-              <p className="text-[11px] text-[#8EA3B8] mt-0.5 truncate">{card.subtext}</p>
+              <p className="text-[11px] text-[#8295A8] mt-0.5 truncate">{card.subtext}</p>
             </div>
 
-            <div className="mt-2.5 pt-2 border-t border-white/8 flex items-center justify-between text-[10px] text-[#8EA3B8] font-mono">
+            <div className="mt-2.5 pt-2 border-t border-[#26394B] flex items-center justify-between text-[10px] text-[#8295A8] font-mono">
               <span className="truncate">{card.source}</span>
-              <span className="shrink-0 text-[#38BDF8] group-hover:translate-x-0.5 transition-transform">
-                →
-              </span>
+              <ArrowRight className="w-3 h-3 shrink-0 text-[#35C7E8] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>
         ))}
       </div>
-    </section>
+    </DataPanel>
   );
 };
 

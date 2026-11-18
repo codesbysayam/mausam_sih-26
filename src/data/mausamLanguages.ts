@@ -371,25 +371,34 @@ export function getLocalizedInitialGreeting(
 ): { content: string; suggestedFollowUps: string[] } {
   const latStr = typeof station?.lat === 'number' ? station.lat.toFixed(2) : '20.29';
   const lngStr = typeof station?.lng === 'number' ? station.lng.toFixed(2) : '85.82';
-  const stnCode = station?.code || station?.id || '42971';
+  const stnCode = station?.code || station?.id || 'STATION';
   const condStr = translateConditionToLang(weather.condition, langKey);
-  const aqiVal = weather.aqiIndex ?? weather.aqiPm25 ?? 65;
-  const aqiStatusStr = translateAqiStatusToLang(weather.aqiStatus || 'Satisfactory', langKey);
-  const pollenStr = translatePollenRiskToLang(weather.pollen || 'Low Risk', langKey);
-  const feelsLike = weather.feelsLike ?? weather.temp;
+  const hasTemp = typeof weather.temp === 'number' && Number.isFinite(weather.temp);
+  const tempStr = hasTemp ? `${weather.temp}°C` : 'Unavailable';
+  const feelsVal = weather.feelsLike ?? weather.temp;
+  const feelsStr = typeof feelsVal === 'number' && Number.isFinite(feelsVal) ? `${feelsVal}°C` : 'Unavailable';
+  const humStr = typeof weather.humidity === 'number' && Number.isFinite(weather.humidity) ? `${weather.humidity}%` : 'Unavailable';
+  const dewStr = typeof weather.dewPoint === 'number' && Number.isFinite(weather.dewPoint) ? `${weather.dewPoint}°C` : 'Unavailable';
+  const windNum = typeof weather.windSpeed === 'number' && Number.isFinite(weather.windSpeed) ? weather.windSpeed : null;
+  const pressStr = typeof weather.pressure === 'number' && Number.isFinite(weather.pressure) ? `${weather.pressure} hPa` : 'Unavailable';
+  const aqiNum = weather.aqiIndex ?? weather.aqiPm25 ?? null;
+  const aqiVal = typeof aqiNum === 'number' && Number.isFinite(aqiNum) ? String(aqiNum) : 'Unavailable';
+  const aqiStatusStr = translateAqiStatusToLang(weather.aqiStatus || 'Unavailable', langKey);
+  const pollenStr = weather.pollen ? translatePollenRiskToLang(weather.pollen, langKey) : 'Unavailable';
+  const windDirStr = weather.windDirection || '—';
 
   switch (langKey) {
     case 'or':
       return {
-        content: `### 🏛️ ଭାରତୀୟ ପାଣିପାଗ ବିଭାଗ (IMD) ବାୟୁମଣ୍ଡଳୀୟ ଗୁଇନ୍ଦା ସୂଚନା
+        content: `### ଭାରତୀୟ ପାଣିପାଗ ବିଭାଗ (IMD) ବାୟୁମଣ୍ଡଳୀୟ ଗୁଇନ୍ଦା ସୂଚନା
 **ପାଣିପାଗ କେନ୍ଦ୍ର**: ${stationDisplayName}
 **ଭୌଗୋଳିକ ଅବସ୍ଥିତି**: ${latStr}°N, ${lngStr}°E | କେନ୍ଦ୍ର କୋଡ୍ (ID): ${stnCode}
 
-• **ତାପମାତ୍ରା**: ${weather.temp}°C (ଅନୁଭୂତ ତାପମାତ୍ରା: ${feelsLike}°C)
+• **ତାପମାତ୍ରା**: ${tempStr} (ଅନୁଭୂତ ତାପମାତ୍ରା: ${feelsStr})
 • **ପାଣିପାଗ ସ୍ଥିତି**: ${condStr}
-• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${weather.humidity}% | **କାକର ବିନ୍ଦୁ**: ${weather.dewPoint ?? 24.5}°C
-• **ଭୂପୃଷ୍ଠ ପବନ**: ${weather.windSpeed} କି.ମି./ଘଣ୍ଟା (${weather.windDirection || 'WSW'})
-• **ବାୟୁମଣ୍ଡଳୀୟ ଚାପ**: ${weather.pressure} hPa
+• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${humStr} | **କାକର ବିନ୍ଦୁ**: ${dewStr}
+• **ଭୂପୃଷ୍ଠ ପବନ**: ${windNum !== null ? `${windNum} କି.ମି./ଘଣ୍ଟା` : 'Unavailable'} (${windDirStr})
+• **ବାୟୁମଣ୍ଡଳୀୟ ଚାପ**: ${pressStr}
 • **ଜାତୀୟ ବାୟୁ ଗୁଣବତ୍ତା ସୂଚକାଙ୍କ (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **ପରାଗରେଣୁ ଏବଂ ଆଲର୍ଜି ସ୍ଥିତି**: ${pollenStr}
 
@@ -405,15 +414,15 @@ export function getLocalizedInitialGreeting(
 
     case 'hi':
       return {
-        content: `### 🏛️ भारतीय मौसम विज्ञान विभाग (IMD) वायुमंडलीय सूचना
+        content: `### भारतीय मौसम विज्ञान विभाग (IMD) वायुमंडलीय सूचना
 **मौसम केंद्र**: ${stationDisplayName}
 **निर्देशांक**: ${latStr}°N, ${lngStr}°E | स्टेशन आईडी: ${stnCode}
 
-• **तापमान**: ${weather.temp}°C (महसूस तापमान: ${feelsLike}°C)
+• **तापमान**: ${tempStr} (महसूस तापमान: ${feelsStr})
 • **मौसम की स्थिति**: ${condStr}
-• **सापेक्ष आर्द्रता**: ${weather.humidity}% | **ओसांक**: ${weather.dewPoint ?? 24.5}°C
-• **सतही हवा**: ${weather.windSpeed} किमी/घंटा (${weather.windDirection || 'WSW'})
-• **वायुमंडलीय दबाव**: ${weather.pressure} hPa (स्टेशन स्तर)
+• **सापेक्ष आर्द्रता**: ${humStr} | **ओसांक**: ${dewStr}
+• **सतही हवा**: ${windNum !== null ? `${windNum} किमी/घंटा` : 'Unavailable'} (${windDirStr})
+• **वायुमंडलीय दबाव**: ${pressStr} (स्टेशन स्तर)
 • **राष्ट्रीय वायु गुणवत्ता सूचकांक (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **परागकण / एलर्जी जोखिम**: ${pollenStr}
 
@@ -429,15 +438,15 @@ export function getLocalizedInitialGreeting(
 
     case 'bn':
       return {
-        content: `### 🏛️ ভারতীয় আবহাওয়া অধিদপ্তর (IMD) বায়ুমণ্ডলীয় তথ্য
+        content: `### ভারতীয় আবহাওয়া অধিদপ্তর (IMD) বায়ুমণ্ডলীয় তথ্য
 **আবহাওয়া কেন্দ্র**: ${stationDisplayName}
 **স্থানাঙ্ক**: ${latStr}°N, ${lngStr}°E | স্টেশন আইডি: ${stnCode}
 
-• **তাপমাত্রা**: ${weather.temp}°C (অনুভূত তাপমাত্রা: ${feelsLike}°C)
+• **তাপমাত্রা**: ${tempStr} (অনুভূত তাপমাত্রা: ${feelsStr})
 • **আবহাওয়ার অবস্থা**: ${condStr}
-• **আপেক্ষিক আর্দ্রতা**: ${weather.humidity}% | **শিশিরাঙ্ক**: ${weather.dewPoint ?? 24.5}°C
-• **ভূপৃষ্ঠের বাতাস**: ${weather.windSpeed} কিমি/ঘণ্টা (${weather.windDirection || 'WSW'})
-• **বায়ুমণ্ডলীয় চাপ**: ${weather.pressure} hPa
+• **আপেক্ষিক আর্দ্রতা**: ${humStr} | **শিশিরাঙ্ক**: ${dewStr}
+• **ভূপৃষ্ঠের বাতাস**: ${windNum !== null ? `${windNum} কিমি/ঘণ্টা` : 'Unavailable'} (${windDirStr})
+• **বায়ুমণ্ডলীয় চাপ**: ${pressStr}
 • **জাতীয় বায়ুর গুণমান সূচক (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **পরাগরেণু ও অ্যালার্জি ঝুঁকি**: ${pollenStr}
 
@@ -453,15 +462,15 @@ export function getLocalizedInitialGreeting(
 
     case 'mr':
       return {
-        content: `### 🏛️ भारतीय हवामान विभाग (IMD) वातावरणीय माहिती
+        content: `### भारतीय हवामान विभाग (IMD) वातावरणीय माहिती
 **हवामान वेधशाळा**: ${stationDisplayName}
 **अक्षांश-रेखांश**: ${latStr}°N, ${lngStr}°E | वेधशाळा आयडी: ${stnCode}
 
-• **तापमान**: ${weather.temp}°C (जाणवणारे तापमान: ${feelsLike}°C)
+• **तापमान**: ${tempStr} (जाणवणारे तापमान: ${feelsStr})
 • **हवामानाची स्थिती**: ${condStr}
-• **सापेक्ष आर्द्रता**: ${weather.humidity}% | **दवबिंदू**: ${weather.dewPoint ?? 24.5}°C
-• **पृष्ठभागावरील वारे**: ${weather.windSpeed} किमी/तास (${weather.windDirection || 'WSW'})
-• **वातावरणीय दाब**: ${weather.pressure} hPa
+• **सापेक्ष आर्द्रता**: ${humStr} | **दवबिंदू**: ${dewStr}
+• **पृष्ठभागावरील वारे**: ${windNum !== null ? `${windNum} किमी/तास` : 'Unavailable'} (${windDirStr})
+• **वातावरणीय दाब**: ${pressStr}
 • **राष्ट्रीय हवा गुणवत्ता निर्देशांक (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **परागकण आणि ॲलर्जी जोखीम**: ${pollenStr}
 
@@ -477,15 +486,15 @@ export function getLocalizedInitialGreeting(
 
     case 'ta':
       return {
-        content: `### 🏛️ இந்திய வானிலை ஆய்வு மையம் (IMD) வளிமண்டல நுண்ணறிவு
+        content: `### இந்திய வானிலை ஆய்வு மையம் (IMD) வளிமண்டல நுண்ணறிவு
 **வானிலை நிலையம்**: ${stationDisplayName}
 **அமைவிடம்**: ${latStr}°N, ${lngStr}°E | நிலைய எண்: ${stnCode}
 
-• **வெப்பநிலை**: ${weather.temp}°C (உணரப்படும் வெப்பநிலை: ${feelsLike}°C)
+• **வெப்பநிலை**: ${tempStr} (உணரப்படும் வெப்பநிலை: ${feelsStr})
 • **வானிலை நிலை**: ${condStr}
-• **ஒப்பீட்டு ஈரப்பதம்**: ${weather.humidity}% | **பனி நிலை புள்ளி**: ${weather.dewPoint ?? 24.5}°C
-• **மேற்பரப்பு காற்று**: ${weather.windSpeed} கி.மீ/மணி (${weather.windDirection || 'WSW'})
-• **வளிமண்டல அழுத்தம்**: ${weather.pressure} hPa
+• **ஒப்பீட்டு ஈரப்பதம்**: ${humStr} | **பனி நிலை புள்ளி**: ${dewStr}
+• **மேற்பரப்பு காற்று**: ${windNum !== null ? `${windNum} கி.மீ/மணி` : 'Unavailable'} (${windDirStr})
+• **வளிமண்டல அழுத்தம்**: ${pressStr}
 • **தேசிய காற்றுத் தரக் குறியீடு (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **மகரந்த ஒவ்வாமை ஆபத்து**: ${pollenStr}
 
@@ -501,15 +510,15 @@ export function getLocalizedInitialGreeting(
 
     case 'te':
       return {
-        content: `### 🏛️ భారత వాతావరణ శాఖ (IMD) వాతావరణ సమాచారం
+        content: `### భారత వాతావరణ శాఖ (IMD) వాతావరణ సమాచారం
 **వాతావరణ కేంద్రం**: ${stationDisplayName}
 **కోఆర్డినేట్స్**: ${latStr}°N, ${lngStr}°E | కేంద్రం ఐడీ: ${stnCode}
 
-• **ఉష్ణోగ్రత**: ${weather.temp}°C (అనుభూతి చెందే ఉష్ణోగ్రత: ${feelsLike}°C)
+• **ఉష్ణోగ్రత**: ${tempStr} (అనుభూతి చెందే ఉష్ణోగ్రత: ${feelsStr})
 • **వాతావరణ స్థితి**: ${condStr}
-• **సాపేక్ష తేమ**: ${weather.humidity}% | **మంచు బిందువు**: ${weather.dewPoint ?? 24.5}°C
-• **భూతల గాలి**: ${weather.windSpeed} కి.మీ/గంట (${weather.windDirection || 'WSW'})
-• **వాతావరణ పీడనం**: ${weather.pressure} hPa
+• **సాపేక్ష తేమ**: ${humStr} | **మంచు బిందువు**: ${dewStr}
+• **భూతల గాలి**: ${windNum !== null ? `${windNum} కి.మీ/గంట` : 'Unavailable'} (${windDirStr})
+• **వాతావరణ పీడనం**: ${pressStr}
 • **జాతీయ గాలి నాణ్యత సూచిక (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **పరాగరేణువు / అలెర్జీ ప్రమాదం**: ${pollenStr}
 
@@ -525,15 +534,15 @@ export function getLocalizedInitialGreeting(
 
     case 'kn':
       return {
-        content: `### 🏛️ ಭಾರತೀಯ ಹವಾಮಾನ ಇಲಾಖೆ (IMD) ವಾತಾವರಣ ಮಾಹಿತಿ
+        content: `### ಭಾರತೀಯ ಹವಾಮಾನ ಇಲಾಖೆ (IMD) ವಾತಾವರಣ ಮಾಹಿತಿ
 **ಹವಾಮಾನ ಕೇಂದ್ರ**: ${stationDisplayName}
 **ನಿರ್ದೇಶಾಂಕಗಳು**: ${latStr}°N, ${lngStr}°E | ಕೇಂದ್ರ ಐಡಿ: ${stnCode}
 
-• **ತಾಪಮಾನ**: ${weather.temp}°C (ಅನಿಸುವ ತಾಪಮಾನ: ${feelsLike}°C)
+• **ತಾಪಮಾನ**: ${tempStr} (ಅನಿಸುವ ತಾಪಮಾನ: ${feelsStr})
 • **ಹವಾಮಾನ ಸ್ಥಿತಿ**: ${condStr}
-• **ಸಾಪೇಕ್ಷ ಆರ್ದ್ರತೆ**: ${weather.humidity}% | **ಇಬ್ಬನಿ ಬಿಂದು**: ${weather.dewPoint ?? 24.5}°C
-• **ಮೇಲ್ಮೈ ಗಾಳಿ**: ${weather.windSpeed} ಕಿ.ಮೀ/ಗಂಟೆ (${weather.windDirection || 'WSW'})
-• **ವಾಯುಭಾರ ಒತ್ತಡ**: ${weather.pressure} hPa
+• **ಸಾಪೇಕ್ಷ ಆರ್ದ್ರತೆ**: ${humStr} | **ಇಬ್ಬನಿ ಬಿಂದು**: ${dewStr}
+• **ಮೇಲ್ಮೈ ಗಾಳಿ**: ${windNum !== null ? `${windNum} ಕಿ.ಮೀ/ಗಂಟೆ` : 'Unavailable'} (${windDirStr})
+• **ವಾಯುಭಾರ ಒತ್ತಡ**: ${pressStr}
 • **ರಾಷ್ಟ್ರೀಯ ವಾಯು ಗುಣಮಟ್ಟ ಸೂಚಿ (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **ಪರಾಗ ಅಲರ್ಜಿ ಅಪಾಯ**: ${pollenStr}
 
@@ -549,15 +558,15 @@ export function getLocalizedInitialGreeting(
 
     case 'ml':
       return {
-        content: `### 🏛️ ഭാരതീയ കാലാവസ്ഥാ വകുപ്പ് (IMD) അന്തരീക്ഷ വിവരങ്ങൾ
+        content: `### ഭാരതീയ കാലാവസ്ഥാ വകുപ്പ് (IMD) അന്തരീക്ഷ വിവരങ്ങൾ
 **കാലാവസ്ഥാ കേന്ദ്രം**: ${stationDisplayName}
 **കോർഡിനേറ്റുകൾ**: ${latStr}°N, ${lngStr}°E | സ്റ്റേഷൻ ഐഡി: ${stnCode}
 
-• **താപനില**: ${weather.temp}°C (അനുഭവപ്പെടുന്ന താപനില: ${feelsLike}°C)
+• **താപനില**: ${tempStr} (അനുഭവപ്പെടുന്ന താപനില: ${feelsStr})
 • **കാലാവസ്ഥാ അവസ്ഥ**: ${condStr}
-• **ആപേക്ഷിക ആർദ്രത**: ${weather.humidity}% | **ഹിമബിന്ദു**: ${weather.dewPoint ?? 24.5}°C
-• **ഉപരിതല കാറ്റ്**: ${weather.windSpeed} കി.മീ/മണിക്കൂർ (${weather.windDirection || 'WSW'})
-• **വായുമർദ്ദം**: ${weather.pressure} hPa
+• **ആപേക്ഷിക ആർദ്രത**: ${humStr} | **ഹിമബിന്ദു**: ${dewStr}
+• **ഉപരിതല കാറ്റ്**: ${windNum !== null ? `${windNum} കി.മീ/മണിക്കൂർ` : 'Unavailable'} (${windDirStr})
+• **വായുമർദ്ദം**: ${pressStr}
 • **ദേശീയ വായു ഗുണനിലവാര സൂചിക (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **പരാഗണ അലർജി സാധ്യത**: ${pollenStr}
 
@@ -573,15 +582,15 @@ export function getLocalizedInitialGreeting(
 
     case 'gu':
       return {
-        content: `### 🏛️ ભારતીય હવામાન વિભાગ (IMD) વાતાવરણીય માહિતી
+        content: `### ભારતીય હવામાન વિભાગ (IMD) વાતાવરણીય માહિતી
 **હવામાન કેન્દ્ર**: ${stationDisplayName}
 **અક્ષાંશ-રેખાંશ**: ${latStr}°N, ${lngStr}°E | કેન્દ્ર આઈડી: ${stnCode}
 
-• **તાપમાન**: ${weather.temp}°C (અનુભવાતું તાપમાન: ${feelsLike}°C)
+• **તાપમાન**: ${tempStr} (અનુભવાતું તાપમાન: ${feelsStr})
 • **હવામાન પરિસ્થિતિ**: ${condStr}
-• **સાપેક્ષ ભેજ**: ${weather.humidity}% | **ઝાકળ બિંદુ**: ${weather.dewPoint ?? 24.5}°C
-• **સપાટી પવન**: ${weather.windSpeed} કિમી/કલાક (${weather.windDirection || 'WSW'})
-• **વાતાવરણીય દબાણ**: ${weather.pressure} hPa
+• **સાપેક્ષ ભેજ**: ${humStr} | **ઝાકળ બિંદુ**: ${dewStr}
+• **સપાટી પવન**: ${windNum !== null ? `${windNum} કિમી/કલાક` : 'Unavailable'} (${windDirStr})
+• **વાતાવરણીય દબાણ**: ${pressStr}
 • **રાષ્ટ્રીય હવા ગુણવત્તા આંક (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **પરાગરજ / એલર્જી જોખમ**: ${pollenStr}
 
@@ -597,15 +606,15 @@ export function getLocalizedInitialGreeting(
 
     case 'pa':
       return {
-        content: `### 🏛️ ਭਾਰਤੀ ਮੌਸਮ ਵਿਭਾਗ (IMD) ਵਾਯੂਮੰਡਲ ਜਾਣਕਾਰੀ
+        content: `### ਭਾਰਤੀ ਮੌਸਮ ਵਿਭਾਗ (IMD) ਵਾਯੂਮੰਡਲ ਜਾਣਕਾਰੀ
 **ਮੌਸਮ ਕੇਂਦਰ**: ${stationDisplayName}
 **ਕੋਆਰਡੀਨੇਟ**: ${latStr}°N, ${lngStr}°E | ਸਟੇਸ਼ਨ ਆਈਡੀ: ${stnCode}
 
-• **ਤਾਪਮਾਨ**: ${weather.temp}°C (ਮਹਿਸੂਸ ਹੁੰਦਾ ਤਾਪਮਾਨ: ${feelsLike}°C)
+• **ਤਾਪਮਾਨ**: ${tempStr} (ਮਹਿਸੂਸ ਹੁੰਦਾ ਤਾਪਮਾਨ: ${feelsStr})
 • **ਮੌਸਮ ਦੀ ਸਥਿਤੀ**: ${condStr}
-• **ਨਮੀ / ਆਰਦਰਤਾ**: ${weather.humidity}% | **ਤਰੇਲ ਬਿੰਦੂ**: ${weather.dewPoint ?? 24.5}°C
-• **ਸਤਹੀ ਹਵਾ**: ${weather.windSpeed} ਕਿਮੀ/ਘੰਟਾ (${weather.windDirection || 'WSW'})
-• **ਹਵਾ ਦਾ ਦਬਾਅ**: ${weather.pressure} hPa
+• **ਨਮੀ / ਆਰਦਰਤਾ**: ${humStr} | **ਤਰੇਲ ਬਿੰਦੂ**: ${dewStr}
+• **ਸਤਹੀ ਹਵਾ**: ${windNum !== null ? `${windNum} ਕਿਮੀ/ਘੰਟਾ` : 'Unavailable'} (${windDirStr})
+• **ਹਵਾ ਦਾ ਦਬਾਅ**: ${pressStr}
 • **ਰਾਸ਼ਟਰੀ ਹਵਾ ਗੁਣਵੱਤਾ ਸੂਚਕਾਂਕ (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **ਪਰਾਗ ਐਲਰਜੀ ਜੋਖਮ**: ${pollenStr}
 
@@ -621,15 +630,15 @@ export function getLocalizedInitialGreeting(
 
     case 'as':
       return {
-        content: `### 🏛️ ভাৰতীয় বতৰ বিজ্ঞান বিভাগ (IMD) বায়ুমণ্ডলীয় তথ্য
+        content: `### ভাৰতীয় বতৰ বিজ্ঞান বিভাগ (IMD) বায়ুমণ্ডলীয় তথ্য
 **বতৰ নিৰীক্ষণ কেন্দ্ৰ**: ${stationDisplayName}
 **স্থানাংক**: ${latStr}°N, ${lngStr}°E | ষ্টেচন আইডি: ${stnCode}
 
-• **তাপমাত্ৰা**: ${weather.temp}°C (অনুভৱ হোৱা তাপমাত্ৰা: ${feelsLike}°C)
+• **তাপমাত্ৰা**: ${tempStr} (অনুভৱ হোৱা তাপমাত্ৰা: ${feelsStr})
 • **বতৰৰ অৱস্থা**: ${condStr}
-• **আপেক্ষিক আৰ্দ্ৰতা**: ${weather.humidity}% | **শিশিৰাংক**: ${weather.dewPoint ?? 24.5}°C
-• **পৃষ্ঠীয় বতাহ**: ${weather.windSpeed} কিমি/ঘণ্টা (${weather.windDirection || 'WSW'})
-• **বায়ুমণ্ডলীয় চাপ**: ${weather.pressure} hPa
+• **আপেক্ষিক আৰ্দ্ৰতা**: ${humStr} | **শিশিৰাংক**: ${dewStr}
+• **পৃষ্ঠীয় বতাহ**: ${windNum !== null ? `${windNum} কিমি/ঘণ্টা` : 'Unavailable'} (${windDirStr})
+• **বায়ুমণ্ডলীয় চাপ**: ${pressStr}
 • **ৰাষ্ট্ৰীয় বায়ুৰ গুণাগুণ সূচক (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **পৰাগৰেণু আৰু এলাৰ্জী আশংকা**: ${pollenStr}
 
@@ -645,15 +654,15 @@ export function getLocalizedInitialGreeting(
 
     case 'ur':
       return {
-        content: `### 🏛️ محکمہ موسمیات بھارت (IMD) ماحولیاتی معلومات
+        content: `### محکمہ موسمیات بھارت (IMD) ماحولیاتی معلومات
 **موسمی اسٹیشن**: ${stationDisplayName}
 **مقام**: ${latStr}°N, ${lngStr}°E | اسٹیشن کوڈ: ${stnCode}
 
-• **درجہ حرارت**: ${weather.temp}°C (محسوس درجہ حرارت: ${feelsLike}°C)
+• **درجہ حرارت**: ${tempStr} (محسوس درجہ حرارت: ${feelsStr})
 • **موسم کی کیفیت**: ${condStr}
-• **اضافی نمی**: ${weather.humidity}% | **شبنم کا نقطہ**: ${weather.dewPoint ?? 24.5}°C
-• **سطحی ہوا**: ${weather.windSpeed} کلومیٹر/گھنٹہ (${weather.windDirection || 'WSW'})
-• **ہوائی دباؤ**: ${weather.pressure} hPa
+• **اضافی نمی**: ${humStr} | **شبنم کا نقطہ**: ${dewStr}
+• **سطحی ہوا**: ${windNum !== null ? `${windNum} کلومیٹر/گھنٹہ` : 'Unavailable'} (${windDirStr})
+• **ہوائی دباؤ**: ${pressStr}
 • **قومی ہوا کے معیار کا انڈیکس (NAQI)**: ${aqiVal} (${aqiStatusStr})
 • **پولن الرجک خطرہ**: ${pollenStr}
 
@@ -669,17 +678,17 @@ export function getLocalizedInitialGreeting(
 
     default:
       return {
-        content: `### 🏛️ IMD Grounded Atmospheric Intelligence
+        content: `### IMD Grounded Atmospheric Intelligence
 **Station**: ${stationDisplayName}
 **Coordinates**: ${latStr}°N, ${lngStr}°E | Station ID: ${stnCode}
 
-• **Temperature**: ${weather.temp}°C (Feels like ${feelsLike}°C)
+• **Temperature**: ${tempStr} (Feels like ${feelsStr})
 • **Condition**: ${weather.condition}
-• **Relative Humidity**: ${weather.humidity}% | **Dew Point**: ${weather.dewPoint ?? 24.5}°C
-• **Surface Wind**: ${weather.windSpeed} km/h ${weather.windDirection || 'WSW'}
-• **Barometric Pressure**: ${weather.pressure} hPa (Station Level)
-• **National Air Quality Index (NAQI)**: ${aqiVal} (${weather.aqiStatus || 'Satisfactory'})
-• **Aero-Allergen Risk**: ${weather.pollen || 'Low Risk'}
+• **Relative Humidity**: ${humStr} | **Dew Point**: ${dewStr}
+• **Surface Wind**: ${windNum !== null ? `${windNum} km/h` : 'Unavailable'} ${windDirStr}
+• **Barometric Pressure**: ${pressStr} (Station Level)
+• **National Air Quality Index (NAQI)**: ${aqiVal} (${weather.aqiStatus || 'Unavailable'})
+• **Aero-Allergen Risk**: ${weather.pollen || 'Unavailable'}
 
 Ask any meteorological, agricultural, disaster warning, or outdoor safety question below, or explore our complete 36 States & UTs intelligence directory and FAQ library.`,
         suggestedFollowUps: [

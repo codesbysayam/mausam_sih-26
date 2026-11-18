@@ -38,10 +38,10 @@ export const RadarProductAlert: React.FC<RadarProductAlertProps> = ({
     <div
       id="radar-product-alert-banner"
       role="alert"
-      className={`w-full rounded-xl border p-3.5 transition-all duration-300 shadow-lg ${
+      className={`w-full rounded-xl border p-3.5 transition-colors ${
         isFallback
-          ? 'bg-[#1E2733]/95 border-[#0B72B9]/50 text-slate-100 shadow-[#0B72B9]/10'
-          : 'bg-[#1C1814]/95 border-[#F59E0B]/40 text-amber-50 shadow-[#F59E0B]/10'
+          ? 'bg-[#0B1927] border-[#35C7E8]/40 text-[#F3F6FA]'
+          : 'bg-[#0B1927] border-[#F59E0B]/45 text-[#F3F6FA]'
       }`}
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -50,48 +50,48 @@ export const RadarProductAlert: React.FC<RadarProductAlertProps> = ({
           <div
             className={`p-2 rounded-lg shrink-0 mt-0.5 ${
               isFallback
-                ? 'bg-[#0B72B9]/20 text-[#4FA8E0] border border-[#0B72B9]/30'
-                : 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30'
+                ? 'bg-[#35C7E8]/15 text-[#35C7E8] border border-[#35C7E8]/30'
+                : 'bg-[#F59E0B]/15 text-[#FCD34D] border border-[#F59E0B]/30'
             }`}
           >
             {isFallback ? (
               <Info className="w-5 h-5" />
             ) : (
-              <AlertTriangle className="w-5 h-5 animate-pulse" />
+              <AlertTriangle className="w-5 h-5" />
             )}
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-sm text-white">
+              <span className="font-bold text-sm text-[#F3F6FA]">
                 {isFallback
                   ? `Fallback Active for ${alert.productLabel || alert.product}`
                   : `Feed Unavailable: ${alert.productLabel || alert.product}`}
               </span>
 
               {/* Station Chip */}
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-[#1E2733] border border-[#334155] px-2 py-0.5 rounded text-[#93A4B8]">
-                <Radio className="w-3 h-3 text-[#43C7F4]" />
-                {alert.stationCode} • {alert.stationName}
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-[#08131F] border border-[#26394B] px-2 py-0.5 rounded text-[#B5C3D1]">
+                <Radio className="w-3 h-3 text-[#35C7E8]" />
+                {alert.stationCode} · {alert.stationName}
               </span>
 
               {/* Status Badge */}
               <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
                   isFallback
-                    ? 'bg-[#0B72B9]/25 text-[#4FA8E0] border-[#0B72B9]/40'
-                    : 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40'
+                    ? 'bg-[#35C7E8]/15 text-[#7DD3FC] border-[#35C7E8]/35'
+                    : 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/35'
                 }`}
               >
                 {isFallback ? 'COMPOSITE FALLBACK' : 'STATION FEED OFFLINE'}
               </span>
             </div>
 
-            <p className="text-xs text-[#94A3B8] leading-relaxed max-w-3xl">
+            <p className="text-xs text-[#B5C3D1] leading-relaxed max-w-3xl">
               {alert.reason ||
                 `Direct IMD radar feed for ${alert.product} is offline or undergoing sensor calibration at this station.`}
-              <span className="text-emerald-400 font-medium ml-1.5 inline-block">
-                Map basemap, telemetry, and range rings remain fully active.
+              <span className="text-[#6EE7B7] font-medium ml-1.5 inline-block">
+                Map basemap, telemetry, and range rings remain active.
               </span>
             </p>
           </div>

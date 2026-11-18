@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Clock, Flame, CloudRain, Wind } from 'lucide-react';
 import { NWPForecastPoint } from '../../types/nwp';
-import { Clock, AlertCircle, ArrowUpRight, Flame, CloudRain, Wind } from 'lucide-react';
+import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
 
 interface HourlyForecastTableProps {
   points: NWPForecastPoint[];
@@ -13,11 +14,8 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
 }) => {
   const [horizonFilter, setHorizonFilter] = useState<24 | 48 | 72 | 168>(24);
 
-  const displayedPoints = useMemo(() => {
-    return points.slice(0, horizonFilter);
-  }, [points, horizonFilter]);
+  const displayedPoints = useMemo(() => points.slice(0, horizonFilter), [points, horizonFilter]);
 
-  // Identify maximums strictly from actual returned data points
   const highlights = useMemo(() => {
     if (displayedPoints.length === 0) return { maxTemp: null, maxRain: null, maxWind: null };
 
@@ -42,9 +40,7 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
     try {
       const d = new Date(isoTime);
       if (isNaN(d.getTime())) return isoTime;
-      const hours = String(d.getHours()).padStart(2, '0');
-      const mins = String(d.getMinutes()).padStart(2, '0');
-      return `${hours}:${mins}`;
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     } catch {
       return isoTime;
     }
@@ -62,84 +58,79 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
 
   if (points.length === 0) {
     return (
-      <div className="nwp-card p-8 rounded-2xl text-center flex flex-col items-center justify-center gap-2">
-        <AlertCircle className="w-6 h-6 text-slate-500" />
-        <p className="text-sm font-sans font-semibold text-slate-300">
-          No hourly forecast points available for {modelName}.
-        </p>
-        <span className="text-xs text-[#AFC4D8]">
-          This model feed is currently unconfigured or did not return hourly physics for this cycle.
-        </span>
-      </div>
+      <DataPanel className="flex flex-col gap-3">
+        <SectionHeading
+          title={`Hourly Model Forecast — ${modelName}`}
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <UnavailableState
+          title={`No Hourly Forecast Points Available for ${modelName}`}
+          reason="This model feed is currently unconfigured or did not return hourly numerical steps for this cycle."
+        />
+      </DataPanel>
     );
   }
 
   return (
-    <div className="nwp-card flex flex-col gap-3 rounded-2xl p-4 sm:p-5 shadow-md">
-      {/* Header & Horizon Segmented Control */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1D5278]/60">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#29B6F6]" />
-          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-            Hourly Model Forecast — {modelName}
-          </h3>
-        </div>
+    <DataPanel className="flex flex-col gap-4">
+      <SectionHeading
+        title={`Hourly Model Forecast — ${modelName}`}
+        subtitle={`Discrete hourly grid values across ${displayedPoints.length}h`}
+        icon={<Clock className="w-4 h-4" />}
+        action={
+          <div className="flex items-center gap-1 bg-[#08131F] p-1 rounded-lg border border-[#26394B] text-xs font-mono">
+            {([
+              { label: '24H', val: 24 },
+              { label: '48H', val: 48 },
+              { label: '72H', val: 72 },
+              { label: '7D', val: 168 },
+            ] as const).map((opt) => (
+              <button
+                key={opt.val}
+                type="button"
+                onClick={() => setHorizonFilter(opt.val)}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
+                  horizonFilter === opt.val
+                    ? 'bg-[#0B72B9] text-white font-semibold'
+                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-        {/* Horizon selector: 24H, 48H, 72H, 7D */}
-        <div className="flex items-center gap-1 bg-[#081F33] p-1 rounded-xl border border-[#1D5278] text-xs font-mono self-start sm:self-auto">
-          {([
-            { label: '24H', val: 24 },
-            { label: '48H', val: 48 },
-            { label: '72H', val: 72 },
-            { label: '7D', val: 168 },
-          ] as const).map((opt) => (
-            <button
-              key={opt.val}
-              type="button"
-              onClick={() => setHorizonFilter(opt.val)}
-              className={`px-3 py-1 rounded-lg transition-colors cursor-pointer text-xs font-medium ${
-                horizonFilter === opt.val
-                  ? 'bg-[#1565C0] text-white font-bold shadow-xs'
-                  : 'text-[#AFC4D8] hover:text-white'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Highlights Bar if peaks exist in dataset */}
       {(highlights.maxTemp !== null || highlights.maxRain !== null || highlights.maxWind !== null) && (
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[#AFC4D8] pb-1">
-          <span className="text-slate-400 font-sans">Horizon Highlights:</span>
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[#B5C3D1] tabular-nums">
+          <span className="text-[#8295A8] font-sans">Horizon Peaks:</span>
           {highlights.maxTemp !== null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#102D44] border border-[#1D5278] text-amber-300">
-              <Flame className="w-3 h-3 text-amber-400" />
-              <span>Peak Temp: {highlights.maxTemp}°C</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[#FCD34D]">
+              <Flame className="w-3 h-3 text-[#F59E0B]" />
+              <span>Peak Temp {highlights.maxTemp}°C</span>
             </span>
           )}
           {highlights.maxRain !== null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#102D44] border border-[#1D5278] text-[#00E676]">
-              <CloudRain className="w-3 h-3 text-[#00E676]" />
-              <span>Max Rain: {highlights.maxRain} mm/h</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[#6EE7B7]">
+              <CloudRain className="w-3 h-3 text-[#22C7A0]" />
+              <span>Max Rain {highlights.maxRain} mm/h</span>
             </span>
           )}
           {highlights.maxWind !== null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#102D44] border border-[#1D5278] text-[#29B6F6]">
-              <Wind className="w-3 h-3 text-[#29B6F6]" />
-              <span>Max Wind: {highlights.maxWind} km/h</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[#7DD3FC]">
+              <Wind className="w-3 h-3 text-[#35C7E8]" />
+              <span>Max Wind {highlights.maxWind} km/h</span>
             </span>
           )}
         </div>
       )}
 
-      {/* Table Container: strictly constrained inside with horizontal scrolling ONLY */}
-      <div className="w-full overflow-x-auto rounded-xl border border-[#1D5278]/80 bg-[#061A2B] no-scrollbar">
-        <table className="w-full text-left text-xs border-collapse font-mono">
-          <thead className="bg-[#081F33] text-[10px] uppercase tracking-wider text-[#AFC4D8] border-b border-[#1D5278]">
+      <div className="w-full overflow-x-auto rounded-xl border border-[#26394B] bg-[#08131F] no-scrollbar">
+        <table className="w-full text-left text-xs border-collapse font-mono tabular-nums">
+          <thead className="bg-[#0B1927] text-[10px] uppercase tracking-wider text-[#8295A8] border-b border-[#26394B]">
             <tr>
-              <th className="py-2.5 px-3 sticky left-0 bg-[#081F33] z-10">Time</th>
+              <th className="py-2.5 px-3 sticky left-0 bg-[#0B1927] z-10">Time</th>
               <th className="py-2.5 px-3">Temp</th>
               <th className="py-2.5 px-3">Feels</th>
               <th className="py-2.5 px-3">Rain</th>
@@ -152,11 +143,11 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-[#1D5278]/40 text-slate-200">
+          <tbody className="divide-y divide-[#26394B]/60 text-[#B5C3D1]">
             {displayedPoints.map((pt, idx) => {
               const dateLabel = formatDateLabel(pt.validTime);
               const hourLabel = formatHour(pt.validTime);
-              const isFirstHourOfDay = idx === 0 || formatHour(pt.validTime) === '00:00';
+              const isFirstHourOfDay = idx === 0 || hourLabel === '00:00';
               const isEven = idx % 2 === 0;
 
               const isMaxTemp = highlights.maxTemp !== null && pt.temperature2m === highlights.maxTemp;
@@ -166,52 +157,50 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
               return (
                 <tr
                   key={idx}
-                  className={`hover:bg-[#102D44]/70 transition-colors ${
-                    isEven ? 'bg-[#081F33]/40' : 'bg-[#061A2B]'
+                  className={`hover:bg-[#172A3B]/60 transition-colors ${
+                    isEven ? 'bg-[#0B1927]/50' : 'bg-[#08131F]'
                   }`}
                 >
-                  {/* Sticky Time Column */}
                   <td
-                    className={`py-2 px-3 whitespace-nowrap sticky left-0 z-10 font-bold text-white border-r border-[#1D5278]/50 ${
-                      isEven ? 'bg-[#081F33]' : 'bg-[#061A2B]'
+                    className={`py-2 px-3 whitespace-nowrap sticky left-0 z-10 font-semibold text-[#F3F6FA] border-r border-[#26394B]/70 ${
+                      isEven ? 'bg-[#0B1927]' : 'bg-[#08131F]'
                     }`}
                   >
                     <div className="flex items-center gap-1.5">
                       <span>{hourLabel}</span>
-                      {isFirstHourOfDay && (
-                        <span className="text-[9px] text-[#29B6F6] bg-[#1565C0]/20 px-1 py-0.2 rounded border border-[#1565C0]/30 font-normal">
+                      {isFirstHourOfDay && dateLabel && (
+                        <span className="text-[9px] text-[#35C7E8] bg-[#101F2E] px-1 py-0.5 rounded border border-[#26394B] font-normal">
                           {dateLabel}
                         </span>
                       )}
                     </div>
                   </td>
 
-                  {/* Temp with Peak Highlight */}
                   <td className="py-2 px-3 whitespace-nowrap">
                     <span
-                      className={`font-semibold ${
-                        isMaxTemp ? 'text-amber-300 font-extrabold bg-amber-400/15 px-1.5 py-0.5 rounded' : 'text-amber-200'
-                      }`}
+                      className={
+                        isMaxTemp
+                          ? 'text-[#FCD34D] font-bold bg-[#F59E0B]/15 px-1.5 py-0.5 rounded'
+                          : 'text-[#F3F6FA] font-medium'
+                      }
                     >
                       {pt.temperature2m !== undefined ? `${pt.temperature2m}°` : '—'}
                     </span>
                   </td>
 
-                  {/* Feels */}
-                  <td className="py-2 px-3 whitespace-nowrap text-[#AFC4D8]">
+                  <td className="py-2 px-3 whitespace-nowrap text-[#8295A8]">
                     {pt.apparentTemperature !== undefined ? `${pt.apparentTemperature}°` : '—'}
                   </td>
 
-                  {/* Rain with Max Rain Highlight */}
                   <td className="py-2 px-3 whitespace-nowrap">
                     {pt.precipitation !== undefined ? (
                       <span
                         className={
                           isMaxRain
-                            ? 'text-[#00E676] font-bold bg-[#00E676]/15 px-1.5 py-0.5 rounded'
+                            ? 'text-[#6EE7B7] font-bold bg-[#22C7A0]/15 px-1.5 py-0.5 rounded'
                             : pt.precipitation > 0
-                            ? 'text-sky-300 font-semibold'
-                            : 'text-slate-400'
+                            ? 'text-[#7DD3FC] font-semibold'
+                            : 'text-[#8295A8]'
                         }
                       >
                         {pt.precipitation} mm
@@ -221,16 +210,15 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
                     )}
                   </td>
 
-                  {/* Rain % */}
                   <td className="py-2 px-3 whitespace-nowrap">
                     {pt.precipitationProbability !== undefined ? (
                       <span
                         className={
                           pt.precipitationProbability >= 50
-                            ? 'text-[#29B6F6] font-bold'
+                            ? 'text-[#35C7E8] font-bold'
                             : pt.precipitationProbability > 0
-                            ? 'text-slate-300'
-                            : 'text-slate-500'
+                            ? 'text-[#B5C3D1]'
+                            : 'text-[#8295A8]'
                         }
                       >
                         {pt.precipitationProbability}%
@@ -240,14 +228,13 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
                     )}
                   </td>
 
-                  {/* Wind with Strongest Wind Highlight */}
                   <td className="py-2 px-3 whitespace-nowrap">
                     {pt.windSpeed10m !== undefined ? (
                       <span
                         className={
                           isMaxWind
-                            ? 'text-[#29B6F6] font-bold bg-[#1565C0]/25 px-1.5 py-0.5 rounded'
-                            : 'text-slate-200'
+                            ? 'text-[#7DD3FC] font-bold bg-[#35C7E8]/15 px-1.5 py-0.5 rounded'
+                            : 'text-[#F3F6FA]'
                         }
                       >
                         {pt.windSpeed10m} km/h
@@ -257,23 +244,19 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
                     )}
                   </td>
 
-                  {/* Gust */}
-                  <td className="py-2 px-3 whitespace-nowrap text-[#AFC4D8]">
+                  <td className="py-2 px-3 whitespace-nowrap text-[#8295A8]">
                     {pt.windGusts10m !== undefined ? `${pt.windGusts10m} km/h` : '—'}
                   </td>
 
-                  {/* Pressure */}
-                  <td className="py-2 px-3 whitespace-nowrap text-[#AFC4D8]">
+                  <td className="py-2 px-3 whitespace-nowrap text-[#B5C3D1]">
                     {pt.pressureMSL !== undefined ? `${pt.pressureMSL} hPa` : '—'}
                   </td>
 
-                  {/* Humidity */}
-                  <td className="py-2 px-3 whitespace-nowrap text-[#AFC4D8]">
+                  <td className="py-2 px-3 whitespace-nowrap text-[#B5C3D1]">
                     {pt.relativeHumidity !== undefined ? `${pt.relativeHumidity}%` : '—'}
                   </td>
 
-                  {/* Cloud */}
-                  <td className="py-2 px-3 whitespace-nowrap text-right text-[#AFC4D8]">
+                  <td className="py-2 px-3 whitespace-nowrap text-right text-[#B5C3D1]">
                     {pt.cloudCover !== undefined ? `${pt.cloudCover}%` : '—'}
                   </td>
                 </tr>
@@ -282,6 +265,6 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
           </tbody>
         </table>
       </div>
-    </div>
+    </DataPanel>
   );
 };

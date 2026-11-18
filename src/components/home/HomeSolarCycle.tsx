@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as SunCalc from 'suncalc';
 import { Sun, Sunrise, Sunset, Clock, Sparkles, Compass } from 'lucide-react';
 import { LocationRecord, CurrentWeather } from '../../types';
+import { DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface HomeSolarCycleProps {
   location?: LocationRecord;
@@ -27,7 +28,6 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
   const lng = typeof location?.lng === 'number' ? location.lng : 85.8245;
 
   const solarData = useMemo(() => {
-    // Exact calculation using standard meteorological suncalc library
     const times = SunCalc.getTimes(now, lat, lng);
     const pos = SunCalc.getPosition(now, lat, lng);
 
@@ -91,8 +91,6 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
   const isDay = solarData.isDaytime;
   const progressPercent = solarData.progressPercent;
 
-  // Position on semi-circle SVG arc (width=300, height=120)
-  // Arc goes from (20, 110) through (150, 20) to (280, 110)
   const angleRad = Math.PI - (progressPercent / 100) * Math.PI;
   const cx = 150;
   const cy = 110;
@@ -102,110 +100,108 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
   const sunY = cy - ry * Math.sin(angleRad);
 
   return (
-    <section id="homepage-solar-cycle" className="rounded-2xl bg-[#0B141E] border border-[#162331] p-5 flex flex-col justify-between gap-4 h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#162331]">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#FFC857]/15 text-[#FFC857] flex items-center justify-center">
-            <Sun className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#F4F7FA]">
-              Solar Trajectory &amp; Day Length
-            </h2>
-            <p className="text-xs text-[#93A4B8]">
-              {location?.city ? `${location.city} (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)` : 'Astronomical Solar Position & Ephemeris'}
-            </p>
-          </div>
-        </div>
-        <span className="text-[10px] font-mono text-[#FFC857] bg-[#FFC857]/10 px-2.5 py-0.5 rounded-full border border-[#FFC857]/30 flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {solarData.countdownFormatted} to {solarData.nextEventName}
-        </span>
-      </div>
+    <DataPanel id="homepage-solar-cycle" className="flex flex-col justify-between gap-4 h-full">
+      <SectionHeading
+        title="Solar Trajectory & Day Length"
+        subtitle={
+          location?.city
+            ? `${location.city} (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)`
+            : 'Astronomical Solar Ephemeris'
+        }
+        icon={<Sun className="w-4 h-4 text-[#F59E0B]" />}
+        action={
+          <span className="text-[11px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-2.5 py-1 rounded-md border border-[#F59E0B]/30 flex items-center gap-1.5 tabular-nums">
+            <Clock className="w-3 h-3 shrink-0" />
+            <span>{solarData.countdownFormatted} to {solarData.nextEventName}</span>
+          </span>
+        }
+      />
 
       {/* Astronomical Arc Visualization */}
       <div className="relative flex flex-col items-center py-2">
         <svg viewBox="0 0 300 130" className="w-full max-w-sm h-32 overflow-visible">
-          {/* Dashed background trajectory arc */}
           <path
             d="M 20 110 A 130 90 0 0 1 280 110"
             fill="none"
-            stroke="#162331"
+            stroke="#26394B"
             strokeWidth="3"
             strokeDasharray="4 4"
           />
 
-          {/* Golden daylight traversed arc (active during day) */}
           {isDay && (
             <path
               d="M 20 110 A 130 90 0 0 1 280 110"
               fill="none"
-              stroke="url(#solarGradient)"
+              stroke="url(#solarGradientHome)"
               strokeWidth="3"
               strokeDasharray={`${(progressPercent / 100) * 380} 500`}
             />
           )}
 
-          {/* Horizon ground line */}
-          <line x1="10" y1="110" x2="290" y2="110" stroke="#1F2E3E" strokeWidth="1.5" />
+          <line x1="10" y1="110" x2="290" y2="110" stroke="#26394B" strokeWidth="1.5" />
 
-          {/* Sun indicator circle */}
           <circle
             cx={sunX}
             cy={sunY}
             r="8"
-            fill={isDay ? '#FFC857' : '#93A4B8'}
-            className="filter drop-shadow-[0_0_8px_rgba(255,200,87,0.8)]"
+            fill={isDay ? '#F59E0B' : '#8295A8'}
           />
-          <circle cx={sunX} cy={sunY} r="3" fill="#071018" />
+          <circle cx={sunX} cy={sunY} r="3" fill="#07111D" />
 
-          {/* Gradient definitions */}
           <defs>
-            <linearGradient id="solarGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#43C7F4" />
-              <stop offset="50%" stopColor="#FFC857" />
-              <stop offset="100%" stopColor="#EF5350" />
+            <linearGradient id="solarGradientHome" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#35C7E8" />
+              <stop offset="50%" stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#EF4444" />
             </linearGradient>
           </defs>
         </svg>
 
-        {/* Sunrise, Solar Noon, and Sunset Labels */}
         <div className="w-full max-w-sm flex items-center justify-between text-xs px-2 mt-1">
           <div className="flex items-center gap-1.5">
-            <Sunrise className="w-4 h-4 text-[#43C7F4]" />
+            <Sunrise className="w-4 h-4 text-[#35C7E8]" />
             <div>
-              <span className="text-[10px] text-[#93A4B8] block">Sunrise</span>
-              <strong className="text-[#F4F7FA] font-mono">{displaySunrise}</strong>
+              <span className="text-[10px] text-[#8295A8] block">Sunrise</span>
+              <strong className="text-[#F3F6FA] font-mono tabular-nums">{displaySunrise}</strong>
             </div>
           </div>
 
           <div className="text-center">
-            <span className="text-[10px] text-[#93A4B8] block">Total Daylight</span>
-            <strong className="text-[#FFC857] font-mono text-xs">{dayLengthStr}</strong>
+            <span className="text-[10px] text-[#8295A8] block">Total Daylight</span>
+            <strong className="text-[#F59E0B] font-mono text-xs tabular-nums">{dayLengthStr}</strong>
           </div>
 
           <div className="flex items-center gap-1.5 text-right">
             <div>
-              <span className="text-[10px] text-[#93A4B8] block">Sunset</span>
-              <strong className="text-[#F4F7FA] font-mono">{displaySunset}</strong>
+              <span className="text-[10px] text-[#8295A8] block">Sunset</span>
+              <strong className="text-[#F3F6FA] font-mono tabular-nums">{displaySunset}</strong>
             </div>
-            <Sunset className="w-4 h-4 text-[#FF9F43]" />
+            <Sunset className="w-4 h-4 text-[#F97316]" />
           </div>
         </div>
       </div>
 
       {/* Real-time Solar Angle & Azimuth Metadata */}
-      <div className="flex items-center justify-between text-[11px] pt-2 border-t border-[#162331] text-[#93A4B8]">
-        <div className="flex items-center gap-1">
-          <Compass className="w-3.5 h-3.5 text-[#43C7F4]" />
-          <span>Azimuth: <strong className="text-[#F4F7FA] font-mono">{solarData.solarAzimuthDeg}°</strong></span>
+      <div className="flex items-center justify-between text-[11px] pt-2.5 border-t border-[#26394B] text-[#8295A8]">
+        <div className="flex items-center gap-1.5 font-mono tabular-nums">
+          <Compass className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <span>
+            Azimuth: <strong className="text-[#F3F6FA]">{solarData.solarAzimuthDeg.toFixed(1)}°</strong>
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <Sparkles className="w-3.5 h-3.5 text-[#FFC857]" />
-          <span>Elevation: <strong className="text-[#FFC857] font-mono">{solarData.solarElevationDeg > 0 ? `+${solarData.solarElevationDeg}°` : `${solarData.solarElevationDeg}°`}</strong></span>
+        <div className="flex items-center gap-1.5 font-mono tabular-nums">
+          <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+          <span>
+            Elevation:{' '}
+            <strong className="text-[#F59E0B]">
+              {solarData.solarElevationDeg > 0
+                ? `+${solarData.solarElevationDeg.toFixed(1)}°`
+                : `${solarData.solarElevationDeg.toFixed(1)}°`}
+            </strong>
+          </span>
         </div>
       </div>
-    </section>
+    </DataPanel>
   );
 };
+

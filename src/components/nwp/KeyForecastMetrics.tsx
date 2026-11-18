@@ -1,16 +1,7 @@
 import React from 'react';
+import { Thermometer, CloudRain, Wind, Gauge, Droplets, TrendingUp, TrendingDown } from 'lucide-react';
 import { NWPForecastPoint } from '../../types/nwp';
-import {
-  Thermometer,
-  CloudRain,
-  Wind,
-  Gauge,
-  Droplets,
-  Cloud,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from 'lucide-react';
+import { DataPanel, SectionHeading, MetricValue, UnavailableState } from '../ui/ObservatoryPrimitives';
 
 interface KeyForecastMetricsProps {
   currentPoint?: NWPForecastPoint;
@@ -26,148 +17,157 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
   modelName,
 }) => {
   const getWindDirectionStr = (deg?: number): string => {
-    if (deg === undefined) return '';
+    if (typeof deg !== 'number' || !Number.isFinite(deg)) return '';
     const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     const idx = Math.round(((deg % 360) / 22.5)) % 16;
     return dirs[idx];
   };
 
-  // Temperature trend
+  if (isUnavailable || !currentPoint) {
+    return (
+      <DataPanel className="flex flex-col gap-3">
+        <SectionHeading
+          title={`Initial Forecast Snapshot — ${modelName}`}
+          subtitle="Lead hour 0 numerical model grid output"
+          icon={<Thermometer className="w-4 h-4" />}
+        />
+        <UnavailableState
+          title={`${modelName} Initial Grid Output Unavailable`}
+          reason={
+            modelName === 'WRF'
+              ? 'IMD WRF gateway is not configured for live operational ingestion.'
+              : `No verified ${modelName} cycle telemetry is currently available for this coordinate.`
+          }
+        />
+      </DataPanel>
+    );
+  }
+
   const tempDiff =
-    currentPoint?.temperature2m !== undefined && nextPoint?.temperature2m !== undefined
+    typeof currentPoint.temperature2m === 'number' && typeof nextPoint?.temperature2m === 'number'
       ? Math.round((nextPoint.temperature2m - currentPoint.temperature2m) * 10) / 10
-      : undefined;
+      : null;
+
+  const windDirStr = getWindDirectionStr(currentPoint.windDirection10m);
 
   const cards = [
     {
-      label: 'Temperature',
-      value: isUnavailable || currentPoint?.temperature2m === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.temperature2m} °C`,
-      unit: '',
+      label: 'Temperature (2m)',
+      value: currentPoint.temperature2m,
+      unit: '°C',
+      precision: 1,
       icon: Thermometer,
-      accent: 'text-[#29B6F6]',
-      trend:
-        tempDiff !== undefined
-          ? `${tempDiff > 0 ? `+${tempDiff}°` : `${tempDiff}°`} vs next forecast hour`
-          : currentPoint?.apparentTemperature !== undefined
-          ? `Surface 2m layer`
-          : undefined,
-      trendType: tempDiff ? (tempDiff > 0 ? 'up' : 'down') : 'neutral',
+      accent: 'text-[#35C7E8]',
+      hint:
+        tempDiff !== null
+          ? `${tempDiff > 0 ? `+${tempDiff}°` : `${tempDiff}°`} next hour`
+          : 'Surface 2m grid',
+      trendType: tempDiff !== null ? (tempDiff > 0 ? 'up' : tempDiff < 0 ? 'down' : 'neutral') : 'neutral',
     },
     {
-      label: 'Feels Like',
-      value: isUnavailable || currentPoint?.apparentTemperature === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.apparentTemperature} °C`,
-      unit: '',
+      label: 'Apparent Temp',
+      value: currentPoint.apparentTemperature,
+      unit: '°C',
+      precision: 1,
       icon: Thermometer,
-      accent: 'text-amber-400',
-      trend:
-        currentPoint?.apparentTemperature !== undefined && currentPoint?.temperature2m !== undefined
-          ? `${Math.abs(Math.round((currentPoint.apparentTemperature - currentPoint.temperature2m) * 10) / 10)}° difference from actual`
+      accent: 'text-[#F59E0B]',
+      hint:
+        typeof currentPoint.apparentTemperature === 'number' && typeof currentPoint.temperature2m === 'number'
+          ? `${Math.abs(Math.round((currentPoint.apparentTemperature - currentPoint.temperature2m) * 10) / 10)}° vs ambient`
           : undefined,
       trendType: 'neutral',
     },
     {
-      label: 'Rainfall',
-      value: isUnavailable || currentPoint?.precipitation === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.precipitation} mm`,
-      unit: '',
+      label: 'Precipitation',
+      value: currentPoint.precipitation,
+      unit: 'mm',
+      precision: 1,
       icon: CloudRain,
-      accent: 'text-[#00E676]',
-      trend:
-        currentPoint?.precipitationProbability !== undefined
-          ? `${currentPoint.precipitationProbability}% precipitation probability`
-          : currentPoint?.precipitation && currentPoint.precipitation > 0
-          ? 'Active precipitation expected'
-          : 'Zero measurable liquid precip',
+      accent: 'text-[#22C7A0]',
+      hint:
+        typeof currentPoint.precipitationProbability === 'number'
+          ? `${currentPoint.precipitationProbability}% probability`
+          : typeof currentPoint.precipitation === 'number' && currentPoint.precipitation > 0
+          ? 'Active QPF expected'
+          : 'Dry surface step',
       trendType: 'neutral',
     },
     {
-      label: 'Wind',
-      value: isUnavailable || currentPoint?.windSpeed10m === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.windSpeed10m} km/h`,
-      unit: '',
+      label: 'Wind (10m)',
+      value: currentPoint.windSpeed10m,
+      unit: 'km/h',
+      precision: 0,
       icon: Wind,
-      accent: 'text-[#29B6F6]',
-      trend:
-        currentPoint?.windGusts10m !== undefined
-          ? `Gusts to ${currentPoint.windGusts10m} km/h • ${getWindDirectionStr(currentPoint.windDirection10m)} (${currentPoint.windDirection10m || 0}°)`
-          : getWindDirectionStr(currentPoint?.windDirection10m) || undefined,
+      accent: 'text-[#35C7E8]',
+      hint:
+        typeof currentPoint.windGusts10m === 'number'
+          ? `Gust ${currentPoint.windGusts10m} km/h${windDirStr ? ` · ${windDirStr}` : ''}`
+          : windDirStr
+          ? `${windDirStr} (${currentPoint.windDirection10m}°)`
+          : 'Surface 10m flow',
       trendType: 'neutral',
     },
     {
-      label: 'Pressure',
-      value: isUnavailable || currentPoint?.pressureMSL === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.pressureMSL} hPa`,
-      unit: '',
+      label: 'Pressure (MSL)',
+      value: currentPoint.pressureMSL,
+      unit: 'hPa',
+      precision: 1,
       icon: Gauge,
-      accent: 'text-purple-400',
-      trend:
-        currentPoint?.pressureMSL !== undefined
-          ? `${currentPoint.pressureMSL > 1013 ? 'High pressure regime' : 'Low pressure synoptic field'}`
+      accent: 'text-[#B5C3D1]',
+      hint:
+        typeof currentPoint.pressureMSL === 'number'
+          ? currentPoint.pressureMSL > 1013
+            ? 'High pressure ridge'
+            : 'Low pressure trough'
           : undefined,
       trendType: 'neutral',
     },
     {
-      label: 'Humidity',
-      value: isUnavailable || currentPoint?.relativeHumidity === undefined ? 'DATA UNAVAILABLE' : `${currentPoint.relativeHumidity} %`,
-      unit: '',
+      label: 'Humidity (RH)',
+      value: currentPoint.relativeHumidity,
+      unit: '%',
+      precision: 0,
       icon: Droplets,
-      accent: 'text-[#29B6F6]',
-      trend:
-        currentPoint?.dewPoint2m !== undefined
-          ? `Dew point: ${currentPoint.dewPoint2m}°C`
-          : currentPoint?.cloudCover !== undefined
-          ? `${currentPoint.cloudCover}% cloud coverage`
+      accent: 'text-[#35C7E8]',
+      hint:
+        typeof currentPoint.dewPoint2m === 'number'
+          ? `Dew point ${currentPoint.dewPoint2m}°C`
+          : typeof currentPoint.cloudCover === 'number'
+          ? `${currentPoint.cloudCover}% cloud cover`
           : undefined,
       trendType: 'neutral',
     },
   ];
 
   return (
-    <div className="flex flex-col gap-3 w-full">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">
-          Current Model Forecast — {modelName}
-        </h3>
-        <span className="text-[10px] text-[#AFC4D8] font-mono">Initial Forecast Hour</span>
-      </div>
+    <DataPanel className="flex flex-col gap-3">
+      <SectionHeading
+        title={`Current Model Forecast — ${modelName}`}
+        subtitle="Initial forecast hour surface parameters"
+        icon={<Thermometer className="w-4 h-4" />}
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {cards.map((c, i) => {
+        {cards.map((c) => {
           const Icon = c.icon;
-          const isNoData = c.value === 'DATA UNAVAILABLE';
-
           return (
-            <div
-              key={i}
-              className="nwp-card flex flex-col justify-between p-3.5 sm:p-4 rounded-xl shadow-sm transition-all"
-            >
+            <div key={c.label} className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase text-[#AFC4D8] font-semibold">
-                  {c.label}
-                </span>
                 <Icon className={`w-3.5 h-3.5 ${c.accent}`} />
+                {c.trendType === 'up' && <TrendingUp className="w-3 h-3 text-[#F59E0B]" />}
+                {c.trendType === 'down' && <TrendingDown className="w-3 h-3 text-[#35C7E8]" />}
               </div>
-
-              <div className="my-2">
-                <span
-                  className={`font-mono font-extrabold tracking-tight ${
-                    isNoData
-                      ? 'text-xs text-slate-400 font-semibold'
-                      : 'text-lg sm:text-xl text-white'
-                  }`}
-                >
-                  {c.value}
-                </span>
-              </div>
-
-              {c.trend && (
-                <div className="pt-1.5 border-t border-[#1D5278]/50 flex items-center gap-1 text-[10px] text-[#AFC4D8] truncate font-sans">
-                  {c.trendType === 'up' && <TrendingUp className="w-2.5 h-2.5 text-amber-400 shrink-0" />}
-                  {c.trendType === 'down' && <TrendingDown className="w-2.5 h-2.5 text-[#29B6F6] shrink-0" />}
-                  <span className="truncate" title={c.trend}>{c.trend}</span>
-                </div>
-              )}
+              <MetricValue
+                label={c.label}
+                value={c.value}
+                unit={c.unit}
+                precision={c.precision}
+                hint={c.hint}
+              />
             </div>
           );
         })}
       </div>
-    </div>
+    </DataPanel>
   );
 };

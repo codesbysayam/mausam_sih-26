@@ -1,10 +1,39 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import India from '@svg-maps/india';
+import {
+  Map as MapIcon,
+  Globe,
+  Compass,
+  Lock,
+  Unlock,
+  Plus,
+  Minus,
+  RotateCcw,
+  Tag,
+  MapPin,
+  Maximize2,
+  Minimize2,
+  Thermometer,
+  CloudRain,
+  Wind,
+  Droplets,
+  Gauge,
+  AlertTriangle,
+  ExternalLink,
+  Crosshair,
+  BarChart3,
+  Copy,
+  Check,
+  MousePointerClick,
+} from 'lucide-react';
 import { WeatherMapMetric, MapLayerControl } from './MapLayerControl';
 import { MapLegend } from './MapLegend';
-import { SectionHeader } from '../common/SectionHeader';
-import { StatusBadge, StatusVariant } from '../common/StatusBadge';
 import { INDIA_WEATHER_DATA } from '../../data/indiaWeatherData';
+import {
+  DataPanel,
+  SectionHeading,
+  SourceStatus,
+} from '../ui/ObservatoryPrimitives';
 
 export interface StateWeatherData {
   id: string;
@@ -41,23 +70,21 @@ interface IndiaWeatherMapProps {
 }
 
 const MAP_THEME = {
-  defaultState: '#1E2733',
+  defaultState: '#101F2E',
   hoverState: '#0B72B9',
-  selectedStroke: '#FFFFFF',
-  hoverStroke: '#4FA8E0',
-  defaultStroke: '#334155',
+  defaultStroke: '#26394B',
 };
 
 export type IndiaRegion = 'all' | 'north' | 'east' | 'west' | 'south' | 'central' | 'northeast';
 
-const REGIONS: { id: IndiaRegion; label: string; icon: string; stateIds: string[] }[] = [
-  { id: 'all', label: 'All India', icon: 'public', stateIds: [] },
-  { id: 'north', label: 'North', icon: 'north', stateIds: ['in-dl', 'in-pb', 'in-hr', 'in-rj', 'in-up', 'in-hp', 'in-jk', 'in-la', 'in-uk', 'in-ch'] },
-  { id: 'east', label: 'East', icon: 'east', stateIds: ['in-od', 'in-wb', 'in-br', 'in-jh'] },
-  { id: 'west', label: 'West', icon: 'west', stateIds: ['in-mh', 'in-gj', 'in-ga', 'in-dn'] },
-  { id: 'south', label: 'South', icon: 'south', stateIds: ['in-ka', 'in-tn', 'in-kl', 'in-ap', 'in-ts', 'in-py', 'in-ld', 'in-an'] },
-  { id: 'central', label: 'Central', icon: 'center_focus_strong', stateIds: ['in-mp', 'in-cg'] },
-  { id: 'northeast', label: 'North-East', icon: 'north_east', stateIds: ['in-as', 'in-ar', 'in-mn', 'in-ml', 'in-mz', 'in-nl', 'in-sk', 'in-tr'] },
+const REGIONS: { id: IndiaRegion; label: string; stateIds: string[] }[] = [
+  { id: 'all', label: 'All India', stateIds: [] },
+  { id: 'north', label: 'North', stateIds: ['in-dl', 'in-pb', 'in-hr', 'in-rj', 'in-up', 'in-hp', 'in-jk', 'in-la', 'in-uk', 'in-ch'] },
+  { id: 'east', label: 'East', stateIds: ['in-od', 'in-wb', 'in-br', 'in-jh'] },
+  { id: 'west', label: 'West', stateIds: ['in-mh', 'in-gj', 'in-ga', 'in-dn'] },
+  { id: 'south', label: 'South', stateIds: ['in-ka', 'in-tn', 'in-kl', 'in-ap', 'in-ts', 'in-py', 'in-ld', 'in-an'] },
+  { id: 'central', label: 'Central', stateIds: ['in-mp', 'in-cg'] },
+  { id: 'northeast', label: 'North-East', stateIds: ['in-as', 'in-ar', 'in-mn', 'in-ml', 'in-mz', 'in-nl', 'in-sk', 'in-tr'] },
 ];
 
 const MAJOR_CENTROIDS: Record<string, { x: number; y: number; city: string }> = {
@@ -87,7 +114,6 @@ const MAJOR_CENTROIDS: Record<string, { x: number; y: number; city: string }> = 
   'in-ga': { x: 180, y: 495, city: 'Panaji' },
 };
 
-// Normalize any metric string input
 export function normalizeMetric(m?: string): WeatherMapMetric {
   if (!m) return 'temperature';
   const lower = m.toLowerCase();
@@ -113,7 +139,13 @@ function getMetricValue(state: StateWeatherData, metric: WeatherMapMetric): numb
     case 'rainfall':
       return state.rainfall;
     case 'warnings':
-      return state.warningLevel === 'severe' ? 4 : state.warningLevel === 'alert' ? 3 : state.warningLevel === 'watch' ? 2 : 1;
+      return state.warningLevel === 'severe'
+        ? 4
+        : state.warningLevel === 'alert'
+        ? 3
+        : state.warningLevel === 'watch'
+        ? 2
+        : 1;
     default:
       return undefined;
   }
@@ -121,63 +153,63 @@ function getMetricValue(state: StateWeatherData, metric: WeatherMapMetric): numb
 
 function getTemperatureColor(value?: number) {
   if (value === undefined) return MAP_THEME.defaultState;
-  if (value <= 15) return '#5AC8E0';
-  if (value <= 22) return '#3A6EA5';
-  if (value <= 26) return '#4FA8E0';
-  if (value <= 30) return '#FFC93C';
-  if (value <= 34) return '#FF8C42';
-  return '#E74C3C';
+  if (value <= 15) return '#35C7E8';
+  if (value <= 22) return '#0B72B9';
+  if (value <= 26) return '#22C7A0';
+  if (value <= 30) return '#F59E0B';
+  if (value <= 34) return '#F97316';
+  return '#EF4444';
 }
 
 function getAQIColor(value?: number) {
   if (value === undefined) return MAP_THEME.defaultState;
-  if (value <= 50) return '#2ECC71';
-  if (value <= 100) return '#F1C40F';
-  if (value <= 200) return '#FF8C42';
-  if (value <= 300) return '#E74C3C';
-  if (value <= 400) return '#9B59B6';
-  return '#7F1D1D';
+  if (value <= 50) return '#22C7A0';
+  if (value <= 100) return '#84CC16';
+  if (value <= 200) return '#F59E0B';
+  if (value <= 300) return '#F97316';
+  if (value <= 400) return '#EF4444';
+  return '#991B1B';
 }
 
 function getHumidityColor(value?: number) {
   if (value === undefined) return MAP_THEME.defaultState;
-  if (value < 40) return '#FF8C42';
-  if (value < 55) return '#FFC93C';
-  if (value < 70) return '#4FA8E0';
-  if (value < 85) return '#3A6EA5';
-  return '#5AC8E0';
+  if (value < 40) return '#F97316';
+  if (value < 55) return '#F59E0B';
+  if (value < 70) return '#35C7E8';
+  if (value < 85) return '#0B72B9';
+  return '#22C7A0';
 }
 
 function getRainfallColor(value?: number) {
   if (value === undefined) return MAP_THEME.defaultState;
-  if (value === 0) return '#1E2733';
-  if (value < 5) return '#3A6EA5';
-  if (value < 15) return '#4FA8E0';
-  if (value < 30) return '#5AC8E0';
-  return '#2ECC71';
+  if (value === 0) return '#101F2E';
+  if (value < 5) return '#0B72B9';
+  if (value < 15) return '#35C7E8';
+  if (value < 30) return '#22C7A0';
+  return '#F59E0B';
 }
 
 function getWindColor(value?: number) {
   if (value === undefined) return MAP_THEME.defaultState;
-  if (value <= 10) return '#5AC8E0';
-  if (value <= 20) return '#4FA8E0';
-  if (value <= 35) return '#FFC93C';
-  if (value <= 50) return '#FF8C42';
-  return '#E74C3C';
+  if (value <= 10) return '#35C7E8';
+  if (value <= 20) return '#22C7A0';
+  if (value <= 35) return '#F59E0B';
+  if (value <= 50) return '#F97316';
+  return '#EF4444';
 }
 
 function getWarningColor(level?: string) {
-  if (!level) return '#2ECC71';
+  if (!level) return '#22C7A0';
   switch (level.toLowerCase()) {
     case 'severe':
-      return '#E74C3C';
+      return '#EF4444';
     case 'alert':
-      return '#FF8C42';
+      return '#F97316';
     case 'watch':
-      return '#F1C40F';
+      return '#F59E0B';
     case 'normal':
     default:
-      return '#2ECC71';
+      return '#22C7A0';
   }
 }
 
@@ -202,7 +234,6 @@ function getStateColor(state: StateWeatherData, metric: WeatherMapMetric): strin
   }
 }
 
-// Comprehensive aliases mapping SVG map IDs / names to unified state records
 const STATE_ALIAS_MAP: Record<string, string> = {
   an: 'in-an',
   ap: 'in-ap',
@@ -273,7 +304,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
 }) => {
   const handleSelectCallback = onStateSelect || onSelectState;
 
-  // Metric state with robust dual-mode (controlled + internal fallback)
   const [internalMetric, setInternalMetric] = useState<WeatherMapMetric>(() =>
     normalizeMetric(controlledMetric || 'temperature')
   );
@@ -322,10 +352,8 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
       if (mapContainerRef.current?.requestFullscreen) {
         await mapContainerRef.current.requestFullscreen();
       }
-    } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen();
-      }
+    } else if (document.exitFullscreen) {
+      await document.exitFullscreen();
     }
   };
 
@@ -335,7 +363,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     }
   }, [controlledSelectedState]);
 
-  // Robust Map lookup table
   const stateMap = useMemo(() => {
     const map = new Map<string, StateWeatherData>();
     const safeData = data && data.length > 0 ? data : INDIA_WEATHER_DATA;
@@ -370,15 +397,9 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
         map.set('dn', s);
         map.set('dd', s);
       }
-      if (lowerName.includes('andaman')) {
-        map.set('an', s);
-      }
-      if (lowerName.includes('puducherry') || lowerName.includes('pondicherry')) {
-        map.set('py', s);
-      }
-      if (lowerName.includes('delhi')) {
-        map.set('dl', s);
-      }
+      if (lowerName.includes('andaman')) map.set('an', s);
+      if (lowerName.includes('puducherry') || lowerName.includes('pondicherry')) map.set('py', s);
+      if (lowerName.includes('delhi')) map.set('dl', s);
     });
 
     return map;
@@ -403,15 +424,9 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     }
 
     return {
-      id: location.id || 'IN-DEF',
-      name: location.name || 'Regional Meteorological Center',
-      city: 'Capital City',
-      temperature: 28,
-      humidity: 65,
-      aqi: 75,
-      pollen: 2,
-      rainfall: 2,
-      condition: 'Clear Sky',
+      id: location.id || 'IN-UNMAPPED',
+      name: location.name || 'Unmapped State',
+      condition: 'Unavailable',
     };
   };
 
@@ -434,7 +449,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     );
   };
 
-  // Check if state is in active region
   const isStateInActiveRegion = (location: any) => {
     if (activeRegion === 'all') return true;
     const sId = (location.id || '').toLowerCase();
@@ -444,7 +458,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     return regionObj.stateIds.includes(canonicalId);
   };
 
-  // Determine currently active state for the details panel
   const activeObservationState = useMemo<StateWeatherData>(() => {
     if (hoveredState) return hoveredState;
 
@@ -460,11 +473,7 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
       }
     }
 
-    return (
-      stateMap.get('odisha') ||
-      stateMap.get('in-od') ||
-      INDIA_WEATHER_DATA[0]
-    );
+    return stateMap.get('odisha') || stateMap.get('in-od') || INDIA_WEATHER_DATA[0];
   }, [hoveredState, controlledSelectedState, internalSelectedState, stateMap]);
 
   const handleStateClick = (stateData: StateWeatherData) => {
@@ -483,14 +492,14 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
   };
 
   const handleCopyTelemetry = () => {
-    const text = `IMD SYNOPTIC OBSERVATION — ${activeObservationState.name} (${activeObservationState.city || 'Regional Center'})\n` +
-      `• Temperature: ${activeObservationState.temperature ?? 28}°C\n` +
-      `• 24h Rainfall: ${activeObservationState.rainfall ?? 0} mm\n` +
-      `• Air Quality (NAQI): ${activeObservationState.aqi ?? 75} AQI (${activeObservationState.aqi && activeObservationState.aqi > 100 ? 'Moderate/Poor' : 'Satisfactory'})\n` +
-      `• Relative Humidity: ${activeObservationState.humidity ?? 65}%\n` +
-      `• Aero-Pollen Bio-Risk: Level ${activeObservationState.pollen ?? 2}/5\n` +
-      `• Sky Condition: ${activeObservationState.condition || 'Partly Cloudy'}\n` +
-      `• Recorded At: Synoptic Indian Standard Time (IST)`;
+    const text =
+      `IMD REFERENCE OBSERVATION — ${activeObservationState.name} (${activeObservationState.city || 'Regional Center'})\n` +
+      `• Temperature: ${activeObservationState.temperature !== undefined ? `${activeObservationState.temperature}°C` : '—'}\n` +
+      `• 24h Rainfall: ${activeObservationState.rainfall !== undefined ? `${activeObservationState.rainfall} mm` : '—'}\n` +
+      `• Air Quality (NAQI): ${activeObservationState.aqi !== undefined ? `${activeObservationState.aqi} AQI` : '—'}\n` +
+      `• Relative Humidity: ${activeObservationState.humidity !== undefined ? `${activeObservationState.humidity}%` : '—'}\n` +
+      `• Condition: ${activeObservationState.condition || '—'}\n` +
+      `• Source: ${activeObservationState.dataSource || 'IMD Reference Dataset'}`;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
@@ -499,7 +508,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     }
   };
 
-  // Zoom handlers
   const handleZoomIn = () => {
     if (isMapLocked) return;
     setZoomLevel((prev) => Math.min(prev + 0.25, 2.5));
@@ -515,7 +523,6 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     setActiveRegion('all');
   };
 
-  // Region handler
   const handleRegionClick = (regionId: IndiaRegion) => {
     setActiveRegion(regionId);
     if (regionId === 'all') {
@@ -541,67 +548,118 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
     }
   };
 
-  // Metric qualitative helpers
-  const getMetricBadge = (state: StateWeatherData, m: WeatherMapMetric): { label: string; variant: StatusVariant } => {
+  const getMetricBadge = (
+    state: StateWeatherData,
+    m: WeatherMapMetric
+  ): { label: string; badgeClass: string } => {
     switch (m) {
       case 'temperature': {
-        const val = state.temperature ?? 28;
-        if (val >= 35) return { label: 'Heatwave Alert', variant: 'danger' };
-        if (val >= 31) return { label: 'Hot', variant: 'alert' };
-        if (val >= 27) return { label: 'Warm', variant: 'warning' };
-        if (val >= 23) return { label: 'Optimal', variant: 'good' };
-        return { label: 'Cool', variant: 'neutral' };
+        const val = state.temperature;
+        if (val === undefined) return { label: 'Unavailable', badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]' };
+        if (val >= 35) return { label: 'Heatwave Alert', badgeClass: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/40' };
+        if (val >= 31) return { label: 'Hot', badgeClass: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40' };
+        if (val >= 27) return { label: 'Warm', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        if (val >= 23) return { label: 'Optimal', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
+        return { label: 'Cool', badgeClass: 'bg-[#35C7E8]/12 text-[#7DD3FC] border-[#35C7E8]/35' };
       }
       case 'rainfall': {
-        const val = state.rainfall ?? 0;
-        if (val >= 30) return { label: 'Very Heavy Rain', variant: 'danger' };
-        if (val >= 15) return { label: 'Heavy Rain', variant: 'alert' };
-        if (val >= 5) return { label: 'Moderate Rain', variant: 'warning' };
-        if (val > 0) return { label: 'Light Showers', variant: 'neutral' };
-        return { label: 'Dry (0 mm)', variant: 'good' };
+        const val = state.rainfall;
+        if (val === undefined) return { label: 'Unavailable', badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]' };
+        if (val >= 30) return { label: 'Very Heavy Rain', badgeClass: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/40' };
+        if (val >= 15) return { label: 'Heavy Rain', badgeClass: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40' };
+        if (val >= 5) return { label: 'Moderate Rain', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        if (val > 0) return { label: 'Light Showers', badgeClass: 'bg-[#35C7E8]/12 text-[#7DD3FC] border-[#35C7E8]/35' };
+        return { label: 'Dry (0 mm)', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
       }
       case 'aqi': {
-        const val = state.aqi ?? 75;
-        if (val > 300) return { label: 'Severe AQI', variant: 'danger' };
-        if (val > 200) return { label: 'Poor AQI', variant: 'alert' };
-        if (val > 100) return { label: 'Moderate', variant: 'warning' };
-        if (val > 50) return { label: 'Satisfactory', variant: 'neutral' };
-        return { label: 'Good AQI', variant: 'good' };
+        const val = state.aqi;
+        if (val === undefined) return { label: 'Unavailable', badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]' };
+        if (val > 300) return { label: 'Severe AQI', badgeClass: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/40' };
+        if (val > 200) return { label: 'Poor AQI', badgeClass: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40' };
+        if (val > 100) return { label: 'Moderate', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        if (val > 50) return { label: 'Satisfactory', badgeClass: 'bg-[#35C7E8]/12 text-[#7DD3FC] border-[#35C7E8]/35' };
+        return { label: 'Good AQI', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
       }
       case 'humidity': {
-        const val = state.humidity ?? 65;
-        if (val > 80) return { label: 'Very Humid', variant: 'warning' };
-        if (val < 40) return { label: 'Dry Air', variant: 'neutral' };
-        return { label: 'Comfortable', variant: 'good' };
+        const val = state.humidity;
+        if (val === undefined) return { label: 'Unavailable', badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]' };
+        if (val > 80) return { label: 'Very Humid', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        if (val < 40) return { label: 'Dry Air', badgeClass: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40' };
+        return { label: 'Comfortable', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
       }
       case 'wind': {
-        const val = state.windSpeed ?? 15;
-        if (val > 45) return { label: 'Gale / Storm', variant: 'alert' };
-        if (val > 25) return { label: 'Squally Winds', variant: 'warning' };
-        return { label: 'Moderate Breeze', variant: 'good' };
+        const val = state.windSpeed;
+        if (val === undefined) return { label: 'Unavailable', badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]' };
+        if (val > 45) return { label: 'Gale / Storm', badgeClass: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/40' };
+        if (val > 25) return { label: 'Squally Winds', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        return { label: 'Moderate Breeze', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
       }
       case 'warnings': {
         const val = state.warningLevel || 'normal';
-        if (val === 'severe') return { label: 'Red Alert', variant: 'alert' };
-        if (val === 'alert') return { label: 'Orange Alert', variant: 'alert' };
-        if (val === 'watch') return { label: 'Yellow Watch', variant: 'warning' };
-        return { label: 'Routine Normal', variant: 'good' };
+        if (val === 'severe') return { label: 'Red Alert', badgeClass: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/40' };
+        if (val === 'alert') return { label: 'Orange Alert', badgeClass: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40' };
+        if (val === 'watch') return { label: 'Yellow Watch', badgeClass: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40' };
+        return { label: 'Routine Normal', badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35' };
       }
-      default:
-        return { label: 'Normal', variant: 'neutral' };
     }
   };
 
   const metricBadge = getMetricBadge(activeObservationState, activeMetric);
 
+  const renderMetricIcon = (m: WeatherMapMetric) => {
+    switch (m) {
+      case 'temperature':
+        return <Thermometer className="w-5 h-5" />;
+      case 'rainfall':
+        return <CloudRain className="w-5 h-5" />;
+      case 'aqi':
+        return <Gauge className="w-5 h-5" />;
+      case 'humidity':
+        return <Droplets className="w-5 h-5" />;
+      case 'wind':
+        return <Wind className="w-5 h-5" />;
+      case 'warnings':
+        return <AlertTriangle className="w-5 h-5" />;
+    }
+  };
+
+  const renderActiveMetricValue = () => {
+    switch (activeMetric) {
+      case 'temperature':
+        return activeObservationState.temperature !== undefined
+          ? `${activeObservationState.temperature}°C (${Math.round(activeObservationState.temperature * 1.8 + 32)}°F)`
+          : '—';
+      case 'rainfall':
+        return activeObservationState.rainfall !== undefined
+          ? `${activeObservationState.rainfall} mm`
+          : '—';
+      case 'aqi':
+        return activeObservationState.aqi !== undefined
+          ? `${activeObservationState.aqi} AQI`
+          : '—';
+      case 'humidity':
+        return activeObservationState.humidity !== undefined
+          ? `${activeObservationState.humidity}% RH`
+          : '—';
+      case 'wind':
+        return activeObservationState.windSpeed !== undefined
+          ? `${activeObservationState.windSpeed} km/h ${activeObservationState.windDir ? `(${activeObservationState.windDir})` : ''}`
+          : '—';
+      case 'warnings':
+        return `${(activeObservationState.warningLevel || 'NORMAL').toUpperCase()} ALERT`;
+    }
+  };
+
   return (
-    <div id="national-synoptic-meteorological-map-card" className="mausam-card flex flex-col gap-4">
+    <DataPanel id="national-synoptic-meteorological-map-card" className="flex flex-col gap-4">
       {/* Header with Title and Layer Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-3 border-b border-[#334155] gap-3">
-        <SectionHeader
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <SectionHeading
           title="National Synoptic Meteorological Map"
-          subtitle="All India State & Union Territory Observational Layers"
-          icon="map"
+          subtitle="All-India State & Union Territory observational reference layers"
+          icon={<MapIcon className="w-4 h-4" />}
+          badge={<SourceStatus status="REFERENCE" labelOverride="IMD REFERENCE LAYER" />}
+          className="border-b-0 pb-0"
         />
 
         <MapLayerControl
@@ -610,11 +668,13 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
         />
       </div>
 
-      {/* Regional Filter Strip Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-[#17212B] border border-[#334155] rounded">
-        <div className="flex items-center gap-1.5 text-xs text-[#8A94A6]">
-          <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">travel_explore</span>
-          <span className="font-bold text-white uppercase text-[11px]">Subdivision Focus:</span>
+      <div className="border-t border-[#26394B]" />
+
+      {/* Regional Filter Strip */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 p-2.5 bg-[#08131F] border border-[#26394B] rounded-xl">
+        <div className="flex items-center gap-1.5 text-xs text-[#8295A8] font-mono">
+          <Compass className="w-4 h-4 text-[#35C7E8]" />
+          <span className="font-semibold text-[#F3F6FA] uppercase text-[11px]">Subdivision Focus</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
@@ -626,32 +686,33 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                 id={`btn-region-filter-${reg.id}`}
                 type="button"
                 onClick={() => handleRegionClick(reg.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 min-h-[36px] rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer m-focus-ring border ${
                   isRegActive
-                    ? 'bg-[#0B72B9] text-white shadow'
-                    : 'bg-[#1E2733] text-[#D7DEE8] hover:bg-[#2A3749] hover:text-[#4FA8E0]'
+                    ? 'bg-[#0B72B9] border-[#35C7E8]/50 text-white'
+                    : 'bg-[#0B1927] border-[#26394B] text-[#B5C3D1] hover:border-[#38536A] hover:text-[#F3F6FA]'
                 }`}
               >
-                <span className="material-symbols-outlined text-[13px]">{reg.icon}</span>
+                {reg.id === 'all' && <Globe className="w-3.5 h-3.5" />}
                 <span>{reg.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Quick State Search Dropdown */}
-        <div className="flex items-center gap-1.5 ml-auto">
-          <label htmlFor="synoptic-state-select" className="text-[11px] text-[#8A94A6] hidden sm:inline">
-            Jump to State:
+        <div className="flex items-center gap-2 ml-auto">
+          <label htmlFor="synoptic-state-select" className="text-[11px] font-mono text-[#8295A8] hidden sm:inline">
+            Jump to State
           </label>
           <select
             id="synoptic-state-select"
             value={activeObservationState.name}
             onChange={(e) => {
-              const matched = stateMap.get(e.target.value.toLowerCase()) || INDIA_WEATHER_DATA.find((s) => s.name === e.target.value);
+              const matched =
+                stateMap.get(e.target.value.toLowerCase()) ||
+                INDIA_WEATHER_DATA.find((s) => s.name === e.target.value);
               if (matched) handleStateClick(matched);
             }}
-            className="bg-[#1E2733] text-white text-xs border border-[#334155] rounded px-2 py-1 outline-none focus:border-[#0B72B9] cursor-pointer"
+            className="min-h-[38px] bg-[#0B1927] text-[#F3F6FA] text-xs font-mono border border-[#26394B] rounded-lg px-2.5 py-1.5 outline-none focus:border-[#35C7E8] cursor-pointer"
           >
             {INDIA_WEATHER_DATA.map((st) => (
               <option key={st.id} value={st.name}>
@@ -666,139 +727,131 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
         {/* SVG India Map Visualizer Canvas */}
         <div
           ref={mapContainerRef}
-          className={`lg:col-span-2 relative bg-[#0F141A] border border-[#334155] rounded p-4 flex flex-col items-center justify-center min-h-[460px] overflow-hidden ${
-            isFullscreen ? 'w-screen h-screen fixed inset-0 z-50 p-6' : ''
+          className={`lg:col-span-2 relative bg-[#07111D] border border-[#26394B] rounded-xl p-4 flex flex-col items-center justify-center min-h-[460px] overflow-hidden ${
+            isFullscreen ? 'w-screen h-screen fixed inset-0 z-50 p-6 rounded-none' : ''
           }`}
         >
-          {/* Active Layer Watermark Badge */}
-          <div className="absolute top-3 left-3 bg-[#17212B]/90 border border-[#334155] px-2.5 py-1 rounded text-xs flex items-center gap-2 z-10 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-[#1ABC9C] animate-pulse"></span>
-            <span className="text-[#8A94A6] text-[11px]">Layer:</span>
-            <strong className="text-white uppercase font-mono text-[11px]">
+          {/* Active Layer Badge */}
+          <div className="absolute top-3 left-3 bg-[#08131F]/95 border border-[#26394B] px-2.5 py-1 rounded-lg text-xs flex items-center gap-2 z-10">
+            <span className="text-[#8295A8] font-mono text-[10px] uppercase">Layer:</span>
+            <strong className="text-[#35C7E8] uppercase font-mono text-[11px]">
               {activeMetric}
             </strong>
           </div>
 
-          {/* Map Viewport & Overlay Action Buttons (Zoom / Reset / Pins / Labels / Fullscreen) */}
+          {/* Map Viewport & Overlay Action Buttons */}
           <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10">
-            <div className="bg-[#17212B]/95 border border-[#334155] rounded p-1 flex flex-col gap-1 shadow-lg">
-              {/* Visual Map Lock / Unlock Control */}
+            <div className="bg-[#08131F]/95 border border-[#26394B] rounded-lg p-1 flex flex-col gap-1">
               <button
                 id="btn-toggle-map-lock"
                 type="button"
-                title={
-                  isMapLocked
-                    ? 'Sector View Locked — Click to unlock panning & zooming'
-                    : 'Lock view to current weather sector (prevents accidental panning & zooming)'
-                }
+                title={isMapLocked ? 'Unlock panning & zooming' : 'Lock view to current sector'}
                 aria-label={isMapLocked ? 'Unlock map panning and zooming' : 'Lock map to current sector'}
                 aria-pressed={isMapLocked}
                 onClick={() => setIsMapLocked(!isMapLocked)}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors cursor-pointer text-xs ${
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
                   isMapLocked
-                    ? 'bg-[#F59E0B] text-black shadow-md ring-1 ring-[#F59E0B]'
-                    : 'bg-[#1E2733] text-[#8A94A6] hover:text-white'
+                    ? 'bg-[#F59E0B] text-[#07111D]'
+                    : 'bg-[#0B1927] text-[#B5C3D1] hover:text-[#F3F6FA]'
                 }`}
               >
-                <span className="material-symbols-outlined text-[15px]">
-                  {isMapLocked ? 'lock' : 'lock_open'}
-                </span>
+                {isMapLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
               </button>
 
               <button
                 id="btn-map-zoom-in"
                 type="button"
-                title={isMapLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom In'}
+                title={isMapLocked ? 'Unlock map to zoom' : 'Zoom In'}
                 disabled={isMapLocked}
                 onClick={handleZoomIn}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors text-xs ${
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
                   isMapLocked
-                    ? 'bg-[#1E2733]/50 text-[#8A94A6]/40 cursor-not-allowed'
-                    : 'bg-[#1E2733] hover:bg-[#0B72B9] text-white cursor-pointer'
+                    ? 'bg-[#0B1927]/50 text-[#8295A8]/40 cursor-not-allowed'
+                    : 'bg-[#0B1927] hover:bg-[#0B72B9] text-[#F3F6FA] cursor-pointer'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <Plus className="w-4 h-4" />
               </button>
+
               <button
                 id="btn-map-zoom-out"
                 type="button"
-                title={isMapLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom Out'}
+                title={isMapLocked ? 'Unlock map to zoom' : 'Zoom Out'}
                 disabled={isMapLocked}
                 onClick={handleZoomOut}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors text-xs ${
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
                   isMapLocked
-                    ? 'bg-[#1E2733]/50 text-[#8A94A6]/40 cursor-not-allowed'
-                    : 'bg-[#1E2733] hover:bg-[#0B72B9] text-white cursor-pointer'
+                    ? 'bg-[#0B1927]/50 text-[#8295A8]/40 cursor-not-allowed'
+                    : 'bg-[#0B1927] hover:bg-[#0B72B9] text-[#F3F6FA] cursor-pointer'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">remove</span>
+                <Minus className="w-4 h-4" />
               </button>
+
               <button
                 id="btn-map-reset-zoom"
                 type="button"
-                title={isMapLocked ? 'Map is locked to sector. Unlock to reset.' : 'Reset View'}
+                title={isMapLocked ? 'Unlock map to reset' : 'Reset View'}
                 disabled={isMapLocked}
                 onClick={handleResetZoom}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors text-xs ${
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
                   isMapLocked
-                    ? 'bg-[#1E2733]/50 text-[#8A94A6]/40 cursor-not-allowed'
-                    : 'bg-[#1E2733] hover:bg-[#0B72B9] text-white cursor-pointer'
+                    ? 'bg-[#0B1927]/50 text-[#8295A8]/40 cursor-not-allowed'
+                    : 'bg-[#0B1927] hover:bg-[#0B72B9] text-[#F3F6FA] cursor-pointer'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                <RotateCcw className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="bg-[#17212B]/95 border border-[#334155] rounded p-1 flex flex-col gap-1 shadow-lg">
+            <div className="bg-[#08131F]/95 border border-[#26394B] rounded-lg p-1 flex flex-col gap-1">
               <button
                 id="btn-toggle-map-labels"
                 type="button"
                 title={showLabels ? 'Hide Labels' : 'Show Labels'}
                 onClick={() => setShowLabels(!showLabels)}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors cursor-pointer text-xs ${
-                  showLabels ? 'bg-[#0B72B9] text-white' : 'bg-[#1E2733] text-[#8A94A6] hover:text-white'
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
+                  showLabels ? 'bg-[#0B72B9] text-white' : 'bg-[#0B1927] text-[#8295A8] hover:text-[#F3F6FA]'
                 }`}
               >
-                <span className="material-symbols-outlined text-[15px]">label</span>
+                <Tag className="w-3.5 h-3.5" />
               </button>
               <button
                 id="btn-toggle-station-pins"
                 type="button"
                 title={showStationPins ? 'Hide Station Pins' : 'Show Station Pins'}
                 onClick={() => setShowStationPins(!showStationPins)}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors cursor-pointer text-xs ${
-                  showStationPins ? 'bg-[#0B72B9] text-white' : 'bg-[#1E2733] text-[#8A94A6] hover:text-white'
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
+                  showStationPins ? 'bg-[#0B72B9] text-white' : 'bg-[#0B1927] text-[#8295A8] hover:text-[#F3F6FA]'
                 }`}
               >
-                <span className="material-symbols-outlined text-[15px]">location_on</span>
+                <MapPin className="w-3.5 h-3.5" />
               </button>
               <button
                 id="btn-toggle-map-fullscreen"
                 type="button"
                 title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
                 onClick={handleToggleFullscreen}
-                className={`w-7 h-7 rounded flex items-center justify-center transition-colors cursor-pointer text-xs ${
-                  isFullscreen ? 'bg-[#E74C3C] text-white' : 'bg-[#1E2733] text-[#8A94A6] hover:text-white'
+                className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
+                  isFullscreen ? 'bg-[#EF4444] text-white' : 'bg-[#0B1927] text-[#8295A8] hover:text-[#F3F6FA]'
                 }`}
               >
-                <span className="material-symbols-outlined text-[15px]">
-                  {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
-                </span>
+                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
 
           {/* On-Map Floating Sector Lock Badge */}
           {isMapLocked && (
-            <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#17212B]/95 border border-[#F59E0B] text-[#F59E0B] text-[11px] font-mono shadow-md backdrop-blur-md pointer-events-auto">
-              <span className="material-symbols-outlined text-[14px]">lock</span>
-              <span className="font-bold">
-                LOCKED: {activeRegion !== 'all' ? `${activeRegion.toUpperCase()} SECTOR` : `${(activeObservationState?.name || 'SYNOPTIC').toUpperCase()} SECTOR`}
+            <div className="absolute top-12 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#08131F]/95 border border-[#F59E0B] text-[#FCD34D] text-[11px] font-mono">
+              <Lock className="w-3.5 h-3.5" />
+              <span className="font-semibold">
+                LOCKED: {activeRegion !== 'all' ? `${activeRegion.toUpperCase()} SECTOR` : `${(activeObservationState?.name || 'SYNOPTIC').toUpperCase()}`}
               </span>
               <button
                 type="button"
                 onClick={() => setIsMapLocked(false)}
-                className="text-white hover:underline text-[10px] ml-1 cursor-pointer font-sans"
+                className="text-[#F3F6FA] hover:underline text-[10px] ml-1 cursor-pointer font-sans"
               >
                 Unlock
               </button>
@@ -815,7 +868,7 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
             <svg
               ref={mapSvgRef}
               xmlns="http://www.w3.org/2000/svg"
-              viewBox={((India as any)?.viewBox || (India as any)?.default?.viewBox || '0 0 612 696')}
+              viewBox={(India as any)?.viewBox || (India as any)?.default?.viewBox || '0 0 612 696'}
               className="w-full max-h-[460px] select-none"
               aria-label="National Meteorological Map of India"
             >
@@ -830,7 +883,7 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                 const inRegion = isStateInActiveRegion(loc);
                 const isHovered = hoveredState?.id === stateData.id || hoveredState?.name === stateData.name;
                 const baseFill = getStateColor(stateData, activeMetric);
-                const fillColor = inRegion ? baseFill : '#131A22';
+                const fillColor = inRegion ? baseFill : '#0B1927';
 
                 return (
                   <path
@@ -839,7 +892,7 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                     name={loc.name}
                     d={loc.path}
                     fill={isHovered ? MAP_THEME.hoverState : isSelected ? '#0B72B9' : fillColor}
-                    stroke={isSelected ? '#FFFFFF' : isHovered ? '#4FA8E0' : inRegion ? '#2D3748' : '#1C2430'}
+                    stroke={isSelected ? '#F3F6FA' : isHovered ? '#35C7E8' : inRegion ? '#26394B' : '#101F2E'}
                     strokeWidth={isSelected ? 2.4 : isHovered ? 1.8 : 0.8}
                     opacity={inRegion ? 1 : 0.45}
                     style={{
@@ -851,13 +904,12 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                     onClick={() => handleStateClick(stateData)}
                   >
                     <title>
-                      {stateData.name}: {stateData.temperature}°C | {stateData.condition || 'Normal'} | AQI {stateData.aqi} | Rain {stateData.rainfall}mm
+                      {stateData.name}: {stateData.temperature !== undefined ? `${stateData.temperature}°C` : '—'} | {stateData.condition || 'Reference'} | AQI {stateData.aqi ?? '—'} | Rain {stateData.rainfall !== undefined ? `${stateData.rainfall}mm` : '—'}
                     </title>
                   </path>
                 );
               })}
 
-              {/* Station Pin Markers & Values Overlay */}
               {showStationPins &&
                 Object.entries(MAJOR_CENTROIDS).map(([stateKey, point]) => {
                   const stateData = stateMap.get(stateKey);
@@ -881,20 +933,22 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                       <circle
                         r={isSelected ? 6 : 4.5}
                         fill={pinColor}
-                        stroke="#FFFFFF"
+                        stroke="#F3F6FA"
                         strokeWidth={isSelected ? 2 : 1}
-                        className={isSelected ? 'animate-pulse' : ''}
                       />
                       {showLabels && (
                         <text
                           x={7}
                           y={3}
                           fontSize="8.5"
-                          fill="#FFFFFF"
+                          fill="#F3F6FA"
                           fontWeight="bold"
-                          className="select-none font-sans drop-shadow-md"
+                          className="select-none font-mono drop-shadow-md"
                         >
-                          {point.city} {metricVal !== undefined ? `(${metricVal}${activeMetric === 'temperature' ? '°' : activeMetric === 'rainfall' ? 'm' : ''})` : ''}
+                          {point.city}{' '}
+                          {metricVal !== undefined
+                            ? `(${metricVal}${activeMetric === 'temperature' ? '°' : activeMetric === 'rainfall' ? 'm' : ''})`
+                            : ''}
                         </text>
                       )}
                     </g>
@@ -903,264 +957,268 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
             </svg>
           </div>
 
-          {/* Hover Floating Box */}
           {hoveredState && (
-            <div className="absolute top-12 right-3 bg-[#17212B]/95 border border-[#4FA8E0] rounded p-3 shadow-2xl pointer-events-none text-xs z-20 min-w-[185px] backdrop-blur-md animate-fade-in">
+            <div className="absolute top-12 right-14 bg-[#08131F]/95 border border-[#35C7E8] rounded-xl p-3 pointer-events-none text-xs z-20 min-w-[195px]">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-white text-xs">{hoveredState.name}</span>
-                <span className="text-[10px] text-[#4FA8E0] bg-[#4FA8E0]/15 px-1.5 py-0.5 rounded font-mono">
-                  {hoveredState.condition || 'Synoptic'}
+                <span className="font-semibold text-[#F3F6FA] text-xs">{hoveredState.name}</span>
+                <span className="text-[10px] text-[#7DD3FC] bg-[#35C7E8]/12 px-1.5 py-0.5 rounded font-mono">
+                  {hoveredState.condition || 'Reference'}
                 </span>
               </div>
-              <div className="text-[#8A94A6] text-[10px] mt-0.5">Capital: {hoveredState.city || 'Regional Center'}</div>
+              <div className="text-[#8295A8] text-[10px] mt-0.5">
+                Center: {hoveredState.city || 'Regional Center'}
+              </div>
 
-              <div className="mt-2 pt-2 border-t border-[#334155] flex flex-col gap-1 font-mono text-[11px]">
+              <div className="mt-2 pt-2 border-t border-[#26394B] flex flex-col gap-1 font-mono text-[11px] tabular-nums">
                 <div className="flex justify-between">
-                  <span className="text-[#8A94A6]">Temperature:</span>
-                  <span className="text-white font-bold">{hoveredState.temperature ?? '—'}°C</span>
+                  <span className="text-[#8295A8]">Temperature</span>
+                  <span className="text-[#F3F6FA] font-semibold">
+                    {hoveredState.temperature !== undefined ? `${hoveredState.temperature}°C` : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#8A94A6]">Air Quality:</span>
-                  <span className="text-[#F1C40F] font-bold">{hoveredState.aqi ?? '—'} AQI</span>
+                  <span className="text-[#8295A8]">Air Quality</span>
+                  <span className="text-[#FCD34D] font-semibold">
+                    {hoveredState.aqi !== undefined ? `${hoveredState.aqi} AQI` : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#8A94A6]">Rainfall (24h):</span>
-                  <span className="text-[#4FA8E0] font-bold">{hoveredState.rainfall ?? 0} mm</span>
+                  <span className="text-[#8295A8]">Rainfall (24h)</span>
+                  <span className="text-[#7DD3FC] font-semibold">
+                    {hoveredState.rainfall !== undefined ? `${hoveredState.rainfall} mm` : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#8A94A6]">Humidity:</span>
-                  <span className="text-white font-bold">{hoveredState.humidity ?? '—'}%</span>
+                  <span className="text-[#8295A8]">Humidity</span>
+                  <span className="text-[#F3F6FA] font-semibold">
+                    {hoveredState.humidity !== undefined ? `${hoveredState.humidity}%` : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#8A94A6]">Bio-Pollen:</span>
-                  <span className="text-[#2ECC71] font-bold">Level {hoveredState.pollen ?? 2}/5</span>
+                  <span className="text-[#8295A8]">Bio-Pollen</span>
+                  <span className="text-[#6EE7B7] font-semibold">
+                    {hoveredState.pollen !== undefined ? `Level ${hoveredState.pollen}/5` : '—'}
+                  </span>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* State Telemetry Details Panel with ALLOCATED DATA and FUNCTIONAL BUTTONS */}
+        {/* State Telemetry Details Panel */}
         <div className="flex flex-col gap-3 h-full justify-between">
-          <div className="bg-[#1E2733] border border-[#334155] rounded p-3.5 flex flex-col gap-3">
-            {/* Header of observation card */}
-            <div className="flex items-start justify-between gap-2 border-b border-[#334155] pb-2.5">
-              <div>
-                <span className="text-[10px] text-[#4FA8E0] font-bold uppercase tracking-wider block">
-                  SELECTED OBSERVATORY TELEMETRY
+          <div className="m-panel-inset p-4 flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-2 border-b border-[#26394B] pb-3">
+              <div className="min-w-0">
+                <span className="text-[10px] font-mono text-[#35C7E8] font-semibold uppercase tracking-wider block">
+                  Selected State Telemetry
                 </span>
-                <h3 className="text-white font-bold text-lg leading-tight mt-0.5">
+                <h3 className="text-[#F3F6FA] font-bold text-lg leading-tight mt-0.5 truncate">
                   {activeObservationState.name}
                 </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-[#8A94A6]">
-                    Capital: <strong className="text-white">{activeObservationState.city || 'Regional Center'}</strong>
+                <div className="flex items-center gap-2 mt-1 text-xs">
+                  <span className="text-[#8295A8]">
+                    Center: <strong className="text-[#F3F6FA]">{activeObservationState.city || 'Regional'}</strong>
                   </span>
-                  <span className="text-[#334155]">•</span>
-                  <span className="text-xs text-[#1ABC9C]">
-                    {activeObservationState.condition || 'Partly Cloudy'}
-                  </span>
+                  <span className="text-[#26394B]">·</span>
+                  <span className="text-[#6EE7B7]">{activeObservationState.condition || 'Reference'}</span>
                 </div>
               </div>
 
-              <StatusBadge label={metricBadge.label} variant={metricBadge.variant} />
+              <span
+                className={`px-2 py-0.5 rounded-md border font-mono text-[10px] font-semibold uppercase tracking-wider shrink-0 ${metricBadge.badgeClass}`}
+              >
+                {metricBadge.label}
+              </span>
             </div>
 
-            {/* Primary Highlight Metric */}
-            <div className="bg-[#0F141A] p-3 rounded border border-[#334155] flex items-center justify-between">
+            <div className="bg-[#0B1927] p-3.5 rounded-lg border border-[#26394B] flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-[#8A94A6] uppercase font-bold block">
-                  Active Synoptic Metric ({activeMetric})
+                <span className="text-[10px] font-mono text-[#8295A8] uppercase font-semibold block">
+                  Active Metric ({activeMetric})
                 </span>
-                <div className="text-2xl font-bold font-mono text-white mt-0.5">
-                  {activeMetric === 'temperature' && `${activeObservationState.temperature ?? 28}°C (${Math.round((activeObservationState.temperature || 28) * 1.8 + 32)}°F)`}
-                  {activeMetric === 'rainfall' && `${activeObservationState.rainfall ?? 0} mm`}
-                  {activeMetric === 'aqi' && `${activeObservationState.aqi ?? 75} AQI`}
-                  {activeMetric === 'humidity' && `${activeObservationState.humidity ?? 65}% RH`}
-                  {activeMetric === 'wind' && `${activeObservationState.windSpeed ?? 14} km/h (${activeObservationState.windDir || 'SW'})`}
-                  {activeMetric === 'warnings' && `${(activeObservationState.warningLevel || 'NORMAL').toUpperCase()} ALERT`}
+                <div className="text-xl font-bold font-mono text-[#F3F6FA] mt-0.5 tabular-nums">
+                  {renderActiveMetricValue()}
                 </div>
               </div>
 
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-inner"
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-[#07111D] shrink-0"
                 style={{ backgroundColor: getStateColor(activeObservationState, activeMetric) }}
               >
-                <span className="material-symbols-outlined text-[22px]">
-                  {activeMetric === 'temperature' && 'thermostat'}
-                  {activeMetric === 'rainfall' && 'rainy'}
-                  {activeMetric === 'aqi' && 'air'}
-                  {activeMetric === 'humidity' && 'water_drop'}
-                  {activeMetric === 'wind' && 'air'}
-                  {activeMetric === 'warnings' && 'warning'}
-                </span>
+                {renderMetricIcon(activeMetric)}
               </div>
             </div>
 
-            {/* Comprehensive Allocated Data Grid for State */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+            <div className="grid grid-cols-2 gap-2 text-xs tabular-nums">
+              <button
+                type="button"
                 onClick={() => handleMetricChange('temperature')}
-                title="Click to view Surface Temperature Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Temperature</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#4FA8E0]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Temperature</span>
+                  <ExternalLink className="w-3 h-3 text-[#35C7E8]" />
                 </div>
-                <span className="text-white font-bold font-mono text-sm">
-                  {activeObservationState.temperature ?? 28}°C
+                <span className="text-[#F3F6FA] font-bold font-mono text-sm">
+                  {activeObservationState.temperature !== undefined ? `${activeObservationState.temperature}°C` : '—'}
                 </span>
-              </div>
+              </button>
 
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+              <button
+                type="button"
                 onClick={() => handleMetricChange('rainfall')}
-                title="Click to view Rainfall Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Rainfall</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#4FA8E0]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Rainfall</span>
+                  <ExternalLink className="w-3 h-3 text-[#35C7E8]" />
                 </div>
-                <span className="text-[#4FA8E0] font-bold font-mono text-sm">
-                  {activeObservationState.rainfall ?? 0} mm
+                <span className="text-[#7DD3FC] font-bold font-mono text-sm">
+                  {activeObservationState.rainfall !== undefined ? `${activeObservationState.rainfall} mm` : '—'}
                 </span>
-              </div>
+              </button>
 
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+              <button
+                type="button"
                 onClick={() => handleMetricChange('aqi')}
-                title="Click to view Air Quality Index Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Air Quality (AQI)</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#F1C40F]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Air Quality</span>
+                  <ExternalLink className="w-3 h-3 text-[#FCD34D]" />
                 </div>
-                <span className="text-[#F1C40F] font-bold font-mono text-sm">
-                  {activeObservationState.aqi ?? 75} AQI
+                <span className="text-[#FCD34D] font-bold font-mono text-sm">
+                  {activeObservationState.aqi !== undefined ? `${activeObservationState.aqi} AQI` : '—'}
                 </span>
-              </div>
+              </button>
 
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+              <button
+                type="button"
                 onClick={() => handleMetricChange('humidity')}
-                title="Click to view Relative Humidity Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Humidity (RH)</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#4FA8E0]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Humidity (RH)</span>
+                  <ExternalLink className="w-3 h-3 text-[#35C7E8]" />
                 </div>
-                <span className="text-white font-bold font-mono text-sm">
-                  {activeObservationState.humidity ?? 65}%
+                <span className="text-[#F3F6FA] font-bold font-mono text-sm">
+                  {activeObservationState.humidity !== undefined ? `${activeObservationState.humidity}%` : '—'}
                 </span>
-              </div>
+              </button>
 
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+              <button
+                type="button"
                 onClick={() => handleMetricChange('wind')}
-                title="Click to view Wind Velocity Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Wind Velocity</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#4FA8E0]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Wind Velocity</span>
+                  <ExternalLink className="w-3 h-3 text-[#35C7E8]" />
                 </div>
-                <span className="text-white font-bold font-mono text-sm">
-                  {activeObservationState.windSpeed ?? 14} km/h {activeObservationState.windDir ?? 'SW'}
+                <span className="text-[#F3F6FA] font-bold font-mono text-sm">
+                  {activeObservationState.windSpeed !== undefined
+                    ? `${activeObservationState.windSpeed} km/h ${activeObservationState.windDir || ''}`
+                    : '—'}
                 </span>
-              </div>
+              </button>
 
-              <div
-                className="bg-[#17212B] p-2 rounded border border-[#334155] hover:border-[#4FA8E0] transition-colors cursor-pointer"
+              <button
+                type="button"
                 onClick={() => handleMetricChange('warnings')}
-                title="Click to view Active Warning Layer"
+                className="text-left bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] hover:border-[#35C7E8] transition-colors cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-[#8A94A6]">Active Warning</span>
-                  <span className="material-symbols-outlined text-[12px] text-[#E74C3C]">open_in_new</span>
+                <div className="flex justify-between items-center text-[10px] text-[#8295A8]">
+                  <span>Warning Level</span>
+                  <ExternalLink className="w-3 h-3 text-[#FCA5A5]" />
                 </div>
-                <span className={`font-bold font-mono text-xs uppercase ${
-                  activeObservationState.warningLevel === 'severe'
-                    ? 'text-[#E74C3C]'
-                    : activeObservationState.warningLevel === 'alert'
-                    ? 'text-[#FF8C42]'
-                    : activeObservationState.warningLevel === 'watch'
-                    ? 'text-[#F1C40F]'
-                    : 'text-[#2ECC71]'
-                }`}>
+                <span
+                  className={`font-bold font-mono text-xs uppercase ${
+                    activeObservationState.warningLevel === 'severe'
+                      ? 'text-[#FCA5A5]'
+                      : activeObservationState.warningLevel === 'alert'
+                      ? 'text-[#FDBA74]'
+                      : activeObservationState.warningLevel === 'watch'
+                      ? 'text-[#FCD34D]'
+                      : 'text-[#6EE7B7]'
+                  }`}
+                >
                   {activeObservationState.warningLevel || 'NORMAL'}
                 </span>
-              </div>
+              </button>
             </div>
 
-            {/* Warning Message Strip if active */}
             {activeObservationState.warningMessage && (
-              <div className="bg-[#17212B] p-2.5 rounded border border-[#334155] text-xs">
-                <span className="text-[10px] text-[#8A94A6] uppercase font-semibold block mb-0.5">Warning Bulletin</span>
-                <p className="text-[#D7DEE8] text-[11px] leading-relaxed">
+              <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] text-xs">
+                <span className="text-[10px] font-mono text-[#8295A8] uppercase font-semibold block mb-0.5">
+                  Reference Note
+                </span>
+                <p className="text-[#B5C3D1] text-[11px] leading-relaxed">
                   {activeObservationState.warningMessage}
                 </p>
               </div>
             )}
 
-            {/* Observation Timestamp & Data Source Metadata */}
-            <div className="bg-[#0F141A] p-2.5 rounded border border-[#334155] text-[11px] flex flex-col gap-1 font-mono">
+            <div className="bg-[#07111D] p-2.5 rounded-lg border border-[#26394B] text-[11px] flex flex-col gap-1 font-mono">
               <div className="flex justify-between items-center">
-                <span className="text-[#8A94A6]">Observation Time:</span>
-                <span className="text-[#4FA8E0] font-bold">{activeObservationState.updatedAt || '21:00 IST'}</span>
+                <span className="text-[#8295A8]">Cycle Tag</span>
+                <span className="text-[#35C7E8] font-semibold">{activeObservationState.updatedAt || 'Reference Baseline'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#8A94A6]">Data Source:</span>
-                <span className="text-white font-medium truncate max-w-[200px]" title={activeObservationState.dataSource || 'IMD Synoptic Network'}>
-                  {activeObservationState.dataSource || 'IMD Synoptic Network'}
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-[#8295A8] shrink-0">Data Source</span>
+                <span className="text-[#F3F6FA] truncate" title={activeObservationState.dataSource || 'IMD Reference Dataset'}>
+                  {activeObservationState.dataSource || 'IMD Reference Dataset'}
                 </span>
               </div>
             </div>
 
-            {/* Expandable In-Depth Synoptic Diagnostics */}
             {showDiagnostics && (
-              <div className="p-2.5 bg-[#0F141A] border border-[#334155] rounded text-xs flex flex-col gap-1.5 animate-fade-in font-mono text-[11px]">
-                <div className="flex justify-between text-[#8A94A6]">
-                  <span>Barometric Pressure:</span>
-                  <span className="text-white font-bold">1012.4 hPa (Normal)</span>
+              <div className="p-2.5 bg-[#07111D] border border-[#26394B] rounded-lg text-[11px] flex flex-col gap-1.5 font-mono tabular-nums">
+                <div className="flex justify-between text-[#8295A8]">
+                  <span>Barometric Pressure</span>
+                  <span className="text-[#F3F6FA] font-semibold">
+                    {activeObservationState.pressure !== undefined ? `${activeObservationState.pressure} hPa` : '—'}
+                  </span>
                 </div>
-                <div className="flex justify-between text-[#8A94A6]">
-                  <span>Wind Velocity & Vector:</span>
-                  <span className="text-white font-bold">14 km/h (SSW 210°)</span>
+                <div className="flex justify-between text-[#8295A8]">
+                  <span>Dew Point</span>
+                  <span className="text-[#F3F6FA] font-semibold">
+                    {activeObservationState.dewPoint !== undefined ? `${activeObservationState.dewPoint}°C` : '—'}
+                  </span>
                 </div>
-                <div className="flex justify-between text-[#8A94A6]">
-                  <span>Dew Point Temperature:</span>
-                  <span className="text-white font-bold">22.4°C</span>
+                <div className="flex justify-between text-[#8295A8]">
+                  <span>PM2.5 / PM10</span>
+                  <span className="text-[#FCD34D] font-semibold">
+                    {activeObservationState.pm25 !== undefined || activeObservationState.pm10 !== undefined
+                      ? `${activeObservationState.pm25 ?? '—'} / ${activeObservationState.pm10 ?? '—'} µg/m³`
+                      : '—'}
+                  </span>
                 </div>
-                <div className="flex justify-between text-[#8A94A6]">
-                  <span>Estimated PM2.5 / PM10:</span>
-                  <span className="text-[#F1C40F] font-bold">{Math.round((activeObservationState.aqi || 75) * 0.45)} / {Math.round((activeObservationState.aqi || 75) * 0.85)} µg/m³</span>
-                </div>
-                <div className="flex justify-between text-[#8A94A6]">
-                  <span>Observation Timestamp:</span>
-                  <span className="text-[#4FA8E0] font-bold">Live Synoptic IST</span>
+                <div className="flex justify-between text-[#8295A8]">
+                  <span>Cloud Cover</span>
+                  <span className="text-[#F3F6FA] font-semibold">
+                    {activeObservationState.cloudCover !== undefined ? `${activeObservationState.cloudCover}%` : '—'}
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* Primary Action Buttons */}
-            <div className="flex flex-col gap-1.5 mt-1">
+            <div className="flex flex-col gap-1.5 pt-1">
               <button
                 id="btn-set-active-station"
                 type="button"
                 onClick={handleSetStationClick}
-                className={`w-full py-2 px-3 text-xs font-bold rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`w-full py-2 px-3 min-h-[40px] text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer m-focus-ring ${
                   isStationSaved
-                    ? 'bg-[#2ECC71] text-black'
-                    : 'bg-[#0B72B9] hover:bg-[#0B72B9]/80 text-white'
+                    ? 'bg-[#22C7A0] text-[#07111D]'
+                    : 'bg-[#0B72B9] hover:bg-[#095C96] text-white'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  {isStationSaved ? 'check_circle' : 'my_location'}
-                </span>
+                {isStationSaved ? <Check className="w-4 h-4" /> : <Crosshair className="w-4 h-4" />}
                 <span>
                   {isStationSaved
-                    ? `✓ Synoptic Station Loaded (${activeObservationState.name})`
-                    : `Set ${activeObservationState.name} as Active Station`}
+                    ? `Station Selected (${activeObservationState.name})`
+                    : `Focus ${activeObservationState.name}`}
                 </span>
               </button>
 
@@ -1169,11 +1227,9 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                   id="btn-toggle-diagnostics"
                   type="button"
                   onClick={() => setShowDiagnostics(!showDiagnostics)}
-                  className="py-1.5 px-2 bg-[#17212B] hover:bg-[#2A3749] text-[#D7DEE8] hover:text-white border border-[#334155] text-xs font-semibold rounded transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  className="py-2 px-2.5 min-h-[38px] bg-[#0B1927] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {showDiagnostics ? 'unfold_less' : 'analytics'}
-                  </span>
+                  <BarChart3 className="w-3.5 h-3.5 text-[#35C7E8]" />
                   <span>{showDiagnostics ? 'Hide Extra' : 'Diagnostics'}</span>
                 </button>
 
@@ -1181,38 +1237,32 @@ export const IndiaWeatherMap: React.FC<IndiaWeatherMapProps> = ({
                   id="btn-copy-telemetry"
                   type="button"
                   onClick={handleCopyTelemetry}
-                  className={`py-1.5 px-2 text-xs font-semibold rounded border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2 px-2.5 min-h-[38px] text-xs font-semibold rounded-lg border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                     isCopied
-                      ? 'bg-[#2ECC71]/20 border-[#2ECC71] text-[#2ECC71]'
-                      : 'bg-[#17212B] hover:bg-[#2A3749] text-[#D7DEE8] hover:text-white border-[#334155]'
+                      ? 'bg-[#22C7A0]/15 border-[#22C7A0]/45 text-[#6EE7B7]'
+                      : 'bg-[#0B1927] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border-[#26394B]'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {isCopied ? 'check' : 'content_copy'}
-                  </span>
-                  <span>{isCopied ? 'Copied!' : 'Copy Data'}</span>
+                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopied ? 'Copied' : 'Copy Data'}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Dynamic Metric Legend */}
           <MapLegend metric={activeMetric} />
 
-          <div className="p-2.5 bg-[#17212B] border border-[#334155] rounded text-[11px] text-[#8A94A6] flex items-center justify-between gap-2">
+          <div className="p-3 bg-[#08131F] border border-[#26394B] rounded-xl text-[11px] text-[#8295A8] flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-[#4FA8E0] shrink-0">
-                touch_app
-              </span>
-              <span>Click any state polygon or city pin to inspect synoptic telemetry.</span>
+              <MousePointerClick className="w-4 h-4 text-[#35C7E8] shrink-0" />
+              <span>Click any state polygon or pin to inspect regional telemetry.</span>
             </div>
-            <span className="text-[10px] text-[#4FA8E0] font-mono shrink-0">36 States/UTs</span>
+            <span className="text-[10px] text-[#35C7E8] font-mono shrink-0">36 States/UTs</span>
           </div>
         </div>
       </div>
-    </div>
+    </DataPanel>
   );
 };
 
 export default IndiaWeatherMap;
-

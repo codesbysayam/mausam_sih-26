@@ -9,8 +9,10 @@ import {
   Cpu,
   ShieldAlert,
   ArrowRight,
+  Compass,
 } from 'lucide-react';
 import { MeteorologicalPublication } from '../../data/reportsAndArticles';
+import { DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface ExploreByTopicProps {
   publications: MeteorologicalPublication[];
@@ -25,8 +27,6 @@ interface TopicDefinition {
   icon: React.ElementType;
   description: string;
   accentColor: string;
-  borderColor: string;
-  bgColor: string;
 }
 
 export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
@@ -41,9 +41,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'monsoon',
       icon: CloudRain,
       description: 'Seasonal rainfall, synoptic troughs, ENSO teleconnections & MJO variability.',
-      accentColor: '#38BDF8',
-      borderColor: 'border-[#38BDF8]/40',
-      bgColor: 'hover:bg-[#0E2032]',
+      accentColor: '#35C7E8',
     },
     {
       id: 'climatology',
@@ -52,8 +50,6 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       icon: Flame,
       description: 'Urban Heat Island (UHI), thermal anomalies & 30-year climate baselines.',
       accentColor: '#F59E0B',
-      borderColor: 'border-[#F59E0B]/40',
-      bgColor: 'hover:bg-[#251A10]',
     },
     {
       id: 'radar',
@@ -61,9 +57,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'radar',
       icon: Radio,
       description: 'Dual-polarization DWR, TITAN convective tracking & microburst warnings.',
-      accentColor: '#818CF8',
-      borderColor: 'border-[#818CF8]/40',
-      bgColor: 'hover:bg-[#1A1C35]',
+      accentColor: '#35C7E8',
     },
     {
       id: 'satellite',
@@ -71,9 +65,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'satellite',
       icon: Satellite,
       description: 'INSAT-3D/3DR radiometry, MOSDAC ocean winds & cloud-top thermal imaging.',
-      accentColor: '#EC4899',
-      borderColor: 'border-[#EC4899]/40',
-      bgColor: 'hover:bg-[#2A1424]',
+      accentColor: '#0B72B9',
     },
     {
       id: 'air-quality',
@@ -81,9 +73,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'air quality',
       icon: Wind,
       description: 'NAQI ambient criteria pollutants, CAAQMS networks & bio-aeroallergens.',
-      accentColor: '#10B981',
-      borderColor: 'border-[#10B981]/40',
-      bgColor: 'hover:bg-[#10241A]',
+      accentColor: '#22C7A0',
     },
     {
       id: 'agromet',
@@ -91,9 +81,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'agrometeorology',
       icon: Sprout,
       description: 'GKMS district farm advisories, Kharif crop protection & phenology matrices.',
-      accentColor: '#2ECC71',
-      borderColor: 'border-[#2ECC71]/40',
-      bgColor: 'hover:bg-[#12241A]',
+      accentColor: '#22C7A0',
     },
     {
       id: 'nwp',
@@ -101,9 +89,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'ncmrwf',
       icon: Cpu,
       description: 'NCMRWF Unified Model (NCUM 12km), 4D-Var assimilation & NEPS ensembles.',
-      accentColor: '#06B6D4',
-      borderColor: 'border-[#06B6D4]/40',
-      bgColor: 'hover:bg-[#0E2228]',
+      accentColor: '#35C7E8',
     },
     {
       id: 'standards',
@@ -111,29 +97,21 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'wmo',
       icon: ShieldAlert,
       description: 'WMO-No. 8 sensor calibration traceability & NDMA color-coded alert matrix.',
-      accentColor: '#A855F7',
-      borderColor: 'border-[#A855F7]/40',
-      bgColor: 'hover:bg-[#20122E]',
+      accentColor: '#F59E0B',
     },
   ];
 
   return (
-    <div id="explore-by-topic-section" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
-            Domain Taxonomy
-          </span>
-          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Explore Meteorological Research by Topic
-          </h3>
-        </div>
-      </div>
+    <DataPanel id="explore-by-topic-section" className="space-y-4">
+      <SectionHeading
+        title="Explore Meteorological Research by Topic"
+        subtitle="Filter the institutional library by atmospheric domain or observation system"
+        icon={<Compass className="w-4 h-4" />}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {topics.map((topic) => {
           const Icon = topic.icon;
-          // Count publications matching topic
           const count = publications.filter(
             (p) =>
               p.title.toLowerCase().includes(topic.query) ||
@@ -145,53 +123,56 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
           const isMatching = activeQuery.toLowerCase() === topic.query.toLowerCase();
 
           return (
-            <div
+            <button
               key={topic.id}
+              type="button"
               onClick={() => onSelectTopic(topic.query)}
-              className={`p-4 rounded-2xl bg-[#0B131D] border transition-all duration-200 cursor-pointer flex flex-col justify-between group ${topic.borderColor} ${topic.bgColor} ${
-                isMatching ? 'ring-2 ring-[#38BDF8] scale-[1.02]' : 'hover:scale-[1.01]'
+              className={`text-left p-4 rounded-xl bg-[#08131F] border transition-colors cursor-pointer flex flex-col justify-between group m-focus-ring ${
+                isMatching
+                  ? 'border-[#35C7E8] bg-[#101F2E]'
+                  : 'border-[#26394B] hover:border-[#38536A] hover:bg-[#101F2E]'
               }`}
             >
-              <div>
+              <div className="w-full">
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center border"
                     style={{
                       backgroundColor: `${topic.accentColor}18`,
                       borderColor: `${topic.accentColor}40`,
                       color: topic.accentColor,
                     }}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#141F2C] border border-[#1E2E40] text-[#94A3B8]">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#0B1927] border border-[#26394B] text-[#B5C3D1] tabular-nums">
                     {count} {count === 1 ? 'pub' : 'pubs'}
                   </span>
                 </div>
 
-                <h4 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-[#38BDF8] transition-colors">
+                <h4 className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider group-hover:text-[#35C7E8] transition-colors">
                   {topic.title}
                 </h4>
 
-                <p className="text-xs text-[#94A3B8] mt-1.5 leading-relaxed">
+                <p className="text-xs text-[#8295A8] mt-1.5 leading-relaxed">
                   {topic.description}
                 </p>
               </div>
 
-              <div className="mt-3.5 pt-2.5 border-t border-[#1E2E40] flex items-center justify-between text-[11px] font-mono">
-                <span className="text-[#64748B]">Filter Library</span>
+              <div className="w-full mt-3.5 pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono">
+                <span className="text-[#8295A8]">Filter Library</span>
                 <span
-                  className="flex items-center gap-1 font-bold group-hover:translate-x-1 transition-transform"
+                  className="flex items-center gap-1 font-bold"
                   style={{ color: topic.accentColor }}
                 >
                   <span>EXPLORE</span>
                   <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
-    </div>
+    </DataPanel>
   );
 };

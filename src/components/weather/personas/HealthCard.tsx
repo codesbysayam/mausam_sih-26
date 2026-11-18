@@ -1,13 +1,16 @@
 import React from 'react';
 import { AuthoritativeAQI, AuthoritativePollen } from '../../../services/authoritativeService';
+import { SourceStatus } from '../../ui/ObservatoryPrimitives';
+import { HeartPulse, ShieldAlert } from 'lucide-react';
 
 interface HealthCardProps {
   aqi: AuthoritativeAQI;
   pollen: AuthoritativePollen;
-  uvIndex: number;
+  uvIndex: number | null;
   uvRiskLabel: string;
   uvAdvice: string;
-  humidity: number;
+  humidity: number | null;
+  ambientTemp?: number | null;
   city: string;
 }
 
@@ -18,156 +21,159 @@ export const HealthCard: React.FC<HealthCardProps> = ({
   uvRiskLabel,
   uvAdvice,
   humidity,
+  ambientTemp = null,
   city,
 }) => {
-  // CPCB Standard color mapping
+  const aqiVal = typeof aqi?.aqi === 'number' && Number.isFinite(aqi.aqi) ? aqi.aqi : null;
+  const pollenVal =
+    typeof pollen?.overallIndex === 'number' && Number.isFinite(pollen.overallIndex)
+      ? pollen.overallIndex
+      : null;
+  const uvVal = typeof uvIndex === 'number' && Number.isFinite(uvIndex) ? uvIndex : null;
+  const humVal = typeof humidity === 'number' && Number.isFinite(humidity) ? Math.round(humidity) : null;
+  const tempVal = typeof ambientTemp === 'number' && Number.isFinite(ambientTemp) ? ambientTemp : null;
+  const dewPoint =
+    tempVal !== null && humVal !== null ? Math.round(tempVal - (100 - humVal) / 5) : null;
+
   const aqiBadgeColor =
-    aqi.category === 'Good'
-      ? 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40'
-      : aqi.category === 'Satisfactory'
-      ? 'bg-[#27AE60]/15 text-[#27AE60] border-[#27AE60]/40'
+    aqiVal === null
+      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      : aqi.category === 'Good' || aqi.category === 'Satisfactory'
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
       : aqi.category === 'Moderate'
-      ? 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40'
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
       : aqi.category === 'Poor'
-      ? 'bg-[#FF8C42]/15 text-[#FF8C42] border-[#FF8C42]/40'
-      : aqi.category === 'Very Poor'
-      ? 'bg-[#E74C3C]/15 text-[#E74C3C] border-[#E74C3C]/40'
-      : 'bg-[#8E44AD]/15 text-[#8E44AD] border-[#8E44AD]/40';
+      ? 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35'
+      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
 
   const uvBadgeColor =
-    uvIndex <= 2
-      ? 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40'
-      : uvIndex <= 5
-      ? 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40'
-      : uvIndex <= 7
-      ? 'bg-[#FF8C42]/15 text-[#FF8C42] border-[#FF8C42]/40'
-      : uvIndex <= 10
-      ? 'bg-[#E74C3C]/15 text-[#E74C3C] border-[#E74C3C]/40'
-      : 'bg-[#8E44AD]/15 text-[#8E44AD] border-[#8E44AD]/40';
+    uvVal === null
+      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      : uvVal <= 2
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
+      : uvVal <= 5
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      : uvVal <= 7
+      ? 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35'
+      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
 
   const pollenBadgeColor =
-    pollen.riskCategory === 'Low'
-      ? 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40'
+    pollenVal === null
+      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      : pollen.riskCategory === 'Low'
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
       : pollen.riskCategory === 'Moderate'
-      ? 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40'
-      : pollen.riskCategory === 'High'
-      ? 'bg-[#FF8C42]/15 text-[#FF8C42] border-[#FF8C42]/40'
-      : 'bg-[#E74C3C]/15 text-[#E74C3C] border-[#E74C3C]/40';
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
 
   return (
-    <div className="mausam-card p-4 sm:p-5 border border-[#334155] flex flex-col justify-between h-full">
+    <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#334155]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#1ABC9C]/15 text-[#1ABC9C] flex items-center justify-center border border-[#1ABC9C]/30">
-              <span className="material-symbols-outlined text-[20px]">health_and_safety</span>
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#22C7A0] flex items-center justify-center border border-[#26394B]">
+              <HeartPulse className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
                 Health &amp; Environmental Air
               </h3>
-              <p className="text-[11px] text-[#8A94A6]">
-                CPCB NAQI &amp; Aero-Allergen Surveillance • {city}
+              <p className="text-[11px] text-[#8295A8]">
+                CPCB NAQI &amp; Aero-Allergen Feed • {city}
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-mono bg-[#1E2733] text-[#4FA8E0] px-2 py-0.5 rounded border border-[#334155]">
-            Live Feed
-          </span>
+          <SourceStatus status={aqiVal !== null ? 'LIVE' : 'UNAVAILABLE'} />
         </div>
 
-        {/* 4-Column Metric Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          {/* AQI */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">CPCB AQI</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${aqiBadgeColor}`}>
-                {aqi.category}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 font-mono tabular-nums">
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">CPCB AQI</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${aqiBadgeColor}`}>
+                {aqiVal !== null ? aqi.category : '—'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">{aqi.aqi}</span>
-              <span className="text-[10px] text-[#8A94A6]">Index</span>
+              <span className="text-2xl font-bold text-[#F3F6FA]">{aqiVal ?? '—'}</span>
+              <span className="text-[10px] font-sans text-[#8295A8]">Index</span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1">
-              Dominant: <strong className="text-[#D7DEE8]">{aqi.dominantPollutant}</strong>
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              Dominant: <strong className="text-[#F3F6FA]">{aqi?.dominantPollutant || '—'}</strong>
             </span>
           </div>
 
-          {/* Pollen */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">Pollen Count</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${pollenBadgeColor}`}>
-                {pollen.riskCategory}
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">Pollen</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${pollenBadgeColor}`}>
+                {pollenVal !== null ? pollen.riskCategory : '—'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">{pollen.overallIndex}</span>
-              <span className="text-[10px] text-[#8A94A6]">grains/m³</span>
+              <span className="text-2xl font-bold text-[#F3F6FA]">{pollenVal ?? '—'}</span>
+              <span className="text-[10px] font-sans text-[#8295A8]">grains/m³</span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              Tree: {pollen.treePollen} • Grass: {pollen.grassPollen}
+            <span className="text-[10px] text-[#8295A8] block mt-1 truncate">
+              T: {pollen?.treePollen ?? '—'} • G: {pollen?.grassPollen ?? '—'}
             </span>
           </div>
 
-          {/* UV Index */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">UV Radiation</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${uvBadgeColor}`}>
-                {uvRiskLabel}
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">UV Index</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${uvBadgeColor}`}>
+                {uvVal !== null ? uvRiskLabel : '—'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">{uvIndex}</span>
-              <span className="text-[10px] text-[#8A94A6]">/ 11+</span>
+              <span className="text-2xl font-bold text-[#F3F6FA]">
+                {uvVal !== null ? uvVal.toFixed(1) : '—'}
+              </span>
+              <span className="text-[10px] text-[#8295A8]">/ 11+</span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              {uvIndex >= 6 ? 'High Solar Radiation' : 'Moderate Solar Flux'}
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              {uvVal === null ? 'Unavailable' : uvVal >= 6 ? 'High Solar Flux' : 'Moderate Flux'}
             </span>
           </div>
 
-          {/* Humidity */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">Humidity</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#0B72B9]/15 text-[#4FA8E0] border border-[#0B72B9]/40">
-                {humidity > 70 ? 'High' : humidity > 40 ? 'Normal' : 'Dry'}
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">Humidity</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#0B72B9]/15 text-[#7DD3FC] border border-[#0B72B9]/35">
+                {humVal === null ? '—' : humVal > 70 ? 'High' : humVal > 40 ? 'Normal' : 'Dry'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">{humidity}</span>
-              <span className="text-[10px] text-[#8A94A6]">% RH</span>
+              <span className="text-2xl font-bold text-[#F3F6FA]">{humVal ?? '—'}</span>
+              <span className="text-[10px] text-[#8295A8]">% RH</span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              Dew Point: {Math.round(28 - (100 - humidity) / 5)}°C
+            <span className="text-[10px] text-[#8295A8] block mt-1 truncate">
+              Dew Pt: {dewPoint !== null ? `${dewPoint}°C` : '—'}
             </span>
           </div>
         </div>
 
-        {/* Actionable Health Advisory */}
-        <div className="mt-3.5 p-3 rounded bg-[#131A22] border border-[#334155] flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-[#1ABC9C] text-[18px] shrink-0 mt-0.5">
-            medical_services
-          </span>
+        <div className="mt-3.5 p-3 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-start gap-2.5">
+          <ShieldAlert className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="text-[#D7DEE8]">
-              <strong>Health Guidance:</strong> {aqi.healthAdvice}
+            <p className="text-[#F3F6FA]">
+              <strong>Health Guidance:</strong> {aqi?.healthAdvice || 'No special health advisories.'}
             </p>
-            <p className="text-[11px] text-[#8A94A6]">
-              <strong>Allergy Alert:</strong> {pollen.allergyTip} • <strong>UV:</strong> {uvAdvice}
+            <p className="text-[11px] text-[#8295A8]">
+              <strong>Allergy:</strong> {pollen?.allergyTip || 'Unavailable'} • <strong>UV:</strong> {uvAdvice}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Footer Source */}
-      <div className="mt-4 pt-3 border-t border-[#334155] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8A94A6]">
-        <span>Source: <strong>CPCB (Central Pollution Control Board) &amp; Open-Meteo Air Quality</strong></span>
-        <span>Last Updated: {new Date(aqi.lastUpdated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
+      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
+        <span>Source: <strong className="text-[#B5C3D1]">{aqi?.source || 'CPCB & Open-Meteo Air Quality'}</strong></span>
+        <span className="font-mono">
+          {aqi?.lastUpdated
+            ? `${new Date(aqi.lastUpdated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST`
+            : '—'}
+        </span>
       </div>
     </div>
   );

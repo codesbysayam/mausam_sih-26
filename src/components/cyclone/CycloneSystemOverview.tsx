@@ -4,15 +4,12 @@ import {
   Wind,
   Gauge,
   MapPin,
-  Anchor,
-  Calendar,
-  AlertOctagon,
   ShieldCheck,
   Radio,
-  Clock,
   Info,
 } from 'lucide-react';
 import { WeatherSystemEvent } from '../../types/cyclone';
+import { DataPanel, MetricValue, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface CycloneSystemOverviewProps {
   activeSystem: WeatherSystemEvent;
@@ -28,177 +25,155 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {/* 4-Stage Cyclone Warning Protocol Banner */}
-      <div className="bg-[#0D1826] border border-[#1E3A5F] rounded-xl p-3.5 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <Radio className="w-4 h-4 text-[#38BDF8]" />
-            <span className="text-xs font-bold uppercase tracking-wider font-mono text-[#E2E8F0]">
-              IMD 4-Stage Cyclone Warning Protocol
-            </span>
-          </div>
-          <span className="text-[11px] font-mono text-[#94A3B8]">
-            National Weather Forecasting Centre (NWFC) • Standard Protocol
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {/* Stage 1 */}
-          <div className="p-2.5 rounded-lg border border-[#1E2E40] bg-[#0A1018]/60 flex flex-col">
-            <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">Stage 1 (T-72h)</span>
-            <span className="text-xs font-semibold text-[#94A3B8]">Pre-Cyclone Watch</span>
-            <span className="text-[10px] text-[#64748B] font-mono mt-1">
-              {hasActiveMarineCyclone ? '● Active' : '○ Standby'}
-            </span>
-          </div>
-
-          {/* Stage 2 */}
-          <div className="p-2.5 rounded-lg border border-[#1E2E40] bg-[#0A1018]/60 flex flex-col">
-            <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">Stage 2 (T-48h)</span>
-            <span className="text-xs font-semibold text-[#94A3B8]">Cyclone Alert (Yellow)</span>
-            <span className="text-[10px] text-[#64748B] font-mono mt-1">
-              {hasActiveMarineCyclone ? '● Active' : '○ Standby'}
-            </span>
-          </div>
-
-          {/* Stage 3 */}
-          <div className={`p-2.5 rounded-lg border flex flex-col ${
-            hasActiveMarineCyclone
-              ? 'border-[#E74C3C]/60 bg-[#E74C3C]/10 text-white shadow-sm'
-              : 'border-[#1E2E40] bg-[#0A1018]/60 opacity-80'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">Stage 3 (T-24h)</span>
-              {hasActiveMarineCyclone && <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />}
-            </div>
-            <span className="text-xs font-bold text-[#94A3B8]">Cyclone Warning (Orange)</span>
-            <span className={`text-[10px] font-mono mt-1 ${hasActiveMarineCyclone ? 'text-[#FF6B6B] font-bold' : 'text-[#64748B]'}`}>
-              {hasActiveMarineCyclone ? '● ACTIVE' : '○ Standby'}
-            </span>
-          </div>
-
-          {/* Stage 4 */}
-          <div className="p-2.5 rounded-lg border border-[#1E2E40] bg-[#0A1018]/60 flex flex-col opacity-60">
-            <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">Stage 4 (T-12h)</span>
-            <span className="text-xs font-semibold text-[#94A3B8]">Post-Landfall Outlook</span>
-            <span className="text-[10px] text-[#64748B] font-mono mt-1">
-              {isDissipated ? '● Concluded' : '○ Standby'}
-            </span>
-          </div>
-        </div>
-
-        {/* Protocol Summary Status */}
-        <div className="mt-3 pt-2.5 border-t border-[#1E2E40]/60 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-1.5 text-[#10B981]">
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span className="font-bold">
+      <DataPanel className="flex flex-col gap-3">
+        <SectionHeading
+          title="IMD 4-Stage Cyclone Warning Protocol"
+          subtitle="National Weather Forecasting Centre (NWFC) escalation stages"
+          icon={<Radio className="w-4 h-4" />}
+          badge={
+            <span className="text-[11px] font-mono text-[#6EE7B7] inline-flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
               {hasActiveMarineCyclone
-                ? 'CYCLONIC STORM PROTOCOL ACTIVATED'
-                : 'OPERATIONAL STATUS: STAGE 0 (ALL CLEAR - NORMAL 24x7 SURVEILLANCE)'}
+                ? 'CYCLONIC STORM PROTOCOL ACTIVE'
+                : 'STAGE 0 · ALL CLEAR SURVEILLANCE'}
+            </span>
+          }
+          action={
+            <span className="text-[11px] font-mono text-[#8295A8]">
+              {isInland
+                ? 'Inland Synoptic Disturbance'
+                : isDissipated
+                ? 'Historical Archive'
+                : 'Marine Basin Surveillance'}
+            </span>
+          }
+        />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+              Stage 1 (T-72h)
+            </span>
+            <span className="text-xs font-semibold text-[#F3F6FA]">Pre-Cyclone Watch</span>
+            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+              {hasActiveMarineCyclone ? 'Active' : 'Standby'}
             </span>
           </div>
-          <span className="text-[#94A3B8] hidden sm:inline-block">
-            {isInland
-              ? 'Tracking Inland Synoptic Disturbance'
-              : isDissipated
-              ? 'Past Disturbance Archive'
-              : 'Marine Basin Normal'}
-          </span>
+
+          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+              Stage 2 (T-48h)
+            </span>
+            <span className="text-xs font-semibold text-[#F3F6FA]">Cyclone Alert (Yellow)</span>
+            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+              {hasActiveMarineCyclone ? 'Active' : 'Standby'}
+            </span>
+          </div>
+
+          <div
+            className={`p-3 rounded-lg border flex flex-col gap-0.5 ${
+              hasActiveMarineCyclone
+                ? 'border-[#EF4444]/50 bg-[#EF4444]/10'
+                : 'border-[#26394B] bg-[#08131F]'
+            }`}
+          >
+            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+              Stage 3 (T-24h)
+            </span>
+            <span className="text-xs font-semibold text-[#F3F6FA]">Cyclone Warning (Orange)</span>
+            <span
+              className={`text-[10px] font-mono mt-1 ${
+                hasActiveMarineCyclone ? 'text-[#FCA5A5] font-bold' : 'text-[#8295A8]'
+              }`}
+            >
+              {hasActiveMarineCyclone ? 'ACTIVE' : 'Standby'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+              Stage 4 (T-12h)
+            </span>
+            <span className="text-xs font-semibold text-[#F3F6FA]">Post-Landfall Outlook</span>
+            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+              {isDissipated ? 'Concluded' : 'Standby'}
+            </span>
+          </div>
         </div>
+      </DataPanel>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <DataPanel className="flex flex-col justify-between gap-2">
+          <div className="flex items-center justify-between text-[#35C7E8]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Position Fix
+            </span>
+            <MapPin className="w-4 h-4" />
+          </div>
+          <MetricValue
+            label="Estimated Center"
+            value={`${activeSystem.latitude.toFixed(1)}°N, ${activeSystem.longitude.toFixed(1)}°E`}
+            hint={activeSystem.currentLocation}
+            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+          />
+        </DataPanel>
+
+        <DataPanel className="flex flex-col justify-between gap-2">
+          <div className="flex items-center justify-between text-[#FDBA74]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Wind Field
+            </span>
+            <Wind className="w-4 h-4" />
+          </div>
+          <MetricValue
+            label="Sustained Wind Speed"
+            value={activeSystem.maxSustainedWind || null}
+            hint={`Peak gusts: ${activeSystem.windGust || '—'}`}
+            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+          />
+        </DataPanel>
+
+        <DataPanel className="flex flex-col justify-between gap-2">
+          <div className="flex items-center justify-between text-[#7DD3FC]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Barometry
+            </span>
+            <Gauge className="w-4 h-4" />
+          </div>
+          <MetricValue
+            label="Central Pressure"
+            value={activeSystem.pressure || null}
+            hint={`Movement: ${activeSystem.movementDirection} at ${activeSystem.movementSpeed}`}
+            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+          />
+        </DataPanel>
+
+        <DataPanel className="flex flex-col justify-between gap-2">
+          <div className="flex items-center justify-between text-[#6EE7B7]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Classification
+            </span>
+            <Compass className="w-4 h-4" />
+          </div>
+          <MetricValue
+            label="System Grade"
+            value={activeSystem.classification}
+            hint={activeSystem.expectedLandfall}
+            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+          />
+        </DataPanel>
       </div>
 
-      {/* Grid of Key Synoptic Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {/* Metric 1: Location & Coordinates */}
-        <div className="bg-[#0B1523] border border-[#1E2E40] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#94A3B8]">
-              Estimated Center
-            </span>
-            <div className="p-1.5 rounded-lg bg-[#38BDF8]/10 text-[#38BDF8]">
-              <MapPin className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-lg font-black text-white font-mono">
-              {activeSystem.latitude.toFixed(1)}°N, {activeSystem.longitude.toFixed(1)}°E
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1 leading-snug">
-              {activeSystem.currentLocation}
-            </p>
-          </div>
-        </div>
-
-        {/* Metric 2: Max Sustained Wind & Gusts */}
-        <div className="bg-[#0B1523] border border-[#1E2E40] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#94A3B8]">
-              Sustained Wind Speed
-            </span>
-            <div className="p-1.5 rounded-lg bg-[#FB923C]/10 text-[#FB923C]">
-              <Wind className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-lg font-black text-white font-mono">
-              {activeSystem.maxSustainedWind}
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1">
-              Peak gusts: <strong className="text-white font-mono">{activeSystem.windGust || 'N/A'}</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Metric 3: Central Pressure */}
-        <div className="bg-[#0B1523] border border-[#1E2E40] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#94A3B8]">
-              Central Pressure
-            </span>
-            <div className="p-1.5 rounded-lg bg-[#A78BFA]/10 text-[#A78BFA]">
-              <Gauge className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-lg font-black text-white font-mono">
-              {activeSystem.pressure}
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1">
-              Movement: <strong className="text-white font-mono">{activeSystem.movementDirection} at {activeSystem.movementSpeed}</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Metric 4: System Status & Outlook */}
-        <div className="bg-[#0B1523] border border-[#1E2E40] rounded-xl p-4 flex flex-col justify-between gap-3 shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#94A3B8]">
-              System Classification
-            </span>
-            <div className="p-1.5 rounded-lg bg-[#10B981]/10 text-[#10B981]">
-              <Compass className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-base font-bold text-white font-mono truncate">
-              {activeSystem.classification}
-            </div>
-            <p className="text-xs text-[#94A3B8] mt-1 line-clamp-2">
-              {activeSystem.expectedLandfall}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Advisory Text if present */}
       {activeSystem.advisoryText && (
-        <div className="bg-[#09111C] border border-[#1E2E40] rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-[#CBD5E1]">
-          <Info className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
+        <DataPanel variant="inset" className="flex items-start gap-2.5 text-xs text-[#B5C3D1]">
+          <Info className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong className="text-white font-mono uppercase mr-1">Official IMD Advisory:</strong>
+            <strong className="text-[#F3F6FA] font-mono uppercase mr-1.5">
+              Official IMD Advisory:
+            </strong>
             {activeSystem.advisoryText}
           </p>
-        </div>
+        </DataPanel>
       )}
     </div>
   );

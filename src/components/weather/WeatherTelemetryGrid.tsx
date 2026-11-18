@@ -1,5 +1,6 @@
 import React from 'react';
 import { CurrentWeather } from '../../types';
+import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
 import {
   Thermometer,
   Flame,
@@ -11,250 +12,378 @@ import {
   CloudRain,
   Sun,
   Cloud,
-  Compass,
   Umbrella,
+  Sprout,
+  Moon,
 } from 'lucide-react';
 
 interface WeatherTelemetryGridProps {
   weather: CurrentWeather;
 }
 
+const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
 export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weather }) => {
-  // Validate and sanitize data
-  const temp = typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? Math.round(weather.temp) : 24;
-  const feelsLike = typeof weather.feelsLike === 'number' && !Number.isNaN(weather.feelsLike) ? Math.round(weather.feelsLike) : temp;
-  const humidity = typeof weather.humidity === 'number' && weather.humidity >= 0 && weather.humidity <= 100 ? Math.round(weather.humidity) : 75;
-  const windSpeed = typeof weather.windSpeed === 'number' && weather.windSpeed >= 0 ? Math.round(weather.windSpeed) : 8;
-  const windGusts = typeof weather.windGusts === 'number' && weather.windGusts >= 0 ? Math.round(weather.windGusts) : Math.round(windSpeed * 1.5);
-  const pressure = typeof weather.pressure === 'number' && weather.pressure > 800 ? weather.pressure.toFixed(1) : '1008.4';
-  const visibility = typeof weather.visibility === 'number' && weather.visibility >= 0 ? weather.visibility.toFixed(1) : '10.0';
-  const dewPoint = typeof weather.dewPoint === 'number' && !Number.isNaN(weather.dewPoint) ? Math.round(weather.dewPoint) : Math.round(temp - (100 - humidity) / 5);
-  const uvIndex = typeof weather.uvIndex === 'number' && weather.uvIndex >= 0 ? weather.uvIndex.toFixed(1) : '5.4';
-  const cloudCover = typeof weather.cloudCover === 'number' && weather.cloudCover >= 0 && weather.cloudCover <= 100 ? Math.round(weather.cloudCover) : 85;
-  const precipMm = typeof weather.precipitationMm === 'number' && weather.precipitationMm >= 0 ? weather.precipitationMm.toFixed(1) : (weather.precipitation !== undefined ? weather.precipitation.toFixed(1) : '0.0');
-  const rainProb = typeof weather.precipitationProbability === 'number' && weather.precipitationProbability >= 0 && weather.precipitationProbability <= 100 ? Math.round(weather.precipitationProbability) : (Number(precipMm) > 0 ? 80 : 20);
+  const temp = isFiniteNum(weather.temp) ? Math.round(weather.temp) : null;
+  const feelsLike = isFiniteNum(weather.feelsLike) ? Math.round(weather.feelsLike) : null;
+  const humidity =
+    isFiniteNum(weather.humidity) && weather.humidity >= 0 && weather.humidity <= 100
+      ? Math.round(weather.humidity)
+      : null;
+  const windSpeed =
+    isFiniteNum(weather.windSpeed) && weather.windSpeed >= 0 ? Math.round(weather.windSpeed) : null;
+  const windGusts =
+    isFiniteNum(weather.windGusts) && weather.windGusts >= 0 ? Math.round(weather.windGusts) : null;
+  const pressure =
+    isFiniteNum(weather.pressure) && weather.pressure > 500 ? Number(weather.pressure.toFixed(1)) : null;
+  const visibility = isFiniteNum(weather.visibilityKm)
+    ? Number(weather.visibilityKm.toFixed(1))
+    : isFiniteNum(weather.visibility) && weather.visibility >= 0
+    ? Number((weather.visibility > 100 ? weather.visibility / 1000 : weather.visibility).toFixed(1))
+    : null;
+  const dewPoint = isFiniteNum(weather.dewPoint)
+    ? Math.round(weather.dewPoint)
+    : temp !== null && humidity !== null
+    ? Math.round(temp - (100 - humidity) / 5)
+    : null;
+  const uvIndex =
+    isFiniteNum(weather.uvIndex) && weather.uvIndex >= 0 ? Number(weather.uvIndex.toFixed(1)) : null;
+  const cloudCover =
+    isFiniteNum(weather.cloudCover) && weather.cloudCover >= 0 && weather.cloudCover <= 100
+      ? Math.round(weather.cloudCover)
+      : null;
+  const precipVal = isFiniteNum(weather.precipitationMm)
+    ? weather.precipitationMm
+    : isFiniteNum(weather.precipitation)
+    ? weather.precipitation
+    : null;
+  const rainProb =
+    isFiniteNum(weather.precipitationProbability) &&
+    weather.precipitationProbability >= 0 &&
+    weather.precipitationProbability <= 100
+      ? Math.round(weather.precipitationProbability)
+      : null;
 
-  const rain1h = weather.rainfallLast1h !== undefined ? `${weather.rainfallLast1h.toFixed(1)} mm` : `${precipMm} mm`;
-  const rain3h = weather.rainfallLast3h !== undefined ? `${weather.rainfallLast3h.toFixed(1)} mm` : `${(Number(precipMm) * 1.5).toFixed(1)} mm`;
-  const rain24h = weather.rainfallLast24h !== undefined ? `${weather.rainfallLast24h.toFixed(1)} mm` : `${(Number(precipMm) * 2).toFixed(1)} mm`;
+  const rain1h = isFiniteNum(weather.rainfallLast1h)
+    ? `${weather.rainfallLast1h.toFixed(1)} mm`
+    : precipVal !== null
+    ? `${precipVal.toFixed(1)} mm`
+    : '—';
+  const rain3h = isFiniteNum(weather.rainfallLast3h) ? `${weather.rainfallLast3h.toFixed(1)} mm` : '—';
+  const rain24h = isFiniteNum(weather.rainfallLast24h) ? `${weather.rainfallLast24h.toFixed(1)} mm` : '—';
 
-  const pressureTendency = weather.pressureTendency || 'Steady';
-  const pressureTendencyHpa = weather.pressureTendencyHpa !== undefined ? `${weather.pressureTendencyHpa > 0 ? '+' : ''}${weather.pressureTendencyHpa} hPa` : '0.0 hPa';
+  const pressureTendency = weather.pressureTendency || null;
+  const pressureTendencyHpa = isFiniteNum(weather.pressureTendencyHpa)
+    ? `${weather.pressureTendencyHpa > 0 ? '+' : ''}${weather.pressureTendencyHpa.toFixed(1)} hPa`
+    : null;
 
-  const solarRadiation = weather.solarRadiation !== undefined ? `${weather.solarRadiation} W/m²` : '420 W/m²';
-  const moonPhase = weather.moonPhase || 'Waxing Gibbous';
-  const moonIllum = weather.moonIllumination !== undefined ? `${weather.moonIllumination}%` : '78%';
+  const solarRadiation = isFiniteNum(weather.solarRadiation)
+    ? `${Math.round(weather.solarRadiation)} W/m²`
+    : null;
+  const moonPhase = weather.moonPhase || null;
+  const moonIllum = isFiniteNum(weather.moonIllumination) ? `${Math.round(weather.moonIllumination)}%` : null;
 
-  const soilMoisture = weather.soilMoisture !== undefined ? `${(weather.soilMoisture * 100).toFixed(1)}%` : '28.4%';
-  const soilTemp = weather.soilTemperature !== undefined ? `${weather.soilTemperature}°C` : `${temp - 1}°C`;
-  const et0 = weather.evapotranspiration !== undefined ? `${weather.evapotranspiration} mm/day` : '3.8 mm/day';
+  const soilMoisture = isFiniteNum(weather.soilMoisture)
+    ? `${(weather.soilMoisture * 100).toFixed(1)}%`
+    : null;
+  const soilTemp = isFiniteNum(weather.soilTemperature) ? `${weather.soilTemperature.toFixed(1)}°C` : null;
+  const et0 = isFiniteNum(weather.evapotranspiration) ? `${weather.evapotranspiration.toFixed(1)} mm/d` : null;
+
+  const windDir = weather.windDirection && weather.windDirection !== '—' ? weather.windDirection : null;
 
   const metrics = [
     {
       id: 'temp',
       icon: Thermometer,
-      iconColor: 'text-[#4FA8E0]',
-      label: 'Ambient Temperature',
-      value: `${temp}`,
-      unit: '°C',
-      status: temp > 38 ? 'High Heat' : temp < 10 ? 'Cold' : 'Comfortable',
-      statusColor: temp > 38 ? 'text-[#E74C3C]' : 'text-[#2ECC71]',
-      source: 'IMD Thermometric Sensor',
+      iconColor: 'text-[#35C7E8]',
+      label: 'Ambient Temp',
+      value: temp !== null ? `${temp}` : '—',
+      unit: temp !== null ? '°C' : '',
+      status:
+        temp === null
+          ? 'Sensor unavailable'
+          : temp > 38
+          ? 'High heat'
+          : temp < 10
+          ? 'Cold'
+          : 'Normal range',
+      statusColor: temp === null ? 'text-[#8295A8]' : temp > 38 ? 'text-[#FCA5A5]' : 'text-[#6EE7B7]',
+      source: 'Surface Thermometer',
     },
     {
       id: 'feels_like',
       icon: Flame,
-      iconColor: 'text-[#FF8C42]',
-      label: 'Heat / Apparent Index',
-      value: `${feelsLike}`,
-      unit: '°C',
-      status: Math.abs(feelsLike - temp) > 3 ? 'Humidity Driven' : 'Normal Equilibrium',
-      statusColor: 'text-[#8A94A6]',
+      iconColor: 'text-[#F59E0B]',
+      label: 'Apparent Temp',
+      value: feelsLike !== null ? `${feelsLike}` : '—',
+      unit: feelsLike !== null ? '°C' : '',
+      status:
+        feelsLike === null || temp === null
+          ? 'Unavailable'
+          : Math.abs(feelsLike - temp) > 3
+          ? 'Humidity-adjusted'
+          : 'Thermal equilibrium',
+      statusColor: 'text-[#8295A8]',
       source: 'Steadman Formula',
     },
     {
       id: 'humidity',
       icon: Droplets,
-      iconColor: 'text-[#4FA8E0]',
-      label: 'Relative Humidity (RH)',
-      value: `${humidity}`,
-      unit: '%',
-      status: humidity > 85 ? 'High Moisture' : humidity < 30 ? 'Arid' : 'Moderate',
-      statusColor: humidity > 85 ? 'text-[#4FA8E0]' : 'text-[#2ECC71]',
-      source: 'Hygrometer AWS',
+      iconColor: 'text-[#35C7E8]',
+      label: 'Relative Humidity',
+      value: humidity !== null ? `${humidity}` : '—',
+      unit: humidity !== null ? '%' : '',
+      status:
+        humidity === null
+          ? 'Unavailable'
+          : humidity > 85
+          ? 'High moisture'
+          : humidity < 30
+          ? 'Arid air mass'
+          : 'Moderate',
+      statusColor: humidity === null ? 'text-[#8295A8]' : humidity > 85 ? 'text-[#7DD3FC]' : 'text-[#6EE7B7]',
+      source: 'Hygrometer Feed',
     },
     {
       id: 'dew_point',
       icon: Droplets,
-      iconColor: 'text-[#1ABC9C]',
-      label: 'Dew Point Temperature',
-      value: `${dewPoint}`,
-      unit: '°C',
-      status: dewPoint > 22 ? 'Muggy & Sticky' : 'Comfortable Range',
-      statusColor: 'text-[#8A94A6]',
-      source: 'Psychrometric Chart',
+      iconColor: 'text-[#22C7A0]',
+      label: 'Dew Point',
+      value: dewPoint !== null ? `${dewPoint}` : '—',
+      unit: dewPoint !== null ? '°C' : '',
+      status:
+        dewPoint === null
+          ? 'Unavailable'
+          : dewPoint > 22
+          ? 'Muggy'
+          : 'Comfortable range',
+      statusColor: 'text-[#8295A8]',
+      source: isFiniteNum(weather.dewPoint) ? 'Reported Dew Pt' : 'Psychrometric Calc',
     },
     {
       id: 'pressure',
       icon: Gauge,
-      iconColor: 'text-[#F1C40F]',
-      label: 'Barometric Pressure',
-      value: `${pressure}`,
-      unit: 'hPa',
-      status: `${pressureTendency} (${pressureTendencyHpa}/3h)`,
-      statusColor: pressureTendency === 'Falling' ? 'text-[#E74C3C]' : 'text-[#2ECC71]',
-      source: 'Station Barometer MSL',
+      iconColor: 'text-[#FCD34D]',
+      label: 'Surface Pressure',
+      value: pressure !== null ? `${pressure}` : '—',
+      unit: pressure !== null ? 'hPa' : '',
+      status:
+        pressure === null
+          ? 'Unavailable'
+          : pressureTendency
+          ? `${pressureTendency}${pressureTendencyHpa ? ` (${pressureTendencyHpa}/3h)` : ''}`
+          : 'MSL Barometer',
+      statusColor:
+        pressure === null
+          ? 'text-[#8295A8]'
+          : pressureTendency === 'Falling'
+          ? 'text-[#FCA5A5]'
+          : 'text-[#6EE7B7]',
+      source: 'Barometric MSL',
     },
     {
       id: 'wind_speed',
       icon: Wind,
-      iconColor: 'text-[#2ECC71]',
-      label: 'Wind Velocity & Vector',
-      value: `${windSpeed}`,
-      unit: 'km/h',
-      status: `${weather.windDirection || 'NE'} • ${windSpeed < 15 ? 'Gentle' : 'Breezy'}`,
-      statusColor: 'text-[#2ECC71]',
-      source: 'Anemometer (10m mast)',
+      iconColor: 'text-[#22C7A0]',
+      label: 'Wind Vector',
+      value: windSpeed !== null ? `${windSpeed}` : '—',
+      unit: windSpeed !== null ? 'km/h' : '',
+      status:
+        windSpeed === null
+          ? 'Unavailable'
+          : `${windDir || 'Calm'} • ${windSpeed < 15 ? 'Gentle' : windSpeed < 30 ? 'Breezy' : 'Strong'}`,
+      statusColor: windSpeed === null ? 'text-[#8295A8]' : 'text-[#6EE7B7]',
+      source: '10m Anemometer',
     },
     {
       id: 'wind_gusts',
       icon: Zap,
-      iconColor: 'text-[#F1C40F]',
+      iconColor: 'text-[#F59E0B]',
       label: 'Peak Wind Gusts',
-      value: `${windGusts}`,
-      unit: 'km/h',
-      status: windGusts > 35 ? 'Gust Alert' : 'Routine Variance',
-      statusColor: windGusts > 35 ? 'text-[#FF8C42]' : 'text-[#8A94A6]',
-      source: '3-Sec Sonic Peak',
+      value: windGusts !== null ? `${windGusts}` : '—',
+      unit: windGusts !== null ? 'km/h' : '',
+      status:
+        windGusts === null
+          ? 'Gust telemetry N/A'
+          : windGusts > 35
+          ? 'Elevated gusts'
+          : 'Routine variance',
+      statusColor: windGusts !== null && windGusts > 35 ? 'text-[#FDBA74]' : 'text-[#8295A8]',
+      source: 'Peak Gust Feed',
     },
     {
       id: 'visibility',
       icon: Eye,
-      iconColor: 'text-[#9B59B6]',
-      label: 'Horizontal Visibility',
-      value: `${visibility}`,
-      unit: 'km',
-      status: Number(visibility) >= 10 ? 'Unrestricted (10+ km)' : Number(visibility) < 2 ? 'Fog/Haze Alert' : 'Moderate',
-      statusColor: Number(visibility) >= 10 ? 'text-[#2ECC71]' : 'text-[#FF8C42]',
-      source: 'Transmissometer Array',
+      iconColor: 'text-[#A78BFA]',
+      label: 'Visibility',
+      value: visibility !== null ? `${visibility}` : '—',
+      unit: visibility !== null ? 'km' : '',
+      status:
+        visibility === null
+          ? 'Visibility unavailable'
+          : visibility >= 10
+          ? 'Unrestricted'
+          : visibility < 2
+          ? 'Fog / Haze alert'
+          : 'Moderate',
+      statusColor:
+        visibility === null
+          ? 'text-[#8295A8]'
+          : visibility >= 10
+          ? 'text-[#6EE7B7]'
+          : 'text-[#FDBA74]',
+      source: 'Optical Range',
     },
     {
       id: 'cloud_cover',
       icon: Cloud,
-      iconColor: 'text-[#8A94A6]',
-      label: 'Cloud Cover Fraction',
-      value: `${cloudCover}`,
-      unit: '%',
-      status: cloudCover > 80 ? 'Overcast (7-8/8)' : cloudCover > 40 ? 'Scattered (3-5/8)' : 'Clear Sky',
-      statusColor: 'text-[#8A94A6]',
-      source: 'INSAT-3DR Satellite',
+      iconColor: 'text-[#B5C3D1]',
+      label: 'Cloud Cover',
+      value: cloudCover !== null ? `${cloudCover}` : '—',
+      unit: cloudCover !== null ? '%' : '',
+      status:
+        cloudCover === null
+          ? 'Unavailable'
+          : cloudCover > 80
+          ? 'Overcast'
+          : cloudCover > 40
+          ? 'Scattered'
+          : 'Mostly clear',
+      statusColor: 'text-[#8295A8]',
+      source: 'Satellite / NWP Fraction',
     },
     {
       id: 'rain_accum',
       icon: CloudRain,
-      iconColor: 'text-[#0B72B9]',
-      label: 'Rainfall: 1h / 3h / 24h',
-      value: `${rain1h}`,
-      unit: `(3h: ${rain3h})`,
-      status: `24h Total: ${rain24h}`,
-      statusColor: 'text-[#4FA8E0]',
-      source: 'Tipping Bucket RG',
+      iconColor: 'text-[#35C7E8]',
+      label: 'Rainfall 1h / 3h',
+      value: rain1h,
+      unit: rain3h !== '—' ? `(3h: ${rain3h})` : '',
+      status: rain24h !== '—' ? `24h Total: ${rain24h}` : '24h total unavailable',
+      statusColor: rain1h !== '—' ? 'text-[#7DD3FC]' : 'text-[#8295A8]',
+      source: 'Precipitation Gauge',
     },
     {
       id: 'rain_probability',
       icon: Umbrella,
-      iconColor: 'text-[#4FA8E0]',
-      label: 'Rain Probability (PoP)',
-      value: `${rainProb}`,
-      unit: '%',
-      status: rainProb > 70 ? 'High Probability' : rainProb > 40 ? 'Moderate Chance' : 'Low Probability',
-      statusColor: rainProb > 70 ? 'text-[#4FA8E0]' : 'text-[#8A94A6]',
-      source: 'WRF Ensemble Nowcast',
+      iconColor: 'text-[#35C7E8]',
+      label: 'Rain Probability',
+      value: rainProb !== null ? `${rainProb}` : '—',
+      unit: rainProb !== null ? '%' : '',
+      status:
+        rainProb === null
+          ? 'Unavailable'
+          : rainProb > 70
+          ? 'High probability'
+          : rainProb > 40
+          ? 'Moderate chance'
+          : 'Low probability',
+      statusColor: rainProb !== null && rainProb > 70 ? 'text-[#7DD3FC]' : 'text-[#8295A8]',
+      source: 'NWP PoP Output',
     },
     {
       id: 'uv_solar',
       icon: Sun,
-      iconColor: 'text-[#FF8C42]',
-      label: 'UV Index & Solar Rad.',
-      value: `${uvIndex}`,
-      unit: `/ 11+ (${solarRadiation})`,
-      status: Number(uvIndex) >= 8 ? 'Very High UV Risk' : Number(uvIndex) >= 6 ? 'High Exposure' : 'Moderate',
-      statusColor: Number(uvIndex) >= 8 ? 'text-[#E74C3C]' : 'text-[#FF8C42]',
-      source: 'Pyranometer / OMI',
+      iconColor: 'text-[#F59E0B]',
+      label: 'UV & Irradiance',
+      value: uvIndex !== null ? `${uvIndex}` : '—',
+      unit: uvIndex !== null ? (solarRadiation ? `/ 11+ (${solarRadiation})` : '/ 11+ Index') : solarRadiation || '',
+      status:
+        uvIndex === null
+          ? 'UV unavailable'
+          : uvIndex >= 8
+          ? 'Very high UV'
+          : uvIndex >= 6
+          ? 'High exposure'
+          : 'Low to moderate',
+      statusColor:
+        uvIndex === null
+          ? 'text-[#8295A8]'
+          : uvIndex >= 8
+          ? 'text-[#FCA5A5]'
+          : 'text-[#FCD34D]',
+      source: 'Radiometer / UV Index',
     },
     {
       id: 'lunar_ephemeris',
-      icon: Sun,
+      icon: Moon,
       iconColor: 'text-[#C084FC]',
-      label: 'Moon Phase & Illum.',
-      value: `${moonPhase}`,
-      unit: `(${moonIllum})`,
-      status: `Rise: ${weather.moonrise || '18:15'} • Set: ${weather.moonset || '06:20'}`,
-      statusColor: 'text-[#C084FC]',
-      source: 'Positional Astronomy Centre',
+      label: 'Lunar Phase',
+      value: moonPhase || '—',
+      unit: moonIllum ? `(${moonIllum})` : '',
+      status:
+        weather.moonrise || weather.moonset
+          ? `Rise: ${weather.moonrise || '—'} • Set: ${weather.moonset || '—'}`
+          : 'Lunar rise/set unavailable',
+      statusColor: moonPhase ? 'text-[#C084FC]' : 'text-[#8295A8]',
+      source: 'Lunar Ephemeris',
     },
     {
       id: 'agro_soil',
-      icon: Droplets,
-      iconColor: 'text-[#10B981]',
-      label: 'Soil Moisture & Temp',
-      value: `${soilMoisture}`,
-      unit: `vol (${soilTemp})`,
-      status: `ET0: ${et0} (FAO-56)`,
-      statusColor: 'text-[#10B981]',
-      source: 'Agrometeorological AWS',
+      icon: Sprout,
+      iconColor: 'text-[#22C7A0]',
+      label: 'Soil & ET0',
+      value: soilMoisture || '—',
+      unit: soilTemp ? `(${soilTemp})` : '',
+      status: et0 ? `ET0: ${et0} (FAO-56)` : 'Agromet telemetry N/A',
+      statusColor: soilMoisture ? 'text-[#6EE7B7]' : 'text-[#8295A8]',
+      source: 'Root-Zone Sensor / Model',
     },
   ];
 
-  return (
-    <div id="weather-meteorological-telemetry-grid" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#4FA8E0]" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-tight">
-            Key Meteorological Telemetry &amp; Observations
-          </h3>
-        </div>
-        <span className="text-[11px] text-[#8A94A6] font-mono">12 Calibrated Surface Parameters</span>
-      </div>
+  const availableCount = metrics.filter((m) => m.value !== '—').length;
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+  return (
+    <DataPanel id="weather-meteorological-telemetry-grid" className="flex flex-col gap-4">
+      <SectionHeading
+        title="Surface Meteorological Telemetry Matrix"
+        subtitle={`${availableCount} of ${metrics.length} station & model parameters reporting`}
+        action={
+          <SourceStatus
+            status={weather.observationStatus || (availableCount > 0 ? 'LIVE' : 'UNAVAILABLE')}
+            source={weather.dataSource || weather.source}
+          />
+        }
+      />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {metrics.map((m) => {
           const Icon = m.icon;
+          const isMissing = m.value === '—';
           return (
             <div
               key={m.id}
               id={`telemetry-card-${m.id}`}
-              className="bg-[#1E2733] border border-[#314255] hover:border-[#4FA8E0]/70 rounded-lg p-3.5 transition-all flex flex-col justify-between gap-2.5 shadow-sm group"
+              className="m-panel-inset p-3.5 flex flex-col justify-between gap-2 transition-colors hover:border-[#38536A]"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider truncate">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold text-[#8295A8] uppercase tracking-wider truncate">
                   {m.label}
                 </span>
-                <div className={`p-1.5 rounded bg-[#151D26] border border-[#314255] group-hover:border-[#4FA8E0]/40 transition-colors`}>
-                  <Icon className={`w-4 h-4 ${m.iconColor}`} />
+                <div className="p-1.5 rounded-md bg-[#0B1927] border border-[#26394B] shrink-0">
+                  <Icon className={`w-3.5 h-3.5 ${isMissing ? 'text-[#8295A8]' : m.iconColor}`} />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-white font-mono tracking-tight">
+                <div className="flex items-baseline gap-1 font-mono tabular-nums flex-wrap">
+                  <span className={`text-xl font-bold tracking-tight ${isMissing ? 'text-[#8295A8]' : 'text-[#F3F6FA]'}`}>
                     {m.value}
                   </span>
-                  <span className="text-xs font-semibold text-[#8A94A6]">{m.unit}</span>
+                  {m.unit && <span className="text-[11px] text-[#8295A8]">{m.unit}</span>}
                 </div>
-                <div className={`text-[11px] font-semibold mt-0.5 truncate ${m.statusColor}`}>
+                <div className={`text-[11px] font-medium mt-0.5 truncate ${m.statusColor}`}>
                   {m.status}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#314255]/60 text-[9px] text-[#8A94A6] truncate">
+              <div className="pt-2 border-t border-[#26394B]/70 text-[10px] text-[#8295A8] truncate">
                 {m.source}
               </div>
             </div>
           );
         })}
       </div>
-    </div>
+    </DataPanel>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { HourlyForecastItem } from '../../types';
 import { getWeatherVisualConfig } from '../../utils/weatherIcons';
+import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
 import {
   Clock,
   Droplets,
@@ -12,10 +13,7 @@ import {
   Thermometer,
   CloudRain,
   Flame,
-  Sun,
-  Eye,
   Activity,
-  Compass,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -32,6 +30,8 @@ interface HourlyWeatherTimelineProps {
 
 type ChartMetric = 'temp' | 'rain' | 'wind' | 'humidity';
 
+const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
 export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
   hourly = [],
 }) => {
@@ -39,20 +39,18 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
   const [showChart, setShowChart] = useState(true);
   const [showTable, setShowTable] = useState(false);
 
-  // Normalize 24h hourly items
   const displayItems = useMemo(() => {
     if (!hourly || hourly.length === 0) return [];
     return hourly.slice(0, 24);
   }, [hourly]);
 
-  // Derive automatically highlighted key periods strictly from the hourly data
   const highlights = useMemo(() => {
     if (displayItems.length === 0) {
       return {
         maxTemp: null,
         minTemp: null,
         maxRain: null,
-        rainPeriod: 'No data',
+        rainPeriod: 'Unavailable',
         maxWind: null,
       };
     }
@@ -64,24 +62,32 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
     const rainHours: string[] = [];
 
     displayItems.forEach((item) => {
-      const t = typeof item.temp === 'number' && !Number.isNaN(item.temp) ? item.temp : null;
-      if (t !== null) {
-        if (t > maxT.val) maxT = { val: t, time: item.time };
-        if (t < minT.val) minT = { val: t, time: item.time };
+      if (isFiniteNum(item.temp)) {
+        if (item.temp > maxT.val) maxT = { val: item.temp, time: item.time };
+        if (item.temp < minT.val) minT = { val: item.temp, time: item.time };
       }
 
-      const r = item.precipitationProbability || 0;
-      if (r > maxR.val) maxR = { val: r, time: item.time };
-      if (r >= 35) rainHours.push(item.time);
+      const r = isFiniteNum(item.precipitationProbability)
+        ? item.precipitationProbability
+        : isFiniteNum(item.rainProb)
+        ? item.rainProb
+        : null;
+      if (r !== null) {
+        if (r > maxR.val) maxR = { val: r, time: item.time };
+        if (r >= 35) rainHours.push(item.time);
+      }
 
-      const w = item.windSpeed || 0;
-      if (w > maxW.val) maxW = { val: w, time: item.time };
+      if (isFiniteNum(item.windSpeed) && item.windSpeed > maxW.val) {
+        maxW = { val: item.windSpeed, time: item.time };
+      }
     });
 
-    let rainPeriod = 'No significant rain expected';
-    if (rainHours.length > 0) {
-      rainPeriod = `${rainHours[0]} - ${rainHours[rainHours.length - 1]} (${maxR.val}% max)`;
-    }
+    const rainPeriod =
+      rainHours.length > 0
+        ? `${rainHours[0]} – ${rainHours[rainHours.length - 1]} (${maxR.val}% peak)`
+        : maxR.val >= 0
+        ? 'No significant rain window'
+        : 'Unavailable';
 
     return {
       maxTemp: maxT.val !== -Infinity ? { ...maxT, val: Math.round(maxT.val) } : null,
@@ -92,14 +98,17 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
     };
   }, [displayItems]);
 
-  // Chart data formatting
   const chartData = useMemo(() => {
     return displayItems.map((item) => ({
       time: item.time,
-      temp: typeof item.temp === 'number' && !Number.isNaN(item.temp) ? Math.round(item.temp) : 24,
-      rain: item.precipitationProbability || 0,
-      wind: item.windSpeed || 8,
-      humidity: item.humidity || 65,
+      temp: isFiniteNum(item.temp) ? Math.round(item.temp) : null,
+      rain: isFiniteNum(item.precipitationProbability)
+        ? item.precipitationProbability
+        : isFiniteNum(item.rainProb)
+        ? item.rainProb
+        : null,
+      wind: isFiniteNum(item.windSpeed) ? Math.round(item.windSpeed) : null,
+      humidity: isFiniteNum(item.humidity) ? Math.round(item.humidity) : null,
       condition: item.condition,
     }));
   }, [displayItems]);
@@ -108,8 +117,8 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
     temp: {
       label: 'Temperature',
       unit: '°C',
-      color: '#4FA8E0',
-      gradientFrom: '#4FA8E0',
+      color: '#35C7E8',
+      gradientFrom: '#35C7E8',
       gradientTo: '#0B72B9',
       domain: ['auto', 'auto'],
     },
@@ -118,293 +127,241 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       unit: '%',
       color: '#0B72B9',
       gradientFrom: '#0B72B9',
-      gradientTo: '#1ABC9C',
+      gradientTo: '#22C7A0',
       domain: [0, 100],
     },
     wind: {
       label: 'Wind Velocity',
       unit: 'km/h',
-      color: '#2ECC71',
-      gradientFrom: '#2ECC71',
-      gradientTo: '#151D26',
+      color: '#22C7A0',
+      gradientFrom: '#22C7A0',
+      gradientTo: '#0B1927',
       domain: [0, 'auto'],
     },
     humidity: {
       label: 'Relative Humidity',
       unit: '%',
-      color: '#38BDF8',
-      gradientFrom: '#38BDF8',
-      gradientTo: '#0284C7',
-      domain: [20, 100],
+      color: '#7DD3FC',
+      gradientFrom: '#7DD3FC',
+      gradientTo: '#0B72B9',
+      domain: [0, 100],
     },
   };
 
   const currentConf = metricConfig[activeMetric];
 
-  // Helper to distinguish observed vs now vs forecast hour
-  const getHourPhase = (index: number, isNow?: boolean): 'Observed' | 'Live' | 'Forecast' => {
-    if (isNow) return 'Live';
-    // Find index of isNow item
+  const getHourPhase = (index: number, isNow?: boolean): 'Observed' | 'Current' | 'Forecast' => {
+    if (isNow) return 'Current';
     const nowIdx = displayItems.findIndex((i) => i.isNow);
-    if (nowIdx === -1) {
-      return index === 0 ? 'Live' : 'Forecast';
-    }
+    if (nowIdx === -1) return 'Forecast';
     if (index < nowIdx) return 'Observed';
-    if (index === nowIdx) return 'Live';
+    if (index === nowIdx) return 'Current';
     return 'Forecast';
   };
 
+  if (displayItems.length === 0) {
+    return (
+      <DataPanel id="todays-hourly-weather-section">
+        <UnavailableState
+          title="24-Hour Hourly Forecast Unavailable"
+          reason="Hourly numerical guidance is currently unavailable from the upstream weather provider."
+          source="Open-Meteo Hourly Forecast"
+        />
+      </DataPanel>
+    );
+  }
+
   return (
-    <div
-      id="todays-hourly-weather-section"
-      className="bg-[#1E2733] border border-[#314255] rounded-lg p-4 sm:p-5 shadow-md flex flex-col gap-4"
-    >
-      {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#314255]">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#0B72B9]/15 border border-[#0B72B9]/30 flex items-center justify-center text-[#4FA8E0]">
-              <Clock className="w-4 h-4" />
+    <DataPanel id="todays-hourly-weather-section" className="flex flex-col gap-4">
+      <SectionHeading
+        title="24-Hour Hourly Trajectory"
+        subtitle="Calibrated hourly guidance & trend curve"
+        icon={<Clock className="w-4 h-4" />}
+        action={
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center bg-[#08131F] p-0.5 rounded-lg border border-[#26394B] text-xs">
+              {(['temp', 'rain', 'wind', 'humidity'] as ChartMetric[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setActiveMetric(m)}
+                  className={`px-2.5 py-1 rounded-md transition-colors text-[11px] font-semibold cursor-pointer ${
+                    activeMetric === m
+                      ? 'bg-[#0B72B9] text-[#F3F6FA]'
+                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                  }`}
+                >
+                  {m === 'temp' ? 'Temp' : m === 'rain' ? 'Rain %' : m === 'wind' ? 'Wind' : 'Humidity'}
+                </button>
+              ))}
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-tight">
-                Today&apos;s 24-Hour Hourly Weather
-              </h3>
-              <p className="text-[11px] text-[#8A94A6]">
-                Calibrated via IMD-WRF 3km Model & High-Resolution Satellite Assimilation
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* View Controls */}
-        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
-          <div className="flex items-center bg-[#151D26] p-0.5 rounded border border-[#314255] text-xs">
             <button
               type="button"
-              onClick={() => setActiveMetric('temp')}
-              className={`px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
-                activeMetric === 'temp'
-                  ? 'bg-[#0B72B9] text-white'
-                  : 'text-[#8A94A6] hover:text-white'
-              }`}
+              onClick={() => setShowChart(!showChart)}
+              className="px-2.5 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-[11px] text-[#35C7E8] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
-              Temp
+              <ChartIcon className="w-3.5 h-3.5" />
+              <span>{showChart ? 'Hide Trend' : 'Show Trend'}</span>
             </button>
+
             <button
               type="button"
-              onClick={() => setActiveMetric('rain')}
-              className={`px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
-                activeMetric === 'rain'
-                  ? 'bg-[#0B72B9] text-white'
-                  : 'text-[#8A94A6] hover:text-white'
-              }`}
+              onClick={() => setShowTable(!showTable)}
+              className="px-2.5 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-[11px] text-[#35C7E8] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
-              Rain %
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMetric('wind')}
-              className={`px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
-                activeMetric === 'wind'
-                  ? 'bg-[#0B72B9] text-white'
-                  : 'text-[#8A94A6] hover:text-white'
-              }`}
-            >
-              Wind
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMetric('humidity')}
-              className={`px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
-                activeMetric === 'humidity'
-                  ? 'bg-[#0B72B9] text-white'
-                  : 'text-[#8A94A6] hover:text-white'
-              }`}
-            >
-              Humidity
+              <Table className="w-3.5 h-3.5" />
+              <span>{showTable ? 'Hide Table' : 'Expand Table'}</span>
+              {showTable ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
           </div>
+        }
+      />
 
-          <button
-            type="button"
-            onClick={() => setShowChart(!showChart)}
-            className="px-2.5 py-1 bg-[#151D26] hover:bg-[#314255] border border-[#314255] rounded text-[11px] text-[#4FA8E0] font-semibold flex items-center gap-1 transition-all"
-            title="Toggle Synoptic Graph"
-          >
-            <ChartIcon className="w-3.5 h-3.5" />
-            <span>{showChart ? 'Hide Trend' : 'Show Trend'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowTable(!showTable)}
-            className="px-2.5 py-1 bg-[#151D26] hover:bg-[#314255] border border-[#314255] rounded text-[11px] text-[#4FA8E0] font-semibold flex items-center gap-1 transition-all"
-            title="Toggle Tabular Table"
-          >
-            <Table className="w-3.5 h-3.5" />
-            <span>{showTable ? 'Hide Table' : 'Expand Table'}</span>
-            {showTable ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Automatically Highlighted Key Periods Strip */}
+      {/* Highlights Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-        <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-[#EF5350]/15 text-[#EF5350] flex items-center justify-center shrink-0">
+        <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#FCA5A5] flex items-center justify-center shrink-0">
             <Flame className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Highest Temp</div>
-            <div className="text-xs font-bold text-white font-mono">
-              {highlights.maxTemp ? `${highlights.maxTemp.val}°C (${highlights.maxTemp.time})` : 'Unavailable'}
+            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Peak Temp</div>
+            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              {highlights.maxTemp ? `${highlights.maxTemp.val}°C (${highlights.maxTemp.time})` : '—'}
             </div>
           </div>
         </div>
 
-        <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-[#38BDF8]/15 text-[#38BDF8] flex items-center justify-center shrink-0">
+        <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#35C7E8]/12 border border-[#35C7E8]/30 text-[#35C7E8] flex items-center justify-center shrink-0">
             <Thermometer className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Lowest Temp</div>
-            <div className="text-xs font-bold text-white font-mono">
-              {highlights.minTemp ? `${highlights.minTemp.val}°C (${highlights.minTemp.time})` : 'Unavailable'}
+            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Lowest Temp</div>
+            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              {highlights.minTemp ? `${highlights.minTemp.val}°C (${highlights.minTemp.time})` : '—'}
             </div>
           </div>
         </div>
 
-        <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-[#0B72B9]/20 text-[#4FA8E0] flex items-center justify-center shrink-0">
+        <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#0B72B9]/15 border border-[#0B72B9]/35 text-[#7DD3FC] flex items-center justify-center shrink-0">
             <CloudRain className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Max Rain Prob</div>
-            <div className="text-xs font-bold text-[#4FA8E0] font-mono">
-              {highlights.maxRain ? `${highlights.maxRain.val}% (${highlights.maxRain.time})` : '0%'}
+            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Max Rain Prob</div>
+            <div className="text-xs font-bold text-[#35C7E8] font-mono tabular-nums truncate">
+              {highlights.maxRain ? `${highlights.maxRain.val}% (${highlights.maxRain.time})` : '—'}
             </div>
           </div>
         </div>
 
-        <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-[#2ECC71]/15 text-[#2ECC71] flex items-center justify-center shrink-0">
+        <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
             <Wind className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Strongest Wind</div>
-            <div className="text-xs font-bold text-white font-mono">
-              {highlights.maxWind ? `${highlights.maxWind.val} km/h (${highlights.maxWind.time})` : 'Unavailable'}
+            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Peak Wind</div>
+            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              {highlights.maxWind ? `${highlights.maxWind.val} km/h (${highlights.maxWind.time})` : '—'}
             </div>
           </div>
         </div>
 
-        <div className="col-span-2 sm:col-span-1 lg:col-span-1 p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-[#FFC857]/15 text-[#FFC857] flex items-center justify-center shrink-0">
+        <div className="col-span-2 sm:col-span-1 m-panel-inset p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#F59E0B]/12 border border-[#F59E0B]/30 text-[#FCD34D] flex items-center justify-center shrink-0">
             <Droplets className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Rainfall Window</div>
-            <div className="text-xs font-semibold text-[#FFC857] truncate" title={highlights.rainPeriod}>
+            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Rain Window</div>
+            <div className="text-xs font-semibold text-[#FCD34D] truncate" title={highlights.rainPeriod}>
               {highlights.rainPeriod}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Hourly Cards Horizontal Scroll Strip */}
+      {/* Horizontal Hourly Cards */}
       <div
         id="hourly-forecast-cards-scroll"
-        className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#314255]"
+        className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#26394B]"
       >
         <div className="flex gap-2.5 min-w-max">
           {displayItems.map((item, idx) => {
             const visual = getWeatherVisualConfig(item.condition);
             const IconComponent = visual.icon;
             const phase = getHourPhase(idx, item.isNow);
-            const tempVal =
-              typeof item.temp === 'number' && !Number.isNaN(item.temp)
-                ? Math.round(item.temp)
-                : 24;
-            const feelsLikeVal =
-              typeof item.feelsLike === 'number' && !Number.isNaN(item.feelsLike)
-                ? Math.round(item.feelsLike)
-                : tempVal + 1;
+            const tempVal = isFiniteNum(item.temp) ? Math.round(item.temp) : null;
+            const feelsLikeVal = isFiniteNum(item.feelsLike) ? Math.round(item.feelsLike) : null;
+            const rainProb = isFiniteNum(item.precipitationProbability)
+              ? Math.round(item.precipitationProbability)
+              : isFiniteNum(item.rainProb)
+              ? Math.round(item.rainProb)
+              : null;
+            const windSpd = isFiniteNum(item.windSpeed) ? Math.round(item.windSpeed) : null;
+            const rh = isFiniteNum(item.humidity) ? Math.round(item.humidity) : null;
 
             return (
               <div
                 key={item.time ? `hourly-card-${item.time}-${idx}` : `hourly-card-${idx}`}
                 id={`hourly-card-${idx}`}
-                className={`p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-all min-w-[110px] w-[115px] ${
+                className={`p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-colors min-w-[112px] w-[116px] ${
                   item.isNow
-                    ? 'bg-[#0B72B9]/20 border-[#4FA8E0] shadow-md ring-1 ring-[#4FA8E0]/40'
-                    : phase === 'Observed'
-                    ? 'bg-[#151D26]/70 border-[#253241] opacity-80'
-                    : 'bg-[#151D26] border-[#314255] hover:border-[#4FA8E0]/50'
+                    ? 'bg-[#101F2E] border-[#35C7E8]'
+                    : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
                 }`}
               >
-                {/* Time Label & Phase Indicator */}
-                <div className="w-full pb-1.5 border-b border-[#314255]/40 flex flex-col items-center">
-                  <div className="text-xs font-bold text-white font-mono">
+                <div className="w-full pb-1.5 border-b border-[#26394B]/60 flex flex-col items-center">
+                  <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums">
                     {item.time}
                   </div>
                   <span
-                    className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded mt-0.5 ${
+                    className={`text-[9px] font-mono font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded mt-0.5 ${
                       item.isNow
-                        ? 'bg-[#0B72B9] text-white'
+                        ? 'bg-[#0B72B9] text-[#F3F6FA]'
                         : phase === 'Observed'
-                        ? 'bg-[#314255]/60 text-[#8A94A6]'
-                        : 'bg-[#1E2733] text-[#4FA8E0]'
+                        ? 'bg-[#0B1927] text-[#8295A8]'
+                        : 'bg-[#0B1927] text-[#35C7E8]'
                     }`}
                   >
                     {phase}
                   </span>
                 </div>
 
-                {/* Weather Condition Icon */}
                 <div className="my-2 flex flex-col items-center">
-                  <div className="p-2 rounded-full bg-[#1E2733] border border-[#314255] mb-1">
+                  <div className="p-2 rounded-lg bg-[#0B1927] border border-[#26394B] mb-1.5">
                     <IconComponent className={`w-5 h-5 ${visual.iconColor}`} />
                   </div>
-                  <div className="text-base font-black text-white font-mono leading-none">
-                    {tempVal}°
+                  <div className="text-base font-bold text-[#F3F6FA] font-mono tabular-nums leading-none">
+                    {tempVal !== null ? `${tempVal}°` : '—'}
                   </div>
-                  <div className="text-[10px] text-[#8A94A6] mt-0.5">
-                    Feels {feelsLikeVal}°
+                  <div className="text-[10px] text-[#8295A8] font-mono tabular-nums mt-0.5">
+                    {feelsLikeVal !== null ? `Feels ${feelsLikeVal}°` : 'Feels —'}
                   </div>
-                  <span className="text-[10px] text-[#DCE3EB] truncate max-w-[95px] mt-1 font-medium">
-                    {item.condition || 'Clear Sky'}
+                  <span className="text-[10px] text-[#B5C3D1] truncate max-w-[96px] mt-1">
+                    {item.condition || '—'}
                   </span>
                 </div>
 
-                {/* Rain, Wind & Humidity indicators */}
-                <div className="w-full pt-1.5 border-t border-[#314255]/70 flex flex-col gap-1 text-[10px] text-[#8A94A6]">
+                <div className="w-full pt-1.5 border-t border-[#26394B]/60 flex flex-col gap-1 text-[10px] text-[#8295A8] font-mono tabular-nums">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-0.5">
-                      <Droplets className="w-2.5 h-2.5 text-[#4FA8E0]" />
+                    <span className="flex items-center gap-0.5 font-sans">
+                      <Droplets className="w-2.5 h-2.5 text-[#35C7E8]" />
                       Rain
                     </span>
-                    <strong className="text-[#4FA8E0] font-mono">
-                      {item.precipitationProbability || 0}%
-                    </strong>
+                    <strong className="text-[#35C7E8]">{rainProb !== null ? `${rainProb}%` : '—'}</strong>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-0.5">
-                      <Wind className="w-2.5 h-2.5 text-[#2ECC71]" />
+                    <span className="flex items-center gap-0.5 font-sans">
+                      <Wind className="w-2.5 h-2.5 text-[#22C7A0]" />
                       Wind
                     </span>
-                    <strong className="text-[#DCE3EB] font-mono">
-                      {item.windSpeed || 8}k
-                    </strong>
+                    <strong className="text-[#F3F6FA]">{windSpd !== null ? `${windSpd}k` : '—'}</strong>
                   </div>
-                  {item.humidity !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px]">RH</span>
-                      <strong className="text-[#8A94A6] font-mono">
-                        {item.humidity}%
-                      </strong>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="font-sans">RH</span>
+                    <strong className="text-[#B5C3D1]">{rh !== null ? `${rh}%` : '—'}</strong>
+                  </div>
                 </div>
               </div>
             );
@@ -412,18 +369,15 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
         </div>
       </div>
 
-      {/* Hourly Synoptic Trend Line / Area Chart */}
+      {/* Trend Curve */}
       {showChart && chartData.length > 0 && (
-        <div
-          id="hourly-trend-chart-panel"
-          className="bg-[#151D26] border border-[#314255] rounded-lg p-3.5"
-        >
-          <div className="flex items-center justify-between text-xs text-[#8A94A6] mb-2 px-1">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-white flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-[#4FA8E0]" />
-              {currentConf.label} Trend Curve ({currentConf.unit})
+        <div id="hourly-trend-chart-panel" className="m-panel-inset p-4">
+          <div className="flex items-center justify-between text-xs text-[#8295A8] mb-2">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#F3F6FA] flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-[#35C7E8]" />
+              {currentConf.label} Curve ({currentConf.unit})
             </span>
-            <span className="font-mono text-[10px]">Continuous 24-Hour Synoptic Trace</span>
+            <span className="font-mono text-[10px]">24-Hour Continuous Trace</span>
           </div>
 
           <div className="w-full h-40">
@@ -431,19 +385,13 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id={`hourlyGrad-${activeMetric}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={currentConf.gradientFrom} stopOpacity={0.4} />
+                    <stop offset="5%" stopColor={currentConf.gradientFrom} stopOpacity={0.35} />
                     <stop offset="95%" stopColor={currentConf.gradientTo} stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <XAxis
-                  dataKey="time"
-                  stroke="#8A94A6"
-                  fontSize={10}
-                  tickLine={false}
-                  interval={2}
-                />
+                <XAxis dataKey="time" stroke="#8295A8" fontSize={10} tickLine={false} interval={2} />
                 <YAxis
-                  stroke="#8A94A6"
+                  stroke="#8295A8"
                   fontSize={10}
                   tickLine={false}
                   domain={currentConf.domain as any}
@@ -451,21 +399,25 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1E2733',
-                    borderColor: '#314255',
-                    borderRadius: '6px',
-                    color: '#fff',
+                    backgroundColor: '#0B1927',
+                    borderColor: '#38536A',
+                    borderRadius: '8px',
+                    color: '#F3F6FA',
                     fontSize: '11px',
                   }}
-                  formatter={(val: any) => [`${val} ${currentConf.unit}`, currentConf.label]}
+                  formatter={(val: any) => [
+                    val === null || val === undefined ? 'Unavailable' : `${val} ${currentConf.unit}`,
+                    currentConf.label,
+                  ]}
                   labelFormatter={(label: any) => `Time: ${label}`}
                 />
                 <Area
                   type="monotone"
                   dataKey={activeMetric}
                   stroke={currentConf.color}
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   fillOpacity={1}
+                  connectNulls
                   fill={`url(#hourlyGrad-${activeMetric})`}
                 />
               </AreaChart>
@@ -474,25 +426,22 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
         </div>
       )}
 
-      {/* Expandable Tabular Numerical View */}
+      {/* Detailed Numerical Table */}
       {showTable && (
-        <div
-          id="hourly-detailed-table-container"
-          className="bg-[#151D26] border border-[#314255] rounded-lg p-3 overflow-x-auto"
-        >
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#314255] text-xs">
-            <span className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5">
-              <Table className="w-3.5 h-3.5 text-[#4FA8E0]" />
-              24-Hour Numerical Weather Schedule
+        <div id="hourly-detailed-table-container" className="m-panel-inset p-3 overflow-x-auto">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#26394B] text-xs">
+            <span className="font-bold text-[#F3F6FA] uppercase text-[11px] flex items-center gap-1.5">
+              <Table className="w-3.5 h-3.5 text-[#35C7E8]" />
+              24-Hour Numerical Schedule
             </span>
-            <span className="text-[10px] text-[#8A94A6]">Observed Telemetry & Numerical Forecast</span>
+            <span className="text-[10px] text-[#8295A8]">Direct upstream model &amp; observation rows</span>
           </div>
 
-          <table className="w-full text-left text-xs font-mono border-collapse min-w-[700px]">
+          <table className="w-full text-left text-xs font-mono tabular-nums border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#314255] text-[10px] text-[#8A94A6] uppercase tracking-wider bg-[#1E2733]/50">
+              <tr className="border-b border-[#26394B] text-[10px] text-[#8295A8] uppercase tracking-wider bg-[#0B1927]">
                 <th className="py-2 px-2.5">Time</th>
-                <th className="py-2 px-2">Type</th>
+                <th className="py-2 px-2">Phase</th>
                 <th className="py-2 px-2">Condition</th>
                 <th className="py-2 px-2">Temp</th>
                 <th className="py-2 px-2">Feels Like</th>
@@ -500,53 +449,45 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 <th className="py-2 px-2">Precip</th>
                 <th className="py-2 px-2">Wind</th>
                 <th className="py-2 px-2">Humidity</th>
-                <th className="py-2 px-2">UV Index</th>
-                <th className="py-2 px-2">Cloud Cover</th>
+                <th className="py-2 px-2">UV</th>
+                <th className="py-2 px-2">Cloud</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#314255]/40 text-[#DCE3EB]">
+            <tbody className="divide-y divide-[#26394B]/60 text-[#B5C3D1]">
               {displayItems.map((item, idx) => {
                 const phase = getHourPhase(idx, item.isNow);
-                const tempVal =
-                  typeof item.temp === 'number' && !Number.isNaN(item.temp)
-                    ? Math.round(item.temp)
-                    : 24;
-                const feelsLikeVal =
-                  typeof item.feelsLike === 'number' && !Number.isNaN(item.feelsLike)
-                    ? Math.round(item.feelsLike)
-                    : tempVal + 1;
-                const rainProb = item.precipitationProbability || 0;
-                const precipMm = item.precipitation !== undefined ? `${item.precipitation} mm` : rainProb > 0 ? `${(rainProb * 0.05).toFixed(1)} mm` : '0.0 mm';
-                const wind = `${item.windSpeed || 8} km/h ${item.windDirection || 'ESE'}`;
-                const rh = item.humidity !== undefined ? `${item.humidity}%` : '68%';
-                const uv = item.uv !== undefined ? String(item.uv) : idx >= 4 && idx <= 12 ? '4' : '0';
-                const cloud = item.cloudCover !== undefined ? `${item.cloudCover}%` : '45%';
+                const tempVal = isFiniteNum(item.temp) ? `${Math.round(item.temp)}°C` : '—';
+                const feelsVal = isFiniteNum(item.feelsLike) ? `${Math.round(item.feelsLike)}°C` : '—';
+                const rainProb = isFiniteNum(item.precipitationProbability)
+                  ? `${Math.round(item.precipitationProbability)}%`
+                  : isFiniteNum(item.rainProb)
+                  ? `${Math.round(item.rainProb)}%`
+                  : '—';
+                const precipMm = isFiniteNum(item.precipitation) ? `${item.precipitation.toFixed(1)} mm` : '—';
+                const wind = isFiniteNum(item.windSpeed)
+                  ? `${Math.round(item.windSpeed)} km/h${item.windDirection && item.windDirection !== '—' ? ` ${item.windDirection}` : ''}`
+                  : '—';
+                const rh = isFiniteNum(item.humidity) ? `${Math.round(item.humidity)}%` : '—';
+                const uv = isFiniteNum(item.uv) ? item.uv.toFixed(1) : '—';
+                const cloud = isFiniteNum(item.cloudCover) ? `${Math.round(item.cloudCover)}%` : '—';
 
                 return (
                   <tr
                     key={idx}
-                    className={`hover:bg-[#1E2733]/60 transition-colors ${
-                      item.isNow ? 'bg-[#0B72B9]/15 font-semibold text-white' : ''
+                    className={`hover:bg-[#101F2E] transition-colors ${
+                      item.isNow ? 'bg-[#0B72B9]/12 font-semibold text-[#F3F6FA]' : ''
                     }`}
                   >
-                    <td className="py-2 px-2.5 font-bold text-white">{item.time}</td>
+                    <td className="py-2 px-2.5 font-bold text-[#F3F6FA]">{item.time}</td>
                     <td className="py-2 px-2">
-                      <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-sans ${
-                          item.isNow
-                            ? 'bg-[#0B72B9] text-white font-bold'
-                            : phase === 'Observed'
-                            ? 'bg-[#314255] text-[#8A94A6]'
-                            : 'bg-[#1E2733] text-[#4FA8E0]'
-                        }`}
-                      >
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B1927] border border-[#26394B] text-[#7DD3FC]">
                         {phase}
                       </span>
                     </td>
-                    <td className="py-2 px-2 font-sans text-[11px]">{item.condition || 'Partly Cloudy'}</td>
-                    <td className="py-2 px-2 font-bold text-white">{tempVal}°C</td>
-                    <td className="py-2 px-2 text-[#8A94A6]">{feelsLikeVal}°C</td>
-                    <td className="py-2 px-2 text-[#4FA8E0] font-semibold">{rainProb}%</td>
+                    <td className="py-2 px-2 font-sans text-[11px] text-[#F3F6FA]">{item.condition || '—'}</td>
+                    <td className="py-2 px-2 font-bold text-[#F3F6FA]">{tempVal}</td>
+                    <td className="py-2 px-2">{feelsVal}</td>
+                    <td className="py-2 px-2 text-[#35C7E8] font-semibold">{rainProb}</td>
                     <td className="py-2 px-2">{precipMm}</td>
                     <td className="py-2 px-2">{wind}</td>
                     <td className="py-2 px-2">{rh}</td>
@@ -559,6 +500,6 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
           </table>
         </div>
       )}
-    </div>
+    </DataPanel>
   );
 };

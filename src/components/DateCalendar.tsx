@@ -184,19 +184,19 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
 
   return (
     <div
-      className={`date-calendar-root select-none w-full max-w-[340px] bg-[#0B141E] border border-[#1E2D3D] rounded-2xl p-4 shadow-2xl text-slate-100 ${className}`}
+      className={`date-calendar-root select-none w-full max-w-[340px] bg-[#0B1927] border border-[#26394B] rounded-2xl p-4 shadow-2xl text-[#F3F6FA] ${className}`}
       role="region"
       aria-label={ariaLabel}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
       {/* 1. HEADER: Month, Year, and Controls */}
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#162331]">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26394B]">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={handlePrevYear}
-            className="p-1.5 rounded-lg text-[#93A4B8] hover:text-white hover:bg-[#111F30] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8295A8] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer"
             title="Previous Year"
             aria-label="Previous Year"
           >
@@ -205,7 +205,7 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-lg text-[#93A4B8] hover:text-white hover:bg-[#111F30] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8295A8] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer"
             title="Previous Month"
             aria-label="Previous Month"
           >
@@ -220,11 +220,11 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
             triggerHaptic('tap');
             setIsMonthYearPickerOpen(!isMonthYearPickerOpen);
           }}
-          className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#F4F7FA] px-2.5 py-1 rounded-lg hover:bg-[#111F30] border border-transparent hover:border-[#1E2D3D] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#F3F6FA] px-2.5 py-1 rounded-lg hover:bg-[#101F2E] border border-transparent hover:border-[#26394B] transition-colors cursor-pointer"
           aria-expanded={isMonthYearPickerOpen}
           aria-label="Select month and year directly"
         >
-          <span className="text-[#38BDF8]">{MONTH_NAMES[viewMonth]}</span>
+          <span className="text-[#35C7E8]">{MONTH_NAMES[viewMonth]}</span>
           <span className="text-white">{viewYear}</span>
         </button>
 
@@ -268,8 +268,8 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
                 }}
                 className={`py-1.5 text-xs font-mono font-semibold rounded-lg transition-colors cursor-pointer ${
                   viewMonth === idx
-                    ? 'bg-[#1499E8] text-white font-bold'
-                    : 'bg-[#071018] text-[#93A4B8] hover:bg-[#111F30] hover:text-white border border-[#162331]'
+                    ? 'bg-[#0B72B9] text-white font-bold'
+                    : 'bg-[#08131F] text-[#B5C3D1] hover:bg-[#101F2E] hover:text-white border border-[#26394B]'
                 }`}
               >
                 {mShort}
@@ -277,7 +277,7 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
             ))}
           </div>
 
-          <div className="text-[11px] font-mono text-[#64748B] uppercase tracking-wider px-1 pt-1">
+          <div className="text-[11px] font-mono text-[#8295A8] uppercase tracking-wider px-1 pt-1">
             Choose Year
           </div>
           <div className="grid grid-cols-4 gap-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
@@ -292,8 +292,8 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
                 }}
                 className={`py-1 text-xs font-mono font-semibold rounded-lg transition-colors cursor-pointer ${
                   viewYear === y
-                    ? 'bg-[#1499E8] text-white font-bold'
-                    : 'bg-[#071018] text-[#93A4B8] hover:bg-[#111F30] hover:text-white border border-[#162331]'
+                    ? 'bg-[#0B72B9] text-white font-bold'
+                    : 'bg-[#08131F] text-[#B5C3D1] hover:bg-[#101F2E] hover:text-white border border-[#26394B]'
                 }`}
               >
                 {y}
@@ -379,16 +379,16 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
 
       {/* 4. FOOTER: Today Action & Quick Context */}
       {showToday && !isMonthYearPickerOpen && (
-        <div className="mt-3 pt-2.5 border-t border-[#162331] flex items-center justify-between text-[11px] font-mono">
+        <div className="mt-3 pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono">
           <button
             type="button"
             onClick={handleGoToToday}
-            className="flex items-center gap-1 text-[#38BDF8] hover:text-[#7DD3FC] transition-colors py-0.5 px-2 rounded-lg hover:bg-[#38BDF8]/10 cursor-pointer"
+            className="flex items-center gap-1 text-[#35C7E8] hover:text-[#7DD3FC] transition-colors py-0.5 px-2 rounded-lg hover:bg-[#35C7E8]/10 cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Today</span>
           </button>
-          <span className="text-[#64748B] text-[10px]">
+          <span className="text-[#8295A8] text-[10px]">
             {value ? formatDateFull(value) : 'No date selected'}
           </span>
         </div>

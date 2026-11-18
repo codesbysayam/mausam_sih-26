@@ -125,7 +125,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
   return (
     <nav
       id="primary-main-navigation"
-      className="hidden md:block w-full bg-[#0E1721] border-b border-white/10 select-none"
+      className="hidden md:block w-full bg-[#08131F] border-b border-[#26394B] select-none"
       aria-label="Primary Navigation"
     >
       <div className="max-w-[1560px] mx-auto px-3 sm:px-4 lg:px-6">
@@ -145,27 +145,23 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
                   triggerHaptic('light');
                   onTabChange(item.id);
                 }}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 border-b-2 ${
+                className={`relative flex items-center gap-1.5 px-3 min-h-[40px] text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 border-b-2 ${
                   isActive
-                    ? 'border-[#38BDF8] text-[#F4F7FA] bg-[#162331]/65 font-semibold'
-                    : 'border-transparent text-[#B6C7D8] hover:text-[#F4F7FA] hover:bg-[#101B26]'
+                    ? 'border-[#35C7E8] text-[#F3F6FA] bg-[#101F2E] font-semibold'
+                    : 'border-transparent text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#0B1927]'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <Icon
                   className={`w-3.5 h-3.5 shrink-0 ${
-                    isActive ? item.accentColor : 'text-[#8EA3B8]'
+                    isActive ? item.accentColor : 'text-[#8295A8]'
                   }`}
                 />
                 <span>{translated}</span>
 
                 {badgeCount > 0 && (
                   <span
-                    className={`ml-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums font-semibold leading-none ${
-                      isActive
-                        ? 'bg-[#EF4444]/25 text-[#FCA5A5]'
-                        : 'bg-[#EF4444]/20 text-[#FCA5A5]'
-                    }`}
+                    className="ml-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums font-semibold leading-none bg-[#EF4444]/20 text-[#FCA5A5] border border-[#EF4444]/35"
                   >
                     {badgeCount}
                   </span>

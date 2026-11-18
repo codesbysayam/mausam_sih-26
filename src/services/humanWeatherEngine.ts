@@ -422,23 +422,43 @@ export function getUvMeaning(uvIndex: number): {
 export function buildHumanWeatherStory(
   weather: CurrentWeather,
   hourly: HourlyForecastItem[] = [],
-  daily: DailyForecastItem[] = [],
+  _daily: DailyForecastItem[] = [],
   alerts: WeatherAlert[] = [],
   persona: UserPersona = 'general'
 ): HumanDataStory {
   const { greeting, timeContext } = getTimeOfDayGreeting();
-  const temp = weather.temp || 28;
-  const feelsLike = weather.feelsLike || temp + 3;
-  const condition = weather.condition || 'Partly Cloudy';
-  const humidity = weather.humidity || 75;
-  const rainProb = weather.precipitationProbability || 20;
-  const windSpeed = weather.windSpeed || 14;
-  const windDir = weather.windDirection || 'NE';
+  const hasTemp = typeof weather.temp === 'number' && Number.isFinite(weather.temp);
+  const temp = hasTemp ? weather.temp! : null;
+  const feelsLike = typeof weather.feelsLike === 'number' && Number.isFinite(weather.feelsLike) ? weather.feelsLike : temp;
+  const condition = weather.condition || 'Observing';
+  const humidity = typeof weather.humidity === 'number' && Number.isFinite(weather.humidity) ? weather.humidity : null;
+  const rainProb = typeof weather.precipitationProbability === 'number' && Number.isFinite(weather.precipitationProbability) ? weather.precipitationProbability : null;
+  const windSpeed = typeof weather.windSpeed === 'number' && Number.isFinite(weather.windSpeed) ? weather.windSpeed : null;
+  const windDir = weather.windDirection || '—';
   const aqi = typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0 ? Math.round(weather.aqi) : null;
 
-  const tempInfo = getTemperatureMeaning(temp, feelsLike);
-  const rainInfo = getRainProbabilityMeaning(rainProb);
-  const windInfo = getWindMeaning(windSpeed, windDir);
+  if (temp === null) {
+    return {
+      greeting,
+      timeContext,
+      headline: weather.observationStatus === 'LOADING' ? 'Synchronizing atmospheric telemetry' : 'Surface telemetry unavailable',
+      summary: weather.observationStatus === 'LOADING' ? 'Fetching live meteorological readings…' : 'Live station feed is currently unreachable.',
+      whatIsHappening: 'Awaiting verified temperature, humidity, and barometric telemetry for this station.',
+      whatWillHappen: hourly.length > 0 ? `Hourly horizon covers ${hourly.length} forecast slots.` : 'Forecast horizon is currently unavailable.',
+      whatShouldIKnow: alerts.length > 0 ? `Active Alert: ${alerts[0].title || 'Weather Bulletin Active'}.` : 'Monitor official IMD / SACHET warning bulletins.',
+      recommendedAction: alerts.length > 0 ? (alerts[0].actionItem || alerts[0].description) : 'Retry live telemetry synchronization or inspect regional radar layers.',
+      personaAdvice: {
+        persona,
+        highlight: 'Awaiting Live Telemetry',
+        advice: 'Guidance will populate automatically once station observations synchronize.',
+        badge: 'Standby',
+        badgeColor: 'bg-[#101F2E] text-[#8EA3B8] border-[#26394B]',
+      },
+    };
+  }
+
+  const tempInfo = getTemperatureMeaning(temp, feelsLike ?? temp);
+  const rainInfo = getRainProbabilityMeaning(rainProb ?? 0);
   const aqiInfo = aqi !== null ? getAqiMeaning(aqi) : null;
 
   // Look ahead in next 6-8 hours for rain or temp peak
@@ -446,26 +466,25 @@ export function buildHumanWeatherStory(
   const peakRainHour = nextHours.find((h) => (h.precipitationProbability || h.rainProb || 0) >= 50);
   const maxUpcomingTemp = nextHours.length > 0 ? Math.max(...nextHours.map((h) => h.temp)) : temp;
 
-  let whatIsHappening = `${condition} at ${temp}°C (feels like ${feelsLike}°C). ${tempInfo.description}`;
-  let whatWillHappen = '';
-  if (peakRainHour) {
-    whatWillHappen = `Rain probability peaks around ${peakRainHour.time} (${peakRainHour.precipitationProbability || peakRainHour.rainProb}% chance). Highs will reach ~${maxUpcomingTemp}°C.`;
-  } else {
-    whatWillHappen = `Atmosphere will remain predominantly dry and ${condition.toLowerCase()} through the next 8 hours with stable temperatures around ${maxUpcomingTemp}°C.`;
-  }
+  const whatIsHappening = `${condition} at ${temp}°C${feelsLike !== null ? ` (feels like ${feelsLike}°C)` : ''}. ${tempInfo.description}`;
+  const whatWillHappen = peakRainHour
+    ? `Rain probability peaks around ${peakRainHour.time} (${peakRainHour.precipitationProbability || peakRainHour.rainProb}% chance). Highs will reach ~${maxUpcomingTemp}°C.`
+    : `Atmosphere will remain predominantly dry and ${condition.toLowerCase()} through the next 8 hours with temperatures around ${maxUpcomingTemp}°C.`;
 
   let whatShouldIKnow = aqiInfo
-    ? `${aqiInfo.headline} (AQI ${aqi}, ${aqiInfo.category}). ${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`
-    : `${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`;
+    ? `${aqiInfo.headline} (AQI ${aqi}, ${aqiInfo.category}). ${humidity !== null && humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`
+    : humidity !== null
+    ? `${humidity >= 75 ? 'High relative humidity will increase apparent warmth.' : 'Humidity levels remain manageable.'}`
+    : 'Air quality and moisture observations pending.';
   let recommendedAction = '';
 
   if (alerts.length > 0) {
     const topAlert = alerts[0];
     whatShouldIKnow = `Active Alert: ${topAlert.title || 'Weather Bulletin Active'}. ${whatShouldIKnow}`;
     recommendedAction = topAlert.actionItem || topAlert.description || 'Monitor local weather updates and avoid open areas if thunder develops.';
-  } else if (rainProb >= 60) {
+  } else if ((rainProb ?? 0) >= 60) {
     recommendedAction = 'Keep rain protection accessible when stepping out today.';
-  } else if (feelsLike >= 38) {
+  } else if ((feelsLike ?? temp) >= 38) {
     recommendedAction = 'Schedule demanding outdoor tasks before noon or after 5 PM to avoid peak heat.';
   } else {
     recommendedAction = 'Favorable conditions for routine outdoor commuting and everyday activities.';
@@ -477,64 +496,73 @@ export function buildHumanWeatherStory(
     highlight: 'Standard Daily View',
     advice: 'Normal meteorological profile across your area.',
     badge: 'General',
-    badgeColor: 'bg-[#1499E8]/15 text-[#1499E8] border-[#1499E8]/30',
+    badgeColor: 'bg-[#1499E8]/15 text-[#35C7E8] border-[#1499E8]/30',
   };
 
   switch (persona) {
     case 'health':
-      personaAdvice = {
-        persona: 'health',
-        highlight: `AQI ${aqi} (${aqiInfo.category}) • Humidity ${humidity}%`,
-        advice: aqi <= 100
-          ? 'Air quality is favorable for breathing. Great day for walks and outdoor ventilation.'
-          : 'Sensitive respiratory individuals should limit intense cardio outdoors today.',
-        badge: 'Health Focus',
-        badgeColor: aqiInfo.badgeBg + ' ' + aqiInfo.badgeText,
-      };
+      personaAdvice = aqi !== null && aqiInfo
+        ? {
+            persona: 'health',
+            highlight: `AQI ${aqi} (${aqiInfo.category}) • Humidity ${humidity !== null ? `${humidity}%` : '—'}`,
+            advice: aqi <= 100
+              ? 'Air quality is favorable for breathing. Great day for walks and outdoor ventilation.'
+              : 'Sensitive respiratory individuals should limit intense cardio outdoors today.',
+            badge: 'Health Focus',
+            badgeColor: aqiInfo.badgeBg + ' ' + aqiInfo.badgeText,
+          }
+        : {
+            persona: 'health',
+            highlight: `AQI Unavailable • Humidity ${humidity !== null ? `${humidity}%` : '—'}`,
+            advice: 'Air quality sensor feed is currently unavailable for this location.',
+            badge: 'Health Focus',
+            badgeColor: 'bg-[#101F2E] text-[#8EA3B8] border-[#26394B]',
+          };
       break;
 
-    case 'fitness':
+    case 'fitness': {
       const bestWindow = nextHours.find((h) => h.temp <= 28 && (h.precipitationProbability || 0) < 30);
       personaAdvice = {
         persona: 'fitness',
         highlight: bestWindow ? `Optimal Workout Window: ~${bestWindow.time}` : 'Early morning is best for running',
-        advice: feelsLike >= 35
+        advice: (feelsLike ?? temp) >= 35
           ? 'High apparent temperature. Hydrate well and schedule workouts in the early morning.'
           : 'Good outdoor running conditions. Keep hydration steady.',
         badge: 'Fitness Priority',
         badgeColor: 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/30',
       };
       break;
+    }
 
     case 'travel':
       personaAdvice = {
         persona: 'travel',
-        highlight: `Visibility: ${weather.visibility || '8 km'} • Road Rain Risk: ${rainProb}%`,
-        advice: rainProb >= 50
+        highlight: `Visibility: ${typeof weather.visibilityKm === 'number' ? `${weather.visibilityKm} km` : '—'} • Rain Risk: ${rainProb !== null ? `${rainProb}%` : '—'}`,
+        advice: (rainProb ?? 0) >= 50
           ? 'Wet roads and occasional spray expected on highways. Allow extra travel buffer time.'
           : 'Clear highway visibility with good driving conditions throughout the route.',
         badge: 'Travel Safe',
-        badgeColor: 'bg-[#43C7F4]/15 text-[#43C7F4] border-[#43C7F4]/30',
+        badgeColor: 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/30',
       };
       break;
 
     case 'family':
       personaAdvice = {
         persona: 'family',
-        highlight: `Comfort: ${tempInfo.headline} • UV Index: ${weather.uvIndex || 6}`,
-        advice: feelsLike >= 36
+        highlight: `Comfort: ${tempInfo.headline} • UV Index: ${typeof weather.uvIndex === 'number' ? weather.uvIndex : '—'}`,
+        advice: (feelsLike ?? temp) >= 36
           ? 'Afternoons may be uncomfortably warm for small children and seniors. Prefer indoor play midday.'
           : 'Comfortable family weather for parks and evening outings.',
         badge: 'Family Care',
-        badgeColor: 'bg-[#FFC857]/15 text-[#FFC857] border-[#FFC857]/30',
+        badgeColor: 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30',
       };
       break;
 
     case 'agriculture':
       personaAdvice = {
         persona: 'agriculture',
-        highlight: `Rain Chance: ${rainProb}% • Wind: ${windSpeed} km/h ${windDir}`,
-        advice: rainProb >= 60
+        highlight: `Rain Chance: ${rainProb !== null ? `${rainProb}%` : '—'} • Wind: ${windSpeed !== null ? `${windSpeed} km/h` : '—'} ${windDir}`,
+        advice: (rainProb ?? 0) >= 60
           ? 'Rain expected. You can pause non-urgent irrigation and postpone foliar chemical spraying.'
           : 'Dry conditions favor regular irrigation and field tillage activities.',
         badge: 'Agro Guidance',
@@ -545,36 +573,36 @@ export function buildHumanWeatherStory(
     case 'commuting':
       personaAdvice = {
         persona: 'commuting',
-        highlight: `Rush Hour Rain: ${rainProb}% • Wind: ${windSpeed} km/h`,
-        advice: rainProb >= 40
+        highlight: `Rain Risk: ${rainProb !== null ? `${rainProb}%` : '—'} • Wind: ${windSpeed !== null ? `${windSpeed} km/h` : '—'}`,
+        advice: (rainProb ?? 0) >= 40
           ? 'Possible wet transit during evening commute. Keep rain covers ready for two-wheelers.'
           : 'Smooth commute conditions expected with dry roads.',
         badge: 'Commute Pulse',
-        badgeColor: 'bg-[#1499E8]/15 text-[#1499E8] border-[#1499E8]/30',
+        badgeColor: 'bg-[#1499E8]/15 text-[#35C7E8] border-[#1499E8]/30',
       };
       break;
 
     case 'events':
       personaAdvice = {
         persona: 'events',
-        highlight: `Outdoor Event Risk: ${rainProb > 40 ? 'Moderate' : 'Low'} (${rainProb}%)`,
-        advice: rainProb >= 40
+        highlight: `Outdoor Event Risk: ${(rainProb ?? 0) > 40 ? 'Moderate' : 'Low'} (${rainProb !== null ? `${rainProb}%` : '—'})`,
+        advice: (rainProb ?? 0) >= 40
           ? 'Consider canopy covers for open-air stage or dining areas as a contingency.'
           : 'Favorable stable conditions for evening outdoor gatherings.',
         badge: 'Event Ready',
-        badgeColor: 'bg-[#FFC857]/15 text-[#FFC857] border-[#FFC857]/30',
+        badgeColor: 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30',
       };
       break;
 
     case 'beach':
       personaAdvice = {
         persona: 'beach',
-        highlight: `Coastal Wind: ${windSpeed} km/h • UV Index: ${weather.uvIndex || 7}`,
-        advice: windSpeed >= 30
+        highlight: `Coastal Wind: ${windSpeed !== null ? `${windSpeed} km/h` : '—'} • UV Index: ${typeof weather.uvIndex === 'number' ? weather.uvIndex : '—'}`,
+        advice: (windSpeed ?? 0) >= 30
           ? 'Choppy coastal surf and strong onshore breeze. Obey lifeguard flags.'
           : 'Pleasant sea breeze in the late afternoon. High UV during midday requires sunscreen.',
         badge: 'Coastal Watch',
-        badgeColor: 'bg-[#43C7F4]/15 text-[#43C7F4] border-[#43C7F4]/30',
+        badgeColor: 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/30',
       };
       break;
   }
@@ -583,7 +611,7 @@ export function buildHumanWeatherStory(
     greeting,
     timeContext,
     headline: `${condition} across your area`,
-    summary: `${temp}°C · Feels like ${feelsLike}°C · ${rainInfo.headline}`,
+    summary: `${temp}°C${feelsLike !== null ? ` · Feels like ${feelsLike}°C` : ''} · ${rainInfo.headline}`,
     whatIsHappening,
     whatWillHappen,
     whatShouldIKnow,

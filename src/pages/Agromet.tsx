@@ -8,9 +8,7 @@ import { WeatherDataBundle } from '../services/weatherService';
 import { LocationRecord } from '../types';
 import { LocatingPhase } from '../services/geolocationService';
 import { CropType, PhenologicalStage } from '../services/agronomicEngine';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
 
-// Import the 14 Command Center components
 import { AgriculturalWeatherStatusPanel } from '../components/agromet/AgriculturalWeatherStatusPanel';
 import { AgrometCommandHeader } from '../components/agromet/AgrometCommandHeader';
 import { FarmStatusOverview } from '../components/agromet/FarmStatusOverview';
@@ -42,16 +40,10 @@ interface AgrometPageProps {
 export const AgrometPage: React.FC<AgrometPageProps> = ({
   weatherBundle,
   selectedLocation,
-  onNavigateToTab,
   onDetectLocation,
   isLocating = false,
-  locatePhase = 'idle',
-  locationSource = 'MANUAL_SEARCH',
   onOpenLocationCenter,
 }) => {
-  const states = Object.keys(INDIAN_STATES_AND_DISTRICTS);
-
-  // Initialize with selectedLocation state/district if available
   const [selectedState, setSelectedState] = useState<string>(() => {
     if (selectedLocation?.state && INDIAN_STATES_AND_DISTRICTS[selectedLocation.state]) {
       return selectedLocation.state;
@@ -67,10 +59,9 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
     if (selectedLocation?.city && defaultDistricts.includes(selectedLocation.city)) {
       return selectedLocation.city;
     }
-    return defaultDistricts[0] || 'Bhubaneswar';
+    return defaultDistricts[0] || 'Khordha (Bhubaneswar)';
   });
 
-  // Sync state and district when selectedLocation updates (e.g. GPS detected or location changed)
   useEffect(() => {
     if (selectedLocation?.state && INDIAN_STATES_AND_DISTRICTS[selectedLocation.state]) {
       setSelectedState(selectedLocation.state);
@@ -89,7 +80,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
   const [selectedStage, setSelectedStage] = useState<PhenologicalStage>('Tillering');
   const [sowingDate, setSowingDate] = useState<Date>(() => new Date(Date.now() - 42 * 24 * 60 * 60 * 1000));
 
-  // Fetch / synthesize extended bulletin based on state & district
   const bulletin: ExtendedAgrometBulletin = useMemo(() => {
     return getExtendedAgrometBulletin(selectedState, selectedDistrict);
   }, [selectedState, selectedDistrict]);
@@ -97,42 +87,28 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
   const handleStateChange = (state: string) => {
     setSelectedState(state);
     const districts = INDIAN_STATES_AND_DISTRICTS[state] || [];
-    const firstDistrict = districts[0] || '';
-    setSelectedDistrict(firstDistrict);
+    setSelectedDistrict(districts[0] || '');
   };
 
   const handleDistrictChange = (district: string) => {
     setSelectedDistrict(district);
   };
 
-  // Timestamp string for live provenance
-  const now = new Date();
-  const lastUpdatedStr = now.toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const isLive = typeof weatherBundle?.current?.temp === 'number';
+  const lastUpdatedStr =
+    weatherBundle?.current?.observationTimeFormatted ||
+    weatherBundle?.current?.lastUpdated ||
+    '';
 
-  const stationName = `AMFU ${selectedDistrict} • IMD Agro-Met Network`;
-  const isLive = Boolean(weatherBundle?.current?.temp);
+  const stationName =
+    weatherBundle?.current?.stationName ||
+    `AMFU ${selectedDistrict} • IMD Agro-Met Node`;
 
   return (
     <div
       id="agromet-command-center-page"
-      className="space-y-6 pb-20 max-w-7xl mx-auto px-2 sm:px-4"
+      className="space-y-5 pb-20 max-w-7xl mx-auto px-3 sm:px-6 pt-3 sm:pt-4"
     >
-      {/* Unified Compact Location Status Bar */}
-      {selectedLocation && (
-        <LocationStatusBar
-          location={selectedLocation}
-          source={locationSource}
-          isLocating={isLocating}
-          onDetectLocation={onDetectLocation ? () => onDetectLocation(true) : undefined}
-          onChangeLocationClick={onOpenLocationCenter}
-        />
-      )}
-
-      {/* SECTION 1: AGROMET COMMAND HEADER & SELECTORS */}
       <AgrometCommandHeader
         selectedState={selectedState}
         selectedDistrict={selectedDistrict}
@@ -147,16 +123,18 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         isLive={isLive}
         sowingDate={sowingDate}
         onSowingDateChange={setSowingDate}
+        selectedLocation={selectedLocation}
+        isLocating={isLocating}
+        onDetectLocation={onDetectLocation ? () => onDetectLocation(true) : undefined}
+        onOpenLocationCenter={onOpenLocationCenter}
       />
 
-      {/* Prominent Agricultural Weather Status Panel */}
       <AgriculturalWeatherStatusPanel
         weather={weatherBundle}
         district={selectedDistrict}
         state={selectedState}
       />
 
-      {/* SECTION 2: FARM STATUS OVERVIEW (6 High-Impact Telemetry Cards) */}
       <FarmStatusOverview
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -165,7 +143,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         stationName={stationName}
       />
 
-      {/* SECTION 3: TODAY'S FARM ACTION CENTER (The Visual Centerpiece) */}
       <TodaysFarmActionCenter
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -173,7 +150,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 4: 7-DAY WEATHER & CROP RESPONSE OUTLOOK */}
       <WeatherCropResponse7Day
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -181,7 +157,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 5: CROP INTELLIGENCE CARD */}
       <CropIntelligenceCard
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -189,7 +164,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 6: CROP PHENOLOGICAL LIFECYCLE TIMELINE (Interactive Stepper) */}
       <CropStageTimeline
         selectedCrop={selectedCrop}
         selectedStage={selectedStage}
@@ -197,7 +171,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         sowingDate={sowingDate}
       />
 
-      {/* SECTION 7: WEATHER-CROP RISK RADAR (7-Factor Diagnostic) */}
       <WeatherCropRiskRadar
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -205,13 +178,11 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 8: 72-HOUR AGRICULTURAL OPERATION TIMELINE */}
       <AgriculturalTimeline72h
         weather={weatherBundle}
         district={selectedDistrict}
       />
 
-      {/* SECTION 9: PRECISION IRRIGATION & SOIL HYDROLOGY COMMAND */}
       <IrrigationIntelligenceCommand
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -219,7 +190,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 10: SPRAYING WINDOW & DRIFT HAZARD ANALYZER */}
       <SprayingWindowAnalyzer
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -227,7 +197,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 11: PEST & DISEASE INCUBATION RADAR (BIOTIC RISK) */}
       <BioticRiskMonitor
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -235,12 +204,8 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 12: OFFICIAL GKMS / AMFU BULLETINS */}
-      <OfficialAgrometAdvisories
-        bulletin={bulletin}
-      />
+      <OfficialAgrometAdvisories bulletin={bulletin} />
 
-      {/* SECTION 13: 7-DAY FARM OPERATIONS CALENDAR MATRIX */}
       <FieldOperationsCalendarGrid
         weather={weatherBundle}
         selectedCrop={selectedCrop}
@@ -248,7 +213,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         district={selectedDistrict}
       />
 
-      {/* SECTION 14: NEAREST METEOROLOGICAL OBSERVATION NETWORK */}
       <NearestObservationNetwork
         weather={weatherBundle}
         stateName={selectedState}
@@ -256,7 +220,6 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         lastUpdatedStr={lastUpdatedStr}
       />
 
-      {/* SECTION 15: AGROMET DATA PROVENANCE & METHODOLOGY */}
       <AgrometDataProvenanceFooter
         lastUpdatedStr={lastUpdatedStr}
         stationName={stationName}

@@ -200,61 +200,68 @@ export class CycloneIngestionService {
           httpStatus: 200,
           endpoint: imdApiProvider.getBaseUrl(),
         };
-      } catch {
+      } catch (err: any) {
         imdCycloneHealth = {
-          status: 'LIVE',
-          latencyMs: 120,
-          lastFetch: fetchTimestamp,
-          httpStatus: 200,
+          status: 'UNAVAILABLE',
+          latencyMs: null,
+          lastFetch: null,
+          httpStatus: null,
           endpoint: imdApiProvider.getBaseUrl(),
+          error: err?.message || 'IMD API unreachable',
         };
       }
     } else {
-      // Probe authoritative public sources
+      // Probe authoritative public sources truthfully
       const [rsmcRes, imdCapRes, sachetRes] = await Promise.allSettled([
         this.fetchWithTimeout(this.rsmcUrl, 5000),
         this.fetchWithTimeout(this.imdCapRssUrl, 5000),
         this.fetchWithTimeout(this.sachetRssUrl, 5000),
       ]);
 
+      const rsmcOk = rsmcRes.status === 'fulfilled' && rsmcRes.value.ok;
       imdCycloneHealth = {
-        status: rsmcRes.status === 'fulfilled' && rsmcRes.value.ok ? 'LIVE' : 'LIVE',
-        latencyMs: rsmcRes.status === 'fulfilled' ? rsmcRes.value.latencyMs : 110,
-        lastFetch: fetchTimestamp,
-        httpStatus: rsmcRes.status === 'fulfilled' ? rsmcRes.value.status : 200,
+        status: rsmcOk ? 'LIVE' : 'UNAVAILABLE',
+        latencyMs: rsmcRes.status === 'fulfilled' && rsmcOk ? rsmcRes.value.latencyMs : null,
+        lastFetch: rsmcOk ? fetchTimestamp : null,
+        httpStatus: rsmcRes.status === 'fulfilled' && rsmcRes.value.status ? rsmcRes.value.status : null,
         endpoint: this.rsmcUrl,
+        error: rsmcOk ? null : 'RSMC New Delhi feed unreachable',
       };
 
+      const imdCapOk = imdCapRes.status === 'fulfilled' && imdCapRes.value.ok;
       imdWarningsHealth = {
-        status: imdCapRes.status === 'fulfilled' && imdCapRes.value.ok ? 'LIVE' : 'LIVE',
-        latencyMs: imdCapRes.status === 'fulfilled' ? imdCapRes.value.latencyMs : 140,
-        lastFetch: fetchTimestamp,
-        httpStatus: imdCapRes.status === 'fulfilled' ? imdCapRes.value.status : 200,
+        status: imdCapOk ? 'LIVE' : 'UNAVAILABLE',
+        latencyMs: imdCapRes.status === 'fulfilled' && imdCapOk ? imdCapRes.value.latencyMs : null,
+        lastFetch: imdCapOk ? fetchTimestamp : null,
+        httpStatus: imdCapRes.status === 'fulfilled' && imdCapRes.value.status ? imdCapRes.value.status : null,
         endpoint: this.imdCapRssUrl,
+        error: imdCapOk ? null : 'IMD CAP RSS feed unreachable',
       };
 
+      const sachetOk = sachetRes.status === 'fulfilled' && sachetRes.value.ok;
       sachetHealth = {
-        status: sachetRes.status === 'fulfilled' && sachetRes.value.ok ? 'LIVE' : 'LIVE',
-        latencyMs: sachetRes.status === 'fulfilled' ? sachetRes.value.latencyMs : 160,
-        lastFetch: fetchTimestamp,
-        httpStatus: sachetRes.status === 'fulfilled' ? sachetRes.value.status : 200,
+        status: sachetOk ? 'LIVE' : 'UNAVAILABLE',
+        latencyMs: sachetRes.status === 'fulfilled' && sachetOk ? sachetRes.value.latencyMs : null,
+        lastFetch: sachetOk ? fetchTimestamp : null,
+        httpStatus: sachetRes.status === 'fulfilled' && sachetRes.value.status ? sachetRes.value.status : null,
         endpoint: this.sachetRssUrl,
+        error: sachetOk ? null : 'NDMA SACHET RSS feed unreachable',
       };
     }
 
     imdWarningsHealth = imdWarningsHealth || {
-      status: 'LIVE',
-      latencyMs: 140,
-      lastFetch: fetchTimestamp,
-      httpStatus: 200,
+      status: 'UNAVAILABLE',
+      latencyMs: null,
+      lastFetch: null,
+      httpStatus: null,
       endpoint: this.imdCapRssUrl,
     };
 
     sachetHealth = sachetHealth || {
-      status: 'LIVE',
-      latencyMs: 160,
-      lastFetch: fetchTimestamp,
-      httpStatus: 200,
+      status: 'UNAVAILABLE',
+      latencyMs: null,
+      lastFetch: null,
+      httpStatus: null,
       endpoint: this.sachetRssUrl,
     };
 

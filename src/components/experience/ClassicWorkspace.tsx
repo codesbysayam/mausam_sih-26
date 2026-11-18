@@ -44,15 +44,15 @@ export const ClassicWorkspace: React.FC<ClassicWorkspaceProps> = ({
   const { setMode, setRendererMode } = useExperience();
 
   return (
-    <div id="mausam-classic-workspace" className="pt-[64px] pb-6 min-h-screen w-full bg-[#07111D]">
+    <div id="mausam-classic-workspace" className="pt-[68px] sm:pt-[64px] pb-8 min-h-screen w-full bg-[#07111D]">
       <div className="max-w-[1560px] mx-auto px-3 lg:px-6 mb-4">
-        <div className="spatial-hud-surface rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-[#B8C7D9]">
+        <div className="m-panel px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-[#B5C3D1]">
             <span className="font-mono uppercase text-[10px] text-[#35C7E8] font-semibold">
-              Classic Accessible View
+              Classic Observatory View
             </span>
-            <span>·</span>
-            <span>Low-GPU linear presentation preserving all real-time weather feeds &amp; regional stations.</span>
+            <span className="text-[#38536A]">·</span>
+            <span>Low-GPU linear workstation preserving all live observations, radar &amp; regional grids.</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -61,15 +61,15 @@ export const ClassicWorkspace: React.FC<ClassicWorkspaceProps> = ({
                 setRendererMode('3d');
                 setMode('explore');
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#35C7E8]/15 border border-[#35C7E8]/40 text-[#35C7E8] font-semibold flex items-center gap-1.5 hover:bg-[#35C7E8]/25 cursor-pointer"
+              className="px-3 min-h-[36px] rounded-lg bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-[#7DD3FC] font-semibold flex items-center gap-1.5 hover:bg-[#35C7E8]/20 cursor-pointer m-focus-ring"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Return to 3D Globe</span>
+              <span>3D Explore</span>
             </button>
             <button
               type="button"
               onClick={() => onNavigateToAnalyze('forecast')}
-              className="px-3 py-1.5 rounded-lg bg-white/5 border border-[#84A8CC]/20 text-[#F4F7FB] font-medium flex items-center gap-1 hover:bg-white/10 cursor-pointer"
+              className="px-3 min-h-[36px] rounded-lg bg-[#101F2E] border border-[#26394B] text-[#F3F6FA] font-medium flex items-center gap-1 hover:bg-[#172A3B] hover:border-[#38536A] cursor-pointer m-focus-ring"
             >
               <span>NWP Models</span>
               <ArrowUpRight className="w-3.5 h-3.5" />

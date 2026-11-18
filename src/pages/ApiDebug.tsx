@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Activity, Database, Server, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { RefreshCw, Database, Server, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { imdService } from '../services/imdService';
 import { MausamDataHealth } from '../components/common/MausamDataHealth';
 import { WeatherConditionTestBench } from '../components/dev/WeatherConditionTestBench';
+import {
+  PageHeader,
+  DataPanel,
+  SectionHeading,
+  MetricValue,
+} from '../components/ui/ObservatoryPrimitives';
 
 export const ApiDebugPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -77,129 +83,173 @@ export const ApiDebugPage: React.FC = () => {
   ];
 
   return (
-    <div id="mausam-data-sources-page" className="max-w-7xl mx-auto space-y-6 pb-12 text-[#F4F7FA]">
+    <div id="mausam-data-sources-page" className="max-w-7xl mx-auto space-y-5 pb-12 text-[#F3F6FA]">
       {/* Unified Observatory Header */}
-      <div className="bg-[#101B26] border border-white/12 p-5 sm:p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <Activity className="w-5 h-5 text-[#38BDF8]" />
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#F4F7FA]">
-              Data Sources, Provider Registry &amp; Telemetry Diagnostics
-            </h1>
-          </div>
-          <p className="text-[#93A4B8] text-xs sm:text-sm">
-            Independent per-provider availability, upstream latency telemetry, server cache hit ratios, and official endpoint verification.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={fetchStats}
-          disabled={loading}
-          className="min-h-[40px] px-4 py-2 bg-[#162331] hover:bg-[#1E2E40] border border-white/12 text-[#F4F7FA] rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 text-[#38BDF8] ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Server Stats</span>
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Provider Registry & Telemetry Diagnostics"
+        title="Data Sources & Upstream Diagnostics"
+        description="Independent per-provider availability, measured upstream latency, server cache ratios, and live gateway endpoint verification."
+        status={loading ? 'LOADING' : stats ? 'LIVE' : 'UNAVAILABLE'}
+        source="MAUSAM Multi-Source Telemetry Gateway"
+        actions={
+          <button
+            type="button"
+            onClick={fetchStats}
+            disabled={loading}
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-[#F3F6FA] rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+          >
+            <RefreshCw className={`w-4 h-4 text-[#35C7E8] ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Server Stats</span>
+          </button>
+        }
+      />
 
       {/* Independent Provider Store & System Health Console */}
       <MausamDataHealth onRefreshAll={fetchStats} />
 
       {/* Cache & Deduplication Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 tabular-nums">
-        <div className="bg-[#101B26] p-4 rounded-xl border border-white/12">
-          <div className="flex items-center justify-between text-[#93A4B8] mb-2">
-            <span className="text-xs font-mono font-semibold uppercase">Cache Hits</span>
-            <Database className="w-4 h-4 text-emerald-400" />
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+              Cache Hits
+            </span>
+            <Database className="w-4 h-4 text-[#22C7A0]" />
           </div>
-          <div className="text-2xl font-bold text-[#F4F7FA] font-mono">{stats?.hits ?? 0}</div>
-          <div className="text-xs text-[#93A4B8] mt-1">Server memory returns</div>
-        </div>
+          <MetricValue
+            label="Memory Returns"
+            value={typeof stats?.hits === 'number' ? stats.hits : null}
+            hint="Served from server cache"
+            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+          />
+        </DataPanel>
 
-        <div className="bg-[#101B26] p-4 rounded-xl border border-white/12">
-          <div className="flex items-center justify-between text-[#93A4B8] mb-2">
-            <span className="text-xs font-mono font-semibold uppercase">Cache Misses</span>
-            <Server className="w-4 h-4 text-[#38BDF8]" />
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+              Cache Misses
+            </span>
+            <Server className="w-4 h-4 text-[#35C7E8]" />
           </div>
-          <div className="text-2xl font-bold text-[#F4F7FA] font-mono">{stats?.misses ?? 0}</div>
-          <div className="text-xs text-[#93A4B8] mt-1">Upstream requests dispatched</div>
-        </div>
+          <MetricValue
+            label="Upstream Fetches"
+            value={typeof stats?.misses === 'number' ? stats.misses : null}
+            hint="Dispatched to providers"
+            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+          />
+        </DataPanel>
 
-        <div className="bg-[#101B26] p-4 rounded-xl border border-white/12">
-          <div className="flex items-center justify-between text-[#93A4B8] mb-2">
-            <span className="text-xs font-mono font-semibold uppercase">Deduplicated Calls</span>
-            <Clock className="w-4 h-4 text-violet-400" />
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+              Deduplicated Calls
+            </span>
+            <Clock className="w-4 h-4 text-[#35C7E8]" />
           </div>
-          <div className="text-2xl font-bold text-[#F4F7FA] font-mono">{stats?.dedupes ?? 0}</div>
-          <div className="text-xs text-[#93A4B8] mt-1">In-flight concurrent reuse</div>
-        </div>
+          <MetricValue
+            label="In-Flight Reuse"
+            value={typeof stats?.dedupes === 'number' ? stats.dedupes : null}
+            hint="Coalesced concurrent queries"
+            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+          />
+        </DataPanel>
 
-        <div className="bg-[#101B26] p-4 rounded-xl border border-white/12">
-          <div className="flex items-center justify-between text-[#93A4B8] mb-2">
-            <span className="text-xs font-mono font-semibold uppercase">Stale Serves</span>
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+              Stale Serves
+            </span>
+            <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
           </div>
-          <div className="text-2xl font-bold text-[#F4F7FA] font-mono">{stats?.staleServes ?? 0}</div>
-          <div className="text-xs text-[#93A4B8] mt-1">Cached serve during upstream delay</div>
-        </div>
+          <MetricValue
+            label="Graceful Degrades"
+            value={typeof stats?.staleServes === 'number' ? stats.staleServes : null}
+            hint="Cached fallback on upstream delay"
+            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+          />
+        </DataPanel>
       </div>
 
       {/* Active Cache Entries */}
       {stats?.entries && stats.entries.length > 0 && (
-        <div className="bg-[#101B26] rounded-2xl border border-white/12 overflow-hidden tabular-nums">
-          <div className="p-4 bg-[#162331] border-b border-white/10 font-mono text-sm font-semibold text-[#F4F7FA] flex justify-between items-center">
+        <DataPanel className="p-0 overflow-hidden tabular-nums">
+          <div className="p-4 bg-[#08131F] border-b border-[#26394B] font-mono text-sm font-semibold text-[#F3F6FA] flex justify-between items-center">
             <span>In-Memory Cache Registry ({stats.entries.length} entries)</span>
-            <span className="text-xs text-[#93A4B8] font-normal">TTL: 60s – 300s</span>
+            <span className="text-xs text-[#8295A8] font-normal">TTL: 60s – 300s</span>
           </div>
-          <div className="divide-y divide-white/10 max-h-60 overflow-y-auto">
+          <div className="divide-y divide-[#26394B] max-h-60 overflow-y-auto">
             {stats.entries.map((entry: any, i: number) => (
-              <div key={i} className="p-3 text-xs font-mono flex items-center justify-between hover:bg-[#162331]/60 gap-3">
-                <span className="font-semibold text-[#CBD5E1] truncate">{entry.key}</span>
-                <div className="flex items-center gap-4 text-[#93A4B8] shrink-0">
+              <div
+                key={i}
+                className="p-3.5 text-xs font-mono flex items-center justify-between hover:bg-[#101F2E]/70 gap-3"
+              >
+                <span className="font-semibold text-[#B5C3D1] truncate">{entry.key}</span>
+                <div className="flex items-center gap-4 text-[#8295A8] shrink-0">
                   <span>Hits: {entry.hitCount}</span>
-                  <span className={entry.isExpired ? 'text-amber-300 font-bold' : 'text-emerald-300 font-bold'}>
+                  <span
+                    className={
+                      entry.isExpired
+                        ? 'text-[#FCD34D] font-bold'
+                        : 'text-[#6EE7B7] font-bold'
+                    }
+                  >
                     {entry.isExpired ? 'STALE' : `Expires in ${entry.expiresInSec}s`}
                   </span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </DataPanel>
       )}
 
       {/* Interactive Weather Condition & Animation System Test Bench */}
       <WeatherConditionTestBench />
 
       {/* Interactive Endpoint Validation Runner */}
-      <div className="bg-[#101B26] rounded-2xl border border-white/12 overflow-hidden tabular-nums">
-        <div className="p-4 bg-[#162331] border-b border-white/10 font-mono text-sm font-semibold text-[#F4F7FA] flex justify-between items-center gap-2">
-          <span>Gateway &amp; IMD Endpoint Validation Suite</span>
-          <span className="text-xs text-[#93A4B8] font-normal">On-demand upstream latency probes</span>
+      <DataPanel className="p-0 overflow-hidden tabular-nums">
+        <div className="p-4 sm:p-5 bg-[#08131F] border-b border-[#26394B]">
+          <SectionHeading
+            title="Gateway & IMD Endpoint Validation Suite"
+            subtitle="On-demand upstream latency probes and status inspection"
+            icon={<Server className="w-4 h-4" />}
+            className="border-b-0 pb-0"
+          />
         </div>
 
-        <div className="divide-y divide-white/10">
+        <div className="divide-y divide-[#26394B]">
           {testEndpoints.map((ep, idx) => {
             const result = testResults[ep.name];
             const isTesting = testingEndpoint === ep.name;
 
             return (
-              <div key={idx} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-[#162331]/50 transition-colors">
+              <div
+                key={idx}
+                className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-[#101F2E]/60 transition-colors"
+              >
                 <div className="space-y-1 min-w-0">
-                  <div className="font-semibold text-sm text-[#F4F7FA] flex flex-wrap items-center gap-2">
+                  <div className="font-semibold text-sm text-[#F3F6FA] flex flex-wrap items-center gap-2">
                     <span>{ep.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-[#0B1219] border border-white/10 text-[#38BDF8] rounded font-mono">
+                    <span className="text-xs px-2 py-0.5 bg-[#08131F] border border-[#26394B] text-[#35C7E8] rounded font-mono">
                       {ep.path}
                     </span>
                   </div>
                   {result && (
                     <div className="text-xs font-mono flex flex-wrap items-center gap-3 mt-1">
-                      <span className={`inline-flex items-center gap-1 font-semibold ${result.ok ? 'text-emerald-300' : 'text-rose-300'}`}>
-                        {result.ok ? <CheckCircle className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                      <span
+                        className={`inline-flex items-center gap-1 font-semibold ${
+                          result.ok ? 'text-[#6EE7B7]' : 'text-[#FCA5A5]'
+                        }`}
+                      >
+                        {result.ok ? (
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        ) : (
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                        )}
                         {result.status.toUpperCase()}
                       </span>
-                      <span className="text-[#93A4B8]">Latency: {result.durationMs} ms</span>
+                      <span className="text-[#8295A8]">Latency: {result.durationMs} ms</span>
                       {result.error && (
-                        <span className="text-rose-300 font-normal truncate max-w-md">
+                        <span className="text-[#FCA5A5] font-normal truncate max-w-md">
                           ({result.error.code || 'ERR'}: {result.error.message})
                         </span>
                       )}
@@ -211,16 +261,16 @@ export const ApiDebugPage: React.FC = () => {
                   type="button"
                   onClick={() => runEndpointTest(ep.name, ep.fn)}
                   disabled={isTesting}
-                  className="min-h-[38px] px-3.5 py-1.5 bg-[#162331] hover:bg-[#1E2E40] border border-white/12 text-[#F4F7FA] rounded-lg text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0 cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[40px] px-3.5 py-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-[#F3F6FA] rounded-lg text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0 cursor-pointer m-focus-ring"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 text-[#38BDF8] ${isTesting ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-[#35C7E8] ${isTesting ? 'animate-spin' : ''}`} />
                   <span>{isTesting ? 'Testing…' : 'Execute Probe'}</span>
                 </button>
               </div>
             );
           })}
         </div>
-      </div>
+      </DataPanel>
     </div>
   );
 };

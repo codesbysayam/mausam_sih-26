@@ -610,7 +610,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
 
       // Update wind flow system with active hour forecast or current wind
       const hourlyItem = bundle.hourly?.[tIdx];
-      const windSpeed = hourlyItem?.windSpeed ?? bundle.current.windSpeed;
+      const windSpeed = hourlyItem?.windSpeed ?? bundle.current.windSpeed ?? 0;
       const windDir = hourlyItem?.windDirection ?? bundle.current.windDirectionDeg ?? bundle.current.windDirection;
       windParticles.updateLiveWindFocus(loc.lat, loc.lng, windSpeed, windDir);
 

@@ -30,17 +30,17 @@ export const FirstVisitGuide: React.FC = () => {
         <div className="fixed top-[68px] left-1/2 -translate-x-1/2 z-30 w-[min(460px,calc(100vw-24px))] spatial-hud-surface-elevated rounded-xl px-4 py-3 pointer-events-auto">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[#35C7E8]">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#35C7E8] tabular-nums">
                 Guided Tour · Step {tourStepIndex + 1}/{activeTour.steps.length}
               </div>
-              <h3 className="text-sm font-bold text-white mt-0.5">{activeStep.title}</h3>
-              <p className="text-xs text-[#B8C7D9] mt-1 leading-relaxed">{activeStep.summary}</p>
+              <h3 className="text-sm font-bold text-[#F3F6FA] mt-0.5">{activeStep.title}</h3>
+              <p className="text-xs text-[#B5C3D1] mt-1 leading-relaxed">{activeStep.summary}</p>
             </div>
             <button
               type="button"
               onClick={stopTour}
               aria-label="Exit guided tour"
-              className="p-1 rounded text-[#7F93A8] hover:text-white cursor-pointer shrink-0"
+              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer shrink-0 spatial-focus-ring"
             >
               <X className="w-4 h-4" />
             </button>
@@ -49,14 +49,14 @@ export const FirstVisitGuide: React.FC = () => {
             <button
               type="button"
               onClick={stopTour}
-              className="px-2.5 py-1 rounded-lg text-xs text-[#7F93A8] hover:text-white cursor-pointer"
+              className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg text-xs text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer spatial-focus-ring"
             >
               Exit Tour
             </button>
             <button
               type="button"
               onClick={nextTourStep}
-              className="px-3 py-1 rounded-lg bg-[#35C7E8] text-[#05101C] text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              className="px-3.5 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[#35C7E8] text-[#07111D] text-xs font-semibold flex items-center gap-1 cursor-pointer spatial-focus-ring"
             >
               <span>{tourStepIndex + 1 >= activeTour.steps.length ? 'Finish' : 'Next Sector'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -70,14 +70,14 @@ export const FirstVisitGuide: React.FC = () => {
         <div
           role="dialog"
           aria-label="Spatial Atmosphere Controls Guide"
-          className="fixed bottom-[94px] left-1/2 -translate-x-1/2 z-30 w-[min(560px,calc(100vw-20px))] spatial-hud-surface-elevated rounded-2xl p-4 pointer-events-auto"
+          className="fixed bottom-[102px] left-1/2 -translate-x-1/2 z-30 w-[min(560px,calc(100vw-20px))] spatial-hud-surface-elevated rounded-2xl p-4 pointer-events-auto"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[11px] font-mono uppercase tracking-wider text-[#35C7E8]">
                 Interactive 3D Atmospheric Environment
               </div>
-              <h2 className="text-base font-bold text-white mt-0.5">
+              <h2 className="text-base font-bold text-[#F3F6FA] mt-0.5">
                 Explore India&apos;s live atmosphere in space and time
               </h2>
             </div>
@@ -85,39 +85,39 @@ export const FirstVisitGuide: React.FC = () => {
               type="button"
               onClick={dismissControlsGuide}
               aria-label="Dismiss guide"
-              className="p-1 rounded-lg text-[#7F93A8] hover:text-white hover:bg-white/5 cursor-pointer"
+              className="min-w-[40px] min-h-[40px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 text-xs">
-            <div className="bg-[#07111D]/70 rounded-lg p-2.5 border border-[#84A8CC]/12 flex items-start gap-2">
+            <div className="bg-[#08131F] rounded-lg p-2.5 border border-[#26394B] flex items-start gap-2">
               <Compass className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white">Orbit &amp; Zoom</div>
-                <div className="text-[11px] text-[#7F93A8]">Drag or scroll / pinch to fly smoothly over regions.</div>
+                <div className="font-semibold text-[#F3F6FA]">Orbit &amp; Zoom</div>
+                <div className="text-[11px] text-[#8295A8]">Drag or scroll / pinch to fly smoothly over regions.</div>
               </div>
             </div>
-            <div className="bg-[#07111D]/70 rounded-lg p-2.5 border border-[#84A8CC]/12 flex items-start gap-2">
-              <MousePointerClick className="w-4 h-4 text-[#36C6B0] shrink-0 mt-0.5" />
+            <div className="bg-[#08131F] rounded-lg p-2.5 border border-[#26394B] flex items-start gap-2">
+              <MousePointerClick className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white">Inspect Stations</div>
-                <div className="text-[11px] text-[#7F93A8]">Click any state beacon or Doppler radar dome.</div>
+                <div className="font-semibold text-[#F3F6FA]">Inspect Stations</div>
+                <div className="text-[11px] text-[#8295A8]">Click any state beacon or Doppler radar dome.</div>
               </div>
             </div>
-            <div className="bg-[#07111D]/70 rounded-lg p-2.5 border border-[#84A8CC]/12 flex items-start gap-2">
-              <Keyboard className="w-4 h-4 text-[#E8B64D] shrink-0 mt-0.5" />
+            <div className="bg-[#08131F] rounded-lg p-2.5 border border-[#26394B] flex items-start gap-2">
+              <Keyboard className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white">Keyboard Keys</div>
-                <div className="text-[11px] text-[#7F93A8]">WASD / Arrows · +/- zoom · R to recenter India.</div>
+                <div className="font-semibold text-[#F3F6FA]">Keyboard Keys</div>
+                <div className="text-[11px] text-[#8295A8]">WASD / Arrows · +/- zoom · R to recenter India.</div>
               </div>
             </div>
           </div>
 
           {/* Quick Guided Tours */}
-          <div className="mt-3 pt-2.5 border-t border-[#84A8CC]/15">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-[#7F93A8] mb-1.5">
+          <div className="mt-3 pt-2.5 border-t border-[#26394B]">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-[#8295A8] mb-1.5">
               Guided Tours
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -126,7 +126,7 @@ export const FirstVisitGuide: React.FC = () => {
                   key={tour.id}
                   type="button"
                   onClick={() => startTour(tour.id)}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#07111D]/80 border border-[#84A8CC]/20 hover:border-[#35C7E8]/50 text-[11px] text-[#F4F7FB] transition-colors cursor-pointer"
+                  className="px-3 min-h-[38px] sm:min-h-[32px] rounded-lg bg-[#08131F] border border-[#26394B] hover:border-[#35C7E8]/50 text-[11px] text-[#F3F6FA] transition-colors cursor-pointer spatial-focus-ring"
                 >
                   {tour.label}
                 </button>
@@ -141,14 +141,14 @@ export const FirstVisitGuide: React.FC = () => {
                 dismissControlsGuide();
                 setMode('classic');
               }}
-              className="text-xs text-[#7F93A8] hover:text-white underline cursor-pointer"
+              className="text-xs text-[#8295A8] hover:text-[#F3F6FA] underline cursor-pointer min-h-[40px] sm:min-h-[32px]"
             >
               Switch to Classic Accessible View
             </button>
             <button
               type="button"
               onClick={dismissControlsGuide}
-              className="px-4 py-1.5 rounded-lg bg-[#35C7E8] text-[#05101C] text-xs font-bold hover:opacity-95 cursor-pointer"
+              className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#35C7E8] text-[#07111D] text-xs font-bold hover:opacity-95 cursor-pointer spatial-focus-ring"
             >
               Start Exploring
             </button>

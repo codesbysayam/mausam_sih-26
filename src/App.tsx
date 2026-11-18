@@ -4,7 +4,6 @@ import type { CyclonePayload } from './types/cyclone';
 import { locationService } from './services/locationService';
 import { weatherService, WeatherDataBundle } from './services/weatherService';
 import { cycloneService } from './services/cycloneService';
-import { INITIAL_WEATHER, INITIAL_ALERTS, HOURLY_FORECAST, DAILY_FORECAST } from './data/weatherData';
 import { MainNavTab } from './components/layout/MainNavigation';
 import { FooterNavigation, FooterView } from './components/layout/FooterNavigation';
 import { StateWeatherData } from './components/map/IndiaWeatherMap';
@@ -23,7 +22,7 @@ import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
 import { ClassicWorkspace } from './components/experience/ClassicWorkspace';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useAlertAudio } from './hooks/useAlertAudio';
-import { Volume2, AlertTriangle } from 'lucide-react';
+import { Volume2, AlertTriangle, X } from 'lucide-react';
 import './styles/mausam.css';
 
 export type AppView = MainNavTab | FooterView | 'not-found';
@@ -123,15 +122,9 @@ export default function App() {
   const setIsLocationCenterOpen = (open: boolean) => (open ? openLocationModal() : closeLocationModal());
   const setIsPrivacyModalOpen = (open: boolean) => (open ? openPrivacyModal() : closePrivacyModal());
 
-  const [weatherBundle, setWeatherBundle] = useState<WeatherDataBundle>({
-    current: INITIAL_WEATHER,
-    hourly: HOURLY_FORECAST,
-    daily: DAILY_FORECAST,
-    trends: [],
-    alerts: INITIAL_ALERTS,
-    lastFetchedAt: new Date(),
-    isLive: true,
-  });
+  const [weatherBundle, setWeatherBundle] = useState<WeatherDataBundle>(() =>
+    weatherService.createInitialLoadingBundle(selectedLocation)
+  );
 
   const [cyclonePayload, setCyclonePayload] = useState<CyclonePayload | null>(() =>
     cycloneService.getCachedPayload()
@@ -237,9 +230,21 @@ export default function App() {
     setIsLoadingWeather(true);
     try {
       const bundle = await weatherService.getWeatherData(location, forceRefresh);
-      setWeatherBundle(bundle);
-    } catch (err) {
-      console.warn('Weather sync error, using cached telemetry:', err);
+      setWeatherBundle({
+        ...bundle,
+        hourly: Array.isArray(bundle.hourly) ? bundle.hourly : [],
+        daily: Array.isArray(bundle.daily) ? bundle.daily : [],
+        trends: Array.isArray(bundle.trends) ? bundle.trends : [],
+        alerts: Array.isArray(bundle.alerts) ? bundle.alerts : [],
+      });
+      } catch (err) {
+      console.warn('Weather sync error, marking telemetry unavailable:', err);
+      setWeatherBundle(
+        weatherService.createUnavailableBundle(
+          location,
+          err instanceof Error ? err.message : 'Unable to reach meteorological telemetry service.'
+        )
+      );
     } finally {
       setIsLoadingWeather(false);
     }
@@ -269,22 +274,22 @@ export default function App() {
   const currentStationForAi: WeatherStation = {
     id: selectedLocation.id,
     name: selectedLocation.displayName,
-    code: selectedLocation.imdStation || 'AWS-BBI',
+    code: selectedLocation.imdStation || 'AWS-STATION',
     state: selectedLocation.state,
     district: selectedLocation.district,
     lat: selectedLocation.lat,
     lng: selectedLocation.lng,
-    elevation: selectedLocation.elevation || '45m ASL',
+    elevation: selectedLocation.elevation || '—',
     status: 'active',
-    pm25: weatherBundle.current.aqiPm25 || 42,
-    temp: weatherBundle.current.temp,
+    pm25: weatherBundle.current.aqiPm25 ?? null,
+    temp: weatherBundle.current.temp ?? null,
     condition: weatherBundle.current.condition,
     weatherType: weatherBundle.current.weatherType,
     isCoastal: selectedLocation.coastalStatus === 'coastal',
   };
 
   return (
-    <div className="mausam-app min-h-screen bg-[#07111D] text-[#F4F7FA] flex flex-col font-sans w-full overflow-x-hidden">
+    <div className="mausam-app min-h-screen bg-[#07111D] text-[#F3F6FA] flex flex-col font-sans w-full overflow-x-hidden">
       {/* Network Offline / Degraded Banner */}
       <NetworkStatusBanner
         isOnline={isOnline}
@@ -307,7 +312,7 @@ export default function App() {
         isLocating={isLocating}
         onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
         onOpenAskMausam={() => setIsAskMausamOpen(true)}
-        alerts={weatherBundle.alerts}
+        alerts={weatherBundle.alerts || []}
         onSwitchMode={handleSwitchMode}
       />
 
@@ -376,19 +381,19 @@ export default function App() {
 
       {/* Official Institutional Footer (Rendered in Analyze & Classic modes so 3D Explore stage remains uncropped) */}
       {mode !== 'explore' && (
-        <footer className="w-full bg-[#0A1624] border-t border-[#84A8CC]/15 py-8 text-xs text-[#8EA3B8]">
+        <footer className="w-full bg-[#08131F] border-t border-[#26394B] py-8 text-xs text-[#8295A8]">
           <div className="max-w-[1560px] mx-auto px-4 lg:px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-white/10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-[#26394B]">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[#F4F7FA] font-bold text-sm">
+                  <span className="text-[#F3F6FA] font-bold text-sm">
                     {t('mausamPortal', 'MAUSAM PORTAL')}
                   </span>
                   <span className="text-[#35C7E8] text-[10px] font-mono font-semibold uppercase tracking-wider">
                     India
                   </span>
                 </div>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-[11px] leading-relaxed text-[#8295A8]">
                   {t(
                     'footerTagline',
                     'National Atmospheric Intelligence & Citizen Weather Platform. Calibrated with Doppler weather radars, Automatic Weather Stations (AWS), and satellite telemetry.'
@@ -397,15 +402,15 @@ export default function App() {
               </div>
 
               <div>
-                <span className="font-bold text-white uppercase text-[11px] block mb-2">
+                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
                   {t('dataProvidersTitle', 'Data Providers & Networks')}
                 </span>
-                <ul className="space-y-1 text-[11px]">
+                <ul className="space-y-0.5 text-[11px]">
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('dwr-all-india-20260826')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • {t('imdCredit', 'India Meteorological Department (IMD)')}
                     </button>
@@ -414,7 +419,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('ncmrwf-unified-model-nwp')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • {t('ncmrwfCredit', 'NCMRWF Global & Regional Models')}
                     </button>
@@ -423,7 +428,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('cpcb-air-quality-annual-2026')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • {t('cpcbCredit', 'Central Pollution Control Board (CPCB)')}
                     </button>
@@ -432,7 +437,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('isro-mosdac-satellite-meteorology')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • {t('isroCredit', 'ISRO MOSDAC Earth Observation')}
                     </button>
@@ -441,15 +446,15 @@ export default function App() {
               </div>
 
               <div>
-                <span className="font-bold text-white uppercase text-[11px] block mb-2">
+                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
                   {t('citizenServicesTitle', 'Citizen Meteorological Services')}
                 </span>
-                <ul className="space-y-1 text-[11px]">
+                <ul className="space-y-0.5 text-[11px]">
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('doppler-radar-nowcasting-techniques')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • Nowcasting &amp; Thunderstorm Warnings
                     </button>
@@ -458,7 +463,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('agromet-advisory-gkms-odisha-india')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • Gramin Krishi Mausam Sewa (Agromet)
                     </button>
@@ -467,7 +472,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('cpcb-air-quality-annual-2026')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • National Air Quality Index (NAQI)
                     </button>
@@ -476,7 +481,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('aero-allergen-pollen-surveillance')}
-                      className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block"
+                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
                       • Aero-Allergen Pollen Surveillance
                     </button>
@@ -485,14 +490,14 @@ export default function App() {
               </div>
 
               <div>
-                <span className="font-bold text-white uppercase text-[11px] block mb-2">
+                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
                   {t('standardProtocolsTitle', 'Standard Protocols')}
                 </span>
                 <p className="text-[11px] leading-relaxed">
                   <button
                     type="button"
                     onClick={() => handleOpenFooterArticle('wmo-instrument-calibration-ndma-standards')}
-                    className="text-left text-[#B2BDCD] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block leading-relaxed"
+                    className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block leading-relaxed"
                   >
                     {t(
                       'footerStandardNotice',
@@ -561,11 +566,11 @@ export default function App() {
           id="global-severe-alert-surge-toast"
           role="alert"
           aria-live="assertive"
-          className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[#1A0D10] border border-[#E0525B]/60 text-white p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
+          className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[#101F2E] border border-[#EF4444]/55 text-[#F3F6FA] p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-[#FCA5A5]">
-              <AlertTriangle className="w-4 h-4 text-[#E0525B]" />
+              <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
               <span className="text-xs font-semibold uppercase tracking-wider">
                 Severe Warning Surge
               </span>
@@ -573,22 +578,22 @@ export default function App() {
             <button
               type="button"
               onClick={() => setGlobalAlertSurge(null)}
-              className="text-[#8EA3B8] hover:text-white text-xs cursor-pointer p-1"
+              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#0B1927] cursor-pointer"
               aria-label="Dismiss alert toast"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-xs text-[#E3F2FD] leading-relaxed">
+          <p className="text-xs text-[#B5C3D1] leading-relaxed">
             Active severe weather alerts increased from{' '}
-            <span className="font-bold text-white">{globalAlertSurge.oldCount}</span> to{' '}
-            <span className="font-bold text-[#FF8A80]">{globalAlertSurge.newCount}</span> for your sector.
+            <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">{globalAlertSurge.oldCount}</span> to{' '}
+            <span className="font-mono font-bold text-[#FCA5A5] tabular-nums">{globalAlertSurge.newCount}</span> for your sector.
           </p>
 
-          <div className="flex items-center justify-between pt-1 border-t border-[#3A1417]">
-            <div className="flex items-center gap-1.5 text-[11px] text-[#8EA3B8]">
-              <Volume2 className="w-3.5 h-3.5 text-[#FF8A80]" />
+          <div className="flex items-center justify-between pt-1.5 border-t border-[#26394B]">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8295A8]">
+              <Volume2 className="w-3.5 h-3.5 text-[#FCA5A5]" />
               <span>{isAudioAlertEnabled ? 'Emergency alert audio played' : 'Audio alert muted'}</span>
             </div>
             <button
@@ -597,7 +602,7 @@ export default function App() {
                 setGlobalAlertSurge(null);
                 navigateToTab('warnings');
               }}
-              className="text-xs font-bold text-[#35C7E8] hover:underline cursor-pointer"
+              className="text-xs font-semibold text-[#35C7E8] hover:underline cursor-pointer min-h-[36px] px-1"
             >
               View Warnings →
             </button>

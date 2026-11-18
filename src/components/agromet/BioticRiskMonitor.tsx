@@ -1,19 +1,19 @@
 import React from 'react';
 import {
   Bug,
-  Activity,
-  ShieldAlert,
   AlertTriangle,
-  CheckCircle2,
   Leaf,
   FlaskConical,
   Target,
   Thermometer,
-  Gauge,
-  Droplets,
 } from 'lucide-react';
 import { WeatherDataBundle } from '../../services/weatherService';
 import { CropType, PhenologicalStage, getCropPhenologyProfile } from '../../services/agronomicEngine';
+import {
+  DataPanel,
+  SectionHeading,
+  SourceStatus,
+} from '../ui/ObservatoryPrimitives';
 
 interface BioticRiskMonitorProps {
   weather?: WeatherDataBundle;
@@ -29,119 +29,112 @@ export const BioticRiskMonitor: React.FC<BioticRiskMonitorProps> = ({
   district,
 }) => {
   const current = weather?.current;
-  const temp = current?.temp ?? 30;
-  const humidity = current?.humidity ?? 72;
+  const temp = typeof current?.temp === 'number' ? current.temp : null;
+  const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
+  const hasTelemetry = temp !== null && humidity !== null;
+
   const profile = getCropPhenologyProfile(selectedCrop, selectedStage, weather);
   const biotic = profile.pestDiseaseWatch;
 
-  // Disease Environment Level
-  const isHighRisk = humidity > 80 && temp >= 22 && temp <= 32;
-  const isModRisk = humidity > 68;
-  const diseaseEnvLevel = isHighRisk ? 'ELEVATED' : isModRisk ? 'MODERATE' : 'LOW';
-  const diseaseEnvBg = isHighRisk
-    ? 'bg-[#EF4444]/15 border-[#EF4444]/30 text-[#EF4444]'
+  const isHighRisk = hasTelemetry && humidity > 80 && temp >= 22 && temp <= 32;
+  const isModRisk = hasTelemetry && humidity > 68;
+  const diseaseEnvLevel = !hasTelemetry
+    ? 'UNAVAILABLE'
+    : isHighRisk
+    ? 'ELEVATED'
     : isModRisk
-    ? 'bg-[#F59E0B]/15 border-[#F59E0B]/30 text-[#F59E0B]'
-    : 'bg-[#10B981]/15 border-[#10B981]/30 text-[#10B981]';
+    ? 'MODERATE'
+    : 'LOW';
+
+  const diseaseEnvBadge = !hasTelemetry
+    ? 'bg-[#101F2E] border-[#26394B] text-[#8295A8]'
+    : isHighRisk
+    ? 'bg-[#EF4444]/12 border-[#EF4444]/35 text-[#FCA5A5]'
+    : isModRisk
+    ? 'bg-[#F59E0B]/12 border-[#F59E0B]/35 text-[#FCD34D]'
+    : 'bg-[#22C7A0]/12 border-[#22C7A0]/35 text-[#6EE7B7]';
 
   return (
-    <section
-      id="agromet-biotic-risk-monitor"
-      className="rounded-2xl bg-[#090D16] border border-[#1E293B] shadow-2xl p-6 sm:p-7 space-y-6"
-    >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E293B]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Bug className="w-4 h-4 text-[#F97316]" />
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
-              PEST &amp; DISEASE INCUBATION RADAR (BIOTIC RISK)
-            </h2>
-          </div>
-          <p className="text-xs font-mono text-[#94A3B8]">
-            Microclimatic pathogen modeling &amp; Integrated Pest Management (IPM) protocols for {selectedCrop}
-          </p>
-        </div>
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono text-xs font-bold ${diseaseEnvBg}`}>
-          <Activity className="w-4 h-4" />
-          <span>DISEASE ENVIRONMENT: {diseaseEnvLevel}</span>
-        </div>
-      </div>
+    <DataPanel id="agromet-biotic-risk-monitor" className="space-y-4">
+      <SectionHeading
+        title="Pest & Disease Incubation Radar (Biotic Risk)"
+        subtitle={`Pathogen microclimate thresholds & ICAR IPM protocols for ${selectedCrop} in ${district}`}
+        icon={<Bug className="w-4 h-4" />}
+        badge={<SourceStatus status={hasTelemetry ? 'LIVE' : 'REFERENCE'} labelOverride={hasTelemetry ? 'LIVE TELEMETRY' : 'IPM REFERENCE'} />}
+        action={
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-md border font-mono text-[11px] font-semibold ${diseaseEnvBadge}`}>
+            DISEASE ENV: {diseaseEnvLevel}
+          </span>
+        }
+      />
 
-      {/* Target Pest / Disease Deep Dive Card */}
-      <div className="rounded-xl bg-[#0F172A] border border-[#1E293B] p-5 space-y-5">
-        {/* Title row */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
+      <div className="m-panel-inset p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#26394B] pb-3.5">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono font-bold text-[#38BDF8] uppercase tracking-wider block">
-              PRIMARY TARGET ORGANISM &amp; THREAT VECTOR
+            <span className="text-[10px] font-mono font-semibold text-[#35C7E8] uppercase tracking-wider block">
+              Primary Target Organism &amp; Threat Vector
             </span>
-            <h3 className="text-base sm:text-lg font-bold text-white">
-              {biotic.targetOrganism}
-            </h3>
+            <h3 className="text-base font-bold text-[#F3F6FA]">{biotic.targetOrganism}</h3>
           </div>
-          <div className="flex items-center gap-3 text-xs font-mono text-[#CBD5E1] bg-[#090D16] px-3 py-2 rounded-lg border border-[#1E293B]">
-            <span>RH: <strong className="text-[#38BDF8]">{humidity}%</strong></span>
-            <span>•</span>
-            <span>Temp: <strong className="text-[#F59E0B]">{temp}°C</strong></span>
-            <span>•</span>
-            <span>Dew Proxy: <strong className="text-[#10B981]">{humidity > 75 ? 'Active' : 'Low'}</strong></span>
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono tabular-nums text-[#B5C3D1] bg-[#07111D] px-3 py-2 rounded-lg border border-[#26394B]">
+            <span>
+              RH: <strong className="text-[#35C7E8]">{humidity !== null ? `${Math.round(humidity)}%` : '—'}</strong>
+            </span>
+            <span className="text-[#38536A]">·</span>
+            <span>
+              Temp: <strong className="text-[#F59E0B]">{temp !== null ? `${Math.round(temp * 10) / 10}°C` : '—'}</strong>
+            </span>
+            <span className="text-[#38536A]">·</span>
+            <span>
+              Dew Proxy:{' '}
+              <strong className={hasTelemetry ? 'text-[#22C7A0]' : 'text-[#8295A8]'}>
+                {!hasTelemetry ? '—' : humidity > 75 ? 'Active' : 'Low'}
+              </strong>
+            </span>
           </div>
         </div>
 
-        {/* 4 Protocol Blocks */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Block 1: Favorable Weather Trigger */}
-          <div className="bg-[#090D16] border border-[#1E293B] rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F59E0B] uppercase">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div className="bg-[#07111D] border border-[#26394B] rounded-xl p-3.5 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#F59E0B] uppercase">
               <Thermometer className="w-3.5 h-3.5" />
               <span>Incubation Trigger</span>
             </div>
-            <p className="text-xs text-[#CBD5E1] leading-relaxed">
-              {biotic.favorableConditions}
-            </p>
+            <p className="text-xs text-[#B5C3D1] leading-relaxed">{biotic.favorableConditions}</p>
           </div>
 
-          {/* Block 2: ETL Threshold */}
-          <div className="bg-[#090D16] border border-[#1E293B] rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#38BDF8] uppercase">
+          <div className="bg-[#07111D] border border-[#26394B] rounded-xl p-3.5 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#35C7E8] uppercase">
               <Target className="w-3.5 h-3.5" />
               <span>Economic Threshold (ETL)</span>
             </div>
-            <p className="text-xs text-[#CBD5E1] leading-relaxed">
-              {biotic.etlThreshold}
-            </p>
+            <p className="text-xs text-[#B5C3D1] leading-relaxed">{biotic.etlThreshold}</p>
           </div>
 
-          {/* Block 3: Bio-Control / Cultural */}
-          <div className="bg-[#090D16] border border-[#1E293B] rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#10B981] uppercase">
+          <div className="bg-[#07111D] border border-[#26394B] rounded-xl p-3.5 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#22C7A0] uppercase">
               <Leaf className="w-3.5 h-3.5" />
               <span>IPM Bio-Control</span>
             </div>
-            <p className="text-xs text-[#CBD5E1] leading-relaxed">
-              {biotic.ipmBioControl}
-            </p>
+            <p className="text-xs text-[#B5C3D1] leading-relaxed">{biotic.ipmBioControl}</p>
           </div>
 
-          {/* Block 4: Chemical Intervention */}
-          <div className="bg-[#090D16] border border-[#1E293B] rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#EF4444] uppercase">
+          <div className="bg-[#07111D] border border-[#26394B] rounded-xl p-3.5 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#EF4444] uppercase">
               <FlaskConical className="w-3.5 h-3.5" />
               <span>Chemical Intervention</span>
             </div>
-            <p className="text-xs text-[#CBD5E1] leading-relaxed">
-              {biotic.chemicalIntervention}
-            </p>
+            <p className="text-xs text-[#B5C3D1] leading-relaxed">{biotic.chemicalIntervention}</p>
           </div>
         </div>
 
-        {/* Note on Data Rigor */}
-        <div className="text-[10px] font-mono text-[#64748B] flex items-center gap-2 pt-1">
-          <AlertTriangle className="w-3 h-3 text-[#F59E0B]" />
-          <span>Notice: Indicators represent meteorological risk favorability for spore incubation, not a confirmed outbreak in your specific plot. Always verify through field scouting.</span>
+        <div className="text-[11px] font-mono text-[#8295A8] flex items-start gap-2 pt-1">
+          <AlertTriangle className="w-3.5 h-3.5 text-[#F59E0B] shrink-0 mt-0.5" />
+          <span>
+            Indicators represent meteorological risk favorability for spore incubation, not a confirmed outbreak. Verify via field scouting before chemical application.
+          </span>
         </div>
       </div>
-    </section>
+    </DataPanel>
   );
 };

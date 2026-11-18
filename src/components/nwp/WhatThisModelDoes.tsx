@@ -1,14 +1,13 @@
 import React from 'react';
-import { NWPModelId, NWP_MODEL_DEFINITIONS } from '../../data/nwpModels';
-import { Info, Check, ShieldAlert, Sparkles, Layers } from 'lucide-react';
+import { Info, Check, ShieldAlert, Sparkles } from 'lucide-react';
+import { NWPModelId } from '../../data/nwpModels';
+import { DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface WhatThisModelDoesProps {
   modelId: NWPModelId;
 }
 
 export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId }) => {
-  const def = NWP_MODEL_DEFINITIONS[modelId];
-
   const modelContent = {
     WRF: {
       explanation:
@@ -29,7 +28,7 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
       ],
       limitations: [
         'Limited to regional Indian domain',
-        'Higher computational sensitivity to initial conditions',
+        'Higher sensitivity to initial conditions',
         'Forecast skill degrades significantly beyond 72 hours',
         'Requires authenticated IMD institutional gateway access',
       ],
@@ -54,13 +53,13 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
       limitations: [
         'Coarser spatial grid (~25 km) cannot resolve micro-scale storms',
         'Underpredicts hyper-localized flash flooding',
-        'Smoothed ensemble mean may dampen peak extreme values',
-        'Requires interpreting spread rather than single deterministic point',
+        'Smoothed ensemble mean may dampen peak extremes',
+        'Requires interpreting spread rather than a single deterministic line',
       ],
     },
     ECMWF: {
       explanation:
-        'ECMWF IFS (Integrated Forecasting System) is the global gold standard for medium-range weather prediction, ingesting millions of worldwide satellite observations through continuous 4D-Var data assimilation.',
+        'ECMWF IFS (Integrated Forecasting System) is a leading medium-range global weather model ingesting worldwide satellite observations through continuous 4D-Var data assimilation.',
       predicts: [
         'Global Synoptic Planetary Wave Patterns',
         'Deep Low-Pressure & Monsoon Trough Paths',
@@ -72,88 +71,76 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
       bestFor: [
         'Global medium-range forecasts (0–15 Days)',
         'Synoptic storm tracking & pressure field evolution',
-        'Unrivaled 500 hPa planetary wave accuracy',
+        '500 hPa planetary wave accuracy',
         'Sub-seasonal atmospheric phase transitions',
       ],
       limitations: [
-        'Hydrostatic formulations at global scale dampen micro-updrafts',
+        'Global scale dampens isolated convective updrafts',
         'Localized urban microclimates are generalized',
-        'Full high-resolution operational dataset is restricted by open data tiers',
+        'Full raw operational tiers require institutional access',
         'Updates in 12-hour primary synoptic cycles',
       ],
     },
   }[modelId];
 
   return (
-    <div className="nwp-card flex flex-col gap-4 rounded-2xl p-4 sm:p-5 shadow-md w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-        <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-[#29B6F6]" />
-          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-            What This Model Does — {modelId}
-          </h3>
-        </div>
-        <span className="text-[10px] font-mono text-[#AFC4D8]">
-          Physical Capabilities &amp; Disclaimers
-        </span>
-      </div>
+    <DataPanel className="flex flex-col gap-4 w-full">
+      <SectionHeading
+        title={`What This Model Does — ${modelId}`}
+        subtitle="Physical capabilities and operational boundaries"
+        icon={<Info className="w-4 h-4" />}
+      />
 
-      {/* Short explanation */}
-      <p className="text-xs sm:text-sm text-[#AFC4D8] leading-relaxed font-sans">
+      <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed">
         {modelContent.explanation}
       </p>
 
-      {/* 3 Columns: What it Predicts, Best For, Limitations */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-        {/* Column 1: What it Predicts */}
-        <div className="p-3.5 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-white uppercase tracking-wider font-sans flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#29B6F6]" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="m-panel-inset p-3.5 flex flex-col gap-2">
+          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#35C7E8]" />
             <span>What It Predicts</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#AFC4D8] font-sans">
-            {modelContent.predicts.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-[#29B6F6] font-bold">•</span>
+          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+            {modelContent.predicts.map((item) => (
+              <li key={item} className="flex items-start gap-1.5">
+                <span className="text-[#35C7E8] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Column 2: Best For */}
-        <div className="p-3.5 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-white uppercase tracking-wider font-sans flex items-center gap-1.5">
-            <Check className="w-3.5 h-3.5 text-[#00E676]" />
+        <div className="m-panel-inset p-3.5 flex flex-col gap-2">
+          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
             <span>Best Used For</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#AFC4D8] font-sans">
-            {modelContent.bestFor.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-[#00E676] font-bold">•</span>
+          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+            {modelContent.bestFor.map((item) => (
+              <li key={item} className="flex items-start gap-1.5">
+                <span className="text-[#22C7A0] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Column 3: Limitations */}
-        <div className="p-3.5 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-white uppercase tracking-wider font-sans flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+        <div className="m-panel-inset p-3.5 flex flex-col gap-2">
+          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#F59E0B]" />
             <span>Limitations</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#AFC4D8] font-sans">
-            {modelContent.limitations.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-1.5">
-                <span className="text-amber-400 font-bold">•</span>
+          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+            {modelContent.limitations.map((item) => (
+              <li key={item} className="flex items-start gap-1.5">
+                <span className="text-[#F59E0B] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
-    </div>
+    </DataPanel>
   );
 };

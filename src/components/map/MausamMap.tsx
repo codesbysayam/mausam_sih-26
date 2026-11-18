@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Circle, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import { Lock, Unlock } from 'lucide-react';
 import L from 'leaflet';
 import {
   WeatherMapMetric,
@@ -263,9 +264,13 @@ function MapClickHandler({
  * Helper to compute metric color and format
  */
 function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { value: string; bg: string; text: string } {
+  const isNum = (v: number | undefined | null): v is number =>
+    v !== undefined && v !== null && !Number.isNaN(v);
+
   switch (metric) {
     case 'temperature': {
-      const val = state.temperature ?? 0;
+      if (!isNum(state.temperature)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      const val = state.temperature;
       let bg = '#1565C0';
       if (val >= 38) bg = '#EF4444';
       else if (val >= 32) bg = '#F97316';
@@ -274,7 +279,8 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `${val}°C`, bg, text: '#FFFFFF' };
     }
     case 'rainfall': {
-      const val = state.rainfall ?? 0;
+      if (!isNum(state.rainfall)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      const val = state.rainfall;
       let bg = '#334155';
       if (val >= 50) bg = '#8B5CF6';
       else if (val >= 20) bg = '#1565C0';
@@ -283,7 +289,8 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `${val} mm`, bg, text: '#FFFFFF' };
     }
     case 'aqi': {
-      const val = state.aqi ?? 50;
+      if (!isNum(state.aqi)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      const val = state.aqi;
       let bg = '#00C897';
       if (val > 250) bg = '#EF4444';
       else if (val > 150) bg = '#F97316';
@@ -292,7 +299,8 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `AQI ${val}`, bg, text: '#FFFFFF' };
     }
     case 'humidity': {
-      const val = state.humidity ?? 60;
+      if (!isNum(state.humidity)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      const val = state.humidity;
       let bg = '#0284C7';
       if (val >= 80) bg = '#1D4ED8';
       else if (val >= 60) bg = '#0EA5E9';
@@ -300,7 +308,8 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `${val}%`, bg, text: '#FFFFFF' };
     }
     case 'wind': {
-      const val = state.windSpeed ?? 10;
+      if (!isNum(state.windSpeed)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      const val = state.windSpeed;
       let bg = '#0EA5E9';
       if (val >= 35) bg = '#EF4444';
       else if (val >= 20) bg = '#F59E0B';
@@ -323,7 +332,11 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: label, bg, text: '#FFFFFF' };
     }
     default:
-      return { value: `${state.temperature ?? '--'}°C`, bg: '#1565C0', text: '#FFFFFF' };
+      return {
+        value: isNum(state.temperature) ? `${state.temperature}°C` : '—',
+        bg: '#1565C0',
+        text: '#FFFFFF',
+      };
   }
 }
 
@@ -506,8 +519,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
       const isS = station.band.includes('S-Band');
       const isC = station.band.includes('C-Band');
       const bandTag = isS ? 'S' : isC ? 'C' : 'X';
-      const badgeBg = isSelected ? '#1565C0' : '#0B263D';
-      const borderCol = isSelected ? '#38BDF8' : '#1D5278';
+      const badgeBg = isSelected ? '#0B72B9' : '#0B1927';
+      const borderCol = isSelected ? '#35C7E8' : '#26394B';
 
       const html = `
         <div class="cursor-pointer group flex flex-col items-center select-none" style="transform: translate(-50%, -50%);">
@@ -549,7 +562,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
   return (
     <div
-      className={`relative w-full ${heightClass} bg-[#0B1219] rounded-lg overflow-hidden border border-white/12 select-none ${
+      className={`relative w-full ${heightClass} bg-[#07111D] rounded-none overflow-hidden select-none ${
         isLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
       } ${className}`}
       style={{ zIndex: 0 }}
@@ -576,29 +589,28 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               ? `Map view locked to ${activeSectorLabel}. Click to unlock panning & zooming.`
               : 'Lock view to current weather sector (prevents accidental panning & zooming)'
           }
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md transition-all shadow-xl cursor-pointer ${
+          className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md transition-colors cursor-pointer m-focus-ring ${
             isLocked
-              ? 'bg-[#091522]/95 text-[#F59E0B] border border-[#F59E0B] shadow-[#F59E0B]/20 ring-2 ring-[#F59E0B]/30'
-              : 'bg-[#0B263D]/85 text-[#AFC4D8] hover:text-white hover:bg-[#102D44] border border-[#1D5278]'
+              ? 'bg-[#0B1927]/95 text-[#FCD34D] border border-[#F59E0B]/70'
+              : 'bg-[#0B1927]/90 text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border border-[#26394B]'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">
-            {isLocked ? 'lock' : 'lock_open'}
-          </span>
+          {isLocked ? (
+            <Lock className="w-3.5 h-3.5 shrink-0" />
+          ) : (
+            <Unlock className="w-3.5 h-3.5 shrink-0" />
+          )}
           <span className="font-mono uppercase tracking-wider text-[11px]">
             {isLocked ? 'SECTOR LOCKED' : 'LOCK VIEW'}
           </span>
-          {isLocked && (
-            <span className="w-2 h-2 rounded-full bg-[#F59E0B] ml-0.5" />
-          )}
         </button>
       </div>
 
       {/* On-Map Sector Lock Notification Strip (Top-Left) */}
       {isLocked && (
-        <div className="absolute top-3 left-3 z-[400] bg-[#0B1219]/95 border border-[#F59E0B]/70 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-lg pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
-          <span className="text-[#F59E0B] font-bold text-[10px] uppercase tracking-wider">LOCKED SECTOR:</span>
+        <div className="absolute top-3 left-3 z-[400] bg-[#0B1927]/95 border border-[#F59E0B]/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[#F3F6FA] flex items-center gap-2 pointer-events-auto">
+          <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
+          <span className="text-[#FCD34D] font-bold text-[10px] uppercase tracking-wider">LOCKED SECTOR:</span>
           <span className="text-[11px] font-semibold text-white truncate max-w-[150px] sm:max-w-[280px]">
             {activeSectorLabel}
           </span>
@@ -608,7 +620,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               e.stopPropagation();
               onToggleLock?.();
             }}
-            className="ml-1 text-[10px] text-[#38BDF8] hover:text-white underline font-sans cursor-pointer shrink-0 font-semibold"
+            className="ml-1 text-[10px] text-[#35C7E8] hover:text-white underline font-sans cursor-pointer shrink-0 font-semibold"
             title="Unlock map to pan and zoom freely"
           >
             Unlock
@@ -618,9 +630,9 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* Notice tooltip when interacting with locked map */}
       {showLockNotice && isLocked && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[400] bg-[#091522]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-2xl flex items-center gap-2 pointer-events-none backdrop-blur-md animate-fade-in">
-          <span className="material-symbols-outlined text-[#F59E0B] text-[16px]">lock</span>
-          <span className="text-[11px] font-medium text-[#F4F7FA]">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[400] bg-[#0B1927]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none backdrop-blur-md">
+          <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
+          <span className="text-[11px] font-medium text-[#F3F6FA]">
             Sector View is Locked — Accidental pan/zoom prevented. Click &quot;Unlock&quot; to adjust.
           </span>
         </div>
@@ -668,15 +680,14 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* On-Map Precipitation Filter Banner when active */}
       {isPrecipFiltered && (
-        <div className="absolute top-3 right-14 z-[400] bg-[#0B1219]/95 border border-[#F59E0B]/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F4F7FA] flex items-center gap-2 shadow-2xl pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
-          <span className="text-[#F59E0B] font-bold text-[10px] uppercase">
+        <div className="absolute top-3 right-36 z-[400] bg-[#0B1927]/95 border border-[#F59E0B]/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F3F6FA] flex items-center gap-2 pointer-events-auto">
+          <span className="text-[#FCD34D] font-bold text-[10px] uppercase">
             FILTER: {effectivePrecipLevels.length}/6 ON
           </span>
           <button
             type="button"
             onClick={() => handlePrecipLevelsChange(ALL_PRECIP_LEVEL_IDS)}
-            className="text-[10px] text-[#38BDF8] hover:text-white underline font-sans cursor-pointer font-bold"
+            className="text-[10px] text-[#35C7E8] hover:text-white underline font-sans cursor-pointer font-bold"
             title="Show all precipitation intensity layers"
           >
             Reset
@@ -824,11 +835,11 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                       <div className="font-bold border-b border-[#334155] pb-0.5 mb-1 text-[#F5F9FC]">
                         {state.name} ({coords.code})
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-[#AFC4D8]">
-                        <span>Temp: <strong className="text-white">{state.temperature ?? 'N/A'}°C</strong></span>
-                        <span>Rain: <strong className="text-white">{state.rainfall ?? 'N/A'} mm</strong></span>
-                        <span>AQI: <strong className="text-white">{state.aqi ?? 'N/A'}</strong></span>
-                        <span>Humidity: <strong className="text-white">{state.humidity ?? 'N/A'}%</strong></span>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-[#B5C3D1]">
+                        <span>Temp: <strong className="text-white">{state.temperature ?? '—'}°C</strong></span>
+                        <span>Rain: <strong className="text-white">{state.rainfall ?? '—'} mm</strong></span>
+                        <span>AQI: <strong className="text-white">{state.aqi ?? '—'}</strong></span>
+                        <span>Humidity: <strong className="text-white">{state.humidity ?? '—'}%</strong></span>
                       </div>
                     </div>
                   </Tooltip>

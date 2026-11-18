@@ -1,21 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Compass,
   Sprout,
-  ShieldCheck,
-  Radio,
-  Clock,
-  Layers,
   MapPin,
   Calendar as CalendarIcon,
   ChevronDown,
   X,
   FileText,
+  Crosshair,
+  Search,
 } from 'lucide-react';
 import { CropType, PhenologicalStage, ALL_CROPS, CROP_STAGES } from '../../services/agronomicEngine';
 import { INDIAN_STATES_AND_DISTRICTS } from '../../services/agrometService';
+import { LocationRecord } from '../../types';
 import DateCalendar from '../DateCalendar';
 import { formatDateShort } from '../../utils/dateUtils';
+import { PageHeader, DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface AgrometCommandHeaderProps {
   selectedState: string;
@@ -31,6 +30,10 @@ interface AgrometCommandHeaderProps {
   isLive: boolean;
   sowingDate?: Date;
   onSowingDateChange?: (date: Date) => void;
+  selectedLocation?: LocationRecord;
+  isLocating?: boolean;
+  onDetectLocation?: () => void;
+  onOpenLocationCenter?: () => void;
 }
 
 export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
@@ -45,8 +48,12 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
   lastUpdatedStr,
   stationName,
   isLive,
-  sowingDate = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // Default ~45 days ago
+  sowingDate = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
   onSowingDateChange,
+  selectedLocation,
+  isLocating = false,
+  onDetectLocation,
+  onOpenLocationCenter,
 }) => {
   const states = Object.keys(INDIAN_STATES_AND_DISTRICTS);
   const districts = INDIAN_STATES_AND_DISTRICTS[selectedState] || [selectedDistrict];
@@ -54,7 +61,6 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
   const [showCalendar, setShowCalendar] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  // Calculate crop age in days
   const cropAgeDays = Math.max(1, Math.round((Date.now() - sowingDate.getTime()) / (1000 * 60 * 60 * 24)));
 
   useEffect(() => {
@@ -69,202 +75,178 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [showCalendar]);
 
+  const coords =
+    selectedLocation && typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number'
+      ? `${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+      : undefined;
+
   return (
-    <header
-      id="agromet-command-header"
-      className="relative overflow-visible rounded-2xl bg-[#0F172A] border border-[#1E293B] shadow-2xl p-6 sm:p-8"
-    >
-      {/* Background Decorative Tech Grid */}
-      <div className="absolute inset-0 pointer-events-none opacity-15 overflow-hidden rounded-2xl">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="agriHeaderGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#38BDF8" strokeWidth="0.5" />
-              <circle cx="16" cy="16" r="0.75" fill="#10B981" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#agriHeaderGrid)" />
-        </svg>
-      </div>
-
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: Authority & Hero Branding */}
-        <div className="lg:col-span-6 space-y-4">
+    <div id="agromet-command-header" className="space-y-4">
+      <PageHeader
+        eyebrow="IMD GKMS • ICAR-NCMRWF AGROMET"
+        title="Agromet Decision Support"
+        description={`Crop-specific field telemetry, hydrological scheduling, and biotic risk protocols for ${selectedDistrict}, ${selectedState}.`}
+        status={isLive ? 'LIVE' : 'UNAVAILABLE'}
+        source={stationName}
+        updatedAt={lastUpdatedStr || null}
+        coordinates={coords}
+        actions={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] text-xs font-mono font-bold uppercase tracking-wider">
-              <Sprout className="w-3.5 h-3.5" />
-              <span>IMD • GKMS AGROMET</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#38BDF8]/10 border border-[#38BDF8]/20 text-[#38BDF8] text-xs font-mono">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>ICAR • NCMRWF</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1E293B] text-[#94A3B8] text-[11px] font-mono">
-              <Radio className={`w-3 h-3 ${isLive ? 'text-[#10B981] animate-pulse' : 'text-[#F59E0B]'}`} />
-              <span>{isLive ? 'LIVE IMD DATA' : 'STATION SYNC'}</span>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              AGROMET COMMAND CENTER
-            </h1>
-            <p className="text-sm text-[#38BDF8] font-mono font-semibold tracking-wide">
-              Weather-driven agricultural decision support
-            </p>
-            <div className="text-xs text-[#94A3B8] font-mono flex items-center gap-2 pt-1 flex-wrap">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#10B981]" />
-              <span className="font-bold text-white uppercase">LIVE AGRICULTURAL WEATHER INTELLIGENCE</span>
-              <span>•</span>
-              <span className="text-[#64748B]">{stationName}</span>
-            </div>
-          </div>
-
-          {/* Timestamp, Crop Age bar & GKMS Bulletin */}
-          <div className="flex items-center gap-3 text-xs font-mono text-[#94A3B8] flex-wrap">
-            <div className="flex items-center gap-2 bg-[#090D16]/70 border border-[#1E293B] rounded-lg px-3 py-2">
-              <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Last updated:</span>
-              <span className="text-white font-bold">{lastUpdatedStr} IST</span>
-            </div>
-
-            <div className="flex items-center gap-2 bg-[#090D16]/70 border border-[#1E293B] rounded-lg px-3 py-2">
-              <Sprout className="w-3.5 h-3.5 text-[#10B981]" />
-              <span>Crop Age:</span>
-              <span className="text-[#10B981] font-bold font-mono">{cropAgeDays} Days (DAS)</span>
-            </div>
-
+            {onDetectLocation && (
+              <button
+                type="button"
+                onClick={onDetectLocation}
+                disabled={isLocating}
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer disabled:opacity-60 m-focus-ring"
+              >
+                <Crosshair className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating…' : 'Use GPS'}</span>
+              </button>
+            )}
+            {onOpenLocationCenter && (
+              <button
+                type="button"
+                onClick={onOpenLocationCenter}
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+              >
+                <Search className="w-3.5 h-3.5 text-[#B5C3D1]" />
+                <span>Change Station</span>
+              </button>
+            )}
             <a
               href="/agromet_bulletin.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#10B981]/15 hover:bg-[#10B981]/25 border border-[#10B981]/30 hover:border-[#10B981]/60 text-[#10B981] hover:text-white rounded-lg px-3 py-2 transition-colors shadow-sm"
-              title="View and Print Official IMD & ICAR Gramin Krishi Mausam Sewa (GKMS) District Agromet Advisory Bulletin"
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#22C7A0]/12 hover:bg-[#22C7A0]/20 border border-[#22C7A0]/35 text-xs font-semibold text-[#6EE7B7] transition-colors m-focus-ring"
+              title="Open Printable IMD-ICAR GKMS District Agromet Bulletin"
             >
               <FileText className="w-3.5 h-3.5" />
-              <span className="font-bold">Official GKMS Bulletin ↗</span>
+              <span>GKMS Bulletin</span>
             </a>
           </div>
+        }
+      >
+        <div className="flex items-center gap-2 text-xs font-mono tabular-nums text-[#B5C3D1]">
+          <Sprout className="w-3.5 h-3.5 text-[#22C7A0]" />
+          <span>Crop Age:</span>
+          <strong className="text-[#F3F6FA]">{cropAgeDays} DAS</strong>
+          <span className="text-[#38536A]">|</span>
+          <span>Stage:</span>
+          <strong className="text-[#35C7E8]">{selectedStage}</strong>
         </div>
+      </PageHeader>
 
-        {/* RIGHT COLUMN: State, District, Crop, Stage & Sowing Date Selectors */}
-        <div className="lg:col-span-6 bg-[#090D16]/90 border border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1E293B]">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-white uppercase tracking-wider">
-              <MapPin className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Observatory &amp; Target Field Matrix</span>
-            </div>
-            <span className="text-[11px] font-mono text-[#10B981]">
-              36 States/UTs Connected
+      <DataPanel className="overflow-visible">
+        <SectionHeading
+          title="Target Agro-Climatic Zone & Crop Matrix"
+          subtitle="Select state, district AMFU node, crop variety, phenological phase, and sowing date"
+          icon={<MapPin className="w-4 h-4" />}
+          badge={
+            <span className="text-[11px] font-mono text-[#8295A8] px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B]">
+              {states.length} Regions
             </span>
+          }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
+          <div className="space-y-1">
+            <label htmlFor="agromet-state-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              State / UT
+            </label>
+            <select
+              id="agromet-state-selector"
+              value={selectedState}
+              onChange={(e) => onStateChange(e.target.value)}
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+            >
+              {states.map((s) => (
+                <option key={s} value={s} className="bg-[#0B1927] text-[#F3F6FA]">
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Selectors Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* State Selector */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-[#94A3B8] uppercase">
-                1. State / Union Territory
-              </label>
-              <select
-                id="agromet-state-selector"
-                value={selectedState}
-                onChange={(e) => onStateChange(e.target.value)}
-                className="w-full bg-[#0F172A] text-xs font-mono font-semibold text-white border border-[#334155] rounded-lg px-3 py-2 focus:outline-none focus:border-[#38BDF8] cursor-pointer"
-              >
-                {states.map((s) => (
-                  <option key={s} value={s} className="bg-[#0F172A] text-white">
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* District Selector */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-[#94A3B8] uppercase">
-                2. Agro-Climatic District
-              </label>
-              <select
-                id="agromet-district-selector"
-                value={selectedDistrict}
-                onChange={(e) => onDistrictChange(e.target.value)}
-                className="w-full bg-[#0F172A] text-xs font-mono font-semibold text-white border border-[#334155] rounded-lg px-3 py-2 focus:outline-none focus:border-[#38BDF8] cursor-pointer"
-              >
-                {districts.map((d) => (
-                  <option key={d} value={d} className="bg-[#0F172A] text-white">
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Crop Selector */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-[#94A3B8] uppercase">
-                3. Agricultural Crop
-              </label>
-              <select
-                id="agromet-crop-selector"
-                value={selectedCrop}
-                onChange={(e) => onCropChange(e.target.value as CropType)}
-                className="w-full bg-[#0F172A] text-xs font-mono font-semibold text-[#10B981] border border-[#334155] rounded-lg px-3 py-2 focus:outline-none focus:border-[#10B981] cursor-pointer"
-              >
-                {ALL_CROPS.map((c) => (
-                  <option key={c} value={c} className="bg-[#0F172A] text-white">
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Phenological Stage Selector */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-[#94A3B8] uppercase">
-                4. Phenological Stage
-              </label>
-              <select
-                id="agromet-stage-selector"
-                value={selectedStage}
-                onChange={(e) => onStageChange(e.target.value as PhenologicalStage)}
-                className="w-full bg-[#0F172A] text-xs font-mono font-semibold text-[#38BDF8] border border-[#334155] rounded-lg px-3 py-2 focus:outline-none focus:border-[#38BDF8] cursor-pointer"
-              >
-                {CROP_STAGES.map((st) => (
-                  <option key={st} value={st} className="bg-[#0F172A] text-white">
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1">
+            <label htmlFor="agromet-district-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              District AMFU
+            </label>
+            <select
+              id="agromet-district-selector"
+              value={selectedDistrict}
+              onChange={(e) => onDistrictChange(e.target.value)}
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+            >
+              {districts.map((d) => (
+                <option key={d} value={d} className="bg-[#0B1927] text-[#F3F6FA]">
+                  {d}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Sowing / Plantation Date Calendar Field */}
+          <div className="space-y-1">
+            <label htmlFor="agromet-crop-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Agricultural Crop
+            </label>
+            <select
+              id="agromet-crop-selector"
+              value={selectedCrop}
+              onChange={(e) => onCropChange(e.target.value as CropType)}
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#6EE7B7] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+            >
+              {ALL_CROPS.map((c) => (
+                <option key={c} value={c} className="bg-[#0B1927] text-[#F3F6FA]">
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="agromet-stage-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              Phenological Stage
+            </label>
+            <select
+              id="agromet-stage-selector"
+              value={selectedStage}
+              onChange={(e) => onStageChange(e.target.value as PhenologicalStage)}
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#35C7E8] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+            >
+              {CROP_STAGES.map((st) => (
+                <option key={st} value={st} className="bg-[#0B1927] text-[#F3F6FA]">
+                  {st}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {onSowingDateChange && (
-            <div className="pt-2 border-t border-[#1E293B] relative" ref={calendarRef}>
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-mono text-[#94A3B8] uppercase flex items-center gap-1.5">
-                  <CalendarIcon className="w-3.5 h-3.5 text-[#10B981]" />
-                  <span>Sowing / Sowing Initiation Date:</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  className="px-3 py-1.5 rounded-lg bg-[#0F172A] border border-[#334155] text-xs font-mono text-white hover:border-[#10B981] transition-colors flex items-center gap-2 cursor-pointer"
-                >
-                  <span className="text-[#10B981] font-bold">{formatDateShort(sowingDate)}</span>
-                  <span className="text-[#64748B] text-[10px]">({cropAgeDays}d ago)</span>
-                  <ChevronDown className={`w-3 h-3 text-[#94A3B8] transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+            <div className="space-y-1 relative" ref={calendarRef}>
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+                Sowing Date
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="w-full min-h-[44px] sm:min-h-[40px] px-3 py-2 rounded-lg bg-[#08131F] border border-[#26394B] hover:border-[#38536A] text-xs font-mono text-[#F3F6FA] transition-colors flex items-center justify-between gap-2 cursor-pointer m-focus-ring"
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <CalendarIcon className="w-3.5 h-3.5 text-[#22C7A0] shrink-0" />
+                  <span className="font-semibold tabular-nums">{formatDateShort(sowingDate)}</span>
+                  <span className="text-[#8295A8] text-[10px]">({cropAgeDays}d)</span>
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-[#8295A8] transition-transform shrink-0 ${showCalendar ? 'rotate-180' : ''}`} />
+              </button>
 
               {showCalendar && (
-                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[#0B141E] border border-[#1E2D3D] rounded-2xl shadow-2xl animate-fade-in">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#162331] mb-2 text-xs">
-                    <span className="text-[#F4F7FA] font-bold">Select Sowing Date</span>
+                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[#101F2E] border border-[#38536A] rounded-xl shadow-2xl">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#26394B] mb-2 text-xs">
+                    <span className="text-[#F3F6FA] font-semibold">Select Sowing Date</span>
                     <button
                       type="button"
                       onClick={() => setShowCalendar(false)}
-                      className="text-[#94A3B8] hover:text-white p-0.5"
+                      className="text-[#8295A8] hover:text-[#F3F6FA] p-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -283,7 +265,7 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </header>
+      </DataPanel>
+    </div>
   );
 };

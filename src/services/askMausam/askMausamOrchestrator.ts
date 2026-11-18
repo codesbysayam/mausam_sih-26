@@ -276,7 +276,7 @@ export class AskMausamOrchestrator {
             summary = `${secLoc.name} is currently warmer at ${tempB}°C compared to ${primaryLoc.name} at ${tempA}°C.`;
           }
         } else {
-          summary = `Comparison between ${primaryLoc.name} and ${secLoc.name}: ${primaryLoc.name} is at ${tempA}°C (${weatherA?.current?.condition || 'Observed'}, AQI ${aqiA?.aqi ?? 'N/A'}), while ${secLoc.name} is at ${tempB}°C (${weatherB?.current?.condition || 'Observed'}, AQI ${aqiB?.aqi ?? 'N/A'}).`;
+          summary = `Comparison between ${primaryLoc.name} and ${secLoc.name}: ${primaryLoc.name} is at ${tempA}°C (${weatherA?.current?.condition || 'Observed'}, AQI ${aqiA?.aqi ?? '—'}), while ${secLoc.name} is at ${tempB}°C (${weatherB?.current?.condition || 'Observed'}, AQI ${aqiB?.aqi ?? '—'}).`;
         }
 
         const comparison: LocationWeatherComparison = {
@@ -341,8 +341,8 @@ export class AskMausamOrchestrator {
           facts: [
             { label: `${primaryLoc.name} Temp`, value: `${tempA}°C (${weatherA?.current?.condition || 'Observed'})` },
             { label: `${secLoc.name} Temp`, value: `${tempB}°C (${weatherB?.current?.condition || 'Observed'})` },
-            { label: `${primaryLoc.name} AQI`, value: aqiA?.aqi ? `${aqiA.aqi} (${aqiA.category})` : 'N/A' },
-            { label: `${secLoc.name} AQI`, value: aqiB?.aqi ? `${aqiB.aqi} (${aqiB.category})` : 'N/A' },
+            { label: `${primaryLoc.name} AQI`, value: aqiA?.aqi ? `${aqiA.aqi} (${aqiA.category})` : 'Unavailable' },
+            { label: `${secLoc.name} AQI`, value: aqiB?.aqi ? `${aqiB.aqi} (${aqiB.category})` : 'Unavailable' },
           ],
           sourceStatus: 'LIVE',
           observedAt: weatherA?.current?.observedAt,

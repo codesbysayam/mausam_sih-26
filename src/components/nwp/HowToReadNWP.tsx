@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { DataPanel } from '../ui/ObservatoryPrimitives';
 
 export const HowToReadNWP: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -7,68 +8,70 @@ export const HowToReadNWP: React.FC = () => {
   const sections = [
     {
       q: 'What is NWP (Numerical Weather Prediction)?',
-      a: 'NWP uses supercomputers to solve the fundamental mathematical Navier-Stokes equations of fluid dynamics and thermodynamics to project future states of the Earth’s atmosphere from current observations.',
+      a: 'NWP uses supercomputers to solve fluid dynamics and thermodynamics equations to project future states of Earth’s atmosphere from current observations.',
     },
     {
       q: 'Why do weather models disagree?',
-      a: 'Because models differ in their spatial resolution, mathematical approximations (parameterizations) of clouds and convection, initial observation assimilation methods, and geographic boundary assumptions.',
+      a: 'Models differ in spatial grid resolution, cloud/convection parameterization schemes, initial observation assimilation methods, and boundary conditions.',
     },
     {
       q: 'What is ensemble spread?',
-      a: 'In ensemble systems like GEFS (31 members), the spread is the statistical divergence between members. A narrow spread indicates high confidence; a wide spread indicates high atmospheric uncertainty.',
+      a: 'In ensemble systems like GEFS, spread measures divergence across perturbed trajectories. Narrow spread means higher confidence; wide spread signals uncertainty.',
     },
     {
       q: 'What is forecast lead time?',
-      a: 'Lead time is the number of hours into the future that the simulation predicts, starting from the model initialization time (00Z, 06Z, 12Z, or 18Z). Skill decreases as lead time extends.',
+      a: 'Lead time is hours ahead from model initialization (00Z, 06Z, 12Z, or 18Z UTC). Predictive skill generally decreases as lead time grows.',
     },
     {
       q: 'What is model resolution?',
-      a: 'Resolution is the horizontal grid cell size (e.g., 3 km vs 25 km). Finer resolution captures microscale terrain, thunderstorms, and coastal breezes; coarser resolution averages these over wider regions.',
+      a: 'Horizontal grid spacing (e.g., 3 km vs 25 km). Finer grids resolve terrain and localized convection; coarser grids average across wider areas.',
     },
     {
       q: 'What is a model run?',
-      a: 'A single complete supercomputer simulation cycle, typically initiated at standard synoptic hours (00:00, 06:00, 12:00, 18:00 UTC) as fresh global observations are ingested.',
+      a: 'A single complete simulation cycle initiated at standard synoptic UTC hours as fresh global observations are assimilated.',
     },
     {
       q: 'What is model-derived data?',
-      a: 'Raw mathematical grid output directly produced by mathematical equations before human forecaster synthesis, regional bias correction, or local post-processing.',
+      a: 'Raw grid output produced by mathematical equations prior to human forecaster synthesis or local statistical bias correction.',
     },
     {
       q: 'What is an official warning vs a model forecast?',
-      a: 'A model forecast is a computer calculation of physical probabilities. An official warning is a legal public safety directive issued exclusively by authorized government meteorologists (such as IMD / NDMA).',
+      a: 'A model forecast is a mathematical physics projection. An official warning is a statutory public safety advisory issued by IMD / NDMA / SDMAs.',
     },
   ];
 
   return (
-    <div className="nwp-card flex flex-col gap-3 rounded-2xl p-4 sm:p-5 shadow-md w-full">
+    <DataPanel className="flex flex-col gap-3 w-full">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 text-left cursor-pointer transition-colors"
+        className="w-full flex items-center justify-between gap-3 text-left cursor-pointer m-focus-ring rounded-lg"
       >
-        <div className="flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-[#29B6F6]" />
-          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <h3 className="text-sm sm:text-base font-bold text-[#F3F6FA] tracking-tight">
             How to Read Model Forecasts
           </h3>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-[#29B6F6] font-mono">
+        <div className="flex items-center gap-1.5 text-xs text-[#35C7E8] font-mono">
           <span>{isOpen ? 'Collapse Guide' : 'Expand Guide (8 Topics)'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
 
       {isOpen && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-[#1D5278]/60 animate-fade-in text-xs font-sans">
-          {sections.map((sec, idx) => (
-            <div key={idx} className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-              <span className="font-bold text-white text-xs">{sec.q}</span>
-              <p className="text-[#AFC4D8] leading-relaxed text-[11px]">{sec.a}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-[#26394B] text-xs">
+          {sections.map((sec) => (
+            <div key={sec.q} className="m-panel-inset p-3 flex flex-col gap-1">
+              <span className="font-bold text-[#F3F6FA] text-xs">{sec.q}</span>
+              <p className="text-[#B5C3D1] leading-relaxed text-[11px]">{sec.a}</p>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </DataPanel>
   );
 };

@@ -11,6 +11,25 @@ import { AgriGardenCard } from './AgriGardenCard';
 import { CommuterCard } from './CommuterCard';
 import { EventPlannerCard } from './EventPlannerCard';
 import { SkeletonMetricCard } from '../../common/Skeletons';
+import {
+  DataPanel,
+  SectionHeading,
+  SourceStatus,
+  UnavailableState,
+} from '../../ui/ObservatoryPrimitives';
+import {
+  ShieldCheck,
+  RefreshCw,
+  LayoutGrid,
+  HeartPulse,
+  Footprints,
+  Waves,
+  Luggage,
+  Users,
+  Sprout,
+  Car,
+  Calendar,
+} from 'lucide-react';
 
 interface PersonaWeatherHubProps {
   selectedLocation: LocationRecord;
@@ -36,155 +55,156 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
   const [bundle, setBundle] = useState<PersonaDataBundle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const bootTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bundleRef = useRef<PersonaDataBundle | null>(null);
+  bundleRef.current = bundle;
 
   const loadPersonaData = useCallback(
     async (forceRefresh = false) => {
       if (forceRefresh) setIsRefreshing(true);
-      else if (!bundle) setIsLoading(true);
+      else if (!bundleRef.current) setIsLoading(true);
+      setFetchError(null);
 
-      // Clear any prior boot timeout
       if (bootTimeoutRef.current) clearTimeout(bootTimeoutRef.current);
-
-      // Enforce 8000ms maximum boot timeout to guarantee user never faces infinite spinner
       bootTimeoutRef.current = setTimeout(() => {
         setIsLoading(false);
         setIsRefreshing(false);
+        if (!bundleRef.current) {
+          setFetchError('Authoritative persona feed timed out.');
+        }
       }, 8000);
 
       try {
+        const cur = weatherBundle.current;
         const data = await authoritativeClient.getPersonaBundle(
           selectedLocation,
           {
-            temp: weatherBundle.current.temp,
-            humidity: weatherBundle.current.humidity,
-            windSpeed: weatherBundle.current.windSpeed,
-            windDir: weatherBundle.current.windDirection,
-            uvIndex: weatherBundle.current.uvIndex,
+            temp: cur.temp,
+            humidity: cur.humidity,
+            windSpeed: cur.windSpeed,
+            windDir: cur.windDirection,
+            uvIndex: cur.uvIndex,
             isRaining:
-              weatherBundle.current.condition?.toLowerCase().includes('rain') ||
-              weatherBundle.current.condition?.toLowerCase().includes('shower') ||
-              weatherBundle.current.condition?.toLowerCase().includes('drizzle'),
-            visibilityKm: weatherBundle.current.visibility,
-            sunrise: weatherBundle.current.sunrise,
-            sunset: weatherBundle.current.sunset,
+              cur.condition?.toLowerCase().includes('rain') ||
+              cur.condition?.toLowerCase().includes('shower') ||
+              cur.condition?.toLowerCase().includes('drizzle'),
+            visibilityKm: cur.visibilityKm ?? cur.visibility ?? null,
+            sunrise: cur.sunrise,
+            sunset: cur.sunset,
           },
           forceRefresh
         );
         if (bootTimeoutRef.current) clearTimeout(bootTimeoutRef.current);
         setBundle(data);
+        setFetchError(null);
         setLastRefreshedAt(new Date());
-      } catch (err) {
+      } catch (err: any) {
+        if (bootTimeoutRef.current) clearTimeout(bootTimeoutRef.current);
         console.error('Failed to load persona data bundle:', err);
+        setFetchError(err?.message || 'Unable to load sector persona telemetry.');
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [selectedLocation, weatherBundle, bundle]
+    [selectedLocation, weatherBundle.current]
   );
 
-  // Automatically refresh when station changes or telemetry updates
   useEffect(() => {
     loadPersonaData();
     return () => {
       if (bootTimeoutRef.current) clearTimeout(bootTimeoutRef.current);
     };
-  }, [selectedLocation.id]);
+  }, [selectedLocation.id, loadPersonaData]);
 
-  const filterTabs: Array<{ id: PersonaFilter; label: string; icon: string; count?: number }> = [
-    { id: 'all', label: 'All Personas', icon: 'dashboard_customize' },
-    { id: 'health', label: 'Health & Air', icon: 'health_and_safety' },
-    { id: 'fitness', label: 'Outdoor Fitness', icon: 'directions_run' },
-    { id: 'beach', label: 'Beach & Surf', icon: 'surfing' },
-    { id: 'travel', label: 'Travelers', icon: 'luggage' },
-    { id: 'family', label: 'Parents & Family', icon: 'family_restroom' },
-    { id: 'agri', label: 'Agriculture', icon: 'agriculture' },
-    { id: 'commute', label: 'Commuters', icon: 'directions_car' },
-    { id: 'events', label: 'Event Planners', icon: 'event' },
+  const filterTabs: Array<{
+    id: PersonaFilter;
+    label: string;
+    Icon: React.ComponentType<{ className?: string }>;
+  }> = [
+    { id: 'all', label: 'All Sectors', Icon: LayoutGrid },
+    { id: 'health', label: 'Health & Air', Icon: HeartPulse },
+    { id: 'fitness', label: 'Outdoor Fitness', Icon: Footprints },
+    { id: 'beach', label: 'Beach & Surf', Icon: Waves },
+    { id: 'travel', label: 'Travelers', Icon: Luggage },
+    { id: 'family', label: 'Family Transit', Icon: Users },
+    { id: 'agri', label: 'Agriculture', Icon: Sprout },
+    { id: 'commute', label: 'Commuters', Icon: Car },
+    { id: 'events', label: 'Event Planners', Icon: Calendar },
   ];
 
-  return (
-    <section
-      id="authoritative-persona-hub"
-      className="w-full bg-[#131A22] rounded-xl border border-[#334155] p-4 sm:p-6 mb-8 shadow-lg"
-      aria-label="Authoritative Multi-Persona Weather Intelligence Hub"
-    >
-      {/* Top Banner & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#334155]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#2ECC71] animate-ping" />
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-wide uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#4FA8E0] text-[22px]">
-                verified_user
-              </span>
-              Personalized Atmospheric Intelligence
-            </h2>
-          </div>
-          <p className="text-xs text-[#8A94A6] mt-1">
-            Indian Standard Air Quality, Open Marine, Atmospheric &amp; Agromet feeds for{' '}
-            <strong className="text-white">{selectedLocation.displayName || selectedLocation.city}</strong>
-          </p>
-        </div>
+  const updatedStr = lastRefreshedAt
+    ? lastRefreshedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST'
+    : null;
 
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] text-[#8A94A6] hidden sm:inline">
-            Updated {lastRefreshedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-          </span>
+  return (
+    <DataPanel
+      id="authoritative-persona-hub"
+      className="mb-4 space-y-4"
+    >
+      <SectionHeading
+        title="Sector & Persona Atmospheric Intelligence"
+        subtitle={`Calibrated air quality, marine, transit, and agromet feeds for ${selectedLocation.displayName || selectedLocation.city}`}
+        icon={<ShieldCheck className="w-4 h-4 text-[#22C7A0]" />}
+        badge={
+          <SourceStatus
+            status={isLoading && !bundle ? 'LOADING' : fetchError && !bundle ? 'UNAVAILABLE' : 'LIVE'}
+            updatedAt={updatedStr}
+          />
+        }
+        action={
           <button
             type="button"
             onClick={() => loadPersonaData(true)}
             disabled={isRefreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#17212B] hover:bg-[#1E2733] text-xs text-[#4FA8E0] border border-[#334155] transition-all font-semibold disabled:opacity-50"
-            title="Refresh authoritative persona feeds"
+            className="flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-xs text-[#35C7E8] border border-[#26394B] transition-colors font-semibold disabled:opacity-50 cursor-pointer"
           >
-            <span
-              className={`material-symbols-outlined text-[16px] ${
-                isRefreshing ? 'animate-spin' : ''
-              }`}
-            >
-              refresh
-            </span>
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>{isRefreshing ? 'Syncing...' : 'Sync Feeds'}</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Interactive Persona Filter Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-3 no-scrollbar border-b border-[#334155]/60">
-        {filterTabs.map((tab) => {
-          const isActive = activeFilter === tab.id;
+      {/* Filter Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-[#26394B]">
+        {filterTabs.map(({ id, label, Icon }) => {
+          const isActive = activeFilter === id;
           return (
             <button
-              key={tab.id}
+              key={id}
               type="button"
-              onClick={() => setActiveFilter(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
+              onClick={() => setActiveFilter(id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border cursor-pointer ${
                 isActive
-                  ? 'bg-[#0B72B9] text-white border-[#4FA8E0] shadow-md shadow-[#0B72B9]/20'
-                  : 'bg-[#17212B] hover:bg-[#1E2733] text-[#8A94A6] hover:text-[#D7DEE8] border-[#334155]'
+                  ? 'bg-[#0B72B9] text-[#F3F6FA] border-[#35C7E8]'
+                  : 'bg-[#08131F] hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA] border-[#26394B]'
               }`}
             >
-              <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span>{label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* High-fidelity Skeleton Grid during initial fetch */}
       {isLoading && !bundle ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SkeletonMetricCard />
           <SkeletonMetricCard />
           <SkeletonMetricCard />
           <SkeletonMetricCard />
         </div>
+      ) : fetchError && !bundle ? (
+        <UnavailableState
+          title="Persona Feeds Temporarily Unavailable"
+          reason={fetchError}
+          source="/api/weather?mode=bundle"
+          onRetry={() => loadPersonaData(true)}
+        />
       ) : bundle ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-5">
-          {/* 1. HEALTH-CONSCIOUS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
           {(activeFilter === 'all' || activeFilter === 'health') && (
             <div className="h-full">
               <HealthCard
@@ -194,12 +214,12 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
                 uvRiskLabel={bundle.health.uvRiskLabel}
                 uvAdvice={bundle.health.uvAdvice}
                 humidity={bundle.health.humidity}
+                ambientTemp={weatherBundle.current.temp}
                 city={selectedLocation.city}
               />
             </div>
           )}
 
-          {/* 2. OUTDOOR FITNESS */}
           {(activeFilter === 'all' || activeFilter === 'fitness') && (
             <div className="h-full">
               <FitnessCard
@@ -218,7 +238,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 3. BEACHGOERS & SURFERS */}
           {(activeFilter === 'all' || activeFilter === 'beach') && (
             <div className="h-full">
               <BeachSurferCard
@@ -230,7 +249,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 4. TRAVELERS */}
           {(activeFilter === 'all' || activeFilter === 'travel') && (
             <div className="h-full">
               <TravelerCard
@@ -245,7 +263,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 5. PARENTS & FAMILIES */}
           {(activeFilter === 'all' || activeFilter === 'family') && (
             <div className="h-full">
               <FamilyCommuteCard
@@ -262,7 +279,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 6. AGRICULTURE & GARDENERS */}
           {(activeFilter === 'all' || activeFilter === 'agri') && (
             <div className="h-full">
               <AgriGardenCard
@@ -280,7 +296,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 7. COMMUTERS & DRIVERS */}
           {(activeFilter === 'all' || activeFilter === 'commute') && (
             <div className="h-full">
               <CommuterCard
@@ -295,7 +310,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
 
-          {/* 8. EVENT PLANNERS */}
           {(activeFilter === 'all' || activeFilter === 'events') && (
             <div className="h-full lg:col-span-2">
               <EventPlannerCard
@@ -309,6 +323,6 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
           )}
         </div>
       ) : null}
-    </section>
+    </DataPanel>
   );
 };

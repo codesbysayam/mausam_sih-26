@@ -358,7 +358,7 @@ export function mapWarningResponseToAlertCenter(
       metrics: {
         affectedText: 'Unavailable',
         severityText: 'Unavailable',
-        validUntilText: 'N/A',
+        validUntilText: 'Unavailable',
         issuedAtText: raw.issuedAt || 'Unavailable',
       },
       timeline: null,

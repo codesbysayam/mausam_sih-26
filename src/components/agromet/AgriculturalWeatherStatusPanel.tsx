@@ -1,6 +1,13 @@
 import React from 'react';
-import { CloudRain, Thermometer, Droplets, Wind, Sprout, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Sprout, AlertTriangle, ArrowRight } from 'lucide-react';
 import { WeatherDataBundle } from '../../services/weatherService';
+import {
+  DataPanel,
+  SectionHeading,
+  MetricValue,
+  SourceStatus,
+  UnavailableState,
+} from '../ui/ObservatoryPrimitives';
 
 interface AgriculturalWeatherStatusPanelProps {
   weather?: WeatherDataBundle;
@@ -14,169 +21,162 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
   state = 'India',
 }) => {
   const current = weather?.current;
+  const temp = typeof current?.temp === 'number' ? current.temp : null;
+  const rainfall = typeof current?.precipitation === 'number' ? current.precipitation : null;
+  const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
+  const windSpeed = typeof current?.windSpeed === 'number' ? current.windSpeed : null;
+  const windDir = current?.windDirection || '—';
+  const rawSoilMoisture = typeof current?.soilMoisture === 'number' ? current.soilMoisture : null;
 
-  // Real weather parameters
-  const temp = current?.temp ?? 28.4;
-  const rainfall = current?.precipitation ?? 0;
-  const humidity = current?.humidity ?? 72;
-  const windSpeed = current?.windSpeed ?? 14;
-  const windDir = current?.windDirection || 'SW';
+  const isAvailable = temp !== null;
 
-  // Soil moisture estimation based on recent precipitation and soil type
-  const soilMoisture = rainfall > 20 ? '82% (Saturated)' : rainfall > 5 ? '68% (Adequate)' : '48% (Moderate / Irrigation Required)';
+  const soilMoistureValue =
+    rawSoilMoisture !== null
+      ? `${Math.round(rawSoilMoisture * 100)}%`
+      : rainfall !== null
+      ? rainfall > 20
+        ? 'Saturated'
+        : rainfall > 5
+        ? 'Adequate'
+        : 'Dry / Monitor'
+      : null;
 
-  // Frost / Heat assessment
   const frostHeatCondition =
-    temp <= 4
-      ? 'Ground Frost Danger'
+    temp === null
+      ? null
+      : temp <= 4
+      ? 'Frost Danger'
       : temp <= 10
-      ? 'Cold Stress / Slow Biomass'
+      ? 'Cold Stress'
       : temp >= 40
-      ? 'Severe Heat Wave Stress'
+      ? 'Severe Heat'
       : temp >= 35
-      ? 'Heat Stress / High Evapotranspiration'
-      : 'Optimal Vegetative Window (No Frost/Heat Stress)';
+      ? 'Heat Stress'
+      : 'Optimal';
 
-  // Agricultural warning
   const agrometWarning =
-    rainfall > 25
+    temp === null
+      ? null
+      : rainfall !== null && rainfall > 25
       ? 'Drain excess water from nursery beds and withhold fertilizer spraying.'
       : temp >= 38
       ? 'Provide light frequent evening irrigation to mitigate floral abortion.'
-      : 'Favorable field operations window; proceed with weed management and scheduled micronutrient application.';
+      : 'Surface conditions remain workable; proceed with scheduled weed management and foliar inspection.';
 
   const handleScrollToAdvisories = () => {
-    const el = document.getElementById('official-agromet-bulletin') || document.getElementById('agromet-action-center');
+    const el = document.getElementById('agromet-official-advisories') || document.getElementById('agromet-action-center');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     } else {
-      window.scrollBy({ top: 600, behavior: 'smooth' });
+      window.scrollBy({ top: 500, behavior: 'smooth' });
     }
   };
 
   return (
-    <div
-      id="agricultural-weather-status-panel"
-      className="bg-[#17212B] border border-[#334155] rounded-xl p-4 sm:p-5 shadow-lg flex flex-col gap-4"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#334155] pb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#1ABC9C]/15 border border-[#1ABC9C]/40 flex items-center justify-center text-[#1ABC9C]">
-            <Sprout className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-white uppercase tracking-wider">
-              AGRICULTURAL WEATHER STATUS
-            </h2>
-            <p className="text-xs text-[#8A94A6]">
-              Agro-meteorological field parameters for <strong className="text-white">{district}, {state}</strong>
-            </p>
-          </div>
-        </div>
+    <DataPanel id="agricultural-weather-status-panel" className="space-y-4">
+      <SectionHeading
+        title="Agricultural Weather Status"
+        subtitle={`Agro-meteorological field parameters for ${district}, ${state}`}
+        icon={<Sprout className="w-4 h-4" />}
+        badge={<SourceStatus status={isAvailable ? 'LIVE' : 'UNAVAILABLE'} />}
+        action={
+          <button
+            type="button"
+            id="btn-view-agri-advisory"
+            onClick={handleScrollToAdvisories}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] sm:min-h-[40px] bg-[#0B72B9] hover:bg-[#0D84D6] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring"
+          >
+            <span>View Advisory</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          id="btn-view-agri-advisory"
-          onClick={handleScrollToAdvisories}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0B72B9] hover:bg-[#0B72B9]/80 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm self-start sm:self-auto"
-        >
-          <span>VIEW AGRICULTURAL ADVISORY</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {!isAvailable ? (
+        <UnavailableState
+          title="Agro-Meteorological Surface Telemetry Unavailable"
+          reason="Live surface station measurements (temperature, precipitation, wind, humidity) have not synced for this district."
+          source={weather?.current?.observationSource || 'IMD AWS / Open-Meteo Surface Feed'}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Rainfall"
+                value={rainfall}
+                unit="mm"
+                precision={1}
+                hint="Observed precip"
+                valueClassName="text-lg sm:text-xl font-bold text-[#35C7E8]"
+              />
+            </div>
 
-      {/* Grid of Key Agri-Parameters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-        {/* Rainfall */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Rainfall</span>
-            <CloudRain className="w-3.5 h-3.5 text-[#4FA8E0]" />
-          </div>
-          <div className="text-lg font-bold font-mono text-[#4FA8E0]">
-            {rainfall} mm
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5">24h Cumulative</div>
-        </div>
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Temperature"
+                value={temp}
+                unit="°C"
+                precision={1}
+                hint="Air canopy temp"
+              />
+            </div>
 
-        {/* Temperature */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Temperature</span>
-            <Thermometer className="w-3.5 h-3.5 text-[#FF8C42]" />
-          </div>
-          <div className="text-lg font-bold font-mono text-white">
-            {temp}°C
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5">Air Canopy Temp</div>
-        </div>
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Humidity"
+                value={humidity}
+                unit="%"
+                hint="Relative humidity"
+              />
+            </div>
 
-        {/* Humidity */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Humidity</span>
-            <Droplets className="w-3.5 h-3.5 text-[#4FA8E0]" />
-          </div>
-          <div className="text-lg font-bold font-mono text-white">
-            {humidity}%
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5">Relative Humidity</div>
-        </div>
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Wind Speed"
+                value={windSpeed}
+                unit="km/h"
+                hint={windSpeed !== null ? `${windDir} drift` : undefined}
+              />
+            </div>
 
-        {/* Wind */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Wind</span>
-            <Wind className="w-3.5 h-3.5 text-[#4FA8E0]" />
-          </div>
-          <div className="text-lg font-bold font-mono text-white">
-            {windSpeed} km/h
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5">{windDir} Drift</div>
-        </div>
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Soil Hydrology"
+                value={soilMoistureValue}
+                hint={rawSoilMoisture !== null ? 'Root-zone sensor' : 'Precip proxy'}
+                valueClassName="text-base sm:text-lg font-bold text-[#22C7A0]"
+              />
+            </div>
 
-        {/* Soil Moisture */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Soil Moisture</span>
-            <Droplets className="w-3.5 h-3.5 text-[#1ABC9C]" />
+            <div className="m-panel-inset p-3">
+              <MetricValue
+                label="Thermal Stress"
+                value={frostHeatCondition}
+                hint={temp >= 35 ? 'Elevated ETc' : 'Physiological zone'}
+                valueClassName={`text-base sm:text-lg font-bold ${
+                  temp >= 38 ? 'text-[#EF4444]' : temp >= 35 ? 'text-[#F59E0B]' : 'text-[#22C7A0]'
+                }`}
+              />
+            </div>
           </div>
-          <div className="text-sm font-bold font-mono text-[#1ABC9C] truncate">
-            {soilMoisture.split(' ')[0]}
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5 truncate">{soilMoisture.split(' ')[1] || 'Adequate'}</div>
-        </div>
 
-        {/* Frost / Heat Condition */}
-        <div className="bg-[#0F141A] border border-[#334155]/70 rounded-lg p-2.5">
-          <div className="flex items-center justify-between text-[#8A94A6] mb-1">
-            <span className="text-[10px] font-bold uppercase">Thermal Stress</span>
-            <Thermometer className="w-3.5 h-3.5 text-[#F1C40F]" />
-          </div>
-          <div className="text-xs font-bold font-mono text-[#F1C40F] truncate">
-            {frostHeatCondition.split(' ')[0]}
-          </div>
-          <div className="text-[10px] text-[#8A94A6] mt-0.5 truncate">
-            {frostHeatCondition.split(' ').slice(1).join(' ') || 'Normal'}
-          </div>
-        </div>
-      </div>
-
-      {/* Agricultural Warning / Advisory Bulletin */}
-      <div className="p-3 bg-[#0F141A] border border-[#334155] rounded-lg flex items-start gap-2.5 text-xs">
-        <AlertTriangle className="w-4 h-4 text-[#FF8C42] shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF8C42]">
-              AGRICULTURAL WARNING &amp; CROP GUIDANCE
-            </span>
-            <span className="text-[10px] text-[#8A94A6] font-mono">ICAR-IMD GKMS Protocol</span>
-          </div>
-          <p className="text-white mt-0.5 font-medium leading-relaxed">
-            {agrometWarning}
-          </p>
-        </div>
-      </div>
-    </div>
+          {agrometWarning && (
+            <div className="m-panel-inset p-3.5 flex items-start gap-2.5 text-xs">
+              <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F59E0B]">
+                    Operational Agromet Directive
+                  </span>
+                  <span className="text-[10px] font-mono text-[#8295A8]">ICAR-IMD GKMS Protocol</span>
+                </div>
+                <p className="text-[#F3F6FA] mt-1 leading-relaxed">{agrometWarning}</p>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </DataPanel>
   );
 };

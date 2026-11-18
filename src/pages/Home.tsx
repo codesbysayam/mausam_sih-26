@@ -8,7 +8,7 @@ import { WeatherMapMetric } from '../components/map/MapLayerControl';
 import { INDIA_WEATHER_DATA } from '../data/indiaWeatherData';
 import { useLanguage } from '../i18n/LanguageContext';
 import { MainNavTab } from '../components/layout/MainNavigation';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
+import { PageHeader, ProvenanceStatus } from '../components/ui/ObservatoryPrimitives';
 
 import { HomeAtmosphericHero } from '../components/home/HomeAtmosphericHero';
 import { HomeHourlyTimeline } from '../components/home/HomeHourlyTimeline';
@@ -42,6 +42,8 @@ import {
   Radio,
   Sprout,
   Database,
+  Crosshair,
+  MapPin,
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -117,15 +119,61 @@ export const HomePage: React.FC<HomePageProps> = ({
       ? 'Partial Feed Availability'
       : 'Feeds Unavailable';
 
+  const headerProvenance: ProvenanceStatus =
+    current.observationStatus === 'LOADING'
+      ? 'LOADING'
+      : current.observationStatus === 'LIVE'
+      ? 'LIVE'
+      : current.observationStatus === 'RECENT'
+      ? 'RECENT'
+      : current.observationStatus === 'STALE'
+      ? 'STALE'
+      : 'UNAVAILABLE';
+
+  const coordDisplay =
+    typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number'
+      ? `${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+      : undefined;
+
   return (
     <div id="mausam-home-view" className="flex flex-col gap-5 w-full pb-14">
-      {/* 1. LOCATION CONTEXT BAR */}
-      <LocationStatusBar
-        location={selectedLocation}
-        source={locationSource}
-        isLocating={isLocating}
-        onDetectLocation={onDetectLocation ? () => onDetectLocation(true) : undefined}
-        onChangeLocationClick={onOpenLocationCenter}
+      {/* 1. UNIFIED OBSERVATORY PAGE HEADER */}
+      <PageHeader
+        eyebrow={`CLASSIC OBSERVATORY BRIEF · ${locationSource === 'DEVICE_GPS' ? 'DEVICE GPS' : 'SELECTED STATION'}`}
+        title={
+          selectedLocation.city
+            ? `${selectedLocation.city}${selectedLocation.state ? `, ${selectedLocation.state}` : ''}`
+            : selectedLocation.name
+        }
+        coordinates={coordDisplay}
+        status={headerProvenance}
+        source={current.source || 'Open-Meteo Synoptic Feed'}
+        updatedAt={current.lastUpdated || null}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {onDetectLocation && (
+              <button
+                type="button"
+                onClick={() => onDetectLocation(true)}
+                disabled={isLocating}
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+              >
+                <Crosshair className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating…' : 'Use GPS'}</span>
+              </button>
+            )}
+            {onOpenLocationCenter && (
+              <button
+                type="button"
+                onClick={onOpenLocationCenter}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#0B72B9] hover:bg-[#0D82D1] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Change City</span>
+              </button>
+            )}
+          </div>
+        }
       />
 
       {/* 2. OFFICIAL WARNINGS / SACHET ALERT CENTER */}
@@ -218,32 +266,32 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* 9. REGIONAL REFERENCE SNAPSHOT & COLLAPSIBLE 36-STATE DIRECTORY */}
       <HomeIndiaWeatherStatus onNavigate={handleQuickAction} lastUpdated={current.lastUpdated} />
 
-      <section className="bg-[#101B26] border border-white/12 rounded-xl overflow-hidden">
+      <section className="m-panel overflow-hidden">
         <button
           type="button"
           onClick={() => setShowNationalDetails((prev) => !prev)}
           aria-expanded={showNationalDetails}
-          className="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-[#162331] transition-colors cursor-pointer"
+          className="w-full px-4 py-3.5 min-h-[52px] flex items-center justify-between gap-3 text-left hover:bg-[#101F2E] transition-colors cursor-pointer m-focus-ring"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <Table className="w-4 h-4 text-[#38BDF8] shrink-0" />
+            <Table className="w-4 h-4 text-[#35C7E8] shrink-0" />
             <div className="min-w-0">
-              <span className="text-sm font-semibold text-[#F4F7FA] block">
+              <span className="text-sm font-semibold text-[#F3F6FA] block">
                 National Regional Reference Map &amp; 36-State Table
               </span>
-              <span className="text-xs text-[#8EA3B8] block truncate">
+              <span className="text-xs text-[#8295A8] block truncate">
                 Inspect state-by-state capital reference conditions and export CSV/Excel
               </span>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-[#38BDF8] shrink-0">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#35C7E8] shrink-0">
             <span>{showNationalDetails ? 'Collapse' : 'Expand'}</span>
             {showNationalDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </span>
         </button>
 
         {showNationalDetails && (
-          <div className="p-4 sm:p-5 border-t border-white/10 flex flex-col gap-5">
+          <div className="p-4 sm:p-5 border-t border-[#26394B] flex flex-col gap-5">
             <ErrorBoundary fallbackTitle="National Weather Observation Map">
               <IndiaWeatherMap
                 data={INDIA_WEATHER_DATA}
@@ -254,22 +302,22 @@ export const HomePage: React.FC<HomePageProps> = ({
               />
             </ErrorBoundary>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#26394B]">
               <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8EA3B8]" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8295A8]" />
                 <input
                   type="text"
                   value={stateSearch}
                   onChange={(e) => setStateSearch(e.target.value)}
                   placeholder="Filter by state or city..."
-                  className="w-full h-10 bg-[#0B1219] border border-white/12 focus:border-[#38BDF8] rounded-lg text-[#F4F7FA] text-xs pl-9 pr-8 focus:outline-none"
+                  className="w-full h-10 bg-[#08131F] border border-[#26394B] focus:border-[#35C7E8] rounded-lg text-[#F3F6FA] text-xs pl-9 pr-8 focus:outline-none m-focus-ring"
                   aria-label="Filter by state or city name"
                 />
                 {stateSearch && (
                   <button
                     type="button"
                     onClick={() => setStateSearch('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8EA3B8] hover:text-white cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -282,9 +330,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               />
             </div>
 
-            <div className="table-wrapper rounded-lg border border-white/10">
+            <div className="table-wrapper rounded-lg border border-[#26394B]">
               <table className="w-full text-xs text-left border-collapse tabular-nums">
-                <thead className="bg-[#0B1219] text-[#8EA3B8] font-semibold uppercase text-[10px] tracking-wider border-b border-white/10">
+                <thead className="bg-[#08131F] text-[#8295A8] font-semibold uppercase text-[10px] tracking-wider border-b border-[#26394B]">
                   <tr>
                     <th className="p-3">State / UT</th>
                     <th className="p-3">Capital</th>
@@ -313,7 +361,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       <tr
                         key={state.id}
                         onClick={() => handleStateClick(state)}
-                        className="hover:bg-[#162331] cursor-pointer transition-colors bg-[#101B26]"
+                        className="hover:bg-[#101F2E] cursor-pointer transition-colors bg-[#0B1927]"
                       >
                         <td className="p-3 font-medium text-[#F4F7FA]">{state.name}</td>
                         <td className="p-3 text-[#B6C7D8]">{state.city || '—'}</td>
@@ -347,19 +395,19 @@ export const HomePage: React.FC<HomePageProps> = ({
       </ErrorBoundary>
 
       {/* 11. COMPACT REAL SYSTEM PROVENANCE STRIP (Full Telemetry lives in Data & Sources) */}
-      <section className="bg-[#101B26] border border-white/12 rounded-xl px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <section className="m-panel px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className={`px-2.5 py-0.5 rounded text-[11px] font-mono font-semibold border ${systemBadgeTone}`}>
+          <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-semibold border ${systemBadgeTone}`}>
             {systemBadgeLabel}
           </span>
-          <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono text-[#8EA3B8]">
+          <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono text-[#8295A8]">
             {(['WEATHER', 'RADAR', 'AQI', 'NWP', 'SACHET', 'IMD'] as const).map((pid) => {
               const st = providers[pid];
               const vis = getProviderStatusVisual(st.status);
               return (
-                <span key={pid} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#162331] border border-white/8">
+                <span key={pid} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#08131F] border border-[#26394B]">
                   <span className={`w-1.5 h-1.5 rounded-full ${vis.dotClass}`} />
-                  <span className="text-[#F4F7FA]">{pid}</span>
+                  <span className="text-[#F3F6FA]">{pid}</span>
                   <span className={vis.textClass}>{vis.label}</span>
                 </span>
               );
@@ -370,7 +418,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <button
           type="button"
           onClick={() => onNavigateToTab('debug')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#38BDF8] hover:text-white shrink-0 cursor-pointer self-start md:self-auto"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#35C7E8] hover:text-[#F3F6FA] shrink-0 cursor-pointer self-start md:self-auto m-focus-ring"
         >
           <Database className="w-3.5 h-3.5" />
           <span>Data &amp; Sources Diagnostics</span>
@@ -386,7 +434,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             title: 'Weather Map & Radar',
             desc: 'Interactive atmospheric layers, 6h radar playback & point inspector',
             icon: Radio,
-            color: 'text-[#38BDF8]',
+            color: 'text-[#35C7E8]',
           },
           {
             tab: 'forecast' as MainNavTab,
@@ -400,7 +448,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             title: 'Local Weather Detail',
             desc: 'Full meteorological telemetry, solar dynamics & coastal metrics',
             icon: SunMedium,
-            color: 'text-[#38BDF8]',
+            color: 'text-[#35C7E8]',
           },
           {
             tab: 'warnings' as MainNavTab,
@@ -414,7 +462,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             title: 'Air Quality & Exposure',
             desc: 'Hourly atmospheric chemistry, PM2.5/PM10 & health advisories',
             icon: Activity,
-            color: 'text-[#FFC857]',
+            color: 'text-[#FCD34D]',
           },
           {
             tab: 'agromet' as MainNavTab,
@@ -430,19 +478,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               key={tool.tab}
               type="button"
               onClick={() => onNavigateToTab(tool.tab)}
-              className="p-4 rounded-xl bg-[#101B26] border border-white/12 hover:border-[#38BDF8]/40 hover:bg-[#162331] transition-colors text-left flex items-start gap-3 group cursor-pointer"
+              className="p-4 m-panel hover:border-[#38536A] hover:bg-[#101F2E] transition-colors text-left flex items-start gap-3 group cursor-pointer m-focus-ring"
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#162331] border border-white/10 ${tool.color}`}>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#08131F] border border-[#26394B] ${tool.color}`}>
                 <ToolIcon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#F4F7FA] group-hover:text-[#38BDF8] transition-colors">
+                  <span className="text-xs font-semibold text-[#F3F6FA] group-hover:text-[#35C7E8] transition-colors">
                     {tool.title}
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#8EA3B8] group-hover:text-white transition-colors" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#8295A8] group-hover:text-[#F3F6FA] transition-colors" />
                 </div>
-                <p className="text-xs text-[#8EA3B8] mt-1 leading-snug">{tool.desc}</p>
+                <p className="text-xs text-[#8295A8] mt-1 leading-snug">{tool.desc}</p>
               </div>
             </button>
           );
@@ -452,51 +500,52 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* State Selection Modal */}
       {selectedStateModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
           onClick={() => setSelectedStateModal(null)}
         >
           <div
-            className="w-full max-w-lg bg-[#101B26] border border-white/14 rounded-2xl p-6 shadow-2xl relative"
+            className="w-full max-w-lg m-panel-elevated p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#26394B] mb-4">
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#38BDF8]">
+                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#35C7E8]">
                   Regional Reference Profile
                 </span>
-                <h3 className="text-lg font-bold text-[#F4F7FA]">{selectedStateModal.name}</h3>
+                <h3 className="text-lg font-bold text-[#F3F6FA]">{selectedStateModal.name}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedStateModal(null)}
-                className="w-8 h-8 rounded-lg bg-[#162331] text-[#8EA3B8] hover:text-white flex items-center justify-center cursor-pointer border border-white/10"
+                aria-label="Close regional reference profile"
+                className="w-9 h-9 rounded-lg bg-[#08131F] text-[#8295A8] hover:text-[#F3F6FA] flex items-center justify-center cursor-pointer border border-[#26394B] m-focus-ring"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-5 tabular-nums">
-              <div className="p-3 rounded-xl bg-[#162331] border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] uppercase block">Capital City</span>
-                <span className="text-sm font-bold text-[#F4F7FA]">
+            <div className="grid grid-cols-2 gap-3 mb-5 font-mono tabular-nums">
+              <div className="p-3 m-panel-inset">
+                <span className="text-[10px] font-sans text-[#8295A8] uppercase block">Capital City</span>
+                <span className="text-sm font-sans font-bold text-[#F3F6FA]">
                   {selectedStateModal.city || selectedStateModal.name}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-[#162331] border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] uppercase block">Reference Temp</span>
-                <span className="text-lg font-mono font-bold text-[#38BDF8]">
+              <div className="p-3 m-panel-inset">
+                <span className="text-[10px] font-sans text-[#8295A8] uppercase block">Reference Temp</span>
+                <span className="text-lg font-bold text-[#35C7E8]">
                   {selectedStateModal.temperature}°C
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-[#162331] border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] uppercase block">Condition</span>
-                <span className="text-sm font-semibold text-[#B6C7D8]">
+              <div className="p-3 m-panel-inset">
+                <span className="text-[10px] font-sans text-[#8295A8] uppercase block">Condition</span>
+                <span className="text-sm font-sans font-semibold text-[#B5C3D1]">
                   {selectedStateModal.condition}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-[#162331] border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] uppercase block">Reference AQI</span>
-                <span className="text-sm font-mono font-bold text-[#FFC857]">
+              <div className="p-3 m-panel-inset">
+                <span className="text-[10px] font-sans text-[#8295A8] uppercase block">Reference AQI</span>
+                <span className="text-sm font-bold text-[#FCD34D]">
                   AQI {selectedStateModal.aqi}
                 </span>
               </div>
@@ -516,7 +565,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   setSelectedStateModal(null);
                   onNavigateToTab('weather');
                 }}
-                className="w-full min-h-[42px] rounded-xl bg-[#1499E8] hover:bg-[#0E83CA] text-white text-xs font-semibold py-2.5 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="w-full min-h-[42px] rounded-xl bg-[#0B72B9] hover:bg-[#0D82D1] text-[#F3F6FA] text-xs font-semibold py-2.5 flex items-center justify-center gap-1.5 cursor-pointer transition-colors m-focus-ring"
               >
                 <span>Open Live Weather for {selectedStateModal.name}</span>
                 <ArrowRight className="w-4 h-4" />

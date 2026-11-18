@@ -1,6 +1,6 @@
 import React from 'react';
 import { MeteorologicalPublication } from '../../data/reportsAndArticles';
-import { History, ArrowRight, X, BookOpen } from 'lucide-react';
+import { History } from 'lucide-react';
 import { getCategoryTheme } from './reportUtils';
 
 interface RecentlyViewedReportsProps {
@@ -25,11 +25,11 @@ export const RecentlyViewedReports: React.FC<RecentlyViewedReportsProps> = ({
   return (
     <div
       id="recently-viewed-reports-strip"
-      className="rounded-2xl bg-[#091119] border border-[#1E2E40] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      className="m-panel-inset p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
     >
-      <div className="flex items-center gap-2 text-xs font-mono text-[#94A3B8] shrink-0">
-        <History className="w-3.5 h-3.5 text-[#38BDF8]" />
-        <span className="font-bold uppercase text-white">Recently Viewed:</span>
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8295A8] shrink-0">
+        <History className="w-3.5 h-3.5 text-[#35C7E8]" />
+        <span className="font-bold uppercase text-[#F3F6FA]">Recently Viewed:</span>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto flex-1 scrollbar-none">
@@ -40,9 +40,12 @@ export const RecentlyViewedReports: React.FC<RecentlyViewedReportsProps> = ({
               key={pub.id}
               type="button"
               onClick={() => onOpenReport(pub)}
-              className="px-3 py-1.5 rounded-xl bg-[#0F1924] hover:bg-[#162536] border border-[#1E2E40] hover:border-[#38BDF8]/50 text-xs font-mono text-[#CBD5E1] hover:text-white transition-all flex items-center gap-1.5 shrink-0 cursor-pointer max-w-[240px]"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#0B1927] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 text-xs font-mono text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors flex items-center gap-2 shrink-0 cursor-pointer max-w-[240px] m-focus-ring"
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.accentColor }} />
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: theme.accentColor }}
+              />
               <span className="truncate">{pub.title}</span>
             </button>
           );
@@ -52,7 +55,7 @@ export const RecentlyViewedReports: React.FC<RecentlyViewedReportsProps> = ({
       <button
         type="button"
         onClick={onClear}
-        className="text-[11px] font-mono text-[#64748B] hover:text-[#94A3B8] shrink-0 cursor-pointer hover:underline"
+        className="min-h-[36px] px-2 text-[11px] font-mono text-[#8295A8] hover:text-[#F3F6FA] shrink-0 cursor-pointer hover:underline self-end sm:self-center"
         title="Clear recent history"
       >
         Clear

@@ -298,7 +298,7 @@ class WarningService {
           activeAlertsCount: 0,
           expiredAlertsCount: 0,
           httpStatus: 200,
-          endpoint: 'N/A',
+          endpoint: 'Not applicable (International)',
           cacheStatus: 'FRESH',
           error: null,
         },

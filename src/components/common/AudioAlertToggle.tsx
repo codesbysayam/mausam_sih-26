@@ -7,16 +7,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Volume2,
-  VolumeX,
-  Volume1,
   BellRing,
   BellOff,
   AlertTriangle,
   Play,
   Square,
-  Sliders,
   Settings,
-  Check,
   ShieldAlert,
 } from 'lucide-react';
 import { useAlertAudio } from '../../hooks/useAlertAudio';
@@ -51,7 +47,6 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
   const [testButtonState, setTestButtonState] = useState<'idle' | 'playing' | 'error'>('idle');
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  // Sync testButtonState with global isPlaying
   useEffect(() => {
     if (isPlaying) {
       setTestButtonState('playing');
@@ -60,7 +55,6 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
     }
   }, [isPlaying]);
 
-  // Close settings popover on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
@@ -97,7 +91,6 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
 
   const volumePercent = Math.round(volume * 100);
 
-  // Status badge label and styling
   const statusLabel =
     status === 'unavailable'
       ? 'Unavailable'
@@ -107,33 +100,32 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
       ? 'Ready'
       : 'Muted';
 
-  // Ticker / Compact / Pill variants for navigational bars
   if (variant === 'ticker' || variant === 'compact' || variant === 'pill') {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`flex items-center gap-1.5 ${className}`}>
         <button
           type="button"
           role="switch"
           aria-checked={isAudioAlertEnabled}
           onClick={handleToggle}
           title={`Severe Audio Alert: ${isAudioAlertEnabled ? 'ON' : 'OFF'} (${statusLabel})`}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full sm:rounded text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 min-h-[36px] sm:min-h-[32px] rounded-lg border text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
             status === 'unavailable'
-              ? 'bg-[#2A1810] border border-[#D97706] text-[#FBBF24]'
+              ? 'bg-[#F59E0B]/10 border-[#F59E0B]/40 text-[#FCD34D]'
               : isAudioAlertEnabled
-              ? 'bg-[#180B0D] border border-[#E74C3C] text-[#FF8A80]'
-              : 'bg-[#081F33] border border-[#1D5278] text-[#8EA3B8]'
+              ? 'bg-[#EF4444]/12 border-[#EF4444]/45 text-[#FCA5A5]'
+              : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A]'
           }`}
         >
           {isAudioAlertEnabled ? (
-            <BellRing className="w-3.5 h-3.5 text-[#FF6B6B]" />
+            <BellRing className="w-3.5 h-3.5 text-[#FCA5A5] shrink-0" />
           ) : (
-            <BellOff className="w-3.5 h-3.5 text-[#8EA3B8]" />
+            <BellOff className="w-3.5 h-3.5 text-[#8295A8] shrink-0" />
           )}
           {showLabel && (
-            <span className="font-mono text-[11px]">
+            <span className="font-mono text-[11px] tabular-nums">
               {status === 'unavailable'
-                ? 'Audio: UNAVAILABLE'
+                ? 'Audio: Unavailable'
                 : isAudioAlertEnabled
                 ? 'Audio: ON'
                 : 'Audio: OFF'}
@@ -145,20 +137,19 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
           <button
             type="button"
             onClick={handleTestAudio}
-            className="px-2 py-1 rounded bg-[#102D47] hover:bg-[#1565C0] text-[#38BDF8] border border-[#1D5278] text-[10px] font-mono cursor-pointer"
+            className="px-2.5 py-1.5 min-h-[36px] sm:min-h-[32px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] text-[#35C7E8] border border-[#38536A] text-[11px] font-mono font-semibold inline-flex items-center gap-1 cursor-pointer m-focus-ring"
           >
-            {isPlaying ? '■ Stop' : '▶ Test'}
+            {isPlaying ? <Square className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+            <span>{isPlaying ? 'Stop' : 'Test'}</span>
           </button>
         )}
       </div>
     );
   }
 
-  // Header Variant: Full Operational Control as requested
   return (
     <div className={`relative flex flex-col gap-2 ${className}`} ref={settingsRef}>
       <div className="flex flex-wrap items-center gap-2">
-        {/* 1. Primary Permission / Control Switch */}
         <button
           id="audio-alert-toggle-header"
           type="button"
@@ -172,21 +163,21 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
               ? 'Audio Alert: ON (Click to mute)'
               : 'Audio Alert: OFF (Click to activate real emergency alert audio)'
           }
-          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all cursor-pointer select-none ${
+          className={`flex items-center gap-2.5 px-3 py-2 min-h-[42px] rounded-lg border text-xs font-semibold transition-colors cursor-pointer select-none m-focus-ring ${
             status === 'unavailable'
-              ? 'bg-[#2A1810] border-[#D97706] text-[#FBBF24]'
+              ? 'bg-[#F59E0B]/10 border-[#F59E0B]/40 text-[#FCD34D]'
               : isAudioAlertEnabled
-              ? 'bg-[#1A0B0E] border-[#E74C3C] text-white shadow-md ring-1 ring-[#E74C3C]/50 hover:bg-[#250F14]'
-              : 'bg-[#081F33] border-[#1D5278] text-[#8EA3B8] hover:text-white hover:border-[#38BDF8]'
+              ? 'bg-[#EF4444]/12 border-[#EF4444]/50 text-[#F3F6FA] hover:bg-[#EF4444]/20'
+              : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A]'
           }`}
         >
           <div className="flex items-center justify-center shrink-0">
             {status === 'unavailable' ? (
-              <AlertTriangle className="w-4 h-4 text-[#FBBF24]" />
+              <AlertTriangle className="w-4 h-4 text-[#FCD34D]" />
             ) : isAudioAlertEnabled ? (
-              <BellRing className="w-4 h-4 text-[#FF6B6B] animate-pulse" />
+              <BellRing className="w-4 h-4 text-[#FCA5A5]" />
             ) : (
-              <BellOff className="w-4 h-4 text-[#8EA3B8]" />
+              <BellOff className="w-4 h-4 text-[#8295A8]" />
             )}
           </div>
 
@@ -194,69 +185,65 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-bold tracking-wide uppercase">
                 {status === 'unavailable'
-                  ? 'Audio Alert: UNAVAILABLE'
+                  ? 'Audio: Unavailable'
                   : isAudioAlertEnabled
-                  ? 'AUDIO ALERT: ON'
-                  : 'AUDIO ALERT: OFF'}
+                  ? 'Audio Alert: ON'
+                  : 'Audio Alert: OFF'}
               </span>
               <span
-                className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold uppercase ${
+                className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
                   status === 'playing'
-                    ? 'bg-[#E74C3C] text-white animate-pulse'
+                    ? 'bg-[#EF4444] text-white'
                     : isAudioAlertEnabled
-                    ? 'bg-[#00E676]/20 text-[#00E676]'
-                    : 'bg-[#1D5278] text-[#8EA3B8]'
+                    ? 'bg-[#22C7A0]/15 text-[#6EE7B7]'
+                    : 'bg-[#101F2E] text-[#8295A8]'
                 }`}
               >
                 {statusLabel}
               </span>
             </div>
-            <span className="text-[10px] text-[#AFC4D8] mt-0.5">
+            <span className="text-[10px] text-[#8295A8] mt-0.5">
               {status === 'unavailable'
                 ? 'Device audio not initialized'
                 : isAudioAlertEnabled
-                ? 'High-Priority Meteorological Alert'
-                : 'Muted • Click to enable warning audio'}
+                ? 'Severe alert tone active'
+                : 'Muted • Click to arm audio'}
             </span>
           </div>
         </button>
 
-        {/* 2. Test Alert Button (invokes exact production AlertAudioService.play) */}
         <button
           id="btn-test-alert-audio"
           type="button"
           onClick={handleTestAudio}
           disabled={status === 'unavailable'}
           title="Test Alert Audio (Invokes the real production alert audio pipeline)"
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`flex items-center gap-1.5 px-3 py-2 min-h-[42px] rounded-lg border text-xs font-semibold transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed m-focus-ring ${
             testButtonState === 'playing'
-              ? 'bg-[#E74C3C] border-[#FF8A80] text-white shadow-md animate-pulse'
+              ? 'bg-[#EF4444] border-[#FCA5A5] text-white'
               : testButtonState === 'error'
-              ? 'bg-[#B91C1C] border-[#F87171] text-white'
-              : 'bg-[#081F33] border-[#1D5278] hover:bg-[#102D47] hover:border-[#38BDF8] text-[#38BDF8] hover:text-[#7DD3FC]'
+              ? 'bg-[#EF4444]/20 border-[#EF4444]/50 text-[#FCA5A5]'
+              : 'bg-[#08131F] border-[#26394B] hover:bg-[#101F2E] hover:border-[#38536A] text-[#35C7E8]'
           }`}
         >
           {testButtonState === 'playing' ? (
             <>
               <Square className="w-3.5 h-3.5 fill-white" />
-              <span className="font-mono text-[11px] font-bold">Stop Alert</span>
+              <span className="font-mono text-[11px] font-bold">Stop</span>
             </>
           ) : testButtonState === 'error' ? (
             <>
               <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="font-mono text-[11px]">Audio Blocked</span>
+              <span className="font-mono text-[11px]">Blocked</span>
             </>
           ) : (
             <>
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span className="font-mono text-[11px]">TEST ALERT</span>
-              <span className="text-[#8EA3B8] font-mono text-[10px]">·</span>
-              <span className="text-[#AFC4D8] font-mono text-[10px]">{volumePercent}%</span>
+              <span className="font-mono text-[11px] tabular-nums">Test · {volumePercent}%</span>
             </>
           )}
         </button>
 
-        {/* 3. Settings / Volume Popover Trigger */}
         <button
           id="btn-audio-alert-settings"
           type="button"
@@ -264,70 +251,64 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
           title="Configure Alert Threshold and Volume"
           aria-expanded={isSettingsOpen}
           aria-label="Alert audio settings"
-          className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
+          className={`w-[42px] h-[42px] rounded-lg border flex items-center justify-center transition-colors cursor-pointer m-focus-ring ${
             isSettingsOpen
-              ? 'bg-[#1565C0] border-[#38BDF8] text-white shadow'
-              : 'bg-[#081F33] border-[#1D5278] hover:bg-[#102D47] text-[#8EA3B8] hover:text-white'
+              ? 'bg-[#0B72B9] border-[#35C7E8] text-white'
+              : 'bg-[#08131F] border-[#26394B] hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA]'
           }`}
         >
           <Settings className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Real-time High-Priority Alert Notice (Appears when real new active warning triggers) */}
       {activeWarningBanner && (
         <div
           id="official-live-audio-alert-toast"
-          className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg border shadow-xl animate-bounce text-xs font-semibold ${
+          className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg border text-xs font-semibold ${
             activeWarningBanner.severity === 'red'
-              ? 'bg-[#3A0D12] border-[#E74C3C] text-white ring-1 ring-[#FF8A80]'
-              : 'bg-[#351F04] border-[#D97706] text-[#FEF3C7]'
+              ? 'bg-[#EF4444]/15 border-[#EF4444]/50 text-[#F3F6FA]'
+              : 'bg-[#F59E0B]/12 border-[#F59E0B]/40 text-[#FCD34D]'
           }`}
         >
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E74C3C] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E74C3C]"></span>
-            </span>
-            <div>
-              <span className="font-bold text-[#FF8A80] uppercase tracking-wider block">
-                🔴 NEW OFFICIAL WARNING
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <div className="min-w-0">
+              <span className="font-bold uppercase tracking-wider block text-[11px]">
+                New Official Warning
               </span>
-              <span className="text-white font-medium">
+              <span className="text-[#F3F6FA] font-medium truncate block">
                 {activeWarningBanner.severity.toUpperCase()} ALERT — {activeWarningBanner.hazard}
               </span>
             </div>
           </div>
-          <span className="text-[10px] font-mono bg-black/40 px-2 py-0.5 rounded text-[#AFC4D8] border border-white/10 shrink-0">
-            {isAudioAlertEnabled ? 'Audio alert played' : 'Muted'}
+          <span className="text-[10px] font-mono bg-[#08131F] px-2 py-0.5 rounded text-[#B5C3D1] border border-[#26394B] shrink-0">
+            {isAudioAlertEnabled ? 'Audio played' : 'Muted'}
           </span>
         </div>
       )}
 
-      {/* Settings Dropdown Popover */}
       {isSettingsOpen && (
         <div
           id="audio-alert-settings-popover"
-          className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-[#0B263D] border border-[#1D5278] rounded-xl shadow-2xl p-4 z-50 flex flex-col gap-3.5 text-white"
+          className="absolute top-full right-0 mt-2 w-72 sm:w-80 m-panel-elevated p-4 z-50 flex flex-col gap-3.5 text-[#F3F6FA] shadow-2xl"
         >
-          <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#E3F2FD]">
-              <ShieldAlert className="w-4 h-4 text-[#38BDF8]" />
+          <div className="flex items-center justify-between pb-2 border-b border-[#26394B]">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#F3F6FA]">
+              <ShieldAlert className="w-4 h-4 text-[#35C7E8]" />
               <span>Alert Audio Configuration</span>
             </div>
-            <span className="text-[10px] font-mono text-[#00E676] bg-[#00E676]/10 px-1.5 py-0.5 rounded">
-              Verified Pipeline
+            <span className="text-[10px] font-mono text-[#6EE7B7] bg-[#22C7A0]/12 border border-[#22C7A0]/30 px-1.5 py-0.5 rounded">
+              WebAudio
             </span>
           </div>
 
-          {/* Volume Control */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[#AFC4D8] flex items-center gap-1">
-                <Volume2 className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span className="text-[#B5C3D1] flex items-center gap-1">
+                <Volume2 className="w-3.5 h-3.5 text-[#35C7E8]" />
                 Alert Volume
               </span>
-              <span className="font-mono font-bold text-white">{volumePercent}%</span>
+              <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">{volumePercent}%</span>
             </div>
             <input
               type="range"
@@ -337,18 +318,17 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               aria-label="Alert audio volume"
-              className="w-full accent-[#38BDF8] bg-[#081F33] h-2 rounded-lg cursor-pointer"
+              className="w-full accent-[#35C7E8] bg-[#08131F] h-2 rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-[#AFC4D8] font-mono">
+            <div className="flex justify-between text-[10px] text-[#8295A8] font-mono">
               <span>10% (Soft)</span>
               <span>70% (Standard)</span>
-              <span>100% (Maximum)</span>
+              <span>100% (Max)</span>
             </div>
           </div>
 
-          {/* Minimum Severity Trigger Threshold */}
-          <div className="flex flex-col gap-1.5 pt-1 border-t border-[#1D5278]/60">
-            <span className="text-xs text-[#AFC4D8]">Audio Trigger Threshold</span>
+          <div className="flex flex-col gap-1.5 pt-2 border-t border-[#26394B]">
+            <span className="text-xs text-[#B5C3D1]">Audio Trigger Threshold</span>
             <div className="grid grid-cols-3 gap-1.5">
               {(['yellow', 'orange', 'red'] as AlertSeverityThreshold[]).map((level) => {
                 const isSelected = minSeverity === level;
@@ -357,14 +337,14 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
                     key={level}
                     type="button"
                     onClick={() => setMinSeverity(level)}
-                    className={`px-2 py-1.5 rounded text-[11px] font-bold uppercase transition-all cursor-pointer border ${
+                    className={`px-2 py-2 min-h-[36px] rounded-lg text-[11px] font-bold uppercase transition-colors cursor-pointer border ${
                       isSelected
                         ? level === 'red'
-                          ? 'bg-[#E74C3C] text-white border-[#FF8A80]'
+                          ? 'bg-[#EF4444] text-white border-[#FCA5A5]'
                           : level === 'orange'
-                          ? 'bg-[#E67E22] text-white border-[#F39C12]'
-                          : 'bg-[#F1C40F] text-[#071A2D] border-white'
-                        : 'bg-[#081F33] text-[#AFC4D8] border-[#1D5278] hover:bg-[#102D47]'
+                          ? 'bg-[#F97316] text-white border-[#FDBA74]'
+                          : 'bg-[#EAB308] text-[#07111D] border-[#FDE047]'
+                        : 'bg-[#08131F] text-[#B5C3D1] border-[#26394B] hover:bg-[#101F2E]'
                     }`}
                   >
                     {level}
@@ -372,23 +352,23 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
                 );
               })}
             </div>
-            <p className="text-[10px] text-[#AFC4D8] mt-0.5 leading-normal">
+            <p className="text-[10px] text-[#8295A8] mt-0.5 leading-normal">
               {minSeverity === 'red'
-                ? 'Only urgent Red Alerts (Cyclone, Extreme Rain) will chime.'
+                ? 'Only urgent Red Alerts (Cyclone, Extreme Rain) chime.'
                 : minSeverity === 'orange'
-                ? 'Orange and Red warnings trigger audible broadcast tone.'
-                : 'All color-coded warnings (Yellow, Orange, Red) trigger audio.'}
+                ? 'Orange and Red warnings trigger audible tone.'
+                : 'Yellow, Orange, and Red warnings trigger audio.'}
             </p>
           </div>
 
-          <div className="pt-2 border-t border-[#1D5278]/60 flex items-center justify-between text-[10px] text-[#AFC4D8] font-mono">
-            <span>Sound: MAUSAM 853Hz+960Hz</span>
+          <div className="pt-2 border-t border-[#26394B] flex items-center justify-between text-[10px] text-[#8295A8] font-mono">
+            <span>Tone: 853Hz + 960Hz</span>
             <button
               type="button"
               onClick={handleTestAudio}
-              className="text-[#38BDF8] hover:underline cursor-pointer"
+              className="text-[#35C7E8] hover:underline cursor-pointer"
             >
-              Test tone ▶
+              Test tone
             </button>
           </div>
         </div>

@@ -1,7 +1,9 @@
 import React from 'react';
+import { CheckCircle2, RotateCcw } from 'lucide-react';
 import { WarningRecord } from '../../types/warningTypes';
 import { WarningCard } from './WarningCard';
 import { LocationRecord } from '../../types';
+import { DataPanel, UnavailableState } from '../ui/ObservatoryPrimitives';
 
 interface WarningListProps {
   warnings: WarningRecord[];
@@ -9,6 +11,8 @@ interface WarningListProps {
   onViewOnMap: (warning: WarningRecord) => void;
   onResetFilters: () => void;
   selectedLocation?: LocationRecord;
+  isUnavailable?: boolean;
+  onRetry?: () => void;
 }
 
 export const WarningList: React.FC<WarningListProps> = ({
@@ -17,44 +21,58 @@ export const WarningList: React.FC<WarningListProps> = ({
   onViewOnMap,
   onResetFilters,
   selectedLocation,
+  isUnavailable = false,
+  onRetry,
 }) => {
+  if (isUnavailable) {
+    return (
+      <UnavailableState
+        title="Active warning bulletins unavailable"
+        reason="The SACHET / NDMA CAP feed could not be reached. Individual bulletins cannot be verified until upstream connectivity is restored."
+        source="NDMA SACHET CAP RSS"
+        onRetry={onRetry}
+        retryLabel="Retry Feed Sync"
+      />
+    );
+  }
+
   if (warnings.length === 0) {
     return (
-      <div
+      <DataPanel
         id="warning-list-empty-state"
-        className="bg-[#0B263D] border border-[#1D5278] rounded-md p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-3 shadow-sm w-full"
+        className="py-10 px-6 text-center flex flex-col items-center justify-center gap-3 w-full"
       >
-        <div className="w-12 h-12 rounded-full bg-[#081F33] border border-[#1D5278] flex items-center justify-center text-[#00E676]">
-          <span className="material-symbols-outlined text-[28px]">verified</span>
+        <div className="w-11 h-11 rounded-xl bg-[#08131F] border border-[#22C7A0]/35 flex items-center justify-center text-[#6EE7B7]">
+          <CheckCircle2 className="w-6 h-6" />
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+        <h3 className="text-base sm:text-lg font-bold text-[#F3F6FA] tracking-tight">
           No Warnings Match Current Filter Criteria
         </h3>
 
-        <p className="text-xs text-[#AFC4D8] max-w-md leading-relaxed">
-          No active meteorological warnings match the selected state, region, or hazard parameters. Meteorological conditions are normal in this sector.
+        <p className="text-xs text-[#B5C3D1] max-w-md leading-relaxed">
+          No active meteorological warnings match the selected state, region, or hazard parameters.
         </p>
 
         <button
           id="btn-empty-reset-filters"
           type="button"
           onClick={onResetFilters}
-          className="mt-2 px-4 py-2 rounded bg-[#1565C0] hover:bg-[#0B3D91] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+          className="mt-1 px-4 py-2 min-h-[40px] rounded-lg bg-[#0B72B9] hover:bg-[#095C96] text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 m-focus-ring"
         >
-          <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+          <RotateCcw className="w-3.5 h-3.5" />
           <span>Reset All Filters</span>
         </button>
-      </div>
+      </DataPanel>
     );
   }
 
   return (
     <div
       id="national-warning-bulletins-grid"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full min-w-0 transition-opacity duration-300 ease-out"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full min-w-0"
     >
-      {warnings.map((warning, index) => {
+      {warnings.map((warning) => {
         const isLocTarget =
           selectedLocation &&
           (warning.state.toLowerCase() === (selectedLocation.state || '').toLowerCase() ||
@@ -65,11 +83,7 @@ export const WarningList: React.FC<WarningListProps> = ({
             ));
 
         return (
-          <div
-            key={warning.id}
-            className="animate-alert-entry w-full flex flex-col transition-all duration-200"
-            style={{ animationDelay: `${Math.min(index * 25, 200)}ms` }}
-          >
+          <div key={warning.id} className="w-full flex flex-col">
             <WarningCard
               warning={warning}
               onViewDetails={onViewDetails}

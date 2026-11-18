@@ -1,4 +1,17 @@
 import React, { useEffect, useCallback } from 'react';
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronUp,
+  ChevronDown,
+  Repeat,
+  Radar,
+  Wind,
+} from 'lucide-react';
 import { RadarFrame, RadarMotionVector, RadarDataStatus } from '../../services/radarService';
 
 export type RadarTimeSpan = '1h' | '3h' | '6h';
@@ -35,7 +48,7 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
   timeSpan = '6h',
   onChangeTimeSpan,
   motionVector,
-  dataStatus = 'LIVE',
+  dataStatus = 'RECENT',
   className = '',
   isCollapsible = true,
   initialCollapsed = false,
@@ -46,10 +59,8 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
   const isLatest = activeFrameIndex === frames.length - 1;
   const isEarliest = activeFrameIndex === 0;
 
-  // Keyboard navigation shortcuts
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Avoid intercepting input fields or search bars
       if (
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA'
@@ -86,22 +97,14 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
     return null;
   }
 
-  // Calculate percentage along timeline
   const progressPercent =
     frames.length > 1 ? (activeFrameIndex / (frames.length - 1)) * 100 : 100;
 
-  // Stop Leaflet map panning/zooming when interacting with playback controls
-  const handleContainerClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
+  const handleContainerClick = (e: React.MouseEvent) => e.stopPropagation();
+  const handleContainerMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 
-  const handleContainerMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
+  const latestLabel = dataStatus === 'LIVE' ? 'LATEST (LIVE)' : 'LATEST SCAN';
 
-  /* ==========================================================
-     COLLAPSED PILL MODE
-     ========================================================== */
   if (isCollapsible && isCollapsed) {
     return (
       <div
@@ -109,137 +112,119 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
         onClick={handleContainerClick}
         onMouseDown={handleContainerMouseDown}
         onDoubleClick={(e) => e.stopPropagation()}
-        className={`bg-[#0B1219]/95 backdrop-blur-md border border-white/14 rounded-xl px-3 py-1.5 text-xs text-[#F4F7FA] shadow-2xl flex items-center justify-between gap-2.5 max-w-[calc(100vw-24px)] ${className}`}
+        className={`bg-[#0B1927]/95 backdrop-blur-md border border-[#26394B] rounded-xl px-3 py-1.5 text-xs text-[#F3F6FA] shadow-xl flex items-center justify-between gap-2.5 max-w-[calc(100vw-24px)] ${className}`}
         role="region"
         aria-label="Radar Time-Lapse Playback Mini Bar"
       >
-        {/* Play/Pause & Step Buttons */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={onTogglePlay}
             title={isPlaying ? 'Pause Animation [Space]' : 'Play 6-Hour Time-Lapse [Space]'}
-            className={`px-2.5 py-1 rounded font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer ${
+            className={`min-h-[32px] px-2.5 py-1 rounded-md font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
               isPlaying
-                ? 'bg-[#F97316] hover:bg-[#EA580C] text-white ring-1 ring-[#FDBA74]'
-                : 'bg-[#1565C0] hover:bg-[#0D47A1] text-white ring-1 ring-[#38BDF8]'
+                ? 'bg-[#F97316] hover:bg-[#EA580C] text-white'
+                : 'bg-[#0B72B9] hover:bg-[#095c96] text-white'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">
-              {isPlaying ? 'pause' : 'play_arrow'}
-            </span>
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             <span className="hidden xs:inline">{isPlaying ? 'Pause' : 'Play 6h'}</span>
           </button>
 
-          {/* Step Back (-15m) */}
           <button
             type="button"
             onClick={() => onChangeFrame(Math.max(0, activeFrameIndex - 1))}
             disabled={isEarliest}
             title="Step Back 15 Minutes [Left Arrow]"
-            className="w-6 h-6 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            aria-label="Step Back 15 Minutes"
+            className="w-7 h-7 rounded-md bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[14px]">skip_previous</span>
+            <SkipBack className="w-3.5 h-3.5" />
           </button>
 
-          {/* Step Forward (+15m) */}
           <button
             type="button"
             onClick={() => onChangeFrame(Math.min(frames.length - 1, activeFrameIndex + 1))}
             disabled={isLatest}
             title="Step Forward 15 Minutes [Right Arrow]"
-            className="w-6 h-6 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            aria-label="Step Forward 15 Minutes"
+            className="w-7 h-7 rounded-md bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[14px]">skip_next</span>
+            <SkipForward className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Center Frame & Time Info */}
         <div className="flex items-center gap-2 truncate">
-          <span className="w-2 h-2 rounded-full bg-[#22C7A0] shrink-0" />
           <div className="flex items-center gap-1.5 font-mono text-[11px] truncate tabular-nums">
-            <span className="text-[#8EA3B8] hidden sm:inline">
+            <span className="text-[#8295A8] hidden sm:inline">
               F{activeFrameIndex + 1}/{frames.length}
             </span>
-            <strong className="text-[#F4F7FA]">
+            <strong className="text-[#F3F6FA]">
               {currentFrame.formattedTime.split(',')[0]}
             </strong>
-            <span className="text-[#38BDF8] text-[10px] font-bold px-1 rounded bg-[#162331] border border-white/10">
+            <span className="text-[#35C7E8] text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#08131F] border border-[#26394B]">
               {currentFrame.relativeLabel || (isLatest ? 'LATEST' : `${currentFrame.ageMinutes}m`)}
             </span>
           </div>
         </div>
 
-        {/* Right Controls: Speed & Expand */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-mono text-[#8A9FB4] hidden sm:inline">
+          <span className="text-[10px] font-mono text-[#8295A8] hidden sm:inline tabular-nums">
             {playbackSpeed}x
           </span>
           <button
             type="button"
             onClick={() => setIsCollapsed(false)}
-            className="w-6 h-6 rounded bg-[#0B2136] hover:bg-[#153D63] text-[#38BDF8] hover:text-white border border-[#163B5D] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-md bg-[#08131F] hover:bg-[#101F2E] text-[#35C7E8] hover:text-white border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer"
             title="Expand 6-Hour Time-Lapse Console"
+            aria-label="Expand 6-Hour Time-Lapse Console"
           >
-            <span className="material-symbols-outlined text-[15px]">expand_less</span>
+            <ChevronUp className="w-4 h-4" />
           </button>
         </div>
       </div>
     );
   }
 
-  /* ==========================================================
-     EXPANDED FULL CONSOLE MODE
-     ========================================================== */
   return (
     <div
       id="radar-time-lapse-expanded-console"
       onClick={handleContainerClick}
       onMouseDown={handleContainerMouseDown}
       onDoubleClick={(e) => e.stopPropagation()}
-      className={`bg-[#0B1219]/95 backdrop-blur-md border border-white/14 rounded-xl p-2.5 sm:p-3 text-xs text-[#F4F7FA] shadow-2xl ${className}`}
+      className={`bg-[#0B1927]/95 backdrop-blur-md border border-[#26394B] rounded-xl p-2.5 sm:p-3 text-xs text-[#F3F6FA] shadow-xl ${className}`}
       role="region"
       aria-label="Radar 6-Hour Time-Lapse Playback Workstation"
     >
-      {/* 1. Header Strip: Title, Status, IST Timestamp & Collapse Button */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10">
-        {/* Left: Mode Title, Animation Status & Time Span Switcher */}
+      {/* Header Strip */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#26394B]">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#162331] border border-white/10 text-[11px] font-semibold text-[#38BDF8]">
-            <span className="material-symbols-outlined text-[15px] text-[#38BDF8]">
-              radar
-            </span>
-            <span>6-HOUR RADAR TIME-LAPSE</span>
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[11px] font-semibold text-[#35C7E8]">
+            <Radar className="w-3.5 h-3.5 shrink-0" />
+            <span>6-Hour Radar Time-Lapse</span>
           </div>
 
-          {/* Animation Status Badge */}
           <span
-            className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+            className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
               isPlaying
-                ? 'bg-[#F97316]/20 text-[#FB923C] border-[#F97316]/40'
-                : 'bg-[#1499E8]/15 text-[#38BDF8] border-[#1499E8]/35'
+                ? 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/40'
+                : 'bg-[#35C7E8]/12 text-[#7DD3FC] border-[#35C7E8]/35'
             }`}
           >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isPlaying ? 'bg-[#F97316]' : 'bg-[#38BDF8]'
-              }`}
-            />
-            {isPlaying ? 'ANIMATING' : 'PAUSED'}
+            {isPlaying ? 'Animating' : 'Paused'}
           </span>
 
-          {/* Time Span Switcher: 6 Hours, 3 Hours, 1 Hour */}
           {onChangeTimeSpan && (
-            <div className="flex items-center bg-[#0B2136] p-0.5 rounded border border-[#163B5D]">
+            <div className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B]">
               {(['6h', '3h', '1h'] as RadarTimeSpan[]).map((span) => (
                 <button
                   key={span}
                   type="button"
                   onClick={() => onChangeTimeSpan(span)}
-                  className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors cursor-pointer ${
                     timeSpan === span
-                      ? 'bg-[#1565C0] text-white shadow-xs font-bold'
-                      : 'text-[#8A9FB4] hover:text-white'
+                      ? 'bg-[#0B72B9] text-white font-bold'
+                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
                   }`}
                   title={`View weather progression over last ${span.replace('h', ' hours')}`}
                 >
@@ -250,54 +235,45 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
           )}
         </div>
 
-        {/* Right: Active Frame Counter, Timestamp Badge & Collapse Button */}
         <div className="flex items-center gap-2">
-          {/* Frame Number Counter */}
-          <div className="text-[11px] font-mono text-[#8A9FB4] hidden sm:inline">
-            Frame <span className="font-bold text-[#F0F6FC]">{activeFrameIndex + 1}</span>/
-            <span className="font-bold text-[#F0F6FC]">{frames.length}</span>
+          <div className="text-[11px] font-mono text-[#8295A8] hidden sm:inline tabular-nums">
+            Frame <span className="font-bold text-[#F3F6FA]">{activeFrameIndex + 1}</span>/
+            <span className="font-bold text-[#F3F6FA]">{frames.length}</span>
           </div>
 
-          {/* Active Frame Timestamp Badge */}
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#162331] border border-white/10">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isLatest ? 'bg-[#22C7A0]' : 'bg-[#38BDF8]'
-              }`}
-            />
-            <span className="font-mono font-bold text-[#F4F7FA] text-[11px] tabular-nums">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B]">
+            <span className="font-mono font-bold text-[#F3F6FA] text-[11px] tabular-nums">
               {currentFrame.formattedTime.split(',')[0]}
             </span>
             <span
-              className={`text-[9px] font-bold px-1.5 py-0.2 rounded font-mono ${
+              className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono ${
                 isLatest
-                  ? 'bg-[#22C7A0]/20 text-[#22C7A0] border border-[#22C7A0]/40'
-                  : 'bg-[#1499E8]/20 text-[#38BDF8] border border-[#1499E8]/40'
+                  ? 'bg-[#22C7A0]/15 text-[#6EE7B7] border border-[#22C7A0]/35'
+                  : 'bg-[#35C7E8]/15 text-[#7DD3FC] border border-[#35C7E8]/35'
               }`}
             >
               {currentFrame.relativeLabel || (isLatest ? 'LATEST' : `${currentFrame.ageMinutes}m ago`)}
             </span>
           </div>
 
-          {/* Minimize / Collapse Button */}
           {isCollapsible && (
             <button
               type="button"
               onClick={() => setIsCollapsed(true)}
-              className="w-5 h-5 rounded hover:bg-[#102C48] text-[#8AA1B7] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA] flex items-center justify-center transition-colors cursor-pointer"
               title="Minimize playback bar"
+              aria-label="Minimize playback bar"
               aria-expanded={true}
             >
-              <span className="material-symbols-outlined text-[15px]">expand_more</span>
+              <ChevronDown className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. Interactive Timeline Bar & 1-Hour Tick Markers */}
+      {/* Interactive Timeline Slider & Tick Markers */}
       <div className="py-2">
         <div className="relative flex flex-col gap-1">
-          {/* Timeline Slider Track */}
           <div className="relative flex items-center">
             <input
               type="range"
@@ -306,126 +282,119 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
               value={activeFrameIndex}
               onChange={(e) => onChangeFrame(Number(e.target.value))}
               aria-label="6-hour radar time-lapse progression timeline"
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-[#0A2238] border border-[#1A456B] accent-[#38BDF8] focus:outline-none focus:ring-1 focus:ring-[#38BDF8]"
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-[#08131F] border border-[#26394B] accent-[#35C7E8] focus:outline-none focus:ring-1 focus:ring-[#35C7E8]"
               style={{
-                background: `linear-gradient(to right, #1565C0 0%, #38BDF8 ${progressPercent}%, #0B2238 ${progressPercent}%, #0B2238 100%)`,
+                background: `linear-gradient(to right, #0B72B9 0%, #35C7E8 ${progressPercent}%, #08131F ${progressPercent}%, #08131F 100%)`,
               }}
             />
           </div>
 
-          {/* 1-Hour Visual Tick Markers across the 6-Hour Timeline */}
-          <div className="flex items-center justify-between text-[9.5px] font-mono text-[#7A93AA] pt-0.5 px-1 select-none">
+          <div className="flex items-center justify-between text-[9.5px] font-mono text-[#8295A8] pt-0.5 px-1 select-none tabular-nums">
             <button
               type="button"
               onClick={() => onChangeFrame(0)}
-              className="text-[#38BDF8] font-bold hover:underline cursor-pointer"
+              className="text-[#35C7E8] font-bold hover:underline cursor-pointer"
               title="Jump to -6 Hours"
             >
               -6h
             </button>
             <span className="hidden sm:inline">-5h</span>
             <span className="hidden xs:inline">-4h</span>
-            <span className="text-[#8AB4D5] font-semibold">-3h</span>
+            <span className="text-[#B5C3D1] font-semibold">-3h</span>
             <span className="hidden xs:inline">-2h</span>
             <span className="hidden sm:inline">-1h</span>
             <button
               type="button"
               onClick={() => onChangeFrame(frames.length - 1)}
-              className="text-[#00C897] font-bold hover:underline cursor-pointer"
-              title="Jump to LIVE scan"
+              className="text-[#6EE7B7] font-bold hover:underline cursor-pointer"
+              title="Jump to latest available scan"
             >
-              LIVE (NOW)
+              {latestLabel}
             </button>
           </div>
         </div>
       </div>
 
-      {/* 3. Transport Controls: Play/Pause, Step, Speed, Loop */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-[#122A42]">
-        {/* Playback Buttons */}
+      {/* Transport Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-[#26394B]">
         <div className="flex items-center gap-1.5">
-          {/* Jump to -6h (Start) */}
           <button
             type="button"
             onClick={() => onChangeFrame(0)}
             disabled={isEarliest}
             title="Jump to Start (6 Hours Ago) [Home]"
-            className="w-7 h-7 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            aria-label="Jump to start"
+            className="w-7 h-7 rounded bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-white border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[16px]">first_page</span>
+            <ChevronsLeft className="w-4 h-4" />
           </button>
 
-          {/* Step Backward (-15m) */}
           <button
             type="button"
             onClick={() => onChangeFrame(Math.max(0, activeFrameIndex - 1))}
             disabled={isEarliest}
             title="Step Back 15 Minutes [Left Arrow]"
-            className="w-7 h-7 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            aria-label="Step back"
+            className="w-7 h-7 rounded bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-white border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[16px]">skip_previous</span>
+            <SkipBack className="w-3.5 h-3.5" />
           </button>
 
-          {/* Main Play / Pause Button */}
           <button
             type="button"
             onClick={onTogglePlay}
             title={isPlaying ? 'Pause Time-Lapse [Space]' : 'Play 6-Hour Time-Lapse Loop [Space]'}
-            className={`px-3 py-1 rounded font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer ${
+            className={`px-3 py-1 rounded font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
               isPlaying
-                ? 'bg-[#F97316] hover:bg-[#EA580C] text-white ring-1 ring-[#FDBA74]'
-                : 'bg-[#1565C0] hover:bg-[#0D47A1] text-white ring-1 ring-[#38BDF8]'
+                ? 'bg-[#F97316] hover:bg-[#EA580C] text-white'
+                : 'bg-[#0B72B9] hover:bg-[#095c96] text-white'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">
-              {isPlaying ? 'pause' : 'play_arrow'}
-            </span>
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             <span>{isPlaying ? 'Pause' : 'Play 6h Loop'}</span>
           </button>
 
-          {/* Step Forward (+15m) */}
           <button
             type="button"
             onClick={() => onChangeFrame(Math.min(frames.length - 1, activeFrameIndex + 1))}
             disabled={isLatest}
             title="Step Forward 15 Minutes [Right Arrow]"
-            className="w-7 h-7 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            aria-label="Step forward"
+            className="w-7 h-7 rounded bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-white border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[16px]">skip_next</span>
+            <SkipForward className="w-3.5 h-3.5" />
           </button>
 
-          {/* Jump to Live (End) */}
           <button
             type="button"
             onClick={() => onChangeFrame(frames.length - 1)}
             disabled={isLatest}
-            title="Jump to Live Scan [End]"
-            className="w-7 h-7 rounded bg-[#0D253D] hover:bg-[#153D63] text-[#A5C0D8] hover:text-white border border-[#1A456B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+            title="Jump to Latest Scan [End]"
+            aria-label="Jump to latest scan"
+            className="w-7 h-7 rounded bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-white border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
           >
-            <span className="material-symbols-outlined text-[16px]">last_page</span>
+            <ChevronsRight className="w-4 h-4" />
           </button>
 
-          {/* Keyboard Hint Badge */}
-          <span className="text-[9px] font-mono text-[#627D96] ml-1 hidden lg:inline">
-            [Space] Play • [←/→] Step
+          <span className="text-[9px] font-mono text-[#8295A8] ml-1 hidden lg:inline">
+            [Space] Play · [←/→] Step
           </span>
         </div>
 
-        {/* Speed Controls & Continuous Loop Toggle */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#7A93AA] uppercase tracking-wider font-semibold hidden md:inline">
+          <span className="text-[10px] text-[#8295A8] uppercase tracking-wider font-semibold hidden md:inline">
             Speed:
           </span>
-          <div className="flex items-center bg-[#0B2136] p-0.5 rounded border border-[#163B5D]">
+          <div className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B]">
             {[0.5, 1, 2, 4].map((spd) => (
               <button
                 key={spd}
                 type="button"
                 onClick={() => onChangeSpeed(spd)}
-                className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer tabular-nums ${
                   playbackSpeed === spd
-                    ? 'bg-[#1565C0] text-white font-bold shadow-xs'
-                    : 'text-[#8A9FB4] hover:text-white'
+                    ? 'bg-[#0B72B9] text-white font-bold'
+                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
                 }`}
                 title={`Play time-lapse at ${spd}x speed`}
               >
@@ -434,7 +403,6 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
             ))}
           </div>
 
-          {/* Continuous Loop Toggle */}
           {onToggleLoop && (
             <button
               type="button"
@@ -442,32 +410,32 @@ export const RadarTimeLapseController: React.FC<RadarTimeLapseControllerProps> =
               title={loop ? 'Continuous Loop Enabled' : 'Loop Disabled (Stops at latest frame)'}
               className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors border cursor-pointer ${
                 loop
-                  ? 'bg-[#1565C0]/20 text-[#38BDF8] border-[#38BDF8]/50'
-                  : 'bg-[#0B2136] text-[#7A93AA] border-[#163B5D] hover:text-white'
+                  ? 'bg-[#0B72B9]/20 text-[#35C7E8] border-[#35C7E8]/45'
+                  : 'bg-[#08131F] text-[#8295A8] border-[#26394B] hover:text-[#F3F6FA]'
               }`}
             >
-              <span className="material-symbols-outlined text-[14px]">repeat</span>
+              <Repeat className="w-3 h-3" />
               <span className="hidden sm:inline">Loop</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 4. Synoptic Storm Vector & Atmosphere Motion Insight */}
+      {/* Motion Vector only rendered when genuinely computed and provided by backend */}
       {motionVector && (
-        <div className="mt-2 pt-1.5 border-t border-[#122A42] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[9.5px] text-[#8AA1B7]">
+        <div className="mt-2 pt-1.5 border-t border-[#26394B] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[9.5px] text-[#8295A8]">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[#38BDF8] font-bold flex items-center gap-1">
-              <span className="material-symbols-outlined text-[13px]">air</span>
+            <span className="text-[#35C7E8] font-bold flex items-center gap-1">
+              <Wind className="w-3 h-3" />
               Storm Movement Vector:
             </span>
-            <span className="font-mono text-[#F0F6FC] bg-[#0A2238] px-1.5 py-0.5 rounded border border-[#163B5D]">
+            <span className="font-mono text-[#F3F6FA] bg-[#08131F] px-1.5 py-0.5 rounded border border-[#26394B] tabular-nums">
               Heading {motionVector.compassDir} ({motionVector.azimuthDeg}°) @ {motionVector.speedKmh} km/h
             </span>
-            <span className="text-[#8AA1B7] hidden lg:inline">• {motionVector.stormDescription}</span>
+            <span className="text-[#B5C3D1] hidden lg:inline">· {motionVector.stormDescription}</span>
           </div>
 
-          <div className="text-[9px] font-mono text-[#6A8197] shrink-0">
+          <div className="text-[9px] font-mono text-[#8295A8] shrink-0">
             RainViewer Global Mosaic + IMD DWR Network
           </div>
         </div>

@@ -1,7 +1,8 @@
 import React from 'react';
+import { Activity, Compass, Mountain, CheckCircle2 } from 'lucide-react';
 import { NWPModelId } from '../../data/nwpModels';
 import { NWPModelRun, NWPForecastPoint } from '../../types/nwp';
-import { ShieldCheck, CloudLightning, Activity, Compass, Mountain, CheckCircle2 } from 'lucide-react';
+import { DataPanel, SectionHeading, MetricValue } from '../ui/ObservatoryPrimitives';
 
 interface ModelSpecificAnalysisProps {
   modelId: NWPModelId;
@@ -19,181 +20,185 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
 
   if (modelId === 'WRF') {
     return (
-      <div className="nwp-card flex flex-col gap-4 rounded-2xl p-4 sm:p-5 shadow-md">
-        <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-          <div className="flex items-center gap-2">
-            <Mountain className="w-4 h-4 text-[#29B6F6]" />
-            <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-              Regional Model Analysis — WRF-ARW
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-[#AFC4D8] bg-[#081F33] px-2 py-0.5 rounded border border-[#1D5278]">
-            MESOSCALE SIMULATION CORE
-          </span>
-        </div>
+      <DataPanel className="flex flex-col gap-4">
+        <SectionHeading
+          title="Regional Model Analysis — WRF-ARW"
+          subtitle="Non-hydrostatic mesoscale configuration"
+          icon={<Mountain className="w-4 h-4" />}
+          badge={
+            <span className="text-[10px] font-mono text-[#B5C3D1] bg-[#08131F] px-2 py-0.5 rounded border border-[#26394B]">
+              MESOSCALE CORE
+            </span>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Domain Coverage</span>
-            <span className="text-sm font-bold text-white">South Asia / India Subcontinent</span>
-            <span className="text-[10px] text-slate-400">Non-hydrostatic terrain matching</span>
+          <div className="m-panel-inset p-3 flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Domain Coverage</span>
+            <span className="text-sm font-bold text-[#F3F6FA]">South Asia / India</span>
+            <span className="text-[11px] text-[#8295A8]">Non-hydrostatic terrain matching</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Mesoscale Resolution</span>
-            <span className="text-sm font-bold text-white">3 km &amp; 9 km Dual Nested Grid</span>
-            <span className="text-[10px] text-slate-400">Explicit convection parameterization</span>
+          <div className="m-panel-inset p-3 flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Mesoscale Grid</span>
+            <span className="text-sm font-bold text-[#F3F6FA]">3 km &amp; 9 km Nested</span>
+            <span className="text-[11px] text-[#8295A8]">Explicit convection physics</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Forecast Horizon</span>
-            <span className="text-sm font-bold text-white">0–72 Hours (3 Days)</span>
-            <span className="text-[10px] text-slate-400">Rapid-update mesoscale cycle</span>
+          <div className="m-panel-inset p-3 flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Horizon</span>
+            <span className="text-sm font-bold text-[#F3F6FA]">0–72 Hours (3 Days)</span>
+            <span className="text-[11px] text-[#8295A8]">Rapid-update mesoscale cycle</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Live Status</span>
-            <span className="text-sm font-bold text-[#AFC4D8]">
-              {isUnavailable ? 'Institutional Gateway Required' : 'Operational Feed Synced'}
+          <div className="m-panel-inset p-3 flex flex-col gap-1">
+            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Feed Status</span>
+            <span className="text-sm font-bold text-[#B5C3D1]">
+              {isUnavailable ? 'Gateway Unconfigured' : 'Operational Feed Synced'}
             </span>
-            <span className="text-[10px] text-slate-400">IMD HPC ARW model output</span>
+            <span className="text-[11px] text-[#8295A8]">IMD HPC ARW output</span>
           </div>
         </div>
 
-        {/* Analytical Focus Pillars */}
-        <div className="pt-2 border-t border-[#1D5278]/40">
-          <span className="text-[11px] font-semibold text-slate-300 block mb-2 font-sans">
+        <div className="pt-2 border-t border-[#26394B]">
+          <span className="text-[11px] font-semibold text-[#B5C3D1] block mb-2">
             Primary Regional Focus:
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-            <div className="p-2 rounded-lg bg-[#081F33] border border-[#1D5278]/70 text-[#29B6F6] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Convective Rainfall</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#081F33] border border-[#1D5278]/70 text-[#29B6F6] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Thunderstorm Squalls</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#081F33] border border-[#1D5278]/70 text-[#29B6F6] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Updraft Dynamics</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#081F33] border border-[#1D5278]/70 text-[#29B6F6] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Terrain Interactions</span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#081F33] border border-[#1D5278]/70 text-[#29B6F6] font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Short-Range Weather</span>
-            </div>
+            {[
+              'Convective Rainfall',
+              'Thunderstorm Squalls',
+              'Updraft Dynamics',
+              'Terrain Interactions',
+              'Short-Range Weather',
+            ].map((pill) => (
+              <div
+                key={pill}
+                className="p-2 rounded-lg bg-[#08131F] border border-[#26394B] text-[#7DD3FC] font-medium flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#35C7E8]" />
+                <span>{pill}</span>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </DataPanel>
     );
   }
 
   if (modelId === 'GEFS') {
     const stats = runData?.ensembleStats;
-    const members = stats?.membersCount || 31;
+    const members = stats?.membersCount;
     const tempSpread = stats?.tempSpread;
 
     return (
-      <div className="nwp-card flex flex-col gap-4 rounded-2xl p-4 sm:p-5 shadow-md">
-        <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-amber-400" />
-            <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-              Ensemble Analysis — NOAA / NCEP GEFS v12
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-[#00E676] bg-[#00E676]/10 px-2 py-0.5 rounded border border-[#00E676]/30">
-            31 ENSEMBLE PERTURBATIONS
-          </span>
-        </div>
+      <DataPanel className="flex flex-col gap-4">
+        <SectionHeading
+          title="Ensemble Analysis — NOAA / NCEP GEFS v12"
+          subtitle="Multi-member trajectory uncertainty evaluation"
+          icon={<Activity className="w-4 h-4" />}
+          badge={
+            members ? (
+              <span className="text-[10px] font-mono text-[#6EE7B7] bg-[#22C7A0]/12 px-2 py-0.5 rounded border border-[#22C7A0]/35">
+                {members} MEMBERS
+              </span>
+            ) : undefined
+          }
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Ensemble Members</span>
-            <span className="text-xl font-bold font-mono text-white">{members} Members</span>
-            <span className="text-[10px] text-slate-400">1 Control Run + 30 Perturbed States</span>
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="Ensemble Members"
+              value={members && members > 0 ? members : null}
+              unit="Members"
+              hint="Control + perturbed runs"
+            />
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Ensemble Mean Temp</span>
-            <span className="text-xl font-bold font-mono text-amber-300">
-              {tempSpread ? `${tempSpread.mean}°C` : firstPoint?.temperature2m ? `${firstPoint.temperature2m}°C` : '—'}
-            </span>
-            <span className="text-[10px] text-slate-400">Mean across all member trajectories</span>
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="24h Ensemble Mean"
+              value={tempSpread?.mean ?? firstPoint?.temperature2m}
+              unit="°C"
+              precision={1}
+              valueClassName="text-xl sm:text-2xl font-bold text-[#FCD34D]"
+              hint="Mean member trajectory"
+            />
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Temperature Spread</span>
-            <span className="text-xl font-bold font-mono text-[#29B6F6]">
-              {tempSpread ? `${tempSpread.min}° – ${tempSpread.max}°C` : 'Quantified per hour'}
+          <div className="m-panel-inset p-3.5 flex flex-col gap-0.5">
+            <span className="text-[11px] font-medium text-[#8295A8] uppercase tracking-wider">
+              24h Temp Spread
             </span>
-            <span className="text-[10px] text-slate-400">Uncertainty envelope</span>
+            <span className="text-xl sm:text-2xl font-bold font-mono text-[#35C7E8] tabular-nums">
+              {tempSpread ? `${tempSpread.min}° – ${tempSpread.max}°C` : '—'}
+            </span>
+            <span className="text-[11px] text-[#8295A8]">
+              {tempSpread ? '24h uncertainty envelope' : 'Unavailable'}
+            </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Rainfall Probability</span>
-            <span className="text-xl font-bold font-mono text-[#00E676]">
-              {firstPoint?.precipitationProbability !== undefined ? `${firstPoint.precipitationProbability}%` : 'Calculated'}
-            </span>
-            <span className="text-[10px] text-slate-400">Ensemble fraction predicting rain</span>
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="Rain Probability"
+              value={firstPoint?.precipitationProbability}
+              unit="%"
+              valueClassName="text-xl sm:text-2xl font-bold text-[#6EE7B7]"
+              hint="Members exceeding 0.1 mm"
+            />
           </div>
         </div>
 
-        <p className="text-xs text-[#AFC4D8] leading-relaxed font-sans pt-1">
-          GEFS runs 31 slightly different simulations initialized with microscopic perturbations in the atmosphere. When all 31 members produce similar outcomes, forecast confidence is high; when members diverge widely, forecast uncertainty increases.
+        <p className="text-xs text-[#B5C3D1] leading-relaxed">
+          GEFS executes multiple concurrent simulations initialized with small atmospheric perturbations. Narrow member convergence signals high confidence; divergence signals chaotic uncertainty.
         </p>
-      </div>
+      </DataPanel>
     );
   }
 
-  // ECMWF Medium-Range Analysis
   return (
-    <div className="nwp-card flex flex-col gap-4 rounded-2xl p-4 sm:p-5 shadow-md">
-      <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-        <div className="flex items-center gap-2">
-          <Compass className="w-4 h-4 text-[#29B6F6]" />
-          <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-            Medium-Range Analysis — ECMWF IFS HRES
-          </h3>
-        </div>
-        <span className="text-[10px] font-mono text-[#00E676] bg-[#00E676]/10 px-2 py-0.5 rounded border border-[#00E676]/30">
-          GLOBAL 4D-VAR ASSIMILATION
-        </span>
-      </div>
+    <DataPanel className="flex flex-col gap-4">
+      <SectionHeading
+        title="Medium-Range Analysis — ECMWF IFS HRES"
+        subtitle="Global deterministic synoptic core"
+        icon={<Compass className="w-4 h-4" />}
+        badge={
+          <span className="text-[10px] font-mono text-[#6EE7B7] bg-[#22C7A0]/12 px-2 py-0.5 rounded border border-[#22C7A0]/35">
+            GLOBAL 4D-VAR
+          </span>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Spatial Resolution</span>
-          <span className="text-base font-bold font-mono text-white">9 km Native Grid</span>
-          <span className="text-[10px] text-slate-400">0.1° / 0.25° Delivery Matrix</span>
+        <div className="m-panel-inset p-3 flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Spatial Resolution</span>
+          <span className="text-base font-bold font-mono text-[#F3F6FA]">9 km Native Grid</span>
+          <span className="text-[11px] text-[#8295A8]">0.1° / 0.25° Delivery Matrix</span>
         </div>
 
-        <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Forecast Horizon</span>
-          <span className="text-base font-bold font-mono text-white">0–360h (15 Days)</span>
-          <span className="text-[10px] text-slate-400">Medium-range atmospheric evolution</span>
+        <div className="m-panel-inset p-3 flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Forecast Horizon</span>
+          <span className="text-base font-bold font-mono text-[#F3F6FA]">0–360h (15 Days)</span>
+          <span className="text-[11px] text-[#8295A8]">Medium-range evolution</span>
         </div>
 
-        <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Data Assimilation</span>
-          <span className="text-base font-bold font-mono text-[#29B6F6]">Continuous 4D-Var</span>
-          <span className="text-[10px] text-slate-400">Millions of global satellite observations</span>
+        <div className="m-panel-inset p-3 flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Data Assimilation</span>
+          <span className="text-base font-bold font-mono text-[#35C7E8]">Continuous 4D-Var</span>
+          <span className="text-[11px] text-[#8295A8]">Global satellite radiances</span>
         </div>
 
-        <div className="p-3 rounded-xl bg-[#081F33] border border-[#1D5278] flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Synoptic Skill</span>
-          <span className="text-base font-bold font-mono text-[#00E676]">Global Gold Standard</span>
-          <span className="text-[10px] text-slate-400">Superior 500 hPa planetary wave accuracy</span>
+        <div className="m-panel-inset p-3 flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Synoptic Focus</span>
+          <span className="text-base font-bold font-mono text-[#6EE7B7]">Planetary &amp; Trough</span>
+          <span className="text-[11px] text-[#8295A8]">500 hPa wave &amp; pressure skill</span>
         </div>
       </div>
 
-      <p className="text-xs text-[#AFC4D8] leading-relaxed font-sans pt-1">
-        The European Centre for Medium-Range Weather Forecasts (ECMWF) Integrated Forecasting System (IFS) is regarded worldwide as the leading medium-range global numerical model, excelling at tracking deep low pressure systems, western disturbances, monsoon troughs, and global planetary jet streams.
+      <p className="text-xs text-[#B5C3D1] leading-relaxed">
+        The ECMWF Integrated Forecasting System (IFS) tracks synoptic low-pressure systems, western disturbances, monsoon troughs, and planetary jet streams across medium-range horizons.
       </p>
-    </div>
+    </DataPanel>
   );
 };

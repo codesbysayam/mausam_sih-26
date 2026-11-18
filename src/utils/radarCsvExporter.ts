@@ -359,12 +359,12 @@ export function generateRadarIntensityCsv(options: RadarCsvExportOptions): strin
       buildCsvRow([
         'NONE',
         'None',
-        'N/A',
+        '—',
         0,
         'No match',
         'No regional state observations currently match the selected precipitation intensity filter',
-        'N/A',
-        'N/A',
+        '—',
+        '—',
         'IMD Synoptic Reports',
       ])
     );

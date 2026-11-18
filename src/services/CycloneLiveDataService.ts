@@ -148,12 +148,11 @@ export class CycloneLiveDataService {
         this.notifyListeners(data);
         return data;
       } catch (err) {
-        console.warn('[CycloneLiveDataService] Fetch fallback to verified synoptic state:', err);
+        console.warn('[CycloneLiveDataService] Fetch fallback to cached/reference state:', err);
         if (this.cachedPayload) {
           return this.cachedPayload;
         }
-        // Build verified fallback payload
-        const fallback = this.buildTruthfulDefaultPayload();
+        const fallback = this.buildTruthfulDefaultPayload(err instanceof Error ? err.message : 'Cyclone API unreachable');
         this.cachedPayload = fallback;
         this.lastFetchTime = Date.now();
         return fallback;
@@ -357,7 +356,7 @@ export class CycloneLiveDataService {
       forecastTrack: Array.isArray(raw.forecastTrack) ? raw.forecastTrack : [],
       historicalTrack: Array.isArray(raw.historicalTrack) ? raw.historicalTrack : [],
       expectedLandfall: raw.expectedLandfall || 'No landfall forecasted',
-      expectedLandfallWindow: raw.expectedLandfallWindow || 'N/A',
+      expectedLandfallWindow: raw.expectedLandfallWindow || 'Unavailable',
       issuedAt: raw.issuedAt || new Date().toISOString(),
       updatedAt: raw.updatedAt || new Date().toISOString(),
       nextBulletinAt: raw.nextBulletinAt || '',
@@ -468,12 +467,11 @@ export class CycloneLiveDataService {
     imdWarnings: CycloneProviderHealth;
     sachet: CycloneProviderHealth;
   } {
-    const now = new Date().toISOString();
     return (
       this.cachedPayload?.providerHealth || {
-        imdCyclone: { status: 'LIVE', latencyMs: 110, lastFetch: now },
-        imdWarnings: { status: 'LIVE', latencyMs: 140, lastFetch: now },
-        sachet: { status: 'LIVE', latencyMs: 165, lastFetch: now },
+        imdCyclone: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
+        imdWarnings: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
+        sachet: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
       }
     );
   }
@@ -503,7 +501,7 @@ export class CycloneLiveDataService {
   /**
    * Builds truthful verified synoptic state when network is unavailable
    */
-  private buildTruthfulDefaultPayload(): CyclonePayload {
+  private buildTruthfulDefaultPayload(errorMsg?: string): CyclonePayload {
     const now = new Date().toISOString();
 
     const monitoredSystems: WeatherSystemEvent[] = [
@@ -694,7 +692,7 @@ export class CycloneLiveDataService {
         windThreat: 'NO_WARNING',
         stormSurgeThreat: 'NO_WARNING',
         thunderstormThreat: 'NO_WARNING',
-        sourceStatus: 'LIVE',
+        sourceStatus: 'UNAVAILABLE',
         fetchedAt: now,
         bulletinNumber: 'Final De-warning Summary',
         advisoryText:
@@ -703,7 +701,7 @@ export class CycloneLiveDataService {
     ];
 
     return {
-      systems: monitoredSystems,
+      systems: monitoredSystems.map((s) => ({ ...s, sourceStatus: 'UNAVAILABLE' as const })),
       activeCount: 2,
       selectedSystemId: 'SYS-INLAND-MP-2026',
       regionalWarnings: [],
@@ -712,9 +710,9 @@ export class CycloneLiveDataService {
       totalRegions: 36,
       lastSync: now,
       providerHealth: {
-        imdCyclone: { status: 'LIVE', latencyMs: 95, lastFetch: now },
-        imdWarnings: { status: 'LIVE', latencyMs: 120, lastFetch: now },
-        sachet: { status: 'LIVE', latencyMs: 155, lastFetch: now },
+        imdCyclone: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null, error: errorMsg || 'Gateway unreachable' },
+        imdWarnings: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null, error: errorMsg || 'Gateway unreachable' },
+        sachet: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null, error: errorMsg || 'Gateway unreachable' },
       },
     };
   }

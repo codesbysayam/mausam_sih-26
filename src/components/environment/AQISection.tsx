@@ -1,8 +1,15 @@
 import React from 'react';
+import { Wind, ShieldCheck } from 'lucide-react';
 import { CurrentWeather } from '../../types';
-import { SectionHeader } from '../common/SectionHeader';
-import { StatusBadge } from '../common/StatusBadge';
 import { useProvider } from '../../store/providerStore';
+import {
+  DataPanel,
+  MetricValue,
+  ProvenanceStatus,
+  SectionHeading,
+  SourceStatus,
+  UnavailableState,
+} from '../ui/ObservatoryPrimitives';
 
 interface AQISectionProps {
   weather: CurrentWeather;
@@ -35,186 +42,220 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
       ? Math.round(aqiData.pm10)
       : null;
 
+  const no2Val =
+    typeof weather?.no2 === 'number' && !Number.isNaN(weather.no2)
+      ? Math.round(weather.no2)
+      : typeof aqiData?.no2 === 'number' && !Number.isNaN(aqiData.no2)
+      ? Math.round(aqiData.no2)
+      : null;
+
+  const so2Val =
+    typeof weather?.so2 === 'number' && !Number.isNaN(weather.so2)
+      ? Math.round(weather.so2)
+      : typeof aqiData?.so2 === 'number' && !Number.isNaN(aqiData.so2)
+      ? Math.round(aqiData.so2)
+      : null;
+
+  const coVal: number | null =
+    typeof weather?.co === 'number' && !Number.isNaN(weather.co)
+      ? weather.co
+      : typeof aqiData?.co === 'number' && !Number.isNaN(aqiData.co)
+      ? aqiData.co
+      : null;
+
+  const o3Val =
+    typeof weather?.o3 === 'number' && !Number.isNaN(weather.o3)
+      ? Math.round(weather.o3)
+      : typeof aqiData?.o3 === 'number' && !Number.isNaN(aqiData.o3)
+      ? Math.round(aqiData.o3)
+      : null;
+
+  const formatCo = (val: number | null) => {
+    if (val === null) return null;
+    return val > 10 ? Number((val / 1000).toFixed(1)) : Number(val.toFixed(1));
+  };
+
   const getAqiDetails = (val: number | null) => {
     if (val === null || Number.isNaN(val)) {
       return {
         category: 'Unavailable',
-        variant: 'info' as const,
-        description: 'Ambient particulate telemetry is currently awaiting upstream response.',
-        color: '#93A4B8',
+        badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]',
+        description: 'Ambient particulate telemetry is currently unavailable from the upstream AQI feed.',
       };
     }
     if (val <= 50) {
       return {
         category: 'Good',
-        variant: 'good' as const,
+        badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
         description: 'Minimal health impact. Air quality meets ambient cleanliness standards.',
-        color: '#22C7A0',
       };
     }
     if (val <= 100) {
       return {
         category: 'Satisfactory',
-        variant: 'good' as const,
+        badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
         description: 'Acceptable ambient air quality; minor discomfort possible for highly sensitive groups.',
-        color: '#22C7A0',
       };
     }
     if (val <= 200) {
       return {
         category: 'Moderate',
-        variant: 'warning' as const,
+        badgeClass: 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35',
         description: 'Breathing discomfort possible for people with lung disease, asthma, or heart conditions.',
-        color: '#FFC857',
       };
     }
     if (val <= 300) {
       return {
         category: 'Poor',
-        variant: 'alert' as const,
+        badgeClass: 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35',
         description: 'Breathing discomfort on prolonged outdoor exposure.',
-        color: '#FF9F43',
       };
     }
     if (val <= 400) {
       return {
         category: 'Very Poor',
-        variant: 'danger' as const,
+        badgeClass: 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35',
         description: 'Respiratory illness risk on prolonged exposure.',
-        color: '#EF5350',
       };
     }
     return {
       category: 'Severe',
-      variant: 'danger' as const,
+      badgeClass: 'bg-[#EF4444]/20 text-[#FCA5A5] border-[#EF4444]/50',
       description: 'Health warning: avoid prolonged outdoor exertion.',
-      color: '#EF4444',
     };
   };
 
   const details = getAqiDetails(aqi);
-
-  const formatCo = (val?: number | null) => {
-    if (typeof val !== 'number' || Number.isNaN(val)) return '—';
-    if (val > 10) return (val / 1000).toFixed(1);
-    return val.toFixed(1);
-  };
-
-  const no2Val = typeof weather?.no2 === 'number' && !Number.isNaN(weather.no2)
-    ? Math.round(weather.no2)
-    : typeof aqiData?.no2 === 'number' && !Number.isNaN(aqiData.no2)
-    ? Math.round(aqiData.no2)
-    : null;
-
-  const so2Val = typeof weather?.so2 === 'number' && !Number.isNaN(weather.so2)
-    ? Math.round(weather.so2)
-    : typeof aqiData?.so2 === 'number' && !Number.isNaN(aqiData.so2)
-    ? Math.round(aqiData.so2)
-    : null;
-
-  const coVal = weather?.co ?? aqiData?.co ?? null;
-
-  const o3Val = typeof weather?.o3 === 'number' && !Number.isNaN(weather.o3)
-    ? Math.round(weather.o3)
-    : typeof aqiData?.o3 === 'number' && !Number.isNaN(aqiData.o3)
-    ? Math.round(aqiData.o3)
-    : null;
+  const provenance: ProvenanceStatus =
+    aqiState.status === 'LOADING'
+      ? 'LOADING'
+      : aqi !== null || pm25Value !== null
+      ? 'LIVE'
+      : 'UNAVAILABLE';
 
   const pollutants = [
-    { name: 'PM 2.5', value: pm25Value ?? '—', unit: 'µg/m³', std: '60 (24h Std)' },
-    { name: 'PM 10', value: pm10Value ?? '—', unit: 'µg/m³', std: '100 (24h Std)' },
-    { name: 'NO₂', value: no2Val ?? '—', unit: 'µg/m³', std: '80 (24h Std)' },
-    { name: 'SO₂', value: so2Val ?? '—', unit: 'µg/m³', std: '80 (24h Std)' },
-    { name: 'CO', value: formatCo(coVal), unit: 'mg/m³', std: '2.0 (8h Std)' },
-    { name: 'Ozone (O₃)', value: o3Val ?? '—', unit: 'µg/m³', std: '100 (8h Std)' },
+    { name: 'PM2.5', value: pm25Value, unit: 'µg/m³', std: '60 (24h Std)', precision: 0 },
+    { name: 'PM10', value: pm10Value, unit: 'µg/m³', std: '100 (24h Std)', precision: 0 },
+    { name: 'NO₂', value: no2Val, unit: 'µg/m³', std: '80 (24h Std)', precision: 0 },
+    { name: 'SO₂', value: so2Val, unit: 'µg/m³', std: '80 (24h Std)', precision: 0 },
+    { name: 'CO', value: formatCo(coVal), unit: 'mg/m³', std: '2.0 (8h Std)', precision: 1 },
+    { name: 'Ozone (O₃)', value: o3Val, unit: 'µg/m³', std: '100 (8h Std)', precision: 0 },
   ];
 
+  const allPollutantsEmpty = pollutants.every((p) => p.value === null) && aqi === null;
+
   return (
-    <div className="bg-[#101B26] border border-white/12 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
-      <SectionHeader
+    <DataPanel className="flex flex-col gap-4">
+      <SectionHeading
         title="Local Air Quality Index (NAQI Scale)"
-        subtitle={`Source: ${aqiState.source || 'Open-Meteo Air Quality'} • Station & atmospheric chemistry estimate`}
-        icon="air"
+        subtitle="Particulate & trace gas atmospheric chemistry readings"
+        icon={<Wind className="w-4 h-4" />}
+        badge={
+          <SourceStatus
+            status={provenance}
+            source={aqiState.source || 'Open-Meteo Air Quality'}
+          />
+        }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Main AQI Score Block */}
-        <div className="bg-[#162331] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#93A4B8] uppercase font-bold">
-                Overall AQI
-              </span>
-              <StatusBadge label={details.category} variant={details.variant} />
-            </div>
+      {allPollutantsEmpty ? (
+        <UnavailableState
+          title="Ambient AQI & Pollutant Feed Unavailable"
+          reason="Live particulate (PM2.5/PM10) and gaseous pollutant measurements were not returned for the active coordinates."
+          source={aqiState.source || 'Open-Meteo Air Quality'}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Main AQI Score Block */}
+            <div className="m-panel-inset p-4 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-[11px] font-mono text-[#8295A8] uppercase font-semibold tracking-wider">
+                    Overall AQI
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-md border font-mono text-[10px] font-semibold uppercase tracking-wider ${details.badgeClass}`}
+                  >
+                    {details.category}
+                  </span>
+                </div>
 
-            <div className="my-3 flex items-baseline gap-2 tabular-nums">
-              <span className="text-4xl font-bold text-[#F4F7FA] font-mono">
-                {aqi !== null ? aqi : '—'}
-              </span>
-              <span className="text-xs text-[#93A4B8]">NAQI (0–500)</span>
-            </div>
-          </div>
-
-          <p className="text-xs text-[#CBD5E1] border-t border-white/10 pt-2.5">
-            {details.description}
-          </p>
-        </div>
-
-        {/* Health Advisory & Recommendations */}
-        <div className="md:col-span-2 bg-[#162331] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <h4 className="text-[#F4F7FA] font-bold text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-[#38BDF8]">
-                health_and_safety
-              </span>
-              Health Guidance
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#CBD5E1]">
-              <div className="p-3 bg-[#0B1219]/75 rounded-lg border border-white/10">
-                <strong className="text-[#F4F7FA] block mb-1">General Public</strong>
-                {aqi === null
-                  ? 'Awaiting verified particulate measurement.'
-                  : aqi > 150
-                  ? 'Reduce intense outdoor exertion and consider respiratory protection near traffic corridors.'
-                  : 'Air quality is suitable for routine outdoor activities.'}
+                <div className="my-3 flex items-baseline gap-2 tabular-nums">
+                  <span className="text-4xl font-bold text-[#F3F6FA] font-mono">
+                    {aqi !== null ? aqi : '—'}
+                  </span>
+                  <span className="text-xs text-[#8295A8] font-mono">NAQI (0–500)</span>
+                </div>
               </div>
-              <div className="p-3 bg-[#0B1219]/75 rounded-lg border border-white/10">
-                <strong className="text-[#F4F7FA] block mb-1">Sensitive Groups (Asthma / Elderly)</strong>
-                {aqi === null
-                  ? 'Monitor local station telemetry before strenuous activity.'
-                  : aqi > 100
-                  ? 'Limit prolonged morning exposure near high-traffic corridors and keep medication accessible.'
-                  : 'Low particulate load with minimal respiratory triggers.'}
+
+              <p className="text-xs text-[#B5C3D1] border-t border-[#26394B] pt-2.5 leading-relaxed">
+                {details.description}
+              </p>
+            </div>
+
+            {/* Health Advisory & Recommendations */}
+            <div className="md:col-span-2 m-panel-inset p-4 flex flex-col justify-between gap-3">
+              <div>
+                <h3 className="text-[#F3F6FA] font-semibold text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5 font-mono">
+                  <ShieldCheck className="w-4 h-4 text-[#35C7E8]" />
+                  <span>Health Guidance</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#B5C3D1]">
+                  <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+                    <strong className="text-[#F3F6FA] block mb-1">General Public</strong>
+                    {aqi === null
+                      ? 'Awaiting verified particulate measurement.'
+                      : aqi > 150
+                      ? 'Reduce intense outdoor exertion and consider respiratory protection near traffic corridors.'
+                      : 'Air quality is suitable for routine outdoor activities.'}
+                  </div>
+                  <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+                    <strong className="text-[#F3F6FA] block mb-1">Sensitive Groups (Asthma / Elderly)</strong>
+                    {aqi === null
+                      ? 'Monitor local station telemetry before strenuous activity.'
+                      : aqi > 100
+                      ? 'Limit prolonged morning exposure near high-traffic corridors and keep medication accessible.'
+                      : 'Low particulate load with minimal respiratory triggers.'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[11px] font-mono text-[#8295A8] pt-2.5 border-t border-[#26394B] flex flex-wrap justify-between gap-2">
+                <span>
+                  Primary Pollutant:{' '}
+                  <strong className="text-[#F3F6FA]">
+                    {pm25Value !== null ? 'PM2.5' : pm10Value !== null ? 'PM10' : '—'}
+                  </strong>
+                </span>
+                <span>
+                  Provenance:{' '}
+                  <strong className="text-[#35C7E8]">
+                    {aqiState.source || 'Open-Meteo Air Quality'}
+                  </strong>
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#93A4B8] mt-3 pt-2.5 border-t border-white/10 flex flex-wrap justify-between gap-2">
-            <span>Primary Pollutant: <strong className="text-[#F4F7FA]">PM2.5</strong></span>
-            <span>Provenance: <strong className="text-[#38BDF8]">{aqiState.source || 'Atmospheric Model'}</strong></span>
+          {/* Pollutant Parameter Breakdown */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {pollutants.map((p) => (
+              <div key={p.name} className="m-panel-inset p-3">
+                <MetricValue
+                  label={p.name}
+                  value={p.value}
+                  unit={p.unit}
+                  precision={p.precision}
+                  hint={p.std}
+                  unavailableLabel="—"
+                  valueClassName="text-lg font-bold text-[#F3F6FA]"
+                />
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
-
-      {/* Pollutant Parameter Breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 tabular-nums">
-        {pollutants.map((p, idx) => (
-          <div
-            key={idx}
-            className="p-3 bg-[#162331] border border-white/10 rounded-xl text-center"
-          >
-            <div className="text-[11px] font-bold text-[#93A4B8]">{p.name}</div>
-            <div className="text-base font-bold text-[#F4F7FA] font-mono my-0.5">
-              {p.value}
-            </div>
-            <div className="text-[10px] text-[#93A4B8]">{p.unit}</div>
-            <div className="text-[9px] text-[#38BDF8] mt-1.5 border-t border-white/10 pt-1">
-              {p.std}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+        </>
+      )}
+    </DataPanel>
   );
 };

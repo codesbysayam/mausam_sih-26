@@ -2,14 +2,18 @@ import React from 'react';
 import {
   Radio,
   MapPin,
-  Clock,
   Thermometer,
   Droplets,
   Wind,
   CloudRain,
-  ShieldCheck,
 } from 'lucide-react';
 import { WeatherDataBundle } from '../../services/weatherService';
+import {
+  DataPanel,
+  SectionHeading,
+  SourceStatus,
+  UnavailableState,
+} from '../ui/ObservatoryPrimitives';
 
 interface NearestObservationNetworkProps {
   weather?: WeatherDataBundle;
@@ -25,129 +29,105 @@ export const NearestObservationNetwork: React.FC<NearestObservationNetworkProps>
   lastUpdatedStr,
 }) => {
   const current = weather?.current;
-  const temp = current?.temp ?? 30.4;
-  const humidity = current?.humidity ?? 74;
-  const wind = current?.windSpeed ?? 14;
-  const rain = current?.precipitation ?? 0;
+  const temp = typeof current?.temp === 'number' ? current.temp : null;
+  const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
+  const wind = typeof current?.windSpeed === 'number' ? current.windSpeed : null;
+  const rain = typeof current?.precipitation === 'number' ? current.precipitation : null;
+  const isAvailable = temp !== null;
 
-  // Generate realistic station nodes around the chosen district
-  const stations = [
-    {
-      id: `AWS-${districtName.toUpperCase().slice(0, 3)}-01`,
-      name: `${districtName} Headquarter Agromet Observatory`,
-      type: 'IMD Automatic Weather Station (AWS)',
-      distanceKm: '0.0 km (Collocated)',
-      temp: `${temp}°C`,
-      rh: `${humidity}%`,
-      wind: `${wind} km/h`,
-      rain: `${rain} mm`,
-      status: 'ONLINE • TRANSMITTING',
-      statusColor: 'text-[#10B981]',
-    },
-    {
-      id: `ARG-${districtName.toUpperCase().slice(0, 3)}-02`,
-      name: `${districtName} Rural Block Agromet Node`,
-      type: 'Automatic Rain Gauge (ARG)',
-      distanceKm: '14.2 km NW',
-      temp: `${Math.round((temp - 0.6) * 10) / 10}°C`,
-      rh: `${humidity + 2}%`,
-      wind: `${Math.max(4, wind - 2)} km/h`,
-      rain: `${Math.round((rain > 0 ? rain * 0.9 : 0) * 10) / 10} mm`,
-      status: 'ONLINE • TRANSMITTING',
-      statusColor: 'text-[#10B981]',
-    },
-    {
-      id: `AMFU-${districtName.toUpperCase().slice(0, 3)}-03`,
-      name: `KVK Agricultural Research Station ${districtName}`,
-      type: 'ICAR-KVK Agromet Observatory',
-      distanceKm: '22.8 km SE',
-      temp: `${Math.round((temp + 0.4) * 10) / 10}°C`,
-      rh: `${humidity - 3}%`,
-      wind: `${wind + 2} km/h`,
-      rain: `${Math.round((rain > 0 ? rain * 1.1 : 0) * 10) / 10} mm`,
-      status: 'ONLINE • TRANSMITTING',
-      statusColor: 'text-[#10B981]',
-    },
-  ];
+  const primaryStationId =
+    current?.stationCode || `AWS-${districtName.toUpperCase().slice(0, 3)}-01`;
+  const primaryStationName =
+    current?.stationName || `${districtName} District Meteorological Station`;
+  const primarySource =
+    current?.observationSource || current?.source || 'IMD / Open-Meteo Surface Feed';
 
   return (
-    <section
-      id="agromet-observation-network"
-      className="rounded-2xl bg-[#090D16] border border-[#1E293B] shadow-2xl p-6 sm:p-7 space-y-5"
-    >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E293B]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Radio className="w-4 h-4 text-[#38BDF8] animate-pulse" />
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
-              NEAREST METEOROLOGICAL OBSERVATION NETWORK
-            </h2>
-          </div>
-          <p className="text-xs font-mono text-[#94A3B8]">
-            Surface telemetry stations deployed in {districtName}, {stateName}
-          </p>
-        </div>
-        <div className="text-[11px] font-mono text-[#10B981] flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-          <span>3 of 3 Nodes Active &amp; Synced</span>
-        </div>
-      </div>
+    <DataPanel id="agromet-observation-network" className="space-y-4">
+      <SectionHeading
+        title="Nearest Meteorological Observation Station"
+        subtitle={`Primary synced surface telemetry node serving ${districtName}, ${stateName}`}
+        icon={<Radio className="w-4 h-4" />}
+        badge={
+          <SourceStatus
+            status={isAvailable ? 'LIVE' : 'UNAVAILABLE'}
+            source={primarySource}
+            updatedAt={lastUpdatedStr || null}
+          />
+        }
+      />
 
-      {/* Stations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stations.map((st) => (
-          <div
-            key={st.id}
-            className="rounded-xl bg-[#0F172A] border border-[#1E293B] p-4 flex flex-col justify-between space-y-4 hover:border-[#334155] transition-all shadow-md"
-          >
-            {/* Header */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-[#38BDF8] bg-[#38BDF8]/10 px-2 py-0.5 rounded border border-[#38BDF8]/20">
-                  {st.id}
+      {!isAvailable ? (
+        <UnavailableState
+          title="Surface Observation Telemetry Offline"
+          reason={`No active surface observation readings have synced for ${districtName}, ${stateName}.`}
+          source={primarySource}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="m-panel-inset p-4 flex flex-col justify-between space-y-3.5">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono font-bold text-[#35C7E8] bg-[#35C7E8]/12 px-2 py-0.5 rounded border border-[#35C7E8]/30">
+                  {primaryStationId}
                 </span>
-                <span className={`text-[10px] font-mono font-bold ${st.statusColor}`}>
-                  {st.status}
+                <span className="text-[10px] font-mono font-semibold text-[#6EE7B7]">
+                  PRIMARY SYNCED NODE
                 </span>
               </div>
-              <h3 className="text-xs font-bold text-white pt-1">
-                {st.name}
-              </h3>
-              <div className="text-[10px] font-mono text-[#94A3B8] flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-[#64748B]" />
-                <span>{st.distanceKm} • {st.type}</span>
+              <h3 className="text-sm font-bold text-[#F3F6FA]">{primaryStationName}</h3>
+              <div className="text-[11px] font-mono text-[#8295A8] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span>{primarySource}</span>
               </div>
             </div>
 
-            {/* Live Readings */}
-            <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-[#CBD5E1] bg-[#090D16] p-2.5 rounded-lg border border-[#1E293B]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono tabular-nums text-[#F3F6FA] bg-[#07111D] p-3 rounded-lg border border-[#26394B]">
               <div className="flex items-center gap-1.5">
                 <Thermometer className="w-3.5 h-3.5 text-[#F59E0B]" />
-                <span>{st.temp}</span>
+                <span>{temp.toFixed(1)}°C</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Droplets className="w-3.5 h-3.5 text-[#06B6D4]" />
-                <span>{st.rh}</span>
+                <Droplets className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <span>{humidity !== null ? `${Math.round(humidity)}%` : '—'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Wind className="w-3.5 h-3.5 text-[#94A3B8]" />
-                <span>{st.wind}</span>
+                <Wind className="w-3.5 h-3.5 text-[#B5C3D1]" />
+                <span>{wind !== null ? `${Math.round(wind)} km/h` : '—'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <CloudRain className="w-3.5 h-3.5 text-[#38BDF8]" />
-                <span>{st.rain}</span>
+                <CloudRain className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <span>{rain !== null ? `${rain} mm` : '—'}</span>
               </div>
             </div>
 
-            {/* Observation Timestamp */}
-            <div className="text-[9px] font-mono text-[#64748B] flex items-center justify-between pt-1 border-t border-[#1E293B]">
-              <span>Observation Mode: Hourly Auto</span>
-              <span>{lastUpdatedStr} IST</span>
+            <div className="text-[10px] font-mono text-[#8295A8] flex items-center justify-between pt-2 border-t border-[#26394B] tabular-nums">
+              <span>Observation Cadence: Hourly</span>
+              <span>{lastUpdatedStr ? `${lastUpdatedStr}` : 'Timestamp pending'}</span>
             </div>
           </div>
-        ))}
-      </div>
-    </section>
+
+          <div className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono font-bold text-[#8295A8] bg-[#101F2E] px-2 py-0.5 rounded border border-[#26394B]">
+                  SECONDARY ARG / KVK NODES
+                </span>
+                <span className="text-[10px] font-mono text-[#8295A8]">FEED NOT CONNECTED</span>
+              </div>
+              <h3 className="text-sm font-semibold text-[#F3F6FA]">
+                Sub-District Block Rain Gauges
+              </h3>
+              <p className="text-xs text-[#B5C3D1] leading-relaxed">
+                Direct sub-district Automatic Rain Gauge (ARG) and ICAR-KVK block sensors are not published over this endpoint. Readings are never extrapolated from the primary station.
+              </p>
+            </div>
+            <div className="text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B]">
+              Upstream: IMD AWS / State Agromet Telemetry Gateway
+            </div>
+          </div>
+        </div>
+      )}
+    </DataPanel>
   );
 };

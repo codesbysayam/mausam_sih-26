@@ -64,21 +64,23 @@ export const FAQ_ITEMS: FAQItem[] = [
       const loc = ctx.station;
       const w = ctx.weather;
       const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      const fmt = (val: number | null | undefined, unit: string) =>
+        typeof val === 'number' && Number.isFinite(val) ? `${val}${unit}` : 'Unavailable';
       return {
         text: `### Surface Atmospheric Observation
-• **Station**: ${loc?.name || 'Observatory'}, ${loc?.state || 'India'} (${loc?.lat?.toFixed(2) || '20.29'}°N, ${loc?.lng?.toFixed(2) || '85.82'}°E)
-• **Observatory ID**: IMD ${loc?.code || loc?.id || '42971'} | Synced: ${timeStr} IST
+• **Station**: ${loc?.name || 'Observatory'}, ${loc?.state || 'India'} (${loc?.lat?.toFixed(2) || '—'}°N, ${loc?.lng?.toFixed(2) || '—'}°E)
+• **Observatory ID**: IMD ${loc?.code || loc?.id || 'STATION'} | Synced: ${timeStr} IST
 
 **Active Telemetry Parameters**:
-• **Air Temperature**: ${w.temp}°C (Apparent Feels Like: ${w.feelsLike ?? w.temp}°C)
-• **Atmospheric Condition**: ${w.condition}
-• **Relative Humidity**: ${w.humidity}% | **Dew Point**: ${w.dewPoint ?? 24.5}°C
-• **Surface Wind Vector**: ${w.windSpeed} km/h from ${w.windDirection || 'WSW'} (${w.windDirectionDeg ?? 247}°)
-• **Barometric Pressure**: ${w.pressure} hPa (Station Level)
-• **Precipitation Probability**: ${w.precipitationProbability ?? 10}% (24-hr Rain: ${w.precipitation ?? 0} mm)
-• **National Air Quality Index (NAQI)**: ${w.aqiIndex ?? w.aqiPm25 ?? 65} (${w.aqiStatus || 'Satisfactory'})
-• **Aero-Allergen Risk**: ${w.pollen || 'Low Risk'}
-• **UV Radiation Index**: ${w.uvIndex ?? 6}/10`,
+• **Air Temperature**: ${fmt(w.temp, '°C')} (Apparent Feels Like: ${fmt(w.feelsLike ?? w.temp, '°C')})
+• **Atmospheric Condition**: ${w.condition || 'Unavailable'}
+• **Relative Humidity**: ${fmt(w.humidity, '%')} | **Dew Point**: ${fmt(w.dewPoint, '°C')}
+• **Surface Wind Vector**: ${fmt(w.windSpeed, ' km/h')} from ${w.windDirection || '—'}${typeof w.windDirectionDeg === 'number' ? ` (${w.windDirectionDeg}°)` : ''}
+• **Barometric Pressure**: ${fmt(w.pressure, ' hPa')} (Station Level)
+• **Precipitation Probability**: ${fmt(w.precipitationProbability, '%')} (Current Rain: ${fmt(w.precipitation, ' mm')})
+• **National Air Quality Index (NAQI)**: ${fmt(w.aqiIndex ?? w.aqiPm25, '')} (${w.aqiStatus || 'Unavailable'})
+• **Aero-Allergen Risk**: ${w.pollen || 'Unavailable'}
+• **UV Radiation Index**: ${typeof w.uvIndex === 'number' ? `${w.uvIndex}/10` : 'Unavailable'}`,
         sources: [
           { title: 'IMD National Weather Observation Portal', url: 'https://mausam.imd.gov.in', type: 'search' },
         ],
@@ -100,26 +102,30 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/can i (go for a |do an )?(run|jog|workout|walk|exercise)/i, /safe to (run|jog|exercise|go outside)/i, /outdoor (activity|running|exercise)/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
-      const aqi = w.aqiIndex ?? w.aqiPm25 ?? 65;
-      const isAqiSafe = aqi <= 100;
-      const isTempComfortable = w.temp <= 34 && w.temp >= 14;
-      const isRainLikely = (w.precipitationProbability ?? 0) >= 60;
+      const aqi = typeof (w.aqiIndex ?? w.aqiPm25) === 'number' ? (w.aqiIndex ?? w.aqiPm25)! : null;
+      const tempVal = typeof w.temp === 'number' ? w.temp : null;
+      const humVal = typeof w.humidity === 'number' ? w.humidity : null;
+      const rainVal = typeof w.precipitationProbability === 'number' ? w.precipitationProbability : null;
+      const uvVal = typeof w.uvIndex === 'number' ? w.uvIndex : null;
+      const isAqiSafe = aqi !== null ? aqi <= 100 : true;
+      const isTempComfortable = tempVal !== null ? tempVal <= 34 && tempVal >= 14 : true;
+      const isRainLikely = (rainVal ?? 0) >= 60;
 
-      let status = 'FAVORABLE FOR OUTDOOR WORKOUT';
+      let status = tempVal === null ? 'AWAITING LIVE TELEMETRY' : 'FAVORABLE FOR OUTDOOR WORKOUT';
       if (isRainLikely) status = 'POSTPONE: RAINFALL PROBABLE';
-      else if (!isAqiSafe) status = 'CAUTION: ELEVATED AIR POLLUTION';
-      else if (!isTempComfortable) status = 'HEAT STRESS RISK: HYDRATE FREQUENTLY';
+      else if (aqi !== null && !isAqiSafe) status = 'CAUTION: ELEVATED AIR POLLUTION';
+      else if (tempVal !== null && !isTempComfortable) status = 'HEAT STRESS RISK: HYDRATE FREQUENTLY';
 
       return {
         text: `### Outdoor Activity & Cardiovascular Fitness Guidance
 • **Verdict**: **${status}**
 
 **Environmental Diagnostics**:
-• **Air Quality Index**: ${aqi} (${w.aqiStatus || 'Satisfactory'}) — ${isAqiSafe ? 'Safe for aerobic respiration.' : 'May cause airway irritation for sensitive runners.'}
-• **Thermal Factor**: ${w.temp}°C (Feels like ${w.feelsLike ?? w.temp}°C) — ${w.temp > 32 ? 'High thermal strain; avoid midday peak.' : 'Comfortable for cardiovascular load.'}
-• **Relative Humidity**: ${w.humidity}% — ${w.humidity > 75 ? 'Sweat evaporation impaired; hydrate with electrolytes.' : 'Optimal sweat cooling rate.'}
-• **Precipitation Probability**: ${w.precipitationProbability ?? 10}%
-• **UV Index**: ${w.uvIndex ?? 6}/10 — ${w.uvIndex > 6 ? 'Wear UV sunglasses and SPF 30+ sunscreen.' : 'Minimal solar risk.'}
+• **Air Quality Index**: ${aqi !== null ? `${aqi} (${w.aqiStatus || 'Observed'})` : 'Unavailable'} — ${aqi === null ? 'Awaiting air quality sensor feed.' : isAqiSafe ? 'Safe for aerobic respiration.' : 'May cause airway irritation for sensitive runners.'}
+• **Thermal Factor**: ${tempVal !== null ? `${tempVal}°C (Feels like ${w.feelsLike ?? tempVal}°C)` : 'Unavailable'} — ${tempVal === null ? 'Awaiting temperature feed.' : tempVal > 32 ? 'High thermal strain; avoid midday peak.' : 'Comfortable for cardiovascular load.'}
+• **Relative Humidity**: ${humVal !== null ? `${humVal}%` : 'Unavailable'} — ${humVal === null ? 'Awaiting humidity sensor.' : humVal > 75 ? 'Sweat evaporation impaired; hydrate with electrolytes.' : 'Optimal sweat cooling rate.'}
+• **Precipitation Probability**: ${rainVal !== null ? `${rainVal}%` : 'Unavailable'}
+• **UV Index**: ${uvVal !== null ? `${uvVal}/10` : 'Unavailable'} — ${uvVal === null ? 'Awaiting solar UV telemetry.' : uvVal > 6 ? 'Wear UV sunglasses and SPF 30+ sunscreen.' : 'Minimal solar risk.'}
 
 **Workout Protocols**:
 1. Early morning (05:30–07:30 IST) or late evening (18:00–19:30 IST) are optimal.
@@ -146,11 +152,14 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/why is (it|humidity) (so )?(high|humid|sticky|muggy)/i, /what is (relative )?humidity/i, /what is dew point/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const humStr = typeof w.humidity === 'number' ? `${w.humidity}%` : 'Unavailable';
+      const dewStr = typeof w.dewPoint === 'number' ? `${w.dewPoint}°C` : 'Unavailable';
+      const tempStr = typeof w.temp === 'number' ? `${w.temp}°C` : 'Unavailable';
       return {
         text: `### Atmospheric Moisture & Dew Point Physics
-• **Current Relative Humidity**: ${w.humidity}%
-• **Current Dew Point**: ${w.dewPoint ?? 24.5}°C
-• **Actual Air Temperature**: ${w.temp}°C
+• **Current Relative Humidity**: ${humStr}
+• **Current Dew Point**: ${dewStr}
+• **Actual Air Temperature**: ${tempStr}
 
 **Scientific Fundamentals**:
 • **Relative Humidity (RH)**: The percentage of water vapor present in the air relative to the saturation capacity of air at that temperature.
@@ -160,7 +169,7 @@ export const FAQ_ITEMS: FAQItem[] = [
 • **< 15°C**: Crisp, dry, and comfortable.
 • **15°C – 20°C**: Comfortable to noticeable moisture.
 • **20°C – 24°C**: Sticky and muggy; evaporative cooling slows down.
-• **> 24°C (Current Zone: ${w.dewPoint ?? 24.5}°C)**: Severely oppressive; sweat cannot evaporate efficiently, causing elevated core body thermal stress.`,
+• **> 24°C (Current: ${dewStr})**: Severely oppressive; sweat cannot evaporate efficiently, causing elevated core body thermal stress.`,
         sources: [
           { title: 'IMD Meteorological Instruments & Glossary', url: 'https://mausam.imd.gov.in', type: 'search' },
         ],
@@ -181,13 +190,17 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/what is feels like/i, /difference between actual and feels like/i, /how is heat index calculated/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const tempStr = typeof w.temp === 'number' ? `${w.temp}°C` : 'Unavailable';
+      const feelsVal = w.feelsLike ?? w.temp;
+      const feelsStr = typeof feelsVal === 'number' ? `${feelsVal}°C` : 'Unavailable';
+      const humStr = typeof w.humidity === 'number' ? `${w.humidity}%` : 'Unavailable';
       return {
         text: `### Apparent Temperature & Heat Index Dynamics
-• **Actual Temperature**: ${w.temp}°C (Measured by shielded thermometer in a Stevenson Screen at 1.5m AGL).
-• **Feels Like (Apparent Temperature)**: ${w.feelsLike ?? w.temp}°C (Human physiological perception).
+• **Actual Temperature**: ${tempStr} (Measured by shielded thermometer in a Stevenson Screen at 1.5m AGL).
+• **Feels Like (Apparent Temperature)**: ${feelsStr} (Human physiological perception).
 
 **Key Governing Equations**:
-• **Summer Heat Index**: Combines air temperature and relative humidity (${w.humidity}%). High humidity halts sweat evaporation, trapping body heat and driving apparent temperature higher.
+• **Summer Heat Index**: Combines air temperature and relative humidity (${humStr}). High humidity halts sweat evaporation, trapping body heat and driving apparent temperature higher.
 • **Winter Wind Chill**: Combines cold temperature with surface wind speed. High wind rapidly strips the thin warm air boundary layer off human skin, driving apparent temperature lower.
 
 **Health Recommendations**:
@@ -213,9 +226,10 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/what does (barometric|air)? pressure mean/i, /pressure reading/i, /why is pressure falling/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const pressStr = typeof w.pressure === 'number' ? `${w.pressure} hPa` : 'Unavailable';
       return {
         text: `### Barometric Pressure Telemetry & Forecasting
-• **Station Pressure**: ${w.pressure} hPa (Standard Mean Sea Level: 1013.25 hPa)
+• **Station Pressure**: ${pressStr} (Standard Mean Sea Level: 1013.25 hPa)
 
 **Meteorological Trend Rules**:
 • **Rapid Drop (> 3 hPa in 3 hours)**: Indicative of an approaching low pressure area, squall line, thunderstorm, or cyclonic system.
@@ -244,28 +258,24 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/what is (the )?uv index/i, /sun protection/i, /do i need sunscreen/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
-      const uv = w.uvIndex ?? 6;
-      let category = 'Moderate';
-      let action = 'Wear sunglasses and apply SPF 30+ sunscreen if outdoors > 45 mins.';
-      if (uv >= 11) {
-        category = 'Extreme';
-        action = 'Avoid direct sun exposure between 11:00 and 15:30 IST; skin burns can occur in < 10 mins.';
-      } else if (uv >= 8) {
-        category = 'Very High';
-        action = 'Seek shade, wear wide-brim hat, UV400 sunglasses, and reapply SPF 50 every 2 hours.';
-      } else if (uv >= 6) {
-        category = 'High';
-        action = 'Reduce exposure during peak solar noon hours; use umbrella and light protective clothing.';
+      const uv = typeof w.uvIndex === 'number' ? w.uvIndex : null;
+      let category = 'Unavailable';
+      if (uv !== null) {
+        if (uv >= 11) category = 'Extreme';
+        else if (uv >= 8) category = 'Very High';
+        else if (uv >= 6) category = 'High';
+        else if (uv >= 3) category = 'Moderate';
+        else category = 'Low';
       }
 
       return {
         text: `### Solar UV Radiation & Dermatological Safety
-• **Current UV Index**: **${uv} / 10** (${category} Category)
+• **Current UV Index**: **${uv !== null ? `${uv} / 10` : 'Unavailable'}** (${category} Category)
 
 **WHO / IMD UV Radiation Scale**:
 • **0 – 2 (Low)**: Minimal solar hazard; no protective gear strictly necessary.
 • **3 – 5 (Moderate)**: Safe for brief exposure; apply SPF 15+ for extended outdoor stay.
-• **6 – 7 (High — Current Level)**: Protection essential; cover exposed skin.
+• **6 – 7 (High)**: Protection essential; cover exposed skin.
 • **8 – 10 (Very High)**: High risk of erythema (sunburn) within 15–20 minutes.
 • **11+ (Extreme)**: Unshielded skin burns rapidly; stay indoors around solar noon.
 
@@ -292,14 +302,16 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/how is wind measured/i, /what is (the )?beaufort scale/i, /wind speed classification/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const ws = typeof w.windSpeed === 'number' ? w.windSpeed : null;
+      const windStr = ws !== null ? `${ws} km/h (${(ws / 1.852).toFixed(1)} knots)` : 'Unavailable';
       return {
         text: `### Surface Wind Telemetry & Beaufort Scale Standards
-• **Observed Wind Velocity**: ${w.windSpeed} km/h (${(w.windSpeed / 1.852).toFixed(1)} knots)
-• **Wind Direction**: ${w.windDirection || 'WSW'} (${w.windDirectionDeg ?? 247}°)
+• **Observed Wind Velocity**: ${windStr}
+• **Wind Direction**: ${w.windDirection || '—'}${typeof w.windDirectionDeg === 'number' ? ` (${w.windDirectionDeg}°)` : ''}
 
 **Beaufort Scale Operational Tiers**:
 • **Force 0 (Calm, < 1 km/h)**: Smoke rises vertically.
-• **Force 1–3 (Light to Gentle Breeze, 1–19 km/h)**: Wind felt on face; leaves rustle (Current observation: ${w.windSpeed} km/h).
+• **Force 1–3 (Light to Gentle Breeze, 1–19 km/h)**: Wind felt on face; leaves rustle (Current observation: ${ws !== null ? `${ws} km/h` : 'Unavailable'}).
 • **Force 4–5 (Moderate to Fresh Breeze, 20–38 km/h)**: Small branches move; raises dust and paper.
 • **Force 6–7 (Strong Breeze / Near Gale, 39–61 km/h)**: Large branches in motion; umbrella usage difficult.
 • **Force 8–9 (Gale / Strong Gale, 62–88 km/h)**: Breaks twigs; structural damage begins.
@@ -324,10 +336,11 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/difference between fog mist (and )?haze/i, /what causes (fog|low visibility)/i, /visibility classification/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const visStr = typeof w.visibilityKm === 'number' ? `${w.visibilityKm} km` : 'Unavailable';
       return {
         text: `### Atmospheric Visibility & Aerosol Classification
-• **Current Surface Visibility**: ${w.visibilityKm ?? 7} km
-• **Current Atmospheric Phenomenon**: ${w.condition}
+• **Current Surface Visibility**: ${visStr}
+• **Current Atmospheric Phenomenon**: ${w.condition || 'Unavailable'}
 
 **Official Meteorological Definitions**:
 • **Fog**: Water droplets suspended in air reducing visibility to **< 1,000 meters** with Relative Humidity **≥ 75%**.
@@ -359,10 +372,10 @@ export const FAQ_ITEMS: FAQItem[] = [
     patterns: [/what is (the )?aqi/i, /air quality index scale/i, /cpcb aqi categories/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
-      const aqi = w.aqiIndex ?? w.aqiPm25 ?? 65;
+      const aqi = w.aqiIndex ?? w.aqiPm25 ?? null;
       return {
         text: `### National Air Quality Index (NAQI) Scale (CPCB India)
-• **Current Station AQI**: **${aqi}** (${w.aqiStatus || 'Satisfactory'})
+• **Current Station AQI**: **${typeof aqi === 'number' ? aqi : 'Unavailable'}** (${w.aqiStatus || 'Unavailable'})
 
 **6 Official NAQI Health Tiers**:
 • **0 – 50 (Good / Dark Green)**: Minimal health impact; pristine clean air.
@@ -394,10 +407,12 @@ PM2.5, PM10, Nitrogen Dioxide (NO2), Sulfur Dioxide (SO2), Carbon Monoxide (CO),
     patterns: [/difference between pm2\.5 and pm10/i, /what is pm2\.5/i, /what is pm10/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const pm25Str = typeof w.aqiPm25 === 'number' ? `${w.aqiPm25} µg/m³` : 'Unavailable';
+      const pm10Str = typeof w.aqiPm10 === 'number' ? `${w.aqiPm10} µg/m³` : 'Unavailable';
       return {
         text: `### Particulate Matter (PM2.5 vs PM10) Health Impact
-• **Current PM2.5**: ${w.aqiPm25 ?? 42} µg/m³ (Standard: 60 µg/m³ 24-hr avg)
-• **Current PM10**: ${w.aqiPm10 ?? 58} µg/m³ (Standard: 100 µg/m³ 24-hr avg)
+• **Current PM2.5**: ${pm25Str} (Standard: 60 µg/m³ 24-hr avg)
+• **Current PM10**: ${pm10Str} (Standard: 100 µg/m³ 24-hr avg)
 
 **Comparative Scientific Analysis**:
 • **PM10 (Coarse Particles, < 10 µm)**:
@@ -428,9 +443,10 @@ PM2.5, PM10, Nitrogen Dioxide (NO2), Sulfur Dioxide (SO2), Carbon Monoxide (CO),
     patterns: [/what is (the )?pollen/i, /pollen count/i, /allergy forecast/i, /rhinitis/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
+      const pCount = typeof w.pollenCount === 'number' ? `${w.pollenCount} grains/m³` : 'Unavailable';
       return {
         text: `### Botanical Aero-Allergen & Pollen Telemetry
-• **Current Pollen Risk**: **${w.pollen || 'Low Risk'}** (Index Level: ${w.pollenCount ?? 2} / 5)
+• **Current Pollen Risk**: **${w.pollen || 'Unavailable'}** (${pCount})
 
 **Major Aero-Allergen Groups in India**:
 1. **Tree Pollen (Feb – April)**: Eucalyptus, Neem, Gulmohar, Pine, and Casuarina.
@@ -791,10 +807,13 @@ The Northeast Monsoon (October to December) is the primary rainfall season for *
     generateAnswer: (ctx) => {
       const loc = ctx.station;
       const w = ctx.weather;
+      const tempStr = typeof w.temp === 'number' ? `${w.temp}°C` : 'Unavailable';
+      const humStr = typeof w.humidity === 'number' ? `${w.humidity}%` : 'Unavailable';
+      const rainStr = typeof w.precipitationProbability === 'number' ? `${w.precipitationProbability}%` : 'Unavailable';
       return {
         text: `### Gramin Krishi Mausam Sewa (GKMS) & Meghdoot Platform
 • **District Focus**: ${loc?.district || loc?.name || 'Local District'}, ${loc?.state || 'India'}
-• **Observation**: ${w.temp}°C | Humidity: ${w.humidity}% | Rain Probability: ${w.precipitationProbability ?? 10}%
+• **Observation**: ${tempStr} | Humidity: ${humStr} | Rain Probability: ${rainStr}
 
 **GKMS Services (IMD & ICAR Collaboration)**:
 • Issues bi-weekly (Tuesday & Friday) district and block-level agromet advisory bulletins.
@@ -823,11 +842,14 @@ The Northeast Monsoon (October to December) is the primary rainfall season for *
     patterns: [/when to spray pesticide/i, /fertilizer application weather/i, /can i spray today/i],
     generateAnswer: (ctx) => {
       const w = ctx.weather;
-      const isWindy = w.windSpeed > 15;
-      const isRainy = (w.precipitationProbability ?? 0) >= 40;
-      const isHot = w.temp > 35;
+      const windVal = typeof w.windSpeed === 'number' ? w.windSpeed : null;
+      const tempVal = typeof w.temp === 'number' ? w.temp : null;
+      const rainProb = typeof w.precipitationProbability === 'number' ? w.precipitationProbability : null;
+      const isWindy = windVal !== null && windVal > 15;
+      const isRainy = (rainProb ?? 0) >= 40;
+      const isHot = tempVal !== null && tempVal > 35;
 
-      let verdict = 'FAVORABLE WINDOW FOR SPRAYING';
+      let verdict = windVal === null || tempVal === null ? 'AWAITING SURFACE TELEMETRY' : 'FAVORABLE WINDOW FOR SPRAYING';
       if (isRainy) verdict = 'POSTPONE: RAIN WASHOUT RISK';
       else if (isWindy) verdict = 'POSTPONE: HIGH WIND DRIFT (>15 km/h)';
       else if (isHot) verdict = 'CAUTION: EVAPORATION RISK IN MIDDAY HEAT';
@@ -837,9 +859,9 @@ The Northeast Monsoon (October to December) is the primary rainfall season for *
 • **Current Spraying Assessment**: **${verdict}**
 
 **Standard Operational Thresholds**:
-• **Wind Speed (< 15 km/h)**: Current is ${w.windSpeed} km/h. Wind > 15 km/h causes droplet drift onto neighboring non-target crops or water bodies.
-• **Rainfall Window (> 4–6 hours dry post-application)**: Current rain probability is ${w.precipitationProbability ?? 10}%. Rain within 4 hours washes off contact fungicides/insecticides.
-• **Air Temperature (< 32°C)**: Current is ${w.temp}°C. Extreme heat causes liquid droplet flash evaporation before leaves absorb systemic active ingredients.
+• **Wind Speed (< 15 km/h)**: Current is ${windVal !== null ? `${windVal} km/h` : 'Unavailable'}. Wind > 15 km/h causes droplet drift onto neighboring non-target crops or water bodies.
+• **Rainfall Window (> 4–6 hours dry post-application)**: Current rain probability is ${rainProb !== null ? `${rainProb}%` : 'Unavailable'}. Rain within 4 hours washes off contact fungicides/insecticides.
+• **Air Temperature (< 32°C)**: Current is ${tempVal !== null ? `${tempVal}°C` : 'Unavailable'}. Extreme heat causes liquid droplet flash evaporation before leaves absorb systemic active ingredients.
 • **Best Timing**: Early morning (07:00–10:00 IST) after dew evaporates or late afternoon (16:00–18:00 IST).`,
         sources: [
           { title: 'ICAR & IMD Agromet Advisory Division', url: 'https://imdagrimet.gov.in', type: 'search' },

@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { Megaphone, RefreshCw, Volume2, X } from 'lucide-react';
 import { WeatherDataBundle } from '../services/weatherService';
 import { LocationRecord } from '../types';
 import {
   WarningRecord,
   WarningFilterState,
   StateWarningSummary,
-  AlertSeverity,
 } from '../types/warningTypes';
 import { warningService as canonicalWarningService } from '../services/warnings/warningService';
 import { warningService as warningHelperService } from '../services/warningService';
@@ -15,7 +15,6 @@ import { WarningHeader } from '../components/warnings/WarningHeader';
 import { NationalAlertStatus } from '../components/warnings/NationalAlertStatus';
 import { WarningTicker } from '../components/warnings/WarningTicker';
 import { useAlertAudio } from '../hooks/useAlertAudio';
-import { Volume2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { WarningFilterBar } from '../components/warnings/WarningFilterBar';
 import { NationalWarningMap } from '../components/warnings/NationalWarningMap';
 import { StateWatchlistPanel } from '../components/warnings/StateWatchlistPanel';
@@ -24,9 +23,14 @@ import { WarningDetailDrawer } from '../components/warnings/WarningDetailDrawer'
 import { SafetyGuidanceSection } from '../components/warnings/SafetyGuidanceSection';
 import { EmergencyResponseSection } from '../components/warnings/EmergencyResponseSection';
 import { NationalClassificationMatrix } from '../components/warnings/NationalClassificationMatrix';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
 import { useProvider } from '../store/providerStore';
 import { getAlertFeedAvailability } from '../services/providers/providerStatus';
+import { formatIndianDateTime } from '../utils/dateUtils';
+import {
+  ProvenanceStatus,
+  SectionHeading,
+  SeverityBanner,
+} from '../components/ui/ObservatoryPrimitives';
 
 interface AlertsPageProps {
   weatherBundle?: WeatherDataBundle;
@@ -43,10 +47,8 @@ const INITIAL_FILTER_STATE: WarningFilterState = {
 };
 
 export const AlertsPage: React.FC<AlertsPageProps> = ({
-  weatherBundle,
   selectedLocation,
 }) => {
-  // Real warning records fetched from verified SACHET/NDMA and IMD feed
   const [warningsList, setWarningsList] = useState<WarningRecord[]>([]);
   const [diagnostics, setDiagnostics] = useState<WarningFeedDiagnostics | null>(null);
   const [isFeedUnavailable, setIsFeedUnavailable] = useState<boolean>(false);
@@ -60,16 +62,16 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
   const sachetAvailability = getAlertFeedAvailability(sachetState);
   const effectiveUnavailable = isFeedUnavailable || sachetAvailability === 'UNAVAILABLE';
 
-  // Monitor alert warnings and trigger audio chime when a genuinely new active warning arrives
   const { isAudioAlertEnabled } = useAlertAudio({
     warnings: warningsList,
     onNewAlertTriggered: (newWarning) => {
-      setAlertSurgeNotice(`New ${newWarning.severity?.toUpperCase() || 'OFFICIAL'} Alert: ${newWarning.title || 'Severe Weather Warning'}`);
+      setAlertSurgeNotice(
+        `New ${newWarning.severity?.toUpperCase() || 'OFFICIAL'} Alert: ${newWarning.title || 'Severe Weather Warning'}`
+      );
       setTimeout(() => setAlertSurgeNotice(null), 8000);
     },
   });
 
-  // Fetch verified warnings for the current location & nation
   const loadWarnings = useCallback(async (force = false) => {
     setIsRefreshing(true);
     try {
@@ -96,45 +98,37 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
     loadWarnings(false);
   }, [loadWarnings]);
 
-  // Section reference for quick jumping to bulletins grid
   const regionalAlertsRef = useRef<HTMLDivElement>(null);
 
-  // Filtered list of warnings based on active user filter
   const filteredWarnings = useMemo(() => {
     return warningHelperService.filterWarnings(warningsList, filter);
   }, [warningsList, filter]);
 
-  // Real-time calculated national warning stats
   const stats = useMemo(() => {
     return warningHelperService.calculateStats(warningsList);
   }, [warningsList]);
 
-  // Overall national alert status level
   const overallStatus = useMemo(() => {
     return warningHelperService.getNationalOverallStatus(warningsList);
   }, [warningsList]);
 
-  // Handle manual refresh
   const handleRefresh = useCallback(() => {
     loadWarnings(true);
     refreshSachetStore(true).catch(() => {});
   }, [loadWarnings, refreshSachetStore]);
 
-  // Handle drawer open
   const handleOpenWarningDetails = useCallback((warning: WarningRecord) => {
     setSelectedDrawerWarning(warning);
     setIsDrawerOpen(true);
   }, []);
 
-  // Handle map state click
   const handleSelectStateFromMap = useCallback((stateName: string) => {
     setFilter((prev) => ({
       ...prev,
-      state: stateName,
+      state: stateName === 'All India' ? 'all' : stateName,
     }));
   }, []);
 
-  // Handle state drawer click from map or watchlist
   const handleOpenStateSummary = useCallback(
     (summary: StateWarningSummary) => {
       const matchedWarning = warningsList.find(
@@ -155,7 +149,6 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
     [warningsList, handleOpenWarningDetails]
   );
 
-  // Handle focus state on map from a warning card
   const handleViewOnMap = useCallback((warning: WarningRecord) => {
     setFilter((prev) => ({
       ...prev,
@@ -168,121 +161,129 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
     }
   }, []);
 
-  // Reset all filters
   const handleResetFilters = useCallback(() => {
     setFilter(INITIAL_FILTER_STATE);
   }, []);
 
-  // Handle quick jump to bulletins list
   const handleScrollToRegionalAlerts = useCallback(() => {
     if (regionalAlertsRef.current) {
       regionalAlertsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
 
+  const headerStatus: ProvenanceStatus = isRefreshing && !diagnostics
+    ? 'LOADING'
+    : effectiveUnavailable
+    ? 'UNAVAILABLE'
+    : diagnostics?.status === 'STALE'
+    ? 'STALE'
+    : warningsList.length === 0
+    ? 'ALL_CLEAR'
+    : diagnostics?.status === 'LIVE'
+    ? 'LIVE'
+    : 'RECENT';
+
+  const coordsText = selectedLocation?.coordinates
+    ? `${selectedLocation.name} (${selectedLocation.coordinates.lat.toFixed(2)}°N, ${selectedLocation.coordinates.lng.toFixed(2)}°E)`
+    : undefined;
+
+  const updatedLabel = diagnostics?.lastSuccessfulFetchAt
+    ? formatIndianDateTime(diagnostics.lastSuccessfulFetchAt)
+    : effectiveUnavailable
+    ? 'Unavailable'
+    : stats.lastUpdatedIst;
+
   return (
     <div
       id="mausam-national-warning-portal"
-      className="flex flex-col gap-5 pb-12 w-full max-w-[1520px] mx-auto transition-colors duration-200"
+      className="flex flex-col gap-5 pb-12 w-full max-w-[1520px] mx-auto"
     >
-      {/* Unified Compact Location Status Bar */}
-      <LocationStatusBar location={selectedLocation} />
-
-      {/* Official Warning Feed Unavailable Banner */}
-      {effectiveUnavailable && (
-        <div
-          id="warning-feed-unavailable-banner"
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 rounded-xl bg-[#181109] border border-[#F59E0B]/50 text-white shadow-lg"
-        >
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-[#F59E0B] shrink-0" />
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                OFFICIAL WARNING FEED UNAVAILABLE
-              </h3>
-              <p className="text-xs text-[#93A4B8] mt-0.5">
-                The real-time SACHET / NDMA disaster alert stream is temporarily unreachable. Surface telemetry and NWP numerical model forecasts remain active.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => handleRefresh()}
-            disabled={isRefreshing}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#241A0C] hover:bg-[#362713] border border-[#F59E0B]/60 text-xs font-bold text-[#FCD34D] transition-colors shrink-0 cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Retry Feed Sync</span>
-          </button>
-        </div>
-      )}
-
-      {/* 1. Official Header with Synoptic Status & Manual Refresh */}
       <WarningHeader
-        lastUpdated={stats.lastUpdatedIst}
+        lastUpdated={updatedLabel}
         onRefresh={handleRefresh}
         isLoading={isRefreshing}
+        status={headerStatus}
+        coordinates={coordsText}
       />
 
-      {/* Optional Severe Audio Alert Trigger Notice Banner */}
-      {alertSurgeNotice && (
-        <div
-          id="severe-alert-surge-banner"
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-lg bg-[#E74C3C]/20 border border-[#E74C3C] text-white shadow-lg"
-        >
-          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
-            <Volume2 className="w-5 h-5 text-[#FF8A80] shrink-0" />
-            <span className="text-[#FF8A80] uppercase tracking-wider">Audio Notification:</span>
-            <span>{alertSurgeNotice}</span>
-          </div>
-          <span className="text-[11px] font-mono text-[#FFCDD2] bg-[#E74C3C]/40 px-2 py-0.5 rounded">
-            {isAudioAlertEnabled ? 'Chime Played' : 'Muted'}
-          </span>
+      {effectiveUnavailable && (
+        <div id="warning-feed-unavailable-banner">
+          <SeverityBanner
+            state="UNAVAILABLE"
+            title="Official warning feed temporarily unreachable"
+            description="The real-time SACHET / NDMA disaster alert stream is temporarily unreachable. Surface telemetry and NWP model forecasts remain active."
+            source="NDMA SACHET CAP Gateway"
+            action={
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#F59E0B]/40 text-xs font-semibold text-[#FCD34D] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>Retry Feed Sync</span>
+              </button>
+            }
+          />
         </div>
       )}
 
-      {/* 2. National Alert Status & Live Warning Ticker */}
+      {alertSurgeNotice && (
+        <div id="severe-alert-surge-banner">
+          <SeverityBanner
+            state="SEVERE"
+            title={alertSurgeNotice}
+            description="Audible warning alert threshold reached on active SACHET monitoring cycle."
+            action={
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#FCA5A5] bg-[#08131F] border border-[#EF4444]/40 px-2.5 py-1 rounded">
+                <Volume2 className="w-3.5 h-3.5" />
+                {isAudioAlertEnabled ? 'Chime Played' : 'Muted'}
+              </span>
+            }
+          />
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         <NationalAlertStatus
           overallStatus={overallStatus}
           stats={stats}
-          lastUpdated={stats.lastUpdatedIst}
+          lastUpdated={updatedLabel}
           onViewRegionalAlerts={handleScrollToRegionalAlerts}
           isUnavailable={effectiveUnavailable}
         />
         <WarningTicker
           warnings={warningsList}
           onSelectWarning={handleOpenWarningDetails}
+          isUnavailable={effectiveUnavailable}
         />
       </div>
 
-      {/* 3. Geographic Intelligence: National Warning Map & State Watchlist Panel */}
       <div
         id="section-national-warning-map-and-watchlist"
         className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch"
       >
-        {/* Left Column (Desktop 7 cols): Interactive All-India Severity Map */}
         <div className="lg:col-span-7 w-full flex flex-col min-w-0">
           <NationalWarningMap
             selectedState={filter.state !== 'all' ? filter.state : null}
             onSelectState={handleSelectStateFromMap}
             onOpenStateDrawer={handleOpenStateSummary}
             warnings={warningsList}
+            isUnavailable={effectiveUnavailable}
           />
         </div>
 
-        {/* Right Column (Desktop 5 cols): State Warning Watchlist */}
         <div className="lg:col-span-5 w-full flex flex-col min-w-0">
           <StateWatchlistPanel
             selectedState={filter.state !== 'all' ? filter.state : null}
             onSelectState={handleSelectStateFromMap}
             onOpenStateDrawer={handleOpenStateSummary}
             warnings={warningsList}
+            isUnavailable={effectiveUnavailable}
           />
         </div>
       </div>
 
-      {/* 4. Unified Filter Bar (Search, Severity Tabs, Region, Hazard Chips) */}
       <div ref={regionalAlertsRef} className="flex flex-col gap-3">
         <WarningFilterBar
           filter={filter}
@@ -290,38 +291,34 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
           onResetFilters={handleResetFilters}
           activeCount={filteredWarnings.length}
           totalCount={warningsList.length}
+          isUnavailable={effectiveUnavailable}
         />
       </div>
 
-      {/* 5. Active Warning Bulletins Responsive Grid */}
       <section id="section-national-warning-bulletins" className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 pb-0.5">
-          <div className="flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-[22px] text-[#4FA8E0] shrink-0">
-              campaign
-            </span>
-            <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-tight">
-              Active Meteorological Warning Bulletins
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
-            <span className="text-xs text-[#CBD5E1] font-mono tabular-nums bg-[#101B26] border border-white/12 px-2.5 py-1 rounded-lg">
-              Showing <strong className="text-white">{filteredWarnings.length}</strong> of{' '}
-              <span className="text-[#93A4B8]">{warningsList.length}</span> active bulletins
-            </span>
-            {filter.state !== 'all' && (
-              <button
-                type="button"
-                onClick={() => setFilter((prev) => ({ ...prev, state: 'all' }))}
-                className="text-[11px] text-[#38BDF8] hover:text-white flex items-center gap-1 cursor-pointer bg-[#101B26] border border-white/12 px-2.5 py-1 rounded-lg transition-colors"
-              >
-                <span>Filtered: {filter.state}</span>
-                <span className="material-symbols-outlined text-[12px]">close</span>
-              </button>
-            )}
-          </div>
-        </div>
+        <SectionHeading
+          title="Active Meteorological Warning Bulletins"
+          subtitle="Verified CAP advisories and district-level impacts across India"
+          icon={<Megaphone className="w-4 h-4" />}
+          action={
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-[#B5C3D1] font-mono tabular-nums bg-[#08131F] border border-[#26394B] px-2.5 py-1.5 rounded-lg">
+                Showing <strong className="text-[#F3F6FA]">{effectiveUnavailable ? '—' : filteredWarnings.length}</strong> of{' '}
+                <span className="text-[#8295A8]">{effectiveUnavailable ? '—' : warningsList.length}</span> active
+              </span>
+              {filter.state !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setFilter((prev) => ({ ...prev, state: 'all' }))}
+                  className="text-xs text-[#35C7E8] hover:text-[#F3F6FA] flex items-center gap-1 cursor-pointer bg-[#08131F] border border-[#26394B] px-2.5 py-1.5 rounded-lg transition-colors"
+                >
+                  <span>Filtered: {filter.state}</span>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          }
+        />
 
         <WarningList
           warnings={filteredWarnings}
@@ -329,19 +326,17 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
           onViewOnMap={handleViewOnMap}
           onResetFilters={handleResetFilters}
           selectedLocation={selectedLocation}
+          isUnavailable={effectiveUnavailable}
+          onRetry={handleRefresh}
         />
       </section>
 
-      {/* 6. Public Safety Guidance & NDMA Protocols */}
       <SafetyGuidanceSection activeHazardFilter={filter.hazard} />
 
-      {/* 7. National Meteorological Classification Matrix */}
       <NationalClassificationMatrix />
 
-      {/* 8. Emergency & Disaster Response Directory */}
       <EmergencyResponseSection selectedLocation={selectedLocation} />
 
-      {/* 9. Slide-out Detailed Warning Bulletin Drawer */}
       <WarningDetailDrawer
         warning={selectedDrawerWarning}
         isOpen={isDrawerOpen}

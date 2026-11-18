@@ -16,9 +16,9 @@ import {
   Compass,
   RotateCcw,
   Layers,
+  X,
 } from 'lucide-react';
-import type { LocationRecord } from '../../types';
-import type { WeatherAlert } from '../../types';
+import type { LocationRecord, WeatherAlert } from '../../types';
 import { locationService } from '../../services/locationService';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useProvider } from '../../store/providerStore';
@@ -48,7 +48,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
   isLocating,
   onOpenLocationCenter,
   onOpenAskMausam,
-  alerts,
+  alerts = [],
   onSwitchMode,
 }) => {
   const {
@@ -97,29 +97,30 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
 
   // Derive truthful SACHET / Warning trigger state (distinguish UNAVAILABLE vs ALL CLEAR)
   const alertSummary = useMemo(() => {
+    const safeAlerts = Array.isArray(alerts) ? alerts : [];
     if (sachetAvailability === 'UNAVAILABLE') {
       return {
         label: 'Feed Offline',
-        tone: 'text-[#E8B64D] border-[#E8B64D]/35 bg-[#E8B64D]/10',
+        tone: 'text-[#F59E0B] border-[#F59E0B]/40 bg-[#F59E0B]/10',
         isWarning: false,
       };
     }
-    const activeCount = alerts?.length || 0;
+    const activeCount = safeAlerts.length;
     if (activeCount > 0) {
-      const hasSevere = alerts.some((a) =>
-        ['severe', 'extreme', 'red'].includes(String(a.severity).toLowerCase())
+      const hasSevere = safeAlerts.some((a) =>
+        ['severe', 'extreme', 'red'].includes(String(a?.severity || '').toLowerCase())
       );
       return {
         label: `${activeCount} Alert${activeCount > 1 ? 's' : ''}`,
         tone: hasSevere
-          ? 'text-[#FCA5A5] border-[#E0525B]/50 bg-[#E0525B]/15'
-          : 'text-[#FDBA74] border-[#F28B45]/45 bg-[#F28B45]/12',
+          ? 'text-[#FCA5A5] border-[#EF4444]/50 bg-[#EF4444]/15'
+          : 'text-[#FDBA74] border-[#F97316]/45 bg-[#F97316]/12',
         isWarning: true,
       };
     }
     return {
       label: 'All Clear',
-      tone: 'text-[#26B982] border-[#26B982]/35 bg-[#26B982]/10',
+      tone: 'text-[#22C7A0] border-[#22C7A0]/35 bg-[#22C7A0]/10',
       isWarning: false,
     };
   }, [sachetAvailability, alerts]);
@@ -144,15 +145,15 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             onSwitchMode('explore');
             recenterIndia();
           }}
-          className="spatial-hud-surface rounded-xl px-3 py-2 flex items-center gap-2.5 hover:border-[#35C7E8]/50 transition-colors cursor-pointer spatial-focus-ring"
+          className="spatial-hud-surface rounded-xl px-3 min-h-[44px] sm:min-h-[40px] flex items-center gap-2.5 hover:border-[#38536A] transition-colors cursor-pointer spatial-focus-ring"
           title="Recenter MAUSAM 3D Atmosphere over India"
         >
           <span className="w-6 h-6 rounded-md bg-[#35C7E8]/15 border border-[#35C7E8]/40 flex items-center justify-center text-[#35C7E8] shrink-0">
             <Compass className="w-3.5 h-3.5" />
           </span>
           <span className="flex flex-col text-left leading-none">
-            <span className="text-[13px] font-bold tracking-[0.08em] text-[#F4F7FB]">MAUSAM</span>
-            <span className="text-[10px] text-[#7F93A8] hidden sm:block mt-0.5">
+            <span className="text-[13px] font-bold tracking-[0.08em] text-[#F3F6FA]">MAUSAM</span>
+            <span className="text-[10px] text-[#8295A8] hidden sm:block mt-0.5">
               Atmospheric Intelligence
             </span>
           </span>
@@ -160,8 +161,8 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
 
         {/* Quick Search + Location Anchor */}
         <div ref={searchWrapperRef} className="relative flex items-center">
-          <div className="spatial-hud-surface rounded-xl flex items-center h-10 px-2.5 gap-1.5 w-[195px] sm:w-[250px] md:w-[280px]">
-            <Search className="w-3.5 h-3.5 text-[#7F93A8] shrink-0" />
+          <div className="spatial-hud-surface rounded-xl flex items-center min-h-[44px] sm:min-h-[40px] px-2.5 gap-1.5 w-[178px] sm:w-[250px] md:w-[280px]">
+            <Search className="w-3.5 h-3.5 text-[#8295A8] shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -172,7 +173,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               }}
               placeholder={selectedLocation.displayName}
               aria-label="Search Indian city, district, or PIN code"
-              className="w-full bg-transparent text-xs text-[#F4F7FB] placeholder-[#B8C7D9] focus:outline-none truncate"
+              className="w-full bg-transparent text-xs text-[#F3F6FA] placeholder-[#B5C3D1] focus:outline-none truncate"
             />
             <button
               type="button"
@@ -184,7 +185,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               }}
               title="Detect GPS location"
               aria-label="Detect my location via GPS"
-              className="p-1 rounded-md text-[#35C7E8] hover:bg-[#35C7E8]/15 transition-colors cursor-pointer shrink-0"
+              className="min-w-[36px] min-h-[36px] sm:min-w-[28px] sm:min-h-[28px] flex items-center justify-center rounded-md text-[#35C7E8] hover:bg-[#35C7E8]/15 transition-colors cursor-pointer shrink-0 spatial-focus-ring"
             >
               <Navigation className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
             </button>
@@ -192,8 +193,8 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
 
           {isSearchOpen && (
             <div className="absolute top-12 left-0 w-[290px] sm:w-[320px] spatial-hud-surface-elevated rounded-xl p-1.5 z-50">
-              <div className="px-2.5 py-1.5 flex items-center justify-between border-b border-[#84A8CC]/15">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7F93A8]">
+              <div className="px-2.5 py-1.5 flex items-center justify-between border-b border-[#26394B]">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8295A8]">
                   {searchQuery.trim() ? 'Matching Stations' : 'Observational Anchors'}
                 </span>
                 <button
@@ -202,29 +203,31 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                     setIsSearchOpen(false);
                     onOpenLocationCenter();
                   }}
-                  className="text-[10px] text-[#35C7E8] hover:underline cursor-pointer"
+                  className="text-[11px] font-medium text-[#35C7E8] hover:underline cursor-pointer min-h-[32px] px-1"
                 >
                   All 36 Regions →
                 </button>
               </div>
               <div className="max-h-64 overflow-y-auto py-1 scrollbar-thin">
                 {searchResults.length === 0 ? (
-                  <div className="px-3 py-3 text-xs text-[#7F93A8]">No matching Indian city or PIN.</div>
+                  <div className="px-3 py-3 text-xs text-[#8295A8]">No matching Indian city or PIN.</div>
                 ) : (
                   searchResults.map((loc) => (
                     <button
                       key={loc.id}
                       type="button"
                       onClick={() => handleSelectCity(loc)}
-                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#35C7E8]/12 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                      className="w-full text-left px-2.5 min-h-[44px] sm:min-h-[40px] py-1.5 rounded-lg hover:bg-[#35C7E8]/12 flex items-center justify-between gap-2 transition-colors cursor-pointer spatial-focus-ring"
                     >
                       <div className="min-w-0">
-                        <div className="text-xs font-medium text-[#F4F7FB] truncate">{loc.city || loc.displayName}</div>
-                        <div className="text-[10px] text-[#7F93A8] truncate">
+                        <div className="text-xs font-medium text-[#F3F6FA] truncate">
+                          {loc.city || loc.displayName}
+                        </div>
+                        <div className="text-[10px] text-[#8295A8] truncate">
                           {loc.district}, {loc.state}
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono text-[#7F93A8] shrink-0 tabular-nums">
+                      <span className="text-[10px] font-mono text-[#8295A8] shrink-0 tabular-nums">
                         {loc.lat.toFixed(1)}°N
                       </span>
                     </button>
@@ -249,10 +252,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               type="button"
               onClick={() => onSwitchMode(m)}
               aria-pressed={active}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer spatial-focus-ring ${
+              className={`px-3 min-h-[36px] sm:min-h-[32px] rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer spatial-focus-ring ${
                 active
-                  ? 'bg-[#35C7E8] text-[#05101C]'
-                  : 'text-[#B8C7D9] hover:text-white hover:bg-white/5'
+                  ? 'bg-[#35C7E8] text-[#07111D]'
+                  : 'text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E]'
               }`}
             >
               {m}
@@ -269,7 +272,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             onClick={recenterIndia}
             title="Recenter India view (Shortcut: R)"
             aria-label="Recenter India view"
-            className="spatial-hud-surface rounded-xl h-10 px-2.5 hidden md:inline-flex items-center gap-1.5 text-xs text-[#B8C7D9] hover:text-white hover:border-[#35C7E8]/40 transition-colors cursor-pointer spatial-focus-ring"
+            className="spatial-hud-surface rounded-xl min-h-[40px] px-2.5 hidden md:inline-flex items-center gap-1.5 text-xs text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] transition-colors cursor-pointer spatial-focus-ring"
           >
             <RotateCcw className="w-3.5 h-3.5 text-[#35C7E8]" />
             <span>India</span>
@@ -279,7 +282,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         <button
           type="button"
           onClick={() => setIsAlertDrawerOpen(true)}
-          className={`spatial-hud-surface rounded-xl h-10 px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer spatial-focus-ring ${alertSummary.tone}`}
+          className={`spatial-hud-surface rounded-xl min-h-[44px] sm:min-h-[40px] px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer spatial-focus-ring ${alertSummary.tone}`}
           title="Open SACHET / IMD Hazard Alerts"
         >
           {alertSummary.isWarning ? (
@@ -293,7 +296,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         <button
           type="button"
           onClick={onOpenAskMausam}
-          className="spatial-hud-surface rounded-xl h-10 px-3 hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#F4F7FB] hover:border-[#35C7E8]/45 transition-colors cursor-pointer spatial-focus-ring"
+          className="spatial-hud-surface rounded-xl min-h-[40px] px-3 hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#F3F6FA] hover:border-[#38536A] transition-colors cursor-pointer spatial-focus-ring"
           title="Open Ask MAUSAM Brief"
         >
           <span className="text-[#35C7E8] font-semibold">Ask MAUSAM</span>
@@ -306,27 +309,28 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             onClick={() => setIsSettingsOpen((v) => !v)}
             aria-expanded={isSettingsOpen}
             aria-label="Visual quality, 2D map fallback, and language settings"
-            className="spatial-hud-surface rounded-xl h-10 w-10 flex items-center justify-center text-[#B8C7D9] hover:text-white hover:border-[#35C7E8]/45 transition-colors cursor-pointer spatial-focus-ring"
+            className="spatial-hud-surface rounded-xl min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] transition-colors cursor-pointer spatial-focus-ring"
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>
 
           {isSettingsOpen && (
             <div className="absolute right-0 top-12 w-72 spatial-hud-surface-elevated rounded-xl p-3.5 z-50 flex flex-col gap-3 text-xs">
-              <div className="flex items-center justify-between border-b border-[#84A8CC]/15 pb-2">
-                <span className="font-semibold text-white">Display & Accessibility</span>
+              <div className="flex items-center justify-between border-b border-[#26394B] pb-2">
+                <span className="font-semibold text-[#F3F6FA]">Display &amp; Accessibility</span>
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen(false)}
-                  className="text-[#7F93A8] hover:text-white cursor-pointer"
+                  aria-label="Close display settings"
+                  className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* 3D Globe vs 2D Interactive Map */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-[#7F93A8] uppercase tracking-wider font-semibold">
+                <span className="text-[11px] text-[#8295A8] uppercase tracking-wider font-semibold">
                   Spatial Viewport
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -335,10 +339,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                       key={rm}
                       type="button"
                       onClick={() => setRendererMode(rm)}
-                      className={`py-1.5 px-2.5 rounded-lg font-medium border flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`min-h-[40px] sm:min-h-[36px] px-2.5 rounded-lg font-medium border flex items-center justify-center gap-1.5 cursor-pointer spatial-focus-ring ${
                         rendererMode === rm
-                          ? 'bg-[#35C7E8]/20 border-[#35C7E8] text-white'
-                          : 'bg-[#07111D]/60 border-[#84A8CC]/20 text-[#B8C7D9]'
+                          ? 'bg-[#35C7E8]/20 border-[#35C7E8] text-[#F3F6FA]'
+                          : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:border-[#38536A]'
                       }`}
                     >
                       {rm === '3d' ? <Globe className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
@@ -350,7 +354,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
 
               {/* Render Quality */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-[#7F93A8] uppercase tracking-wider font-semibold">
+                <span className="text-[11px] text-[#8295A8] uppercase tracking-wider font-semibold">
                   3D Quality Tier
                 </span>
                 <div className="grid grid-cols-4 gap-1">
@@ -359,10 +363,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                       key={qt}
                       type="button"
                       onClick={() => setQualityTier(qt)}
-                      className={`py-1 rounded text-[11px] capitalize font-medium border cursor-pointer ${
+                      className={`min-h-[36px] sm:min-h-[32px] rounded text-[11px] capitalize font-medium border cursor-pointer spatial-focus-ring ${
                         qualityTier === qt
-                          ? 'bg-[#35C7E8]/20 border-[#35C7E8] text-white'
-                          : 'bg-[#07111D]/60 border-[#84A8CC]/15 text-[#B8C7D9]'
+                          ? 'bg-[#35C7E8]/20 border-[#35C7E8] text-[#F3F6FA]'
+                          : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:border-[#38536A]'
                       }`}
                     >
                       {qt}
@@ -372,8 +376,8 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               </div>
 
               {/* Reduced Motion Toggle */}
-              <label className="flex items-center justify-between gap-2 cursor-pointer pt-1">
-                <span className="text-[#B8C7D9]">Reduced Motion</span>
+              <label className="flex items-center justify-between gap-2 cursor-pointer pt-1 min-h-[36px]">
+                <span className="text-[#B5C3D1]">Reduced Motion</span>
                 <input
                   type="checkbox"
                   checked={reducedMotion}
@@ -383,15 +387,18 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               </label>
 
               {/* Language Switcher */}
-              <div className="flex flex-col gap-1 pt-1 border-t border-[#84A8CC]/15">
-                <label htmlFor="spatial-lang-select" className="text-[11px] text-[#7F93A8] uppercase tracking-wider font-semibold">
+              <div className="flex flex-col gap-1 pt-2 border-t border-[#26394B]">
+                <label
+                  htmlFor="spatial-lang-select"
+                  className="text-[11px] text-[#8295A8] uppercase tracking-wider font-semibold"
+                >
                   Language
                 </label>
                 <select
                   id="spatial-lang-select"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
-                  className="bg-[#07111D] border border-[#84A8CC]/25 rounded-lg px-2.5 py-1.5 text-xs text-[#F4F7FB]"
+                  className="bg-[#08131F] border border-[#26394B] rounded-lg px-2.5 min-h-[40px] sm:min-h-[36px] text-xs text-[#F3F6FA] focus:outline-none focus:border-[#35C7E8]"
                 >
                   {availableLanguages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
@@ -410,7 +417,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             onClick={openControlsGuide}
             title="Spatial navigation guide & tours"
             aria-label="Open controls guide and guided tours"
-            className="spatial-hud-surface rounded-xl h-10 w-10 flex items-center justify-center text-[#B8C7D9] hover:text-white hover:border-[#35C7E8]/45 transition-colors cursor-pointer spatial-focus-ring"
+            className="spatial-hud-surface rounded-xl min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] transition-colors cursor-pointer spatial-focus-ring"
           >
             <HelpCircle className="w-4 h-4" />
           </button>

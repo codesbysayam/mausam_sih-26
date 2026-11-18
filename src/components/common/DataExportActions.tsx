@@ -36,16 +36,16 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
       `"${item.id}"`,
       `"${item.name}"`,
       `"${item.city || 'Regional Station'}"`,
-      item.temperature ?? 'N/A',
-      item.rainfall ?? 0,
-      item.aqi ?? 'N/A',
-      item.humidity ?? 'N/A',
-      item.windSpeed ?? 'N/A',
-      `"${item.windDir || 'N/A'}"`,
-      `"${item.condition || 'Clear'}"`,
+      typeof item.temperature === 'number' && Number.isFinite(item.temperature) ? item.temperature : '—',
+      typeof item.rainfall === 'number' && Number.isFinite(item.rainfall) ? item.rainfall : '—',
+      typeof item.aqi === 'number' && Number.isFinite(item.aqi) ? item.aqi : '—',
+      typeof item.humidity === 'number' && Number.isFinite(item.humidity) ? item.humidity : '—',
+      typeof item.windSpeed === 'number' && Number.isFinite(item.windSpeed) ? item.windSpeed : '—',
+      `"${item.windDir || '—'}"`,
+      `"${item.condition || '—'}"`,
       `"${(item.warningLevel || 'NORMAL').toUpperCase()}"`,
       `"${(item.warningMessage || 'Routine observation').replace(/"/g, '""')}"`,
-      `"${item.updatedAt || '21:00 IST'}"`,
+      `"${item.updatedAt || '—'}"`,
       `"${item.dataSource || 'IMD National Synoptic Observational Grid'}"`,
     ]);
 
@@ -58,25 +58,32 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `MAUSAM_National_Weather_Data_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      'download',
+      `MAUSAM_National_Weather_Data_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     setDownloadedFormat('csv');
     setTimeout(() => setDownloadedFormat(null), 2500);
   };
 
   const handleExportExcel = () => {
-    // Generates an Excel-ready tab-delimited or CSV file with MIME type for spreadsheet apps
     const csvData = generateCSVContent();
     const blob = new Blob([csvData], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `MAUSAM_National_Weather_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+    link.setAttribute(
+      'download',
+      `MAUSAM_National_Weather_Report_${new Date().toISOString().slice(0, 10)}.xls`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     setDownloadedFormat('excel');
     setTimeout(() => setDownloadedFormat(null), 2500);
   };
@@ -88,54 +95,52 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
   return (
     <div
       id="data-export-action-bar"
-      className="flex flex-wrap items-center gap-2 p-2.5 bg-[#17212B] border border-[#334155] rounded-xl text-xs"
+      aria-label={reportTitle}
+      className="flex flex-wrap items-center gap-2 p-3 bg-[#0B1927] border border-[#26394B] rounded-xl text-xs"
     >
-      <span className="text-[#8A94A6] font-bold text-[11px] uppercase tracking-wider mr-1">
-        DATA EXPORT:
+      <span className="text-[#8295A8] font-bold text-[11px] uppercase tracking-wider mr-1">
+        Data Export:
       </span>
 
-      {/* Download CSV Button */}
       <button
         type="button"
         id="btn-download-csv"
         onClick={handleDownloadCSV}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E2733] hover:bg-[#2A3749] border border-[#334155] hover:border-[#4FA8E0] text-white rounded-lg transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
       >
         {downloadedFormat === 'csv' ? (
-          <Check className="w-3.5 h-3.5 text-[#2ECC71]" />
+          <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
         ) : (
-          <Download className="w-3.5 h-3.5 text-[#4FA8E0]" />
+          <Download className="w-3.5 h-3.5 text-[#35C7E8]" />
         )}
-        <span>DOWNLOAD CSV</span>
+        <span>Download CSV</span>
       </button>
 
-      {/* Export Excel Button */}
       <button
         type="button"
         id="btn-export-excel"
         onClick={handleExportExcel}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E2733] hover:bg-[#2A3749] border border-[#334155] hover:border-[#2ECC71] text-white rounded-lg transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#22C7A0]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
       >
         {downloadedFormat === 'excel' ? (
-          <Check className="w-3.5 h-3.5 text-[#2ECC71]" />
+          <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
         ) : (
-          <FileSpreadsheet className="w-3.5 h-3.5 text-[#2ECC71]" />
+          <FileSpreadsheet className="w-3.5 h-3.5 text-[#22C7A0]" />
         )}
-        <span>EXPORT EXCEL</span>
+        <span>Export Excel</span>
       </button>
 
-      {/* Print Report Button */}
       <button
         type="button"
         id="btn-print-report"
         onClick={handlePrint}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E2733] hover:bg-[#2A3749] border border-[#334155] hover:border-[#F1C40F] text-white rounded-lg transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#F59E0B]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
       >
-        <Printer className="w-3.5 h-3.5 text-[#F1C40F]" />
-        <span>PRINT REPORT</span>
+        <Printer className="w-3.5 h-3.5 text-[#F59E0B]" />
+        <span>Print Report</span>
       </button>
 
-      <span className="ml-auto text-[10px] text-[#8A94A6] font-mono hidden md:inline">
+      <span className="ml-auto text-[10px] text-[#8295A8] font-mono hidden md:inline">
         Official IMD Observation Format
       </span>
     </div>

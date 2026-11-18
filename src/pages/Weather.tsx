@@ -1,15 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { WeatherDataBundle } from '../services/weatherService';
 import { LocationRecord } from '../types';
-import { useLanguage } from '../i18n/LanguageContext';
-import { WeatherPageHeader } from '../components/weather/WeatherPageHeader';
+import { ALL_INDIA_LOCATIONS } from '../data/allIndiaLocations';
 import { LocationWeatherHero } from '../components/weather/LocationWeatherHero';
 import { WeatherStatusStrip } from '../components/weather/WeatherStatusStrip';
 import { WeatherTelemetryGrid } from '../components/weather/WeatherTelemetryGrid';
 import { WeatherWidgets } from '../components/weather/WeatherWidgets';
 import { HourlyWeatherTimeline } from '../components/weather/HourlyWeatherTimeline';
 import { SevenDaySynopticForecast } from '../components/weather/SevenDaySynopticForecast';
-import { SolarCycleCard } from '../components/weather/SolarCycleCard';
 import { SolarDynamics } from '../components/weather/SolarDynamics';
 import { PersonaWeatherHub } from '../components/weather/personas/PersonaWeatherHub';
 import { WeatherDecisionCenter } from '../components/weather/WeatherDecisionCenter';
@@ -18,15 +16,26 @@ import { LightningThunderstormSection } from '../components/weather/LightningThu
 import { WeatherDataExplainer } from '../components/weather/WeatherDataExplainer';
 import { buildHumanWeatherStory } from '../services/humanWeatherEngine';
 import { LocatingPhase, GeolocationServiceError, NearestStationResult } from '../services/geolocationService';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
 import { PrintReportHeader } from '../components/common/PrintReportHeader';
 import { useProvider } from '../store/providerStore';
-import { getProviderStatusVisual } from '../services/providers/providerStatus';
+import {
+  PageHeader,
+  DataPanel,
+  SectionHeading,
+  SourceStatus,
+  ProvenanceStatus,
+} from '../components/ui/ObservatoryPrimitives';
 import {
   Activity,
   Radio,
   ArrowRight,
   Sparkles,
+  Search,
+  RefreshCw,
+  Printer,
+  Navigation,
+  MapPin,
+  X,
 } from 'lucide-react';
 
 interface WeatherPageProps {
@@ -56,132 +65,281 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
   onSelectLocation,
   onDetectLocation,
   isLocating = false,
-  locatePhase = 'idle',
-  locateError = null,
   locationSource = 'MANUAL_SEARCH',
-  accuracyMeters = null,
-  nearestStationInfo = null,
   onOpenLocationCenter,
-  onOpenPrivacyModal,
 }) => {
-  const { t } = useLanguage();
-  const { current, hourly = [], daily = [], alerts = [], lastFetchedAt, isLive = true } = weatherBundle;
+  const { current, hourly = [], daily = [], alerts = [], lastFetchedAt } = weatherBundle;
   const { state: radarProvider } = useProvider('RADAR');
   const { state: aqiProvider } = useProvider<any>('AQI');
-  const radarBadge = getProviderStatusVisual(radarProvider.status);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  const formattedLastUpdated = new Intl.DateTimeFormat('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  }).format(lastFetchedAt || new Date());
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return ALL_INDIA_LOCATIONS.slice(0, 8);
+    const q = searchQuery.toLowerCase().trim();
+    return ALL_INDIA_LOCATIONS.filter(
+      (loc) =>
+        loc.city.toLowerCase().includes(q) ||
+        loc.state.toLowerCase().includes(q) ||
+        (loc.district && loc.district.toLowerCase().includes(q)) ||
+        (loc.imdStation && loc.imdStation.toLowerCase().includes(q)) ||
+        (loc.id && loc.id.toLowerCase().includes(q))
+    ).slice(0, 10);
+  }, [searchQuery]);
+
+  const formattedLastUpdated = lastFetchedAt
+    ? new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(lastFetchedAt) + ' IST'
+    : null;
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await onRefresh();
-    setTimeout(() => setIsRefreshing(false), 800);
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   const weatherStory = useMemo(() => {
     return buildHumanWeatherStory(current, hourly, daily, alerts, 'general');
   }, [current, hourly, daily, alerts]);
 
-  // Authentic AQI calculation from AQI provider or current bundle (no fabricated 82 fallback)
   const rawAqi =
-    typeof aqiProvider.data?.aqi === 'number'
-      ? aqiProvider.data.aqi
-      : typeof current.aqi === 'number' && !Number.isNaN(current.aqi)
-      ? current.aqi
+    typeof aqiProvider.data?.aqi === 'number' && Number.isFinite(aqiProvider.data.aqi)
+      ? Math.round(aqiProvider.data.aqi)
+      : typeof current.aqi === 'number' && Number.isFinite(current.aqi)
+      ? Math.round(current.aqi)
+      : typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex)
+      ? Math.round(current.aqiIndex)
       : null;
 
-  const aqiVal = rawAqi;
   const aqiCategory =
-    aqiVal === null
+    rawAqi === null
       ? 'Unavailable'
-      : aqiVal <= 50
+      : rawAqi <= 50
       ? 'Good'
-      : aqiVal <= 100
+      : rawAqi <= 100
       ? 'Satisfactory'
-      : aqiVal <= 200
+      : rawAqi <= 200
       ? 'Moderate'
-      : aqiVal <= 300
+      : rawAqi <= 300
       ? 'Poor'
-      : aqiVal <= 400
+      : rawAqi <= 400
       ? 'Very Poor'
       : 'Severe';
 
   const aqiBadgeColor =
-    aqiVal === null
-      ? 'bg-slate-500/15 text-slate-300 border-slate-500/40'
-      : aqiVal <= 50
-      ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/40'
-      : aqiVal <= 100
-      ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/40'
-      : aqiVal <= 200
-      ? 'bg-[#FFC857]/15 text-[#FFC857] border-[#FFC857]/40'
-      : aqiVal <= 300
-      ? 'bg-[#FF9F43]/15 text-[#FF9F43] border-[#FF9F43]/40'
-      : 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40';
+    rawAqi === null
+      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      : rawAqi <= 100
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
+      : rawAqi <= 200
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      : rawAqi <= 300
+      ? 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35'
+      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
+
+  const rawPm25 =
+    typeof aqiProvider.data?.pm25 === 'number' && Number.isFinite(aqiProvider.data.pm25)
+      ? aqiProvider.data.pm25
+      : typeof current.aqiPm25 === 'number' && Number.isFinite(current.aqiPm25)
+      ? current.aqiPm25
+      : null;
+
+  const rawPm10 =
+    typeof aqiProvider.data?.pm10 === 'number' && Number.isFinite(aqiProvider.data.pm10)
+      ? aqiProvider.data.pm10
+      : typeof current.aqiPm10 === 'number' && Number.isFinite(current.aqiPm10)
+      ? current.aqiPm10
+      : null;
+
+  const rawPollenCount =
+    typeof current.pollenCount === 'number' && Number.isFinite(current.pollenCount)
+      ? current.pollenCount
+      : null;
+
+  const rawUv =
+    typeof current.uvIndex === 'number' && Number.isFinite(current.uvIndex) ? current.uvIndex : null;
+
+  const obsStatus: ProvenanceStatus =
+    current.observationStatus ||
+    (current.temp !== null ? (weatherBundle.isLive ? 'LIVE' : 'RECENT') : 'UNAVAILABLE');
+
+  const radarProvenance: ProvenanceStatus =
+    radarProvider.status === 'LIVE'
+      ? 'LIVE'
+      : radarProvider.status === 'RECENT'
+      ? 'RECENT'
+      : radarProvider.status === 'LOADING'
+      ? 'LOADING'
+      : radarProvider.status === 'STALE'
+      ? 'STALE'
+      : 'UNAVAILABLE';
 
   return (
-    <div id="weather-comprehensive-view-container" className="flex flex-col gap-6 w-full pb-12">
-      {/* Official Government Print Report Header (Printed documents only) */}
+    <div id="weather-comprehensive-view-container" className="flex flex-col gap-5 w-full pb-12">
       <PrintReportHeader
         reportTitle="Current Synoptic Weather & Telemetry Report"
-        reportSubtitle="India Meteorological Department • Surface Ground Telemetry & Atmospheric Observations"
+        reportSubtitle="MAUSAM • Surface Ground Telemetry & Atmospheric Observations"
         location={selectedLocation}
         lastUpdated={lastFetchedAt}
       />
 
-      {/* Unified Compact Location Status Bar */}
-      <LocationStatusBar
-        location={selectedLocation}
-        source={locationSource}
-        isLocating={isLocating}
-        onDetectLocation={onDetectLocation ? () => onDetectLocation(true) : undefined}
-        onChangeLocationClick={onOpenLocationCenter || onChangeLocationClick}
-        onOpenPrivacyModal={onOpenPrivacyModal}
+      {/* Unified Single Observatory Header (eliminates stacked dual-header clutter) */}
+      <PageHeader
+        id="weather-page-header-banner"
+        eyebrow={`ANALYZE MODE • ${locationSource === 'DEVICE_GPS' ? 'GPS LOCK' : 'SELECTED STATION'}`}
+        title={`${selectedLocation.city}, ${selectedLocation.state}`}
+        coordinates={`${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E${selectedLocation.elevation ? ` • ${selectedLocation.elevation}` : ''}`}
+        description={`Station ${selectedLocation.imdStation || 'Point Grid Telemetry'}${selectedLocation.district && selectedLocation.district !== selectedLocation.city ? ` • ${selectedLocation.district} District` : ''}`}
+        status={obsStatus}
+        source={current.dataSource || current.observationSource || current.source || 'Open-Meteo'}
+        updatedAt={formattedLastUpdated}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Inline Quick Station Search */}
+            <div ref={searchRef} className="relative w-full sm:w-56">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8295A8]" />
+              <input
+                id="weather-quick-station-search"
+                type="text"
+                value={searchQuery}
+                onFocus={() => setIsSearchOpen(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchOpen(true);
+                }}
+                placeholder="Switch station..."
+                className="w-full pl-8 pr-7 py-2 min-h-[38px] bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA]"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isSearchOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#0B1927] border border-[#38536A] rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[#26394B]">
+                  <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[#8295A8] bg-[#08131F]">
+                    {searchQuery ? `Matches (${searchResults.length})` : 'Quick Stations'}
+                  </div>
+                  {searchResults.length === 0 ? (
+                    <div className="p-3 text-center text-xs text-[#8295A8]">No matching stations</div>
+                  ) : (
+                    searchResults.map((loc) => (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => {
+                          onSelectLocation?.(loc);
+                          setIsSearchOpen(false);
+                          setSearchQuery('');
+                        }}
+                        className={`w-full px-3 py-2 text-left hover:bg-[#101F2E] transition-colors flex items-center justify-between gap-2 text-xs cursor-pointer ${
+                          loc.id === selectedLocation.id ? 'bg-[#101F2E] text-[#35C7E8]' : 'text-[#F3F6FA]'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="font-semibold truncate">{loc.city}</div>
+                          <div className="text-[10px] text-[#8295A8] truncate">{loc.state}</div>
+                        </div>
+                        {loc.imdStation && (
+                          <span className="text-[10px] font-mono text-[#8295A8] shrink-0">
+                            {loc.imdStation}
+                          </span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {onDetectLocation && (
+              <button
+                type="button"
+                onClick={() => onDetectLocation(true)}
+                disabled={isLocating}
+                className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Navigation className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating...' : 'Use GPS'}</span>
+              </button>
+            )}
+
+            {(onOpenLocationCenter || onChangeLocationClick) && (
+              <button
+                type="button"
+                onClick={onOpenLocationCenter || onChangeLocationClick}
+                className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <span>Directory</span>
+              </button>
+            )}
+
+            <button
+              id="weather-page-refresh-btn"
+              type="button"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="px-3 py-2 min-h-[38px] bg-[#0B72B9] hover:bg-[#0D82D1] text-xs font-semibold text-[#F3F6FA] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+            </button>
+
+            <button
+              id="btn-print-weather-report"
+              type="button"
+              onClick={() => window.print()}
+              className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#B5C3D1] hover:text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Print current observation report"
+            >
+              <Printer className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <span className="hidden sm:inline">Print</span>
+            </button>
+          </div>
+        }
       />
 
-      {/* =========================================================================
-          1. DYNAMIC OBSERVATION HEADER
-      ========================================================================= */}
-      <WeatherPageHeader
-        selectedLocation={selectedLocation}
-        lastUpdated={formattedLastUpdated}
-        isLive={isLive}
-        isLoading={isRefreshing}
-        onRefresh={handleRefresh}
-        onSelectLocation={onSelectLocation}
-      />
-
-      {/* =========================================================================
-          2. CURRENT WEATHER HERO (PRIMARY VISUAL WEATHER STATE + SOLAR TIMER)
-      ========================================================================= */}
+      {/* Primary Hero + Integrated Solar Countdown */}
       <LocationWeatherHero weather={current} location={selectedLocation} />
 
-      {/* =========================================================================
-          3. HUMAN-CENTERED "WHAT THIS MEANS" NARRATIVE CONTEXT BANNER
-      ========================================================================= */}
-      <div className="mausam-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Narrative Summary Banner */}
+      <DataPanel className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1499E8]/15 border border-[#1499E8]/30 flex items-center justify-center text-[#43C7F4] shrink-0">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+            <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#43C7F4] block">
-              Atmospheric Context &amp; Guidance
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#35C7E8] block">
+              Synoptic Context &amp; Guidance
             </span>
-            <p className="text-sm text-[#F4F7FA] font-medium mt-0.5">
-              {weatherStory.whatIsHappening}
-            </p>
-            <p className="text-xs text-[#93A4B8] mt-1">
+            <p className="text-sm text-[#F3F6FA] font-medium mt-0.5">{weatherStory.whatIsHappening}</p>
+            <p className="text-xs text-[#8295A8] mt-1">
               Outlook: {weatherStory.whatWillHappen} • Action: {weatherStory.recommendedAction}
             </p>
           </div>
@@ -191,276 +349,200 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
           <button
             type="button"
             onClick={() => onNavigateToTab('forecast')}
-            className="mausam-btn mausam-btn--secondary text-xs font-semibold py-2 px-3.5 whitespace-nowrap self-start sm:self-center"
+            className="px-3.5 py-2 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#35C7E8] flex items-center gap-1.5 whitespace-nowrap self-start sm:self-center cursor-pointer"
           >
-            <span>Numerical 7-Day Outlook →</span>
+            <span>NWP 7-Day Models</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         )}
-      </div>
+      </DataPanel>
 
-      {/* =========================================================================
-          4. REAL-TIME SYNOPTIC OPERATIONAL STATUS STRIP & LIGHTNING NOWCAST
-      ========================================================================= */}
       <WeatherStatusStrip weather={current} alerts={alerts} />
       <LightningThunderstormSection location={selectedLocation} weather={current} alerts={alerts} />
-
-      {/* =========================================================================
-          5. 12-PARAMETER CALIBRATED METEOROLOGICAL TELEMETRY GRID
-      ========================================================================= */}
       <WeatherTelemetryGrid weather={current} />
-
-      {/* =========================================================================
-          6. TODAY'S HOURLY WEATHER TIMELINE (NOWCAST WITH VISUAL CURVE)
-      ========================================================================= */}
       <HourlyWeatherTimeline hourly={hourly} />
-
-      {/* =========================================================================
-          6B. OPERATIONAL WEATHER DECISION CENTER & PRACTICAL ADVISORIES
-      ========================================================================= */}
       <WeatherDecisionCenter weather={current} hourly={hourly} alerts={alerts} />
 
-      {/* =========================================================================
-          7. 7-DAY EXTENDED SYNOPTIC FORECAST & ASTRONOMICAL EPHEMERIS CYCLE
-      ========================================================================= */}
+      {/* 7-Day Forecast + Integrated Radar & Solar Metadata */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* 7-Day Forecast (8 cols on large screens) */}
-        <div className="lg:col-span-8 flex flex-col">
+        <div className="lg:col-span-9 flex flex-col">
           <SevenDaySynopticForecast daily={daily} />
         </div>
 
-        {/* Solar Ephemeris & Radar Metadata (4 cols on large screens) */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          {/* Solar Cycle */}
-          <div className="flex-1">
-            <SolarCycleCard weather={current} location={selectedLocation} />
-          </div>
-
-          {/* Doppler Radar & Observatory Station Coverage */}
-          <div
-            id="station-radar-metadata-card"
-            className="mausam-panel flex flex-col justify-between gap-3"
-          >
+        <div className="lg:col-span-3 flex flex-col gap-4">
+          <DataPanel id="station-radar-metadata-card" className="flex flex-col justify-between gap-4 h-full">
             <div>
-              <div className="flex items-center justify-between pb-2 border-b border-[#162331]">
+              <div className="flex items-center justify-between pb-3 border-b border-[#26394B]">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#1499E8]/15 border border-[#1499E8]/30 flex items-center justify-center text-[#43C7F4]">
+                  <div className="w-7 h-7 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8]">
                     <Radio className="w-3.5 h-3.5" />
                   </div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#F4F7FA]">
-                    Doppler Radar Link
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#F3F6FA]">
+                    Radar Link
                   </h3>
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${radarBadge.textClass} ${radarBadge.bgClass} ${radarBadge.borderClass}`}>
-                  {radarBadge.label}
-                </span>
+                <SourceStatus status={radarProvenance} />
               </div>
 
-              <div className="mt-3">
-                <p className="text-xs text-[#D1DCE8]">
-                  Surveillance Radar:{' '}
-                  <strong className="text-[#43C7F4]">
+              <div className="mt-3 space-y-3">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#8295A8] block">Coverage Sector</span>
+                  <strong className="text-xs text-[#35C7E8]">
                     {selectedLocation.radarCoverage || 'Regional S-Band DWR Network'}
                   </strong>
-                </p>
-                <div className="mt-2.5 space-y-1.5 text-[11px] text-[#93A4B8]">
+                </div>
+
+                <div className="space-y-1.5 text-[11px] text-[#8295A8] font-mono tabular-nums m-panel-inset p-3">
                   <div className="flex justify-between">
-                    <span>Scan Interval:</span>
-                    <span className="text-[#F4F7FA] font-mono">10 Minutes (Volumetric)</span>
+                    <span className="font-sans">Scan Cadence</span>
+                    <span className="text-[#F3F6FA]">10 min composite</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Beam Resolution:</span>
-                    <span className="text-[#F4F7FA] font-mono">250m Radial</span>
+                    <span className="font-sans">Active Provider</span>
+                    <span className="text-[#F3F6FA]">{radarProvider.source || 'RainViewer'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Standard:</span>
-                    <span className="text-[#22C7A0] font-semibold">WMO Class-A Ground AWS</span>
+                    <span className="font-sans">Station ID</span>
+                    <span className="text-[#22C7A0]">{selectedLocation.imdStation || selectedLocation.id}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-[#162331] flex items-center justify-between gap-2">
-              {onNavigateToTab && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => onNavigateToTab('radar')}
-                    className="text-xs text-[#43C7F4] hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <span>View Doppler Radar</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onNavigateToTab('reports')}
-                    className="text-xs text-[#93A4B8] hover:text-white transition-colors"
-                  >
-                    Submit Ground Observation →
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+            {onNavigateToTab && (
+              <div className="pt-3 border-t border-[#26394B] flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => onNavigateToTab('radar')}
+                  className="w-full py-2 px-3 rounded-lg bg-[#0B72B9] hover:bg-[#0D82D1] text-xs text-[#F3F6FA] font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Open Doppler Radar</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateToTab('reports')}
+                  className="w-full py-2 px-3 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs text-[#B5C3D1] hover:text-[#F3F6FA] font-semibold transition-colors cursor-pointer"
+                >
+                  Submit Ground Observation
+                </button>
+              </div>
+            )}
+          </DataPanel>
         </div>
       </div>
 
-      {/* =========================================================================
-          8. MODULAR ATMOSPHERIC OBSERVATION WIDGETS
-      ========================================================================= */}
-      <div className="w-full">
-        <WeatherWidgets weather={current} />
-      </div>
+      <WeatherWidgets weather={current} />
+      <SolarDynamics location={selectedLocation} weather={current} />
+      <CoastalMarineSection location={selectedLocation} />
 
-      {/* =========================================================================
-          8B. SOLAR DYNAMICS & REAL-TIME EPHEMERIS
-      ========================================================================= */}
-      <div className="w-full">
-        <SolarDynamics location={selectedLocation} weather={current} />
-      </div>
-
-      {/* =========================================================================
-          8C. COASTAL & MARINE METEOROLOGY (OCEANOGRAPHIC TELEMETRY)
-      ========================================================================= */}
-      <div className="w-full">
-        <CoastalMarineSection location={selectedLocation} />
-      </div>
-
-      {/* =========================================================================
-          9. ENVIRONMENT, AIR QUALITY & POLLEN TELEMETRY
-      ========================================================================= */}
-      <div
-        id="weather-air-quality-environmental-panel"
-        className="mausam-panel flex flex-col gap-4"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#162331]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#22C7A0]/15 border border-[#22C7A0]/30 flex items-center justify-center text-[#22C7A0]">
-              <Activity className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-tight text-[#F4F7FA]">
-                Environment, Air Quality &amp; Aero-Allergen Pollen
-              </h2>
-              <p className="text-xs text-[#93A4B8]">
-                Continuous micro-climate and particulate telemetry calibrated for {selectedLocation.city}
-              </p>
-            </div>
-          </div>
-
-          {onNavigateToTab && (
-            <button
-              type="button"
-              onClick={() => onNavigateToTab('aqi')}
-              className="text-xs font-semibold text-[#43C7F4] hover:underline flex items-center gap-1 self-start sm:self-auto"
-            >
-              <span>Explore NAQI Grid Telemetry</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+      {/* Environment, Air Quality & Pollen */}
+      <DataPanel id="weather-air-quality-environmental-panel" className="flex flex-col gap-4">
+        <SectionHeading
+          title="Environment, Air Quality & Pollen"
+          subtitle={`Particulate and radiation telemetry for ${selectedLocation.city}`}
+          icon={<Activity className="w-4 h-4 text-[#22C7A0]" />}
+          action={
+            onNavigateToTab ? (
+              <button
+                type="button"
+                onClick={() => onNavigateToTab('aqi')}
+                className="text-xs font-semibold text-[#35C7E8] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Full AQI Grid</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : undefined
+          }
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* National AQI */}
-          <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-[#93A4B8] uppercase font-bold">National AQI</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${aqiBadgeColor}`}>
+          <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">National AQI</span>
+              <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${aqiBadgeColor}`}>
                 {aqiCategory}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
-              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
-                {aqiVal !== null ? aqiVal : '—'}
+            <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
+              <span className="text-3xl font-bold text-[#F3F6FA]">
+                {rawAqi !== null ? rawAqi : '—'}
               </span>
-              <span className="text-xs text-[#8EA3B8]">
-                {aqiVal !== null ? 'NAQI Index' : 'Unavailable'}
-              </span>
+              <span className="text-xs text-[#8295A8]">{rawAqi !== null ? 'NAQI Index' : 'Unavailable'}</span>
             </div>
-            <span className="text-[11px] text-[#8EA3B8]">
-              {aqiVal !== null ? 'Open-Meteo Air Quality Feed' : 'AQI feed currently unavailable'}
+            <span className="text-[11px] text-[#8295A8]">
+              {rawAqi !== null ? 'Open-Meteo Air Quality Feed' : 'AQI feed currently unavailable'}
             </span>
           </div>
 
-          {/* Particulate Matter PM2.5 & PM10 */}
-          <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
-            <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Particulate Concentrations</span>
-            <div className="grid grid-cols-2 gap-2 my-1 tabular-nums">
-              <div className="bg-[#111C27] p-2 rounded-lg border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] block">PM2.5</span>
-                <span className="text-base font-mono font-bold text-[#F4F7FA]">
-                  {typeof (aqiProvider.data?.pm25 ?? current.aqiPm25) === 'number'
-                    ? `${aqiProvider.data?.pm25 ?? current.aqiPm25} `
-                    : '— '}
-                  <span className="text-[10px] text-[#8EA3B8] font-normal">µg/m³</span>
+          <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
+            <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Particulate Concentrations</span>
+            <div className="grid grid-cols-2 gap-2 my-1 font-mono tabular-nums">
+              <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
+                <span className="text-[10px] text-[#8295A8] block">PM2.5</span>
+                <span className="text-base font-bold text-[#F3F6FA]">
+                  {rawPm25 !== null ? rawPm25 : '—'}{' '}
+                  <span className="text-[10px] text-[#8295A8] font-normal">µg/m³</span>
                 </span>
               </div>
-              <div className="bg-[#111C27] p-2 rounded-lg border border-white/10">
-                <span className="text-[10px] text-[#8EA3B8] block">PM10</span>
-                <span className="text-base font-mono font-bold text-[#F4F7FA]">
-                  {typeof (aqiProvider.data?.pm10 ?? current.aqiPm10) === 'number'
-                    ? `${aqiProvider.data?.pm10 ?? current.aqiPm10} `
-                    : '— '}
-                  <span className="text-[10px] text-[#8EA3B8] font-normal">µg/m³</span>
+              <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
+                <span className="text-[10px] text-[#8295A8] block">PM10</span>
+                <span className="text-base font-bold text-[#F3F6FA]">
+                  {rawPm10 !== null ? rawPm10 : '—'}{' '}
+                  <span className="text-[10px] text-[#8295A8] font-normal">µg/m³</span>
                 </span>
               </div>
             </div>
-            <span className="text-[10px] text-[#8EA3B8]">CPCB / Open-Meteo Particulates</span>
+            <span className="text-[10px] text-[#8295A8]">Open-Meteo Particulates</span>
           </div>
 
-          {/* Pollen */}
-          <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Aero-Allergen Pollen</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#22C7A0]/15 text-[#22C7A0] border border-[#22C7A0]/40">
-                {current.pollen || 'N/A'}
+          <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Aero-Allergen Pollen</span>
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#0B1927] text-[#B5C3D1] border border-[#26394B]">
+                {current.pollen || 'Unavailable'}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
-              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
-                {typeof current.pollenCount === 'number' ? current.pollenCount : '—'}
+            <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
+              <span className="text-3xl font-bold text-[#F3F6FA]">
+                {rawPollenCount !== null ? rawPollenCount : '—'}
               </span>
-              <span className="text-xs text-[#8EA3B8]">grains / m³</span>
+              <span className="text-xs text-[#8295A8]">grains/m³</span>
             </div>
-            <span className="text-[11px] text-[#8EA3B8] font-mono tabular-nums">
+            <span className="text-[11px] text-[#8295A8] font-mono tabular-nums">
               Tree: {current.treePollen ?? '—'} • Grass: {current.grassPollen ?? '—'}
             </span>
           </div>
 
-          {/* UV Radiation */}
-          <div className="mausam-panel-subtle flex flex-col justify-between gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] text-[#8EA3B8] uppercase font-bold">Solar UV Index</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC857]/15 text-[#FFC857] border border-[#FFC857]/40">
-                {typeof current.uvIndex === 'number'
-                  ? current.uvIndex >= 8
+          <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Solar UV Index</span>
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F59E0B]/12 text-[#FCD34D] border border-[#F59E0B]/35">
+                {rawUv !== null
+                  ? rawUv >= 8
                     ? 'Very High'
-                    : current.uvIndex >= 6
+                    : rawUv >= 6
                     ? 'High'
-                    : 'Moderate'
-                  : 'N/A'}
+                    : rawUv >= 3
+                    ? 'Moderate'
+                    : 'Low'
+                  : 'Unavailable'}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5 my-1 tabular-nums">
-              <span className="text-3xl font-bold font-mono text-[#F4F7FA] tracking-tight">
-                {typeof current.uvIndex === 'number' ? current.uvIndex : '—'}
+            <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
+              <span className="text-3xl font-bold text-[#F3F6FA]">
+                {rawUv !== null ? rawUv.toFixed(1) : '—'}
               </span>
-              <span className="text-xs text-[#8EA3B8]">/ 11+ Index</span>
+              <span className="text-xs text-[#8295A8]">/ 11+ Index</span>
             </div>
-            <span className="text-[11px] text-[#8EA3B8]">
-              Sun protection recommended around solar noon
+            <span className="text-[11px] text-[#8295A8]">
+              {rawUv !== null ? 'Peak UV exposure occurs around solar noon' : 'UV telemetry unavailable'}
             </span>
           </div>
         </div>
-      </div>
+      </DataPanel>
 
-      {/* =========================================================================
-          10. 8 SPECIALIZED WEATHER INTELLIGENCE PERSONAS
-      ========================================================================= */}
       <PersonaWeatherHub selectedLocation={selectedLocation} weatherBundle={weatherBundle} />
-
-      {/* =========================================================================
-          11. METEOROLOGICAL DATA EXPLAINER & TECHNICAL GUIDE
-      ========================================================================= */}
       <WeatherDataExplainer />
     </div>
   );

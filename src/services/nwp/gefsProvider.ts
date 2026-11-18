@@ -64,40 +64,37 @@ export class GEFSProvider implements NWPProvider {
       const windMemberKeys = Object.keys(hourly).filter((k) => k.startsWith('wind_speed_10m_member'));
       const pressureMemberKeys = Object.keys(hourly).filter((k) => k.startsWith('surface_pressure_member'));
 
-      const membersCount = tempMemberKeys.length > 0 ? tempMemberKeys.length : 31;
+      const membersCount = tempMemberKeys.length;
 
       const points: NWPForecastPoint[] = [];
 
       for (let i = 0; i < Math.min(times.length, 120); i++) {
-        // Collect temperature across members for this hour
         const temps = tempMemberKeys.map((k) => hourly[k]?.[i]).filter((v): v is number => typeof v === 'number' && !isNaN(v));
         const tempMean = temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : hourly.temperature_2m?.[i];
 
-        // Collect precipitation across members
         const precips = precipMemberKeys.map((k) => hourly[k]?.[i]).filter((v): v is number => typeof v === 'number' && !isNaN(v));
         const precipMean = precips.length > 0 ? precips.reduce((a, b) => a + b, 0) / precips.length : hourly.precipitation?.[i];
 
-        // Probability of rain: members predicting > 0.1 mm
         const rainMembers = precips.filter((p) => p > 0.1).length;
-        const precipProb = precips.length > 0 ? Math.round((rainMembers / precips.length) * 100) : undefined;
+        const precipProb = precips.length > 0 ? Math.round((rainMembers / precips.length) * 100) : hourly.precipitation_probability?.[i];
 
-        // Winds
         const winds = windMemberKeys.map((k) => hourly[k]?.[i]).filter((v): v is number => typeof v === 'number' && !isNaN(v));
         const windMean = winds.length > 0 ? winds.reduce((a, b) => a + b, 0) / winds.length : hourly.wind_speed_10m?.[i];
 
-        // Pressures
         const pressures = pressureMemberKeys.map((k) => hourly[k]?.[i]).filter((v): v is number => typeof v === 'number' && !isNaN(v));
-        const pressureMean = pressures.length > 0 ? pressures.reduce((a, b) => a + b, 0) / pressures.length : hourly.surface_pressure?.[i];
+        const pressureMean = pressures.length > 0 ? pressures.reduce((a, b) => a + b, 0) / pressures.length : (hourly.pressure_msl?.[i] ?? hourly.surface_pressure?.[i]);
 
         points.push(
           sanitizePoint(
             {
               validTime: times[i],
               temperature2m: tempMean,
-              apparentTemperature: tempMean ? tempMean + 1.2 : undefined,
+              apparentTemperature: hourly.apparent_temperature?.[i],
+              relativeHumidity: hourly.relative_humidity_2m?.[i],
               precipitation: precipMean,
               precipitationProbability: precipProb,
               windSpeed10m: windMean,
+              windGusts10m: hourly.wind_gusts_10m?.[i],
               pressureMSL: pressureMean,
               cloudCover: undefined,
             },

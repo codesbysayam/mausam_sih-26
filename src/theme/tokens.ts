@@ -18,29 +18,29 @@ export const tokens = {
     primaryLight: '#E3F2FD', // Ice/Sky Blue
     secondary: '#1565C0', // Royal Blue
 
-    // 2. Weather Severity Colors
+    // 2. Calibrated Weather Severity Colors
     severity: {
-      normal: '#008000', // Green - Normal / No Warning
-      watch: '#FFFF00',  // Yellow - Watch
-      alert: '#FFA500',  // Orange - Alert
-      warning: '#FF0000',// Red - Warning
+      normal: '#22C7A0',
+      watch: '#F59E0B',
+      alert: '#F97316',
+      warning: '#EF4444',
     },
 
     // 3. Atmospheric States
     weather: {
-      clear: '#FFA500',
-      sunny: '#FFA500',
-      cloudy: '#607D8B',
-      rain: '#1565C0',
-      rainy: '#1565C0',
-      storm: '#0B3D91',
-      snow: '#E3F2FD',
-      fog: '#607D8B',
-      mist: '#607D8B',
-      heat: '#FF0000',
-      cold: '#1565C0',
-      duststorm: '#FFA500',
-      unknown: '#607D8B',
+      clear: '#F59E0B',
+      sunny: '#F59E0B',
+      cloudy: '#8295A8',
+      rain: '#0B72B9',
+      rainy: '#35C7E8',
+      storm: '#F97316',
+      snow: '#7DD3FC',
+      fog: '#8295A8',
+      mist: '#8295A8',
+      heat: '#EF4444',
+      cold: '#35C7E8',
+      duststorm: '#F59E0B',
+      unknown: '#8295A8',
     },
 
     // 4. Semantic Status System
@@ -49,22 +49,22 @@ export const tokens = {
       warning: '#F59E0B',  // Watch / Moderate / Stale
       prepare: '#F97316',  // Alert / Poor AQI
       danger: '#EF4444',   // Warning / Red Alert / Error
-      info: '#38BDF8',     // Telemetry Sky Blue
+      info: '#35C7E8',     // Telemetry Cyan
     },
 
-    // 5. Calibrated Observatory Dark Surfaces
+    // 5. Canonical v3.0.0 Calibrated Observatory Dark Surfaces
     dark: {
-      background: '#0B1219',
-      backgroundAlt: '#0E1721',
-      surface: '#101B26',
-      surfaceSecondary: '#162331',
-      surfaceHover: '#1B2C3D',
-      textPrimary: '#F4F7FA',
-      textSecondary: '#B6C7D8',
-      textMuted: '#8EA3B8',
-      border: 'rgba(148, 179, 206, 0.14)',
-      borderSubtle: 'rgba(148, 179, 206, 0.08)',
-      borderHover: 'rgba(56, 189, 248, 0.35)',
+      background: '#07111D',
+      backgroundAlt: '#08131F',
+      surface: '#0B1927',
+      surfaceSecondary: '#101F2E',
+      surfaceHover: '#172A3B',
+      textPrimary: '#F3F6FA',
+      textSecondary: '#B5C3D1',
+      textMuted: '#8295A8',
+      border: '#26394B',
+      borderSubtle: 'rgba(38, 57, 75, 0.7)',
+      borderHover: '#38536A',
     },
 
     // 6. Light Surfaces (Print & Export Palette)
@@ -80,28 +80,28 @@ export const tokens = {
 
     // 7. Atmospheric Gradients
     gradients: {
-      daySky: 'linear-gradient(145deg, rgba(56, 189, 248, 0.10) 0%, #101B26 100%)',
-      sunset: 'linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, #101B26 100%)',
-      night: 'linear-gradient(145deg, #101B26 0%, #0B1219 100%)',
-      storm: 'linear-gradient(145deg, rgba(239, 68, 68, 0.12) 0%, #101B26 100%)',
+      daySky: 'linear-gradient(145deg, rgba(53, 199, 232, 0.08) 0%, #0B1927 100%)',
+      sunset: 'linear-gradient(145deg, rgba(245, 158, 11, 0.10) 0%, #0B1927 100%)',
+      night: 'linear-gradient(145deg, #101F2E 0%, #07111D 100%)',
+      storm: 'linear-gradient(145deg, rgba(239, 68, 68, 0.10) 0%, #0B1927 100%)',
     },
 
     // 8. Spatial 3D Atmospheric Canvas & Floating HUD Tokens
     spatial: {
       canvasVoid: '#07111D',
-      oceanBase: '#0B1725',
-      landRelief: '#122438',
-      hudSurface: 'rgba(10, 24, 39, 0.92)',
-      hudSurfaceElevated: 'rgba(13, 30, 48, 0.96)',
-      hudBorder: 'rgba(132, 168, 204, 0.18)',
-      hudBorderStrong: 'rgba(53, 199, 232, 0.38)',
+      oceanBase: '#0B1927',
+      landRelief: '#101F2E',
+      hudSurface: 'rgba(11, 25, 39, 0.94)',
+      hudSurfaceElevated: 'rgba(16, 31, 46, 0.97)',
+      hudBorder: '#26394B',
+      hudBorderStrong: '#38536A',
       primaryCyan: '#35C7E8',
-      precipitationBlue: '#3189D8',
-      windTeal: '#36C6B0',
-      clearGreen: '#26B982',
-      watchAmber: '#E8B64D',
-      alertOrange: '#F28B45',
-      severeRed: '#E0525B',
+      precipitationBlue: '#0B72B9',
+      windTeal: '#22C7A0',
+      clearGreen: '#22C7A0',
+      watchAmber: '#F59E0B',
+      alertOrange: '#F97316',
+      severeRed: '#EF4444',
     },
   },
 

@@ -1,10 +1,11 @@
 import React from 'react';
+import { Car, Droplets, CloudFog, Waves, Snowflake, AlertOctagon } from 'lucide-react';
 
 interface CommuterCardProps {
   roadCondition: 'Dry' | 'Wet' | 'Waterlogged' | 'Icy' | 'Foggy';
   roadSafetyIndex: 'Green' | 'Yellow' | 'Red';
   roadSafetyLabel: string;
-  visibilityKm: number;
+  visibilityKm: number | null;
   visibilityStatus: 'Clear' | 'Moderate' | 'Poor (Fog)' | 'Dense Fog Danger';
   travelHazards: string[];
   city: string;
@@ -21,119 +22,114 @@ export const CommuterCard: React.FC<CommuterCardProps> = ({
 }) => {
   const safetyBadgeColor =
     roadSafetyIndex === 'Green'
-      ? 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40'
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
       : roadSafetyIndex === 'Yellow'
-      ? 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40'
-      : 'bg-[#E74C3C]/15 text-[#E74C3C] border-[#E74C3C]/40';
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
 
-  const conditionIcon =
+  const ConditionIcon =
     roadCondition === 'Wet'
-      ? 'water_drop'
+      ? Droplets
       : roadCondition === 'Foggy'
-      ? 'foggy'
+      ? CloudFog
       : roadCondition === 'Waterlogged'
-      ? 'flood'
+      ? Waves
       : roadCondition === 'Icy'
-      ? 'ac_unit'
-      : 'directions_car';
+      ? Snowflake
+      : Car;
+
+  const visVal = typeof visibilityKm === 'number' && Number.isFinite(visibilityKm) ? visibilityKm : null;
 
   return (
-    <div className="mausam-card p-4 sm:p-5 border border-[#334155] flex flex-col justify-between h-full">
+    <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#334155]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#3498DB]/15 text-[#3498DB] flex items-center justify-center border border-[#3498DB]/30">
-              <span className="material-symbols-outlined text-[20px]">{conditionIcon}</span>
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#35C7E8] flex items-center justify-center border border-[#26394B]">
+              <ConditionIcon className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
                 Commuters &amp; Highway Drivers
               </h3>
-              <p className="text-[11px] text-[#8A94A6]">
-                Xweather Road Conditions &amp; Visibility • {city}
+              <p className="text-[11px] text-[#8295A8]">
+                Surface Friction &amp; Optical Sight Distance • {city}
               </p>
             </div>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${safetyBadgeColor}`}>
-            Safety: {roadSafetyIndex === 'Green' ? 'Optimal' : roadSafetyIndex === 'Yellow' ? 'Caution' : 'Hazardous'}
+          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${safetyBadgeColor}`}>
+            {roadSafetyIndex === 'Green' ? 'Optimal' : roadSafetyIndex === 'Yellow' ? 'Caution' : 'Hazardous'}
           </span>
         </div>
 
-        {/* Road Surface & Visibility Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-          {/* Road Surface Status */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <span className="text-[10px] uppercase font-bold text-[#8A94A6] block">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 font-mono tabular-nums">
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
               Road Surface
             </span>
-            <div className="flex items-baseline gap-1.5 mt-2">
-              <span className="text-xl font-bold font-mono text-white">
-                {roadCondition}
-              </span>
+            <div className="mt-2">
+              <span className="text-xl font-bold text-[#F3F6FA]">{roadCondition}</span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              {roadCondition === 'Wet' ? 'Reduced tire grip' : 'Normal friction coefficient'}
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              {roadCondition === 'Wet' ? 'Reduced tire grip' : 'Routine pavement state'}
             </span>
           </div>
 
-          {/* Visibility */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">Visibility</span>
-              <span className="text-[10px] text-[#4FA8E0] font-bold">
-                {visibilityStatus}
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">Visibility</span>
+              <span className="text-[10px] font-sans text-[#35C7E8] font-semibold">
+                {visVal !== null ? visibilityStatus : '—'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">
-                {visibilityKm}
+              <span className="text-2xl font-bold text-[#F3F6FA]">
+                {visVal !== null ? visVal : '—'}
               </span>
-              <span className="text-[10px] text-[#8A94A6]">km</span>
+              {visVal !== null && <span className="text-[10px] font-sans text-[#8295A8]">km</span>}
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              {visibilityKm >= 5 ? 'Unrestricted sight distance' : 'Fog/Mist warning active'}
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              {visVal === null
+                ? 'Visibility feed unavailable'
+                : visVal >= 5
+                ? 'Unrestricted sight distance'
+                : 'Fog / mist caution'}
             </span>
           </div>
 
-          {/* Aquaplaning / Hydroplaning Risk */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155] col-span-2 sm:col-span-1">
-            <span className="text-[10px] uppercase font-bold text-[#8A94A6] block">
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B] col-span-2 sm:col-span-1">
+            <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
               Hydroplane Risk
             </span>
-            <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-sm font-bold text-[#4FA8E0]">
-                {roadCondition === 'Wet' ? 'Moderate Risk' : 'Minimal'}
+            <div className="mt-2">
+              <span className="text-sm font-sans font-bold text-[#35C7E8]">
+                {roadCondition === 'Wet' || roadCondition === 'Waterlogged' ? 'Moderate / High' : 'Minimal'}
               </span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              Highway drainage status
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              Surface water runoff
             </span>
           </div>
         </div>
 
-        {/* Driving & Fog Advisory */}
-        <div className="mt-3.5 p-3 rounded bg-[#131A22] border border-[#334155] flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-[#3498DB] text-[18px] shrink-0 mt-0.5">
-            traffic
-          </span>
+        <div className="mt-3.5 p-3 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-start gap-2.5">
+          <AlertOctagon className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="text-[#D7DEE8]">
+            <p className="text-[#F3F6FA]">
               <strong>Driver Assessment:</strong> {roadSafetyLabel}
             </p>
             {travelHazards.length > 0 && (
-              <p className="text-[11px] text-[#8A94A6]">
-                <strong>Highway Alert:</strong> {travelHazards.join(' • ')}
+              <p className="text-[11px] text-[#8295A8]">
+                <strong>Highway Advisories:</strong> {travelHazards.join(' • ')}
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Footer Source */}
-      <div className="mt-4 pt-3 border-t border-[#334155] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8A94A6]">
-        <span>Source: <strong>Xweather Road Telemetry &amp; IMD Highway Visibility Grid</strong></span>
-        <span>Standard: <strong>IRC Highway Safety Guidelines</strong></span>
+      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
+        <span>Source: <strong className="text-[#B5C3D1]">Surface Visibility &amp; Rain Telemetry</strong></span>
+        <span>IRC Highway Safety Thresholds</span>
       </div>
     </div>
   );

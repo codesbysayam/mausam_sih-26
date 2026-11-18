@@ -344,17 +344,9 @@ const CACHE_TTL_MS = 60 * 1000; // 1 minute cache
 export function buildSixHourRadarTimeline(
   pastFrames: RadarFrame[],
   intervalMinutes: number = 15
-): { frames: RadarFrame[]; motionVector: RadarMotionVector } {
-  const defaultMotion: RadarMotionVector = {
-    speedKmh: 28,
-    azimuthDeg: 65,
-    compassDir: 'ENE',
-    intensityTendency: 'steady',
-    stormDescription: 'Radar convective cluster tracking East-Northeast at 25-30 km/h across coastal surveillance radius',
-  };
-
+): { frames: RadarFrame[]; motionVector?: RadarMotionVector } {
   if (!pastFrames || pastFrames.length === 0) {
-    return { frames: [], motionVector: defaultMotion };
+    return { frames: [], motionVector: undefined };
   }
 
   const latestFrame = pastFrames[pastFrames.length - 1];
@@ -389,7 +381,7 @@ export function buildSixHourRadarTimeline(
     const mins = ageMinutes % 60;
     const relativeLabel =
       ageMinutes === 0
-        ? 'LIVE'
+        ? 'LATEST'
         : `-${hours}h ${mins === 0 ? '00m' : (mins < 10 ? '0' + mins : mins) + 'm'}`;
 
     // Select the best matching tile path from real pastFrames
@@ -426,7 +418,7 @@ export function buildSixHourRadarTimeline(
     });
   }
 
-  return { frames: timelineFrames, motionVector: defaultMotion };
+  return { frames: timelineFrames, motionVector: undefined };
 }
 
 /**

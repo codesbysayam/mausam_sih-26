@@ -177,7 +177,7 @@ class WeatherService {
     const existingStale = this.cache.get(cacheKey);
     const shouldBackgroundRefresh = !forceRefresh && existingStale && (now - existingStale.timestamp >= this.cacheTtlMs);
 
-    const fetchPromise = (async () => {
+    const fetchPromise: Promise<WeatherDataBundle> = (async (): Promise<WeatherDataBundle> => {
       try {
         const weatherQuery = `latitude=${location.lat}&longitude=${location.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,visibility,cloud_cover,direct_normal_irradiance,soil_moisture_0_to_1cm,soil_temperature_0cm,et0_fao_evapotranspiration&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Asia%2FKolkata&forecast_days=7`;
         const airQuery = `latitude=${location.lat}&longitude=${location.lng}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen,ammonia&timezone=Asia%2FKolkata`;
@@ -235,12 +235,11 @@ class WeatherService {
         return bundle;
       } catch (err: any) {
         if (err?.name === 'AbortError') {
-          // Graceful handling of aborted requests - return stale cache or fallback without throwing unhandled rejection
           const stale = this.cache.get(cacheKey);
           if (stale) {
             return stale.data;
           }
-          return this.generateFallbackBundle(location);
+          return this.createUnavailableBundle(location, 'Telemetry request cancelled before completion.');
         }
         console.warn(`[WeatherService] Live fetch failed for ${location.displayName}:`, err);
 
@@ -249,6 +248,11 @@ class WeatherService {
         if (stale) {
           return {
             ...stale.data,
+            current: {
+              ...stale.data.current,
+              observationStatus: 'STALE' as const,
+              isLive: false,
+            },
             isLive: false,
             error: `Live telemetry connection offline. Displaying cached observation from ${this.formatIstTime(
               stale.data.lastFetchedAt
@@ -256,9 +260,11 @@ class WeatherService {
           };
         }
 
-        // Generate accurate seasonal synthetic data as clean fallback
-        const fallback = this.generateFallbackBundle(location);
-        return fallback;
+        // Honest unavailable state — zero fabricated telemetry
+        return this.createUnavailableBundle(
+          location,
+          err instanceof Error ? err.message : 'Meteorological telemetry feed unavailable'
+        );
       } finally {
         this.inFlightFetches.delete(cacheKey);
         this.abortControllers.delete(cacheKey);
@@ -280,7 +286,121 @@ class WeatherService {
   }
 
   /**
+   * Honest initial loading state before the first network fetch resolves.
+   */
+  public createInitialLoadingBundle(location: LocationRecord): WeatherDataBundle {
+    const now = new Date();
+    return {
+      current: {
+        temp: null,
+        unit: 'C',
+        high: null,
+        low: null,
+        feelsLike: null,
+        condition: 'Synchronizing Telemetry…',
+        conditionKey: 'UNKNOWN',
+        normalizedCondition: 'UNKNOWN',
+        weatherType: 'sunny',
+        icon: 'sync',
+        windSpeed: null,
+        windDirection: '—',
+        windDirectionDeg: null,
+        windGusts: null,
+        humidity: null,
+        pressure: null,
+        dewPoint: null,
+        uvIndex: null,
+        pollen: null,
+        pollenCount: null,
+        grassPollen: null,
+        treePollen: null,
+        weedPollen: null,
+        aqi: null,
+        aqiPm25: null,
+        aqiPm10: null,
+        aqiIndex: null,
+        no2: null,
+        so2: null,
+        co: null,
+        o3: null,
+        dust: null,
+        aqiStatus: 'Unavailable',
+        precipitation: null,
+        precipitationProbability: null,
+        isRainingNow: false,
+        rainExpectedSummary: 'Awaiting observational feed',
+        cloudCover: null,
+        visibilityKm: null,
+        sunrise: null,
+        sunset: null,
+        solarNoon: null,
+        daylightDuration: null,
+        dawnTime: null,
+        duskTime: null,
+        solarElevationDeg: null,
+        solarRadiation: null,
+        pressureTendency: null,
+        pressureTendencyHpa: null,
+        rainfallLast1h: null,
+        rainfallLast3h: null,
+        rainfallLast24h: null,
+        moonrise: null,
+        moonset: null,
+        moonPhase: null,
+        moonIllumination: null,
+        soilMoisture: null,
+        soilTemperature: null,
+        evapotranspiration: null,
+        stationName: location.weatherStation || `${location.displayName} Station`,
+        stationCode: location.imdStation || `AWS-${location.district.substring(0, 3).toUpperCase()}`,
+        locationId: location.id,
+        lastUpdated: 'Synchronizing…',
+        lastUpdatedTimestamp: now.getTime(),
+        source: 'Awaiting Open-Meteo / IMD Feed',
+        dataSource: 'Synchronizing telemetry',
+        observationStatus: 'LOADING',
+        observationSource: 'Connecting to meteorological endpoint…',
+        observationTimeFormatted: `${this.formatIstDate(now)} • Synchronizing`,
+        isLive: false,
+      },
+      hourly: [],
+      daily: [],
+      trends: [],
+      alerts: [],
+      lastFetchedAt: now,
+      isLive: false,
+    };
+  }
+
+  /**
+   * Honest unavailable bundle when meteorological feeds fail and no cache exists.
+   */
+  public createUnavailableBundle(location: LocationRecord, errorMessage?: string): WeatherDataBundle {
+    const now = new Date();
+    const loading = this.createInitialLoadingBundle(location);
+    return {
+      ...loading,
+      current: {
+        ...loading.current,
+        condition: 'Telemetry Unavailable',
+        icon: 'cloud_off',
+        rainExpectedSummary: 'Live weather telemetry is currently unreachable',
+        lastUpdated: `${this.formatIstTime(now)} IST (Feed Unavailable)`,
+        source: 'Meteorological Feed Offline',
+        dataSource: 'Unavailable',
+        observationStatus: 'UNAVAILABLE',
+        observationSource: 'Upstream telemetry unreachable',
+        observationTimeFormatted: `${this.formatIstDate(now)} • Feed Unavailable`,
+        isLive: false,
+        error: errorMessage || 'Live meteorological telemetry is unavailable.',
+      },
+      error: errorMessage || 'Live meteorological telemetry is unavailable.',
+    };
+  }
+
+  /**
    * Transforms raw Open-Meteo JSON and Air Quality JSON into normalized application state
+   * without substituting fabricated defaults for missing fields.
    */
   private transformOpenMeteoResponse(
     location: LocationRecord,
@@ -292,129 +412,144 @@ class WeatherService {
     const dailyRaw = raw.daily || {};
     const airCurrent = airRawJson?.current || {};
 
-    const temp = Math.round(currentRaw.temperature_2m ?? 31.0);
-    const humidity = Math.round(currentRaw.relative_humidity_2m ?? 65);
-    const pressure = Math.round((currentRaw.pressure_msl ?? 1012.0) * 10) / 10;
-    const windSpeed = Math.round(currentRaw.wind_speed_10m ?? 14);
-    const windDirDeg = currentRaw.wind_direction_10m ?? 180;
-    const precip = currentRaw.precipitation ?? 0.0;
-    const wmoCode = currentRaw.weather_code ?? 0;
-    const isDay = currentRaw.is_day === 1;
-    const cloudCover = currentRaw.cloud_cover ?? 20;
+    const numOrNull = (val: unknown): number | null =>
+      typeof val === 'number' && Number.isFinite(val) ? val : null;
+
+    const rawTemp = numOrNull(currentRaw.temperature_2m);
+    const temp = rawTemp !== null ? Math.round(rawTemp * 10) / 10 : null;
+    const rawHum = numOrNull(currentRaw.relative_humidity_2m);
+    const humidity = rawHum !== null ? Math.round(rawHum) : null;
+    const rawPress = numOrNull(currentRaw.pressure_msl) ?? numOrNull(currentRaw.surface_pressure);
+    const pressure = rawPress !== null ? Math.round(rawPress * 10) / 10 : null;
+    const rawWind = numOrNull(currentRaw.wind_speed_10m);
+    const windSpeed = rawWind !== null ? Math.round(rawWind) : null;
+    const windDirDeg = numOrNull(currentRaw.wind_direction_10m);
+    const precip = numOrNull(currentRaw.precipitation);
+    const wmoCode = numOrNull(currentRaw.weather_code);
+    const isDay = typeof currentRaw.is_day === 'number' ? currentRaw.is_day === 1 : true;
+    const cloudCover = numOrNull(currentRaw.cloud_cover);
 
     // Get today's daily high/low and max rain probability
-    const high = Math.round(dailyRaw.temperature_2m_max?.[0] ?? temp + 3);
-    const low = Math.round(dailyRaw.temperature_2m_min?.[0] ?? temp - 5);
-    const maxRainProbToday = dailyRaw.precipitation_probability_max?.[0] ?? 10;
-    const uvIndexMax = Math.round((dailyRaw.uv_index_max?.[0] ?? 6) * 10) / 10;
+    const rawHigh = numOrNull(dailyRaw.temperature_2m_max?.[0]);
+    const rawLow = numOrNull(dailyRaw.temperature_2m_min?.[0]);
+    const high = rawHigh !== null ? Math.round(rawHigh) : null;
+    const low = rawLow !== null ? Math.round(rawLow) : null;
+    const maxRainProbToday = numOrNull(dailyRaw.precipitation_probability_max?.[0]);
+    const rawUvMax = numOrNull(dailyRaw.uv_index_max?.[0]);
+    const uvIndexMax = rawUvMax !== null ? Math.round(rawUvMax * 10) / 10 : null;
 
     // Resolve central weather condition
     const resolved = resolveWeatherCondition({
-      wmoCode,
-      precipitationMm: precip,
-      precipitationProbability: maxRainProbToday,
-      cloudCover,
-      windSpeedKmH: windSpeed,
+      wmoCode: wmoCode ?? undefined,
+      precipitationMm: precip ?? 0,
+      precipitationProbability: maxRainProbToday ?? 0,
+      cloudCover: cloudCover ?? 0,
+      windSpeedKmH: windSpeed ?? 0,
       isDaytime: isDay,
     });
 
-    // Approximate dew point and apparent temperature
-    const feelsLike = Math.round(currentRaw.apparent_temperature ?? temp);
-    const windGusts = currentRaw.wind_gusts_10m !== undefined && currentRaw.wind_gusts_10m !== null
-      ? Math.round(currentRaw.wind_gusts_10m)
-      : Math.round(windSpeed * 1.3);
-    const visibilityKm = currentRaw.visibility !== undefined && currentRaw.visibility !== null
-      ? Math.round(currentRaw.visibility / 100) / 10
-      : 10.0;
-    const dewPoint = currentRaw.dew_point_2m !== undefined && currentRaw.dew_point_2m !== null
-      ? Math.round(currentRaw.dew_point_2m * 10) / 10
-      : Math.round((temp - (100 - humidity) / 5) * 10) / 10;
+    const rawFeelsLike = numOrNull(currentRaw.apparent_temperature);
+    const feelsLike = rawFeelsLike !== null ? Math.round(rawFeelsLike * 10) / 10 : temp;
+    const rawGusts = numOrNull(currentRaw.wind_gusts_10m);
+    const windGusts = rawGusts !== null ? Math.round(rawGusts) : null;
+    const rawVisibility = numOrNull(currentRaw.visibility);
+    const visibilityKm = rawVisibility !== null ? Math.round(rawVisibility / 100) / 10 : null;
+    const rawDewPoint = numOrNull(currentRaw.dew_point_2m);
+    const dewPoint = rawDewPoint !== null ? Math.round(rawDewPoint * 10) / 10 : null;
 
-    // Real-time AQI & Pollutant metrics from live CPCB / Open-Meteo Air Quality telemetry
-    let basePm25 = location.coastalStatus === 'coastal' ? 38 : 58;
-    if (location.district === 'Khordha' || location.city.includes('Bhubaneswar')) basePm25 = 52;
-    if (location.district === 'Angul' || location.district === 'Jharsuguda') basePm25 = 95;
-    if (location.district === 'Sundargarh') basePm25 = 82;
-    if (location.state.includes('Delhi')) basePm25 = 145;
+    // Real-time AQI & Pollutant metrics from live Open-Meteo Air Quality telemetry (no fabricated regional baselines)
+    const rawPm25 = numOrNull(airCurrent.pm2_5);
+    const rawPm10 = numOrNull(airCurrent.pm10);
+    const liveNo2 = numOrNull(airCurrent.nitrogen_dioxide) !== null ? Math.round(airCurrent.nitrogen_dioxide * 10) / 10 : null;
+    const liveSo2 = numOrNull(airCurrent.sulphur_dioxide) !== null ? Math.round(airCurrent.sulphur_dioxide * 10) / 10 : null;
+    const liveCo = numOrNull(airCurrent.carbon_monoxide) !== null ? Math.round(airCurrent.carbon_monoxide) : null;
+    const liveO3 = numOrNull(airCurrent.ozone) !== null ? Math.round(airCurrent.ozone * 10) / 10 : null;
+    const liveDust = numOrNull(airCurrent.dust) !== null ? Math.round(airCurrent.dust * 10) / 10 : null;
 
-    const livePm25 = airCurrent.pm2_5 !== undefined && airCurrent.pm2_5 !== null
-      ? Math.round(airCurrent.pm2_5 * 10) / 10
-      : basePm25;
-    const livePm10 = airCurrent.pm10 !== undefined && airCurrent.pm10 !== null
-      ? Math.round(airCurrent.pm10 * 10) / 10
-      : Math.round(livePm25 * 1.6);
-    const liveNo2 = airCurrent.nitrogen_dioxide !== undefined && airCurrent.nitrogen_dioxide !== null
-      ? Math.round(airCurrent.nitrogen_dioxide * 10) / 10
-      : 24.5;
-    const liveSo2 = airCurrent.sulphur_dioxide !== undefined && airCurrent.sulphur_dioxide !== null
-      ? Math.round(airCurrent.sulphur_dioxide * 10) / 10
-      : 12.0;
-    const liveCo = airCurrent.carbon_monoxide !== undefined && airCurrent.carbon_monoxide !== null
-      ? Math.round(airCurrent.carbon_monoxide)
-      : 420;
-    const liveO3 = airCurrent.ozone !== undefined && airCurrent.ozone !== null
-      ? Math.round(airCurrent.ozone * 10) / 10
-      : 28.5;
-    const liveDust = airCurrent.dust !== undefined && airCurrent.dust !== null
-      ? Math.round(airCurrent.dust * 10) / 10
-      : 18.0;
+    let cpcbAqi: number | null = null;
+    const aqiPm25 = rawPm25 !== null ? Math.round(rawPm25 * 10) / 10 : null;
+    const livePm10 = rawPm10 !== null ? Math.round(rawPm10 * 10) / 10 : null;
 
-    // Calculate Indian CPCB Sub-Index for PM2.5
-    let cpcbAqi = 50;
-    if (livePm25 <= 30) {
-      cpcbAqi = Math.round(livePm25 * (50 / 30));
-    } else if (livePm25 <= 60) {
-      cpcbAqi = Math.round(50 + ((livePm25 - 30) * 50) / 30);
-    } else if (livePm25 <= 90) {
-      cpcbAqi = Math.round(100 + ((livePm25 - 60) * 100) / 30);
-    } else if (livePm25 <= 120) {
-      cpcbAqi = Math.round(200 + ((livePm25 - 90) * 100) / 30);
-    } else if (livePm25 <= 250) {
-      cpcbAqi = Math.round(300 + ((livePm25 - 120) * 100) / 130);
+    if (aqiPm25 !== null) {
+      if (aqiPm25 <= 30) {
+        cpcbAqi = Math.round(aqiPm25 * (50 / 30));
+      } else if (aqiPm25 <= 60) {
+        cpcbAqi = Math.round(50 + ((aqiPm25 - 30) * 50) / 30);
+      } else if (aqiPm25 <= 90) {
+        cpcbAqi = Math.round(100 + ((aqiPm25 - 60) * 100) / 30);
+      } else if (aqiPm25 <= 120) {
+        cpcbAqi = Math.round(200 + ((aqiPm25 - 90) * 100) / 30);
+      } else if (aqiPm25 <= 250) {
+        cpcbAqi = Math.round(300 + ((aqiPm25 - 120) * 100) / 130);
+      } else {
+        cpcbAqi = Math.round(400 + ((aqiPm25 - 250) * 100) / 130);
+      }
     } else {
-      cpcbAqi = Math.round(400 + ((livePm25 - 250) * 100) / 130);
+      const upstreamAqi = numOrNull(airCurrent.us_aqi) ?? numOrNull(airCurrent.european_aqi);
+      cpcbAqi = upstreamAqi !== null ? Math.round(upstreamAqi) : null;
     }
 
-    const aqiPm25 = Math.round(livePm25);
+    let aqiStatus: CurrentWeather['aqiStatus'] = 'Unavailable';
+    if (cpcbAqi !== null) {
+      if (cpcbAqi > 400 || (aqiPm25 !== null && aqiPm25 > 250)) aqiStatus = 'Hazardous';
+      else if (cpcbAqi > 300 || (aqiPm25 !== null && aqiPm25 > 120)) aqiStatus = 'Unhealthy';
+      else if (cpcbAqi > 200 || (aqiPm25 !== null && aqiPm25 > 90)) aqiStatus = 'Unhealthy for Sensitive';
+      else if (cpcbAqi > 100 || (aqiPm25 !== null && aqiPm25 > 60)) aqiStatus = 'Moderate';
+      else aqiStatus = 'Good';
+    }
 
-    let aqiStatus: CurrentWeather['aqiStatus'] = 'Good';
-    if (cpcbAqi > 400 || aqiPm25 > 250) aqiStatus = 'Hazardous';
-    else if (cpcbAqi > 300 || aqiPm25 > 120) aqiStatus = 'Unhealthy';
-    else if (cpcbAqi > 200 || aqiPm25 > 90) aqiStatus = 'Unhealthy for Sensitive';
-    else if (cpcbAqi > 100 || aqiPm25 > 60) aqiStatus = 'Moderate';
-    else aqiStatus = 'Good';
+    // Live Pollen metrics (strictly reported values, never fabricated from humidity/temp)
+    const grassPollen = numOrNull(airCurrent.grass_pollen);
+    const birchPollen = numOrNull(airCurrent.birch_pollen);
+    const ragweedPollen = numOrNull(airCurrent.ragweed_pollen);
+    const alderPollen = numOrNull(airCurrent.alder_pollen);
+    const olivePollen = numOrNull(airCurrent.olive_pollen);
+    const mugwortPollen = numOrNull(airCurrent.mugwort_pollen);
 
-    // Live Pollen metrics (Grass, Tree, Weed & Grains/m³)
-    const grassPollen = airCurrent.grass_pollen ?? 0;
-    const birchPollen = airCurrent.birch_pollen ?? 0;
-    const ragweedPollen = airCurrent.ragweed_pollen ?? 0;
-    const alderPollen = airCurrent.alder_pollen ?? 0;
-    const olivePollen = airCurrent.olive_pollen ?? 0;
-    const mugwortPollen = airCurrent.mugwort_pollen ?? 0;
+    const hasAnyPollenField = [
+      grassPollen,
+      birchPollen,
+      ragweedPollen,
+      alderPollen,
+      olivePollen,
+      mugwortPollen,
+    ].some((v) => v !== null);
 
-    const totalLivePollen = grassPollen + birchPollen + ragweedPollen + alderPollen + olivePollen + mugwortPollen;
-    
-    // Bio-climatic estimation if specific pollen sensors report zero in off-season
-    const baselineGrains = humidity > 75 && temp > 28 ? 14 : humidity > 60 ? 8 : 4;
-    const pollenCountGrains = totalLivePollen > 0 ? Math.round(totalLivePollen) : baselineGrains;
+    let pollenCountGrains: number | null = null;
+    let pollenStatus: CurrentWeather['pollen'] = null;
+    let treePollenVal: number | null = null;
+    let weedPollenVal: number | null = null;
 
-    let pollenStatus: CurrentWeather['pollen'] = 'Low';
-    if (pollenCountGrains > 50) pollenStatus = 'Very High';
-    else if (pollenCountGrains > 20) pollenStatus = 'High';
-    else if (pollenCountGrains > 6) pollenStatus = 'Moderate';
-    else pollenStatus = 'Low';
+    if (hasAnyPollenField) {
+      const totalLivePollen =
+        (grassPollen ?? 0) +
+        (birchPollen ?? 0) +
+        (ragweedPollen ?? 0) +
+        (alderPollen ?? 0) +
+        (olivePollen ?? 0) +
+        (mugwortPollen ?? 0);
+      pollenCountGrains = Math.round(totalLivePollen);
+      treePollenVal = Math.round((birchPollen ?? 0) + (alderPollen ?? 0) + (olivePollen ?? 0));
+      weedPollenVal = Math.round((ragweedPollen ?? 0) + (mugwortPollen ?? 0));
+
+      if (pollenCountGrains > 50) pollenStatus = 'Very High';
+      else if (pollenCountGrains > 20) pollenStatus = 'High';
+      else if (pollenCountGrains > 6) pollenStatus = 'Moderate';
+      else pollenStatus = 'Low';
+    }
 
     // Compass direction string
-    const windDirection = this.degToCompass(windDirDeg);
+    const windDirection = windDirDeg !== null ? this.degToCompass(windDirDeg) : '—';
 
     // Compute live sunrise, sunset, solar noon, daylight duration, dawn, and dusk from Open-Meteo payload
-    let sunriseStr = '05:32 AM';
-    let sunsetStr = '06:18 PM';
-    let solarNoonStr = '12:15 PM';
-    let daylightDurationStr = '12h 46m';
-    let dawnStr = '05:10 AM';
-    let duskStr = '06:40 PM';
-    let solarElevationDeg = 48;
+    let sunriseStr: string | null = null;
+    let sunsetStr: string | null = null;
+    let solarNoonStr: string | null = null;
+    let daylightDurationStr: string | null = null;
+    let dawnStr: string | null = null;
+    let duskStr: string | null = null;
+    let solarElevationDeg: number | null = null;
+    let nightDurationStr: string | null = null;
 
     if (dailyRaw.sunrise?.[0] && dailyRaw.sunset?.[0]) {
       try {
@@ -429,16 +564,13 @@ class WeatherService {
         const hrs = Math.floor(totalMins / 60);
         const mins = totalMins % 60;
         daylightDurationStr = `${hrs}h ${mins}m`;
+        nightDurationStr = calculateNightDuration(totalMins);
 
         const solarNoonMs = sunriseDate.getTime() + diffMs / 2;
-        const solarNoonDate = new Date(solarNoonMs);
-        solarNoonStr = this.formatIstTime(solarNoonDate);
+        solarNoonStr = this.formatIstTime(new Date(solarNoonMs));
 
-        const dawnDate = new Date(sunriseDate.getTime() - 22 * 60 * 1000);
-        dawnStr = this.formatIstTime(dawnDate);
-
-        const duskDate = new Date(sunsetDate.getTime() + 22 * 60 * 1000);
-        duskStr = this.formatIstTime(duskDate);
+        dawnStr = this.formatIstTime(new Date(sunriseDate.getTime() - 22 * 60 * 1000));
+        duskStr = this.formatIstTime(new Date(sunsetDate.getTime() + 22 * 60 * 1000));
 
         const nowMs = Date.now();
         if (nowMs >= sunriseDate.getTime() && nowMs <= sunsetDate.getTime()) {
@@ -453,68 +585,62 @@ class WeatherService {
     }
 
     const now = new Date();
-    const lastUpdated = `${this.formatIstTime(now)} IST (Open-Meteo / CPCB)`;
+    const lastUpdated = `${this.formatIstTime(now)} IST (Open-Meteo Analysis)`;
 
     // Find index of current hour first for telemetry referencing
     let startIdx = 0;
     const currentHour = now.getHours();
-    const hourlyTimes = hourlyRaw.time || [];
+    const hourlyTimes: string[] = Array.isArray(hourlyRaw.time) ? hourlyRaw.time : [];
     for (let i = 0; i < hourlyTimes.length; i++) {
       const dt = new Date(hourlyTimes[i]);
-      if (dt.getHours() === currentHour) {
+      if (dt.getHours() === currentHour && dt.getDate() === now.getDate()) {
         startIdx = i;
         break;
       }
     }
 
     // Pressure tendency from hourly telemetry (comparing current to 3 hours ago)
-    let pressureTendency: CurrentWeather['pressureTendency'] = 'Steady';
-    let pressureTendencyHpa = 0.0;
-    if (hourlyRaw.pressure_msl && startIdx >= 3) {
-      const pCurrent = hourlyRaw.pressure_msl[startIdx] ?? pressure;
-      const pPrev = hourlyRaw.pressure_msl[startIdx - 3] ?? pressure;
-      pressureTendencyHpa = Math.round((pCurrent - pPrev) * 10) / 10;
-      if (pressureTendencyHpa > 0.8) pressureTendency = 'Rising';
-      else if (pressureTendencyHpa < -0.8) pressureTendency = 'Falling';
-      else pressureTendency = 'Steady';
+    let pressureTendency: CurrentWeather['pressureTendency'] = null;
+    let pressureTendencyHpa: number | null = null;
+    if (Array.isArray(hourlyRaw.pressure_msl) && startIdx >= 3) {
+      const pCurrent = numOrNull(hourlyRaw.pressure_msl[startIdx]);
+      const pPrev = numOrNull(hourlyRaw.pressure_msl[startIdx - 3]);
+      if (pCurrent !== null && pPrev !== null) {
+        pressureTendencyHpa = Math.round((pCurrent - pPrev) * 10) / 10;
+        if (pressureTendencyHpa > 0.8) pressureTendency = 'Rising';
+        else if (pressureTendencyHpa < -0.8) pressureTendency = 'Falling';
+        else pressureTendency = 'Steady';
+      }
     }
 
     // Rainfall accumulation over 1h, 3h, 24h
-    const rainfallLast1h = hourlyRaw.precipitation?.[startIdx] !== undefined
-      ? Math.round(hourlyRaw.precipitation[startIdx] * 10) / 10
-      : precip;
-    let rainfallLast3h = rainfallLast1h;
-    if (hourlyRaw.precipitation && startIdx >= 2) {
-      rainfallLast3h = Math.round(
-        ((hourlyRaw.precipitation[startIdx] ?? 0) +
-          (hourlyRaw.precipitation[startIdx - 1] ?? 0) +
-          (hourlyRaw.precipitation[startIdx - 2] ?? 0)) *
-          10
-      ) / 10;
+    const hPrecipNow = numOrNull(hourlyRaw.precipitation?.[startIdx]);
+    const rainfallLast1h = hPrecipNow !== null ? Math.round(hPrecipNow * 10) / 10 : precip;
+    let rainfallLast3h: number | null = null;
+    if (Array.isArray(hourlyRaw.precipitation) && startIdx >= 2) {
+      const p0 = numOrNull(hourlyRaw.precipitation[startIdx]);
+      const p1 = numOrNull(hourlyRaw.precipitation[startIdx - 1]);
+      const p2 = numOrNull(hourlyRaw.precipitation[startIdx - 2]);
+      if (p0 !== null && p1 !== null && p2 !== null) {
+        rainfallLast3h = Math.round((p0 + p1 + p2) * 10) / 10;
+      }
     }
-    const rainfallLast24h = Math.round((dailyRaw.precipitation_sum?.[0] ?? precip) * 10) / 10;
+    const dailyPrecip0 = numOrNull(dailyRaw.precipitation_sum?.[0]);
+    const rainfallLast24h = dailyPrecip0 !== null ? Math.round(dailyPrecip0 * 10) / 10 : null;
 
     // Solar radiation & Astronomy
-    const solarRadiation = hourlyRaw.direct_normal_irradiance?.[startIdx] !== undefined
-      ? Math.round(hourlyRaw.direct_normal_irradiance[startIdx])
-      : isDay ? Math.round(Math.max(0, Math.sin((solarElevationDeg * Math.PI) / 180) * 820)) : 0;
+    const rawRad = numOrNull(hourlyRaw.direct_normal_irradiance?.[startIdx]);
+    const solarRadiation = rawRad !== null ? Math.round(rawRad) : null;
 
     const lunar = calculateLunarEphemeris(location.lat, location.lng, now);
-    const dayLengthMins = dailyRaw.sunrise?.[0] && dailyRaw.sunset?.[0]
-      ? Math.floor(Math.max(0, new Date(dailyRaw.sunset[0]).getTime() - new Date(dailyRaw.sunrise[0]).getTime()) / 60000)
-      : 720;
-    const nightDurationStr = calculateNightDuration(dayLengthMins);
 
-    // Agricultural metrics
-    const soilMoisture = hourlyRaw.soil_moisture_0_to_1cm?.[startIdx] !== undefined
-      ? Math.round(hourlyRaw.soil_moisture_0_to_1cm[startIdx] * 1000) / 1000
-      : 0.28;
-    const soilTemperature = hourlyRaw.soil_temperature_0cm?.[startIdx] !== undefined
-      ? Math.round(hourlyRaw.soil_temperature_0cm[startIdx] * 10) / 10
-      : temp - 1;
-    const evapotranspiration = hourlyRaw.et0_fao_evapotranspiration?.[startIdx] !== undefined
-      ? Math.round(hourlyRaw.et0_fao_evapotranspiration[startIdx] * 100) / 100
-      : 3.8;
+    // Agricultural metrics (strictly from payload, no fake constants)
+    const rawSoilMoisture = numOrNull(hourlyRaw.soil_moisture_0_to_1cm?.[startIdx]);
+    const soilMoisture = rawSoilMoisture !== null ? Math.round(rawSoilMoisture * 1000) / 1000 : null;
+    const rawSoilTemp = numOrNull(hourlyRaw.soil_temperature_0cm?.[startIdx]);
+    const soilTemperature = rawSoilTemp !== null ? Math.round(rawSoilTemp * 10) / 10 : null;
+    const rawEt0 = numOrNull(hourlyRaw.et0_fao_evapotranspiration?.[startIdx]);
+    const evapotranspiration = rawEt0 !== null ? Math.round(rawEt0 * 100) / 100 : null;
 
     const currentWeather: CurrentWeather = {
       temp,
@@ -530,7 +656,7 @@ class WeatherService {
       weatherType: resolved.weatherType,
       icon: resolved.icon,
       windSpeed,
-      windDirection: `${windDirection} (${windDirDeg}°)`,
+      windDirection: windDirDeg !== null ? `${windDirection} (${windDirDeg}°)` : '—',
       windDirectionDeg: windDirDeg,
       windGusts,
       visibilityKm,
@@ -553,9 +679,9 @@ class WeatherService {
       evapotranspiration,
       pollen: pollenStatus,
       pollenCount: pollenCountGrains,
-      grassPollen: grassPollen > 0 ? grassPollen : Math.round(pollenCountGrains * 0.4),
-      treePollen: (birchPollen + alderPollen + olivePollen) > 0 ? (birchPollen + alderPollen + olivePollen) : Math.round(pollenCountGrains * 0.35),
-      weedPollen: (ragweedPollen + mugwortPollen) > 0 ? (ragweedPollen + mugwortPollen) : Math.round(pollenCountGrains * 0.25),
+      grassPollen: grassPollen !== null ? Math.round(grassPollen) : null,
+      treePollen: treePollenVal,
+      weedPollen: weedPollenVal,
       aqi: cpcbAqi,
       aqiPm25,
       aqiPm10: livePm10,
@@ -587,23 +713,24 @@ class WeatherService {
       locationId: location.id,
       lastUpdated,
       lastUpdatedTimestamp: now.getTime(),
-      source: 'Open-Meteo',
+      source: 'Open-Meteo Surface Analysis (Forecast Grid)',
+      dataSource: 'Open-Meteo Surface Analysis (Forecast Grid)',
       observationStatus: 'LIVE',
-      observationSource: 'Open-Meteo (IMD Not Configured Fallback)',
+      observationSource: 'Open-Meteo Surface Analysis (Forecast Grid)',
       observationTimeFormatted: `${this.formatIstDate(now)} • ${this.formatIstTime(now)} IST`,
       previousHourTelemetry: startIdx > 0 ? {
         temp: hourlyRaw.temperature_2m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.temperature_2m[startIdx - 1] * 10) / 10 : undefined,
         humidity: hourlyRaw.relative_humidity_2m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.relative_humidity_2m[startIdx - 1]) : undefined,
         windSpeed: hourlyRaw.wind_speed_10m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.wind_speed_10m[startIdx - 1] * 10) / 10 : undefined,
         pressure: hourlyRaw.surface_pressure?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.surface_pressure[startIdx - 1] * 10) / 10 : undefined,
-        precipitation: hourlyRaw.precipitation?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.precipitation[startIdx - 1] * 10) / 10 : 0,
+        precipitation: hourlyRaw.precipitation?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.precipitation[startIdx - 1] * 10) / 10 : undefined,
         timestamp: hourlyTimes[startIdx - 1] ? new Date(hourlyTimes[startIdx - 1]).getTime() : now.getTime() - 3600000,
         timeString: hourlyTimes[startIdx - 1] ? this.formatIstTime(new Date(hourlyTimes[startIdx - 1])) : 'Prior Cycle',
       } : undefined,
       isLive: true,
     };
 
-    // Transform 24h Hourly Items
+    // Transform 24h Hourly Items (only genuine grid points)
     const hourly: HourlyForecastItem[] = [];
     const hourlyTemps = hourlyRaw.temperature_2m || [];
     const hourlyApparentTemps = hourlyRaw.apparent_temperature || [];
@@ -617,13 +744,16 @@ class WeatherService {
     const hourlyVis = hourlyRaw.visibility || [];
     const hourlyRad = hourlyRaw.direct_normal_irradiance || [];
     const hourlyCloud = hourlyRaw.cloud_cover || [];
+    const hourlyPress = hourlyRaw.pressure_msl || [];
 
     for (let i = startIdx; i < Math.min(startIdx + 24, hourlyTimes.length); i++) {
+      const hTempVal = numOrNull(hourlyTemps[i]);
+      if (hTempVal === null) continue;
       const dt = new Date(hourlyTimes[i]);
       const hour = dt.getHours();
       const isDayHour = hour >= 6 && hour <= 18;
-      const hCode = hourlyCodes[i] ?? 0;
-      const hProb = hourlyPrecipProb[i] ?? 0;
+      const hCode = numOrNull(hourlyCodes[i]) ?? 0;
+      const hProb = numOrNull(hourlyPrecipProb[i]) ?? 0;
       const hRes = resolveWeatherCondition({
         wmoCode: hCode,
         precipitationProbability: hProb,
@@ -635,12 +765,16 @@ class WeatherService {
           ? 'Now'
           : `${hour % 12 === 0 ? 12 : hour % 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`;
 
-      const hTemp = Math.round(hourlyTemps[i] ?? temp);
-      const hFeelsLike = hourlyApparentTemps[i] !== undefined ? Math.round(hourlyApparentTemps[i]) : hTemp;
-      const hVisKm = hourlyVis[i] !== undefined ? Math.round(hourlyVis[i] / 100) / 10 : 10.0;
-      const hGust = hourlyGusts[i] !== undefined ? Math.round(hourlyGusts[i]) : Math.round((hourlyWinds[i] ?? windSpeed) * 1.3);
-      const hPrecipMm = hourlyPrecip[i] !== undefined ? Math.round(hourlyPrecip[i] * 10) / 10 : 0;
-      const hSolar = hourlyRad[i] !== undefined ? Math.round(hourlyRad[i]) : (isDayHour ? 400 : 0);
+      const hTemp = Math.round(hTempVal);
+      const hFeelsVal = numOrNull(hourlyApparentTemps[i]);
+      const hFeelsLike = hFeelsVal !== null ? Math.round(hFeelsVal) : hTemp;
+      const hVisRaw = numOrNull(hourlyVis[i]);
+      const hVisKm = hVisRaw !== null ? Math.round(hVisRaw / 100) / 10 : undefined;
+      const hGustRaw = numOrNull(hourlyGusts[i]);
+      const hWindRaw = numOrNull(hourlyWinds[i]);
+      const hPrecipRaw = numOrNull(hourlyPrecip[i]);
+      const hSolarRaw = numOrNull(hourlyRad[i]);
+      const hHumRaw = numOrNull(hourlyHumidity[i]);
 
       hourly.push({
         time: timeLabel,
@@ -649,17 +783,18 @@ class WeatherService {
         feelsLike: hFeelsLike,
         condition: hRes.conditionLabel,
         icon: hRes.icon,
-        aqi: Math.max(20, aqiPm25 - (isDayHour ? 5 : -15)),
+        aqi: cpcbAqi ?? (aqiPm25 ?? 0),
         rainProb: hProb,
-        windSpeed: Math.round(hourlyWinds[i] ?? windSpeed),
-        windGusts: hGust,
-        uv: Math.round((hourlyUv[i] ?? 0) * 10) / 10,
-        humidity: Math.round(hourlyHumidity[i] ?? humidity),
-        precipitation: hPrecipMm,
+        windSpeed: hWindRaw !== null ? Math.round(hWindRaw) : (windSpeed ?? 0),
+        windGusts: hGustRaw !== null ? Math.round(hGustRaw) : undefined,
+        uv: Math.round((numOrNull(hourlyUv[i]) ?? 0) * 10) / 10,
+        humidity: hHumRaw !== null ? Math.round(hHumRaw) : (humidity ?? 0),
+        precipitation: hPrecipRaw !== null ? Math.round(hPrecipRaw * 10) / 10 : undefined,
         precipitationProbability: hProb,
         visibilityKm: hVisKm,
-        solarRadiation: hSolar,
-        cloudCover: hourlyCloud[i] !== undefined ? Math.round(hourlyCloud[i]) : undefined,
+        solarRadiation: hSolarRaw !== null ? Math.round(hSolarRaw) : undefined,
+        cloudCover: numOrNull(hourlyCloud[i]) !== null ? Math.round(hourlyCloud[i]) : undefined,
+        pressure: numOrNull(hourlyPress[i]) !== null ? Math.round(hourlyPress[i] * 10) / 10 : undefined,
       });
     }
 
@@ -675,9 +810,13 @@ class WeatherService {
     const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     for (let i = 0; i < Math.min(7, dailyTimes.length); i++) {
+      const dMaxRaw = numOrNull(dailyMax[i]);
+      const dMinRaw = numOrNull(dailyMin[i]);
+      if (dMaxRaw === null || dMinRaw === null) continue;
+
       const dt = new Date(dailyTimes[i]);
-      const dCode = dailyCodes[i] ?? 0;
-      const dProb = dailyRainProb[i] ?? 0;
+      const dCode = numOrNull(dailyCodes[i]) ?? 0;
+      const dProb = numOrNull(dailyRainProb[i]) ?? 0;
       const dRes = resolveWeatherCondition({
         wmoCode: dCode,
         precipitationProbability: dProb,
@@ -690,8 +829,9 @@ class WeatherService {
         month: 'short',
       }).format(dt);
 
-      const dHigh = Math.round(dailyMax[i] ?? high);
-      const dLow = Math.round(dailyMin[i] ?? low);
+      const dHigh = Math.round(dMaxRaw);
+      const dLow = Math.round(dMinRaw);
+      const dWindVal = numOrNull(dailyWinds[i]);
 
       // Temperature bar relative positioning (scale 15°C to 42°C)
       const minScale = 15;
@@ -707,36 +847,38 @@ class WeatherService {
         high: dHigh,
         low: dLow,
         rainProb: dProb,
-        uv: Math.round(dailyRaw.uv_index_max?.[i] ?? 7),
-        aqi: aqiPm25,
-        humidity: Math.round(humidity + (i % 3) * 2),
-        wind: `${Math.round(dailyWinds[i] ?? windSpeed)} km/h`,
+        uv: Math.round(numOrNull(dailyRaw.uv_index_max?.[i]) ?? 0),
+        aqi: cpcbAqi ?? (aqiPm25 ?? 0),
+        humidity: humidity ?? 0,
+        wind: dWindVal !== null ? `${Math.round(dWindVal)} km/h` : '—',
         barProgress: {
           startPercent,
           widthPercent,
-          color: dHigh > 35 ? '#FF8C42' : '#4FA8E0',
+          color: dHigh > 35 ? '#F97316' : '#35C7E8',
         },
       });
     }
 
-    // Generate 24h Historical Trend curve
+    // Derive past trends strictly from genuine hourly series prior to startIdx (no Math.sin fabrication)
     const trends: HistoricalTrendPoint[] = [];
-    for (let h = 0; h < 24; h++) {
-      const pastHour = (currentHour - 23 + h + 24) % 24;
-      const label = `${pastHour % 12 === 0 ? 12 : pastHour % 12}:00`;
-      const tempVariation = Math.sin(((pastHour - 6) / 12) * Math.PI) * 4;
-      const hTemp = Math.round((temp - 2 + tempVariation) * 10) / 10;
-      const hHumidity = Math.round(Math.max(40, Math.min(95, humidity + (pastHour < 8 ? 15 : -10))));
-      const hRain = pastHour === 14 || pastHour === 15 ? 1.2 : 0;
-
+    const trendStart = Math.max(0, startIdx - 23);
+    for (let idx = trendStart; idx <= startIdx && idx < hourlyTimes.length; idx++) {
+      const tVal = numOrNull(hourlyTemps[idx]);
+      const hVal = numOrNull(hourlyHumidity[idx]);
+      const pVal = numOrNull(hourlyPress[idx]);
+      const wVal = numOrNull(hourlyWinds[idx]);
+      const rVal = numOrNull(hourlyPrecip[idx]);
+      if (tVal === null) continue;
+      const dt = new Date(hourlyTimes[idx]);
+      const hr = dt.getHours();
       trends.push({
-        time: label,
-        hour: pastHour,
-        temp: hTemp,
-        humidity: hHumidity,
-        pressure: Math.round((pressure + Math.sin(pastHour / 4) * 1.5) * 10) / 10,
-        windSpeed: Math.round(windSpeed + (pastHour > 12 && pastHour < 18 ? 4 : -2)),
-        rain: hRain,
+        time: `${hr % 12 === 0 ? 12 : hr % 12}:00`,
+        hour: hr,
+        temp: Math.round(tVal * 10) / 10,
+        humidity: hVal !== null ? Math.round(hVal) : (humidity ?? 0),
+        pressure: pVal !== null ? Math.round(pVal * 10) / 10 : (pressure ?? 0),
+        windSpeed: wVal !== null ? Math.round(wVal) : (windSpeed ?? 0),
+        rain: rVal !== null ? Math.round(rVal * 10) / 10 : 0,
       });
     }
 
@@ -751,155 +893,7 @@ class WeatherService {
   }
 
   /**
-   * Generates a clean fallback bundle when network is unavailable
-   */
-  private generateFallbackBundle(location: LocationRecord): WeatherDataBundle {
-    const isBhubaneswar = location.id === 'odisha-bhubaneswar';
-    const isCoastal = location.coastalStatus === 'coastal';
-
-    const temp = isCoastal ? 30.5 : isBhubaneswar ? 32.0 : 31.2;
-    const humidity = isCoastal ? 78 : 68;
-    const windSpeed = isCoastal ? 18 : 12;
-
-    const now = new Date();
-    const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
-    const istHours = (utcHours + 5.5) % 24;
-    const isDaytime = istHours >= 5.75 && istHours < 18.5;
-
-    const resolved = resolveWeatherCondition({
-      wmoCode: isDaytime ? 2 : 0, // Partly Cloudy day, or Clear night
-      precipitationMm: 0,
-      precipitationProbability: 10,
-      cloudCover: isDaytime ? 30 : 5,
-      windSpeedKmH: windSpeed,
-      isDaytime,
-    });
-
-    const lastUpdated = `${this.formatIstTime(now)} IST (Local Met Model)`;
-
-    const current: CurrentWeather = {
-      temp,
-      unit: 'C',
-      high: temp + 3,
-      low: temp - 5,
-      condition: resolved.conditionLabel,
-      conditionKey: resolved.conditionKey,
-      isDay: isDaytime,
-      wmoCode: isDaytime ? 2 : 0,
-      normalizedCondition: resolved.normalizedCondition,
-      weatherType: resolved.weatherType,
-      icon: resolved.icon,
-      windSpeed,
-      windDirection: isCoastal ? 'SSW (200°)' : 'SW (225°)',
-      windDirectionDeg: 210,
-      humidity,
-      pressure: 1012.4,
-      dewPoint: 22.1,
-      uvIndex: isDaytime ? 7.2 : 0,
-      pollen: 'Low',
-      pollenCount: 6,
-      grassPollen: 2,
-      treePollen: 3,
-      weedPollen: 1,
-      aqi: isCoastal ? 60 : 96,
-      aqiPm25: isCoastal ? 36 : 58,
-      aqiPm10: isCoastal ? 55 : 92,
-      aqiIndex: isCoastal ? 60 : 96,
-      no2: 22.4,
-      so2: 10.5,
-      co: 380,
-      o3: 26.0,
-      dust: 14.0,
-      aqiStatus: 'Moderate',
-      precipitation: 0.0,
-      precipitationProbability: 10,
-      isRainingNow: false,
-      rainExpectedSummary: 'No rain expected in the immediate window',
-      cloudCover: isDaytime ? 30 : 5,
-      sunrise: '05:32 AM',
-      sunset: '06:18 PM',
-      solarNoon: '12:15 PM',
-      daylightDuration: '12h 46m',
-      dawnTime: '05:10 AM',
-      duskTime: '06:40 PM',
-      solarElevationDeg: isDaytime ? 48 : -10,
-      stationName: location.weatherStation || `${location.displayName} Met Node`,
-      stationCode: location.imdStation || 'AWS-ODI-01',
-      locationId: location.id,
-      lastUpdated,
-      lastUpdatedTimestamp: now.getTime(),
-      source: 'IMD Climatology Offline Grid',
-      observationStatus: 'RECENT',
-      observationSource: 'IMD Historical Surface Grid',
-      observationTimeFormatted: `${this.formatIstDate(now)} • ${this.formatIstTime(now)} IST`,
-      isLive: false,
-    };
-
-    // Synthetic hourly & daily
-    const hourly: HourlyForecastItem[] = [];
-    for (let i = 0; i < 24; i++) {
-      const hour = (now.getHours() + i) % 24;
-      const isDay = hour >= 6 && hour <= 18;
-      hourly.push({
-        time: i === 0 ? 'Now' : `${hour % 12 === 0 ? 12 : hour % 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`,
-        hourNumber: hour,
-        temp: Math.round(temp + Math.sin(((hour - 6) / 12) * Math.PI) * 4),
-        condition: isDay ? 'Partly Cloudy' : 'Clear Night',
-        icon: isDay ? 'partly_cloudy_day' : 'partly_cloudy_night',
-        aqi: 52,
-        rainProb: hour === 17 || hour === 18 ? 35 : 10,
-        windSpeed,
-        uv: isDay ? 6 : 0,
-        humidity,
-      });
-    }
-
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const daily: DailyForecastItem[] = [];
-    for (let i = 0; i < 7; i++) {
-      const dt = new Date();
-      dt.setDate(dt.getDate() + i);
-      daily.push({
-        day: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : weekdays[dt.getDay()],
-        date: new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' }).format(dt),
-        condition: i % 2 === 0 ? 'Partly Cloudy' : 'Scattered Clouds',
-        icon: 'partly_cloudy_day',
-        high: temp + 3,
-        low: temp - 5,
-        rainProb: 20 + i * 5,
-        uv: 7,
-        aqi: 55,
-        humidity: 65,
-        wind: `${windSpeed} km/h`,
-        barProgress: { startPercent: 35, widthPercent: 45, color: '#4FA8E0' },
-      });
-    }
-
-    const trends: HistoricalTrendPoint[] = [];
-    for (let h = 0; h < 24; h++) {
-      trends.push({
-        time: `${h}:00`,
-        hour: h,
-        temp: Math.round(temp - 3 + Math.sin((h / 12) * Math.PI) * 5),
-        humidity: Math.round(65 + Math.cos((h / 12) * Math.PI) * 15),
-        pressure: 1012.0,
-        windSpeed,
-        rain: 0,
-      });
-    }
-
-    return {
-      current,
-      hourly,
-      daily,
-      trends,
-      lastFetchedAt: now,
-      isLive: false,
-    };
-  }
-
-  /**
-   * Generates deterministic test bundles for Demo Mode (Part 22)
+   * Generates deterministic test bundles exclusively when Demo Mode is explicitly selected
    */
   private generateDemoBundle(location: LocationRecord, override: DemoWeatherOverride): WeatherDataBundle {
     const now = new Date();
@@ -926,11 +920,11 @@ class WeatherService {
       case 'TEST_CLEAR_RAIN_LATER':
         condition = 'Mainly Clear';
         normalized = 'CLEAR';
-        weatherType = 'sunny'; // STRICTLY NOT RAINING NOW
+        weatherType = 'sunny';
         icon = 'sunny';
-        precip = 0.0; // 0 mm now
+        precip = 0.0;
         rainProb = 80;
-        isRainingNow = false; // MUST BE FALSE
+        isRainingNow = false;
         rainSummary = '80% chance of rain expected around 5:00 PM';
         break;
       case 'TEST_RAIN_NOW':
@@ -981,8 +975,12 @@ class WeatherService {
       isDay: true,
     });
 
+    const baseTemp = isRainingNow ? 23.4 : 32.0;
+    const baseHum = isRainingNow ? 92 : 55;
+    const baseWind = isRainingNow ? 24 : 12;
+
     const current: CurrentWeather = {
-      temp: isRainingNow ? 23.4 : 32.0,
+      temp: baseTemp,
       unit: 'C',
       high: 34,
       low: 21,
@@ -993,10 +991,10 @@ class WeatherService {
       normalizedCondition: normalized,
       weatherType,
       icon,
-      windSpeed: isRainingNow ? 24 : 12,
+      windSpeed: baseWind,
       windDirection: 'SW (220°)',
       windDirectionDeg: 220,
-      humidity: isRainingNow ? 92 : 55,
+      humidity: baseHum,
       pressure: 1011.5,
       dewPoint: 20.0,
       uvIndex: isRainingNow ? 1.5 : 8.5,
@@ -1030,16 +1028,34 @@ class WeatherService {
       lastUpdated: `${this.formatIstTime(now)} IST (Demo Simulation)`,
       lastUpdatedTimestamp: now.getTime(),
       source: `Demo Mode: ${override}`,
-      observationStatus: 'LIVE',
+      dataSource: `Demo Mode: ${override}`,
+      observationStatus: 'RECENT',
       observationSource: `Simulation Bench (${override})`,
       observationTimeFormatted: `${this.formatIstDate(now)} • ${this.formatIstTime(now)} IST`,
       isLive: false,
     };
 
-    const dummyBundle = this.generateFallbackBundle(location);
+    const hourly: HourlyForecastItem[] = Array.from({ length: 12 }, (_, i) => {
+      const hour = (now.getHours() + i) % 24;
+      return {
+        time: i === 0 ? 'Now' : `${hour % 12 === 0 ? 12 : hour % 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`,
+        hourNumber: hour,
+        temp: Math.round(baseTemp),
+        condition,
+        icon,
+        aqi: 68,
+        rainProb,
+        windSpeed: baseWind,
+        uv: isRainingNow ? 1 : 6,
+        humidity: baseHum,
+      };
+    });
+
     return {
-      ...dummyBundle,
       current,
+      hourly,
+      daily: [],
+      trends: [],
       lastFetchedAt: now,
       isLive: false,
     };

@@ -95,7 +95,7 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
       />
 
       {/* Persistent Bottom Forecast / Radar Timeline */}
-      <ForecastTimeline hourly={weatherBundle.hourly} radarData={radarProvider.data} />
+      <ForecastTimeline hourly={weatherBundle.hourly || []} radarData={radarProvider.data} />
 
       {/* Dismissible First-Visit Spatial Controls Guide & Guided Tours */}
       <FirstVisitGuide />
@@ -103,7 +103,7 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
       {/* SACHET / IMD Hazard Alert Center Drawer */}
       <AlertCenterModal
         selectedLocation={selectedLocation}
-        alerts={weatherBundle.alerts}
+        alerts={weatherBundle.alerts || []}
         onOpenFullWarningsPage={() => onOpenAnalyzeTab('warnings')}
       />
     </div>

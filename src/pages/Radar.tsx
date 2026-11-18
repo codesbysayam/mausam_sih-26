@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { RefreshCw, Navigation, MapPin } from 'lucide-react';
 import { LocationRecord } from '../types';
 import { LocatingPhase } from '../services/geolocationService';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
 import { WeatherMapMetric } from '../components/map/MapLayerControl';
 import { StateWeatherData } from '../components/map/IndiaWeatherMap';
 import { INDIA_WEATHER_DATA } from '../data/indiaWeatherData';
@@ -21,7 +21,12 @@ import { RadarProductSelector } from '../components/radar/RadarProductSelector';
 import { RadarTechnicalSpecs } from '../components/radar/RadarTechnicalSpecs';
 import { RadarTimeSpan } from '../components/radar/RadarTimeLapseController';
 import { useProvider } from '../store/providerStore';
-import { formatTimestampIST, getProviderStatusVisual } from '../services/providers/providerStatus';
+import { formatTimestampIST } from '../services/providers/providerStatus';
+import {
+  PageHeader,
+  ProvenanceStatus,
+  SeverityBanner,
+} from '../components/ui/ObservatoryPrimitives';
 
 export interface RadarPageProps {
   selectedLocation?: LocationRecord;
@@ -36,7 +41,6 @@ export const RadarPage: React.FC<RadarPageProps> = ({
   selectedLocation,
   onDetectLocation,
   isLocating = false,
-  locatePhase = 'idle',
   locationSource = 'MANUAL_SEARCH',
   onOpenLocationCenter,
 }) => {
@@ -202,7 +206,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
       return lastFetchTime;
     }
     return selectedStateData?.updatedAt
-      ? `Reference Snapshot (${selectedStateData.updatedAt})`
+      ? `Reference Baseline (${selectedStateData.updatedAt})`
       : lastFetchTime;
   }, [viewMode, activeTimelineFrames, activeFrameIndex, lastFetchTime, selectedStateData]);
 
@@ -219,7 +223,15 @@ export const RadarPage: React.FC<RadarPageProps> = ({
     return 'RECENT';
   }, [viewMode, radarProvider.status, radarProvider.data, radarData]);
 
-  const providerBadge = getProviderStatusVisual(radarProvider.status);
+  const headerProvenanceStatus: ProvenanceStatus = useMemo(() => {
+    if (viewMode === 'synoptic') return 'REFERENCE';
+    if (isLoadingRadar && !radarData?.available) return 'LOADING';
+    if (radarProvider.status === 'ERROR' || radarProvider.status === 'UNAVAILABLE') return 'UNAVAILABLE';
+    if (currentDataStatus === 'LIVE') return 'LIVE';
+    if (currentDataStatus === 'STALE') return 'STALE';
+    if (currentDataStatus === 'UNAVAILABLE') return 'UNAVAILABLE';
+    return 'RECENT';
+  }, [viewMode, isLoadingRadar, radarData?.available, radarProvider.status, currentDataStatus]);
 
   const handleSelectLayer = useCallback((selection: MapLayerSelection) => {
     setViewMode(selection.viewMode);
@@ -247,77 +259,91 @@ export const RadarPage: React.FC<RadarPageProps> = ({
     }
   };
 
-  return (
-    <div className="flex flex-col gap-4 w-full text-[#F4F7FA]">
-      {/* 1. COMPACT WORKSTATION HEADER & LOCATION BAR */}
-      <section className="bg-[#101B26] border border-white/12 rounded-xl px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-base sm:text-lg font-semibold tracking-tight text-[#F4F7FA]">
-              Weather Map &amp; Doppler Radar
-            </h1>
-            <span
-              className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${providerBadge.textClass} ${providerBadge.bgClass} ${providerBadge.borderClass}`}
-            >
-              Radar: {providerBadge.label}
-              {radarProvider.latencyMs !== null ? ` • ${radarProvider.latencyMs}ms` : ''}
-            </span>
-          </div>
-          <p className="text-xs text-[#8EA3B8] mt-0.5">
-            Switch atmospheric layers, scrub 6-hour radar scans, or click any point on the map to inspect local conditions.
-          </p>
-        </div>
+  const coordinateSummary = selectedLocation
+    ? `${selectedLocation.city}, ${selectedLocation.state} · ${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+    : undefined;
 
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          <div className="text-[11px] font-mono text-[#B6C7D8] bg-[#162331] px-2.5 py-1.5 rounded-lg border border-white/10 tabular-nums">
-            Updated: {lastFetchTime}
-          </div>
-          <button
-            type="button"
-            onClick={() => refreshRadarProvider(true)}
-            disabled={isLoadingRadar}
-            className="min-h-[36px] px-3 py-1.5 rounded-lg bg-[#1499E8] hover:bg-[#0E83CA] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer"
-          >
-            <span
-              className={`material-symbols-outlined text-[16px] ${
-                isLoadingRadar ? 'animate-spin' : ''
-              }`}
+  return (
+    <div className="flex flex-col gap-5 w-full text-[#F3F6FA]">
+      {/* Unified Observatory PageHeader (consolidates page title, provenance, location & radar controls) */}
+      <PageHeader
+        eyebrow="Doppler Surveillance & Synoptic Map"
+        title="Weather Map & Doppler Radar"
+        description="Switch atmospheric layers, scrub 6-hour composite radar scans, or inspect live point meteorology across India."
+        coordinates={coordinateSummary}
+        status={headerProvenanceStatus}
+        source={
+          viewMode === 'radar'
+            ? 'RainViewer Radar Mosaic · IMD DWR Network'
+            : 'Regional Reference Baseline · Open-Meteo Point Query'
+        }
+        updatedAt={
+          radarProvider.latencyMs !== null
+            ? `${lastFetchTime} · ${radarProvider.latencyMs}ms`
+            : lastFetchTime
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {onDetectLocation && (
+              <button
+                type="button"
+                onClick={() => onDetectLocation(true)}
+                disabled={isLocating}
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+                title={
+                  locationSource === 'DEVICE_GPS'
+                    ? 'Active device GPS lock — click to re-sync coordinates'
+                    : 'Detect current device coordinates via GPS'
+                }
+              >
+                <Navigation className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating...' : 'Detect GPS'}</span>
+              </button>
+            )}
+
+            {onOpenLocationCenter && (
+              <button
+                type="button"
+                onClick={onOpenLocationCenter}
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <span>Switch Location</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => refreshRadarProvider(true)}
+              disabled={isLoadingRadar}
+              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#095c96] border border-[#35C7E8]/40 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
             >
-              refresh
-            </span>
-            <span>{isLoadingRadar ? 'Syncing...' : 'Refresh Radar'}</span>
-          </button>
-        </div>
-      </section>
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRadar ? 'animate-spin' : ''}`} />
+              <span>{isLoadingRadar ? 'Syncing...' : 'Refresh Radar'}</span>
+            </button>
+          </div>
+        }
+      />
 
       {radarProvider.error && viewMode === 'radar' && (
-        <div className="bg-[#162331] border border-[#F59E0B]/40 rounded-xl px-4 py-2.5 text-xs text-[#F59E0B] flex items-center justify-between gap-3">
-          <span>
-            Radar composite feed unavailable ({radarProvider.error}). Station markers and point meteorology inspection remain active.
-          </span>
-          <button
-            type="button"
-            onClick={() => refreshRadarProvider(true)}
-            className="px-2.5 py-1 rounded bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 text-[#F59E0B] font-semibold shrink-0 cursor-pointer"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {selectedLocation && (
-        <LocationStatusBar
-          location={selectedLocation}
-          locationSource={locationSource}
-          source={locationSource}
-          isLocating={isLocating}
-          onDetectLocation={onDetectLocation ? () => onDetectLocation(true) : undefined}
-          onOpenLocationCenter={onOpenLocationCenter}
-          onChangeLocationClick={onOpenLocationCenter}
+        <SeverityBanner
+          state="UNAVAILABLE"
+          title="Radar Composite Feed Unavailable"
+          description={`Upstream feed reported (${radarProvider.error}). Station range overlays and Open-Meteo point meteorology inspection remain active.`}
+          source="RainViewer Composite Feed"
+          action={
+            <button
+              type="button"
+              onClick={() => refreshRadarProvider(true)}
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 border border-[#F59E0B]/40 text-xs font-semibold text-[#FCD34D] transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+            >
+              Retry Sync
+            </button>
+          }
         />
       )}
 
-      {/* 2. WINDY-INSPIRED MAP-FIRST WORKSPACE: LAYER RAIL + MAP CANVAS + POINT INSPECTOR */}
+      {/* Map-First Workstation: Layer Rail + Map Canvas + Point Inspector */}
       <section ref={mapWorkspaceRef} className="flex flex-col gap-3">
         <div className="flex flex-col lg:flex-row gap-3 items-stretch">
           {/* Left Layer Rail (horizontal scroll bar on mobile/tablet, grouped rail on desktop) */}
@@ -346,7 +372,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               hideMetricSelector={true}
             />
 
-            <div className="relative border-x border-white/12 bg-[#0B1219] flex-1 min-h-[460px] md:min-h-[540px] lg:min-h-[640px]">
+            <div className="relative border-x border-[#26394B] bg-[#07111D] flex-1 min-h-[440px] md:min-h-[540px] lg:min-h-[640px]">
               <MausamMap
                 viewMode={viewMode}
                 activeMetric={activeMetric}
@@ -372,7 +398,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
                 isLocked={isMapLocked}
                 onToggleLock={handleToggleLock}
                 sectorName={currentSectorName}
-                heightClass="h-full min-h-[460px] md:min-h-[540px] lg:min-h-[640px]"
+                heightClass="h-full min-h-[440px] md:min-h-[540px] lg:min-h-[640px]"
                 showRadarLegend={viewMode === 'radar'}
                 showTimeLapseControl={viewMode === 'radar'}
                 timeLapseFrames={activeTimelineFrames}
@@ -403,7 +429,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               sourceName={
                 viewMode === 'radar'
                   ? 'RainViewer Global Radar Composite / IMD DWR Reference'
-                  : 'Regional Reference Layer + Open-Meteo Point Query'
+                  : 'Regional Reference Baseline + Open-Meteo Point Query'
               }
               observationTime={currentObsTimestamp}
               dataStatus={currentDataStatus}
@@ -425,34 +451,27 @@ export const RadarPage: React.FC<RadarPageProps> = ({
         </div>
       </section>
 
-      {/* 3. DOPPLER STATION NETWORK DIRECTORY */}
-      <section>
-        <RadarStationNetwork
-          selectedStationId={selectedStation.id}
-          onSelectStation={handleSelectStationFromDirectory}
-        />
-      </section>
+      {/* Doppler Station Network Directory */}
+      <RadarStationNetwork
+        selectedStationId={selectedStation.id}
+        onSelectStation={handleSelectStationFromDirectory}
+      />
 
-      {/* 4. RADAR PRODUCT INFORMATION */}
-      <section>
-        <RadarProductSelector
-          selectedProduct={selectedProduct}
-          onSelectProduct={setSelectedProduct}
-          radarSourceLabel="RainViewer precipitation radar"
-          isRadarMode={viewMode === 'radar'}
-        />
-      </section>
+      {/* Radar Product Information */}
+      <RadarProductSelector
+        selectedProduct={selectedProduct}
+        onSelectProduct={setSelectedProduct}
+        radarSourceLabel="RainViewer precipitation radar"
+        isRadarMode={viewMode === 'radar'}
+      />
 
-      {/* 5. COLLAPSIBLE TECHNICAL DETAILS */}
-      <section>
-        <RadarTechnicalSpecs
-          station={selectedStation}
-          radarSourceLabel="RainViewer precipitation radar / IMD Doppler Network"
-        />
-      </section>
+      {/* Collapsible Technical Details */}
+      <RadarTechnicalSpecs
+        station={selectedStation}
+        radarSourceLabel="RainViewer precipitation radar / IMD Doppler Network"
+      />
     </div>
   );
 };
 
 export default RadarPage;
-

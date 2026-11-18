@@ -1,27 +1,44 @@
 :root {
+  /* ========================================================
+     MAUSAM OBSERVATORY DESIGN SYSTEM v3.0.0 TOKENS
+     ======================================================== */
+  --m-canvas: #07111D;
+  --m-surface-1: #0B1927;
+  --m-surface-2: #101F2E;
+  --m-surface-3: #172A3B;
+  --m-surface-inset: #08131F;
+  --m-border: #26394B;
+  --m-border-strong: #38536A;
+  --m-text-primary: #F3F6FA;
+  --m-text-secondary: #B5C3D1;
+  --m-text-muted: #8295A8;
+  --m-accent: #35C7E8;
+  --m-accent-strong: #0B72B9;
+  --m-focus: #7DD3FC;
+
   --primary: #0B72B9;
   --primary-dark: #07538A;
-  --primary-light: #38BDF8;
-  --secondary: #1499E8;
+  --primary-light: #7DD3FC;
+  --secondary: #35C7E8;
 
-  --background: #0B1219;
-  --background-alt: #0E1721;
-  --surface: #101B26;
-  --surface-secondary: #162331;
-  --surface-hover: #1B2C3D;
+  --background: var(--m-canvas);
+  --background-alt: var(--m-surface-inset);
+  --surface: var(--m-surface-1);
+  --surface-secondary: var(--m-surface-2);
+  --surface-hover: var(--m-surface-3);
 
-  --text-primary: #F4F7FA;
-  --text-secondary: #B6C7D8;
-  --text: #F4F7FA;
-  --text-body: #B6C7D8;
+  --text-primary: var(--m-text-primary);
+  --text-secondary: var(--m-text-secondary);
+  --text: var(--m-text-primary);
+  --text-body: var(--m-text-secondary);
 
-  --border: rgba(148, 179, 206, 0.14);
-  --border-light: rgba(148, 179, 206, 0.08);
+  --border: var(--m-border);
+  --border-light: rgba(130, 149, 168, 0.16);
 
-  --accent: #38BDF8;
+  --accent: var(--m-accent);
   --accent-teal: #22C7A0;
 
-  /* Weather severity colors */
+  /* Calibrated Weather Severity Tokens (WCAG-AA verified on #0B1927) */
   --status-normal: #22C7A0;
   --status-watch: #F59E0B;
   --status-alert: #F97316;
@@ -32,15 +49,15 @@
   --alert: #F97316;
   --danger: #EF4444;
 
-  /* Dark palette aliases */
-  --bg: #0B1219;
-  --bg-alt: #0E1721;
-  --dark-background: #0B1219;
-  --dark-surface: #101B26;
-  --dark-surface-2: #162331;
-  --dark-border: rgba(148, 179, 206, 0.14);
-  --dark-text: #F4F7FA;
-  --dark-muted: #8EA3B8;
+  /* Unified Dark Observatory Aliases */
+  --bg: var(--m-canvas);
+  --bg-alt: var(--m-surface-inset);
+  --dark-background: var(--m-canvas);
+  --dark-surface: var(--m-surface-1);
+  --dark-surface-2: var(--m-surface-2);
+  --dark-border: var(--m-border);
+  --dark-text: var(--m-text-primary);
+  --dark-muted: var(--m-text-muted);
 
   --font: "IBM Plex Sans", "Noto Sans", "Noto Sans Oriya", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Nastaliq Urdu", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -53,25 +70,23 @@
   --indic-line-height: 1.62;
   --indic-letter-spacing: 0.01em;
 
-  /* ========================================================
-     MAUSAM OBSERVATORY SURFACE TOKENS
-     ======================================================== */
-  --glass-bg: rgba(16, 27, 38, 0.86);
-  --glass-bg-subtle: rgba(16, 27, 38, 0.62);
-  --glass-bg-elevated: rgba(22, 35, 49, 0.94);
-  --glass-bg-card: rgba(16, 27, 38, 0.9);
-  --glass-border: rgba(148, 179, 206, 0.14);
-  --glass-border-subtle: rgba(148, 179, 206, 0.08);
-  --glass-border-focus: rgba(56, 189, 248, 0.5);
-  --glass-blur: blur(14px);
-  --glass-blur-lg: blur(22px);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 28px 0 rgba(0, 0, 0, 0.34);
-  --glass-shadow-sm: 0 4px 14px 0 rgba(0, 0, 0, 0.22);
+  /* Calibrated Observatory Surface Helpers */
+  --glass-bg: rgba(11, 25, 39, 0.92);
+  --glass-bg-subtle: rgba(16, 31, 46, 0.85);
+  --glass-bg-elevated: rgba(16, 31, 46, 0.97);
+  --glass-bg-card: var(--m-surface-1);
+  --glass-border: var(--m-border);
+  --glass-border-subtle: rgba(38, 57, 75, 0.7);
+  --glass-border-focus: var(--m-focus);
+  --glass-blur: blur(12px);
+  --glass-blur-lg: blur(16px);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 8px 24px 0 rgba(2, 8, 16, 0.36);
+  --glass-shadow-sm: 0 4px 12px 0 rgba(2, 8, 16, 0.24);
   --glass-radius: 12px;
   --glass-radius-sm: 8px;
 
-  /* iOS Safe Area Insets (iPhone notch / Dynamic Island / Home Indicator) */
+  /* iOS Safe Area Insets */
   --sat: env(safe-area-inset-top, 0px);
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -90,8 +105,8 @@ body,
   min-height: 100dvh;
   margin: 0;
   padding: 0;
-  background: #0B1219;
-  color: #F4F7FA;
+  background: var(--m-canvas);
+  color: var(--m-text-primary);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -465,43 +480,43 @@ img, svg, canvas, video {
 .mausam-hero-environment {
   position: relative;
   border-radius: var(--radius);
-  background: linear-gradient(145deg, var(--dark-surface) 0%, var(--dark-background) 100%);
-  border: 1px solid var(--dark-border);
+  background: linear-gradient(155deg, var(--m-surface-1) 0%, var(--m-surface-inset) 100%);
+  border: 1px solid var(--m-border);
   overflow: hidden;
   transition: border-color 0.2s ease;
 }
 
 .mausam-hero-environment:hover {
-  border-color: rgba(21, 101, 192, 0.4);
+  border-color: var(--m-border-strong);
 }
 
 .mausam-strip {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: var(--dark-surface);
-  border: 1px solid var(--dark-border);
+  background: var(--m-surface-1);
+  border: 1px solid var(--m-border);
   border-radius: var(--radius-small);
   padding: 12px 18px;
 }
 
 .mausam-panel {
-  background: var(--dark-surface);
-  border: 1px solid var(--dark-border);
+  background: var(--m-surface-1);
+  border: 1px solid var(--m-border);
   border-radius: var(--radius);
   padding: clamp(14px, 2vw, 20px);
 }
 
 .mausam-panel-subtle {
-  background: var(--dark-surface-2);
-  border: 1px solid var(--dark-border);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
   border-radius: var(--radius-small);
   padding: 12px 16px;
 }
 
 .mausam-card {
-  background: var(--dark-surface);
-  border: 1px solid var(--dark-border);
+  background: var(--m-surface-1);
+  border: 1px solid var(--m-border);
   border-radius: var(--radius);
   padding: 16px;
   width: 100%;
@@ -510,8 +525,8 @@ img, svg, canvas, video {
 }
 
 .mausam-card:hover {
-  background: var(--dark-surface-2);
-  border-color: rgba(21, 101, 192, 0.35);
+  background: var(--m-surface-2);
+  border-color: var(--m-border-strong);
 }
 
 /* Inline metric items */
@@ -526,19 +541,20 @@ img, svg, canvas, video {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--dark-muted);
+  color: var(--m-text-muted);
 }
 
 .mausam-metric-val {
   font-size: 18px;
   font-weight: 700;
-  color: var(--dark-text);
+  color: var(--m-text-primary);
   letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .mausam-metric-hint {
   font-size: 12px;
-  color: var(--dark-muted);
+  color: var(--m-text-muted);
   line-height: 1.4;
 }
 
@@ -550,9 +566,9 @@ img, svg, canvas, video {
 .mausam-button {
   min-height: 40px;
   padding: 0 16px;
-  border: 1px solid var(--secondary);
+  border: 1px solid var(--m-accent-strong);
   border-radius: var(--radius-small);
-  background: var(--secondary);
+  background: var(--m-accent-strong);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -567,29 +583,29 @@ img, svg, canvas, video {
 
 .mausam-btn:hover,
 .mausam-button:hover {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: #0e82cf;
+  border-color: var(--m-accent);
 }
 
 .mausam-btn--secondary,
 .mausam-button-outline {
-  background: var(--dark-surface-2);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
+  color: var(--m-text-primary);
 }
 
 .mausam-btn--secondary:hover,
 .mausam-button-outline:hover {
-  background: var(--surface-hover);
-  border-color: var(--secondary);
+  background: var(--m-surface-3);
+  border-color: var(--m-border-strong);
   color: #fff;
 }
 
 .mausam-select {
   min-height: 38px;
-  background: var(--dark-surface-2);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text);
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border);
+  color: var(--m-text-primary);
   padding: 6px 12px;
   border-radius: var(--radius-small);
   outline: none;
@@ -597,47 +613,47 @@ img, svg, canvas, video {
 }
 
 .mausam-select:focus {
-  border-color: var(--secondary);
+  border-color: var(--m-accent);
 }
 
 /* =========================================
-   WEATHER SEVERITY STATUS STYLES
+   WEATHER SEVERITY STATUS STYLES (CALIBRATED)
 ========================================= */
 
 .status-normal {
-  color: #008000 !important;
+  color: #22C7A0 !important;
 }
 
 .status-watch {
-  color: #FFFF00 !important;
+  color: #F59E0B !important;
 }
 
 .status-alert {
-  color: #FFA500 !important;
+  color: #F97316 !important;
 }
 
 .status-warning {
-  color: #FF0000 !important;
+  color: #EF4444 !important;
 }
 
 .bg-status-normal {
-  background-color: #008000 !important;
+  background-color: #22C7A0 !important;
 }
 
 .bg-status-watch {
-  background-color: #FFFF00 !important;
+  background-color: #F59E0B !important;
 }
 
 .bg-status-alert {
-  background-color: #FFA500 !important;
+  background-color: #F97316 !important;
 }
 
 .bg-status-warning {
-  background-color: #FF0000 !important;
+  background-color: #EF4444 !important;
 }
 
 /* =========================================
-   BADGES & PILLS
+   BADGES & PILLS (SOFT CALIBRATED)
 ========================================= */
 
 .mausam-badge {
@@ -645,49 +661,49 @@ img, svg, canvas, video {
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  border-radius: var(--radius-pill);
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .mausam-badge--good,
 .mausam-badge--normal {
-  background: rgba(0, 128, 0, 0.15);
-  color: #008000;
-  border: 1px solid rgba(0, 128, 0, 0.4);
+  background: rgba(34, 199, 160, 0.14);
+  color: #22C7A0;
+  border: 1px solid rgba(34, 199, 160, 0.35);
 }
 
 .mausam-badge--watch,
 .mausam-badge--warning {
-  background: rgba(255, 255, 0, 0.15);
-  color: #FFFF00;
-  border: 1px solid rgba(255, 255, 0, 0.4);
+  background: rgba(245, 158, 11, 0.14);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .mausam-badge--alert {
-  background: rgba(255, 165, 0, 0.15);
-  color: #FFA500;
-  border: 1px solid rgba(255, 165, 0, 0.4);
+  background: rgba(249, 115, 22, 0.14);
+  color: #F97316;
+  border: 1px solid rgba(249, 115, 22, 0.35);
 }
 
 .mausam-badge--danger,
 .mausam-badge--severe {
-  background: rgba(255, 0, 0, 0.15);
-  color: #FF0000;
-  border: 1px solid rgba(255, 0, 0, 0.4);
+  background: rgba(239, 68, 68, 0.14);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .mausam-badge--info {
-  background: rgba(21, 101, 192, 0.15);
-  color: #E3F2FD;
-  border: 1px solid rgba(21, 101, 192, 0.4);
+  background: rgba(53, 199, 232, 0.14);
+  color: #35C7E8;
+  border: 1px solid rgba(53, 199, 232, 0.35);
 }
 
 .mausam-badge--neutral {
-  background: rgba(184, 199, 217, 0.12);
-  color: #B8C7D9;
-  border: 1px solid rgba(217, 226, 236, 0.2);
+  background: rgba(184, 199, 217, 0.1);
+  color: var(--m-text-secondary);
+  border: 1px solid var(--m-border);
 }
 
 .mausam-pill {
@@ -695,10 +711,10 @@ img, svg, canvas, video {
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: var(--radius-pill);
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   white-space: nowrap;
 }
 
@@ -1618,19 +1634,19 @@ img, svg, canvas, video {
   --space-10: 40px;
   --space-12: 48px;
 
-  --nwp-bg: #0B1219;
-  --nwp-surface: #101B26;
-  --nwp-surface-alt: #162331;
-  --nwp-border: rgba(148, 179, 206, 0.14);
-  --nwp-accent: #1499E8;
-  --nwp-cyan: #38BDF8;
-  --nwp-text: #F4F7FA;
-  --nwp-text-muted: #8EA3B8;
+  --nwp-bg: var(--m-canvas);
+  --nwp-surface: var(--m-surface-1);
+  --nwp-surface-alt: var(--m-surface-2);
+  --nwp-border: var(--m-border);
+  --nwp-accent: var(--m-accent-strong);
+  --nwp-cyan: var(--m-accent);
+  --nwp-text: var(--m-text-primary);
+  --nwp-text-muted: var(--m-text-muted);
 }
 
 .nwp-card {
-  background: #101B26;
-  border: 1px solid rgba(148, 179, 206, 0.14);
+  background: var(--m-surface-1);
+  border: 1px solid var(--m-border);
   border-radius: 12px;
   padding: 20px;
   min-width: 0;
@@ -1638,7 +1654,7 @@ img, svg, canvas, video {
 }
 
 .nwp-card:hover {
-  border-color: rgba(56, 189, 248, 0.3);
+  border-color: var(--m-border-strong);
 }
 
 /* ====================================================================
@@ -1654,21 +1670,45 @@ img, svg, canvas, video {
 }
 
 .spatial-hud-surface {
-  background: rgba(10, 24, 39, 0.93);
-  border: 1px solid rgba(132, 168, 204, 0.18);
+  background: rgba(11, 25, 39, 0.94);
+  border: 1px solid var(--m-border);
   box-shadow: 0 12px 32px rgba(2, 8, 16, 0.56);
 }
 
 .spatial-hud-surface-elevated {
-  background: rgba(13, 30, 48, 0.96);
-  border: 1px solid rgba(53, 199, 232, 0.32);
+  background: rgba(16, 31, 46, 0.97);
+  border: 1px solid var(--m-border-strong);
   box-shadow: 0 16px 40px rgba(2, 8, 16, 0.65);
 }
 
 .spatial-focus-ring:focus-visible {
-  outline: 2px solid #35C7E8;
+  outline: 2px solid var(--m-focus);
   outline-offset: 2px;
 }
 
+/* ====================================================================
+   MAUSAM OBSERVATORY PRIMITIVE SURFACES (v3.0.0)
+   ==================================================================== */
+.m-panel {
+  background: var(--m-surface-1);
+  border: 1px solid var(--m-border);
+  border-radius: var(--radius);
+}
 
+.m-panel-elevated {
+  background: var(--m-surface-2);
+  border: 1px solid var(--m-border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(2, 8, 16, 0.38);
+}
 
+.m-panel-inset {
+  background: var(--m-surface-inset);
+  border: 1px solid var(--m-border);
+  border-radius: var(--radius-small);
+}
+
+.m-focus-ring:focus-visible {
+  outline: 2px solid var(--m-focus);
+  outline-offset: 2px;
+}

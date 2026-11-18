@@ -23,37 +23,41 @@ interface AskMausamDrawerProps {
 export const AskMausamDrawer: React.FC<AskMausamDrawerProps> = ({
   isOpen,
   onClose,
-  weather,
-  weatherBundle,
   selectedLocation,
   currentStation,
   onSelectLocation,
-  onNavigateTab,
 }) => {
   if (!isOpen) return null;
 
-  const locName = selectedLocation?.name || selectedLocation?.city || currentStation?.name || 'Bhubaneswar, Odisha';
+  const locName =
+    selectedLocation?.name ||
+    selectedLocation?.city ||
+    currentStation?.name ||
+    'Bhubaneswar, Odisha';
   const locState = selectedLocation?.state || currentStation?.state || 'Odisha';
-  const locCity = selectedLocation?.city || currentStation?.district || currentStation?.name || 'Bhubaneswar';
-  const locLat = selectedLocation?.lat || currentStation?.lat || 20.2961;
-  const locLng = selectedLocation?.lng || currentStation?.lng || 85.8245;
+  const locCity =
+    selectedLocation?.city ||
+    currentStation?.district ||
+    currentStation?.name ||
+    'Bhubaneswar';
+  const locLat = selectedLocation?.lat ?? currentStation?.lat ?? 20.2961;
+  const locLng = selectedLocation?.lng ?? currentStation?.lng ?? 85.8245;
 
   return (
     <div
+      id="ask-mausam-drawer"
       className="fixed inset-0 z-50 overflow-hidden flex justify-end"
       role="dialog"
       aria-modal="true"
       aria-labelledby="ask-mausam-title"
     >
-      {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
         aria-hidden="true"
       />
 
-      {/* Drawer Container */}
-      <div className="relative w-full max-w-2xl bg-[#090E17] h-full shadow-2xl flex flex-col z-10 transition-transform transform duration-300 ease-in-out border-l border-[#1F2C3F]">
+      <div className="relative w-full max-w-2xl bg-[#07111D] h-full shadow-2xl flex flex-col z-10 border-l border-[#26394B]">
         <AskMausamPanel
           currentLocation={{
             name: locName,

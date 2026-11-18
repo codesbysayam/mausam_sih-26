@@ -5,6 +5,7 @@
 // ====================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
+import { RotateCcw, X, Send, Loader2 } from 'lucide-react';
 import {
   AskMausamContext,
   AskMausamMessage,
@@ -29,6 +30,9 @@ interface AskMausamPanelProps {
   onSelectLocation?: (locationName: string) => void;
 }
 
+const isValidNum = (v: unknown): v is number =>
+  typeof v === 'number' && !Number.isNaN(v) && Number.isFinite(v);
+
 export const AskMausamPanel: React.FC<AskMausamPanelProps> = ({
   currentLocation,
   onClose,
@@ -38,7 +42,6 @@ export const AskMausamPanel: React.FC<AskMausamPanelProps> = ({
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Checking atmospheric observations…');
-  const [lastTiming, setLastTiming] = useState<{ locationMs: number; providersMs: number; aiMs: number; totalMs: number } | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState<LanguageCode>('English');
   const [activeTab, setActiveTab] = useState<'CHAT' | 'REGIONS' | 'ABOUT'>('CHAT');
 
@@ -62,7 +65,6 @@ export const AskMausamPanel: React.FC<AskMausamPanelProps> = ({
     let isMounted = true;
 
     async function init() {
-      // 1. Pre-fetch background weather context for header ribbon silently
       try {
         const initialLocQuery = currentLocation?.name
           ? `Current weather in ${currentLocation.name}`
@@ -81,7 +83,6 @@ export const AskMausamPanel: React.FC<AskMausamPanelProps> = ({
         console.error('Failed to pre-fetch Ask MAUSAM context:', err);
       }
 
-      // 2. Initial Greeting Briefing (Clean introduction, NOT a weather table!)
       if (isMounted) {
         const welcomeMsg: AskMausamMessage = {
           id: `msg-welcome`,
@@ -145,7 +146,6 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
     const textToSend = (queryText || inputText).trim();
     if (!textToSend || isLoading) return;
 
-    // Abort previous in-flight request if any
     if (activeAbortController.current) {
       activeAbortController.current.abort();
     }
@@ -172,7 +172,6 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       routing.intent === 'GREETING' ||
       routing.requiredTools.length === 0;
 
-    // Requirement 15: For local knowledge answers: NO LOADING SCREEN.
     if (!isInstantKnowledge) {
       setLoadingMessage(getIntentLoadingMessage(routing.intent));
       setIsLoading(true);
@@ -186,11 +185,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
         signal: controller.signal,
       });
 
-      // Synchronize canonical context with latest query result
       setCanonicalContext(result.context);
-      if (result.timingMs) {
-        setLastTiming(result.timingMs);
-      }
 
       const assistantMsg: AskMausamMessage = {
         id: `assistant-${Date.now()}`,
@@ -239,39 +234,46 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
   const aqiVal = canonicalContext?.aqi?.index;
   const aqiCat = canonicalContext?.aqi?.category;
 
+  const hasTemp = isValidNum(curWeather?.temperatureC);
+  const hasHumidity = isValidNum(curWeather?.humidity);
+  const hasWind = isValidNum(curWeather?.windSpeedKmh);
+  const hasAqi = isValidNum(aqiVal);
+
   return (
-    <div className="flex flex-col h-full bg-[#090E17] text-[#D7DEE8] border-l border-[#1F2C3F] font-sans">
+    <div className="flex flex-col h-full bg-[#07111D] text-[#B5C3D1] font-sans">
       {/* 1. MASTER METEOROLOGICAL HEADER */}
-      <div className="p-3.5 bg-[#0D1524] border-b border-[#1F2C3F] flex flex-col gap-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0284C7]/20 border border-[#0284C7]/40 flex items-center justify-center text-[#38BDF8] font-bold text-sm">
+      <div className="p-3.5 sm:p-4 bg-[#0B1927] border-b border-[#26394B] flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8] font-bold font-mono text-sm shrink-0">
               M
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2
+                  id="ask-mausam-title"
+                  className="text-sm sm:text-base font-bold text-[#F3F6FA] tracking-tight"
+                >
                   Ask MAUSAM
                 </h2>
                 {loc?.name && (
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#162234] text-[#38BDF8] border border-[#1F2C3F]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-[#08131F] text-[#35C7E8] border border-[#26394B] truncate max-w-[180px]">
                     {loc.name}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-[#94A3B8]">
-                India Meteorological & Atmospheric Intelligence
+              <span className="text-[11px] text-[#8295A8] block truncate">
+                India Meteorological &amp; Atmospheric Intelligence
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Language Selector */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <select
               value={preferredLanguage}
               onChange={(e) => setPreferredLanguage(e.target.value as LanguageCode)}
               aria-label="Select Assistant Language"
-              className="bg-[#121D2C] border border-[#1F2C3F] text-xs text-[#CBD5E1] rounded-lg px-2 py-1 outline-none cursor-pointer"
+              className="min-h-[44px] sm:min-h-[40px] bg-[#08131F] border border-[#26394B] text-xs font-mono text-[#F3F6FA] rounded-lg px-2.5 outline-none cursor-pointer focus:border-[#35C7E8]"
             >
               <option value="English">EN</option>
               <option value="Hindi">HI</option>
@@ -283,81 +285,86 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             </select>
 
             <button
+              type="button"
               onClick={handleClearChat}
               title="Reset conversation"
-              className="p-1.5 rounded-lg hover:bg-[#1A2638] text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+              aria-label="Reset conversation"
+              className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <RotateCcw className="w-4 h-4" />
             </button>
 
             {onClose && (
               <button
+                type="button"
                 onClick={onClose}
                 title="Close panel"
-                className="p-1.5 rounded-lg hover:bg-[#1A2638] text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                aria-label="Close panel"
+                className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
 
-        {/* 2. CANONICAL CONTEXT STRIP: Temperature, Condition, Humidity, Wind, AQI, Warning */}
+        {/* 2. CANONICAL CONTEXT STRIP */}
         {canonicalContext && (
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 p-2 rounded-xl bg-[#121E30] border border-[#1F2C3F] text-[11px]">
-            {/* Temperature */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">Temp</span>
-              <span className="font-bold text-white font-mono text-xs">
-                {curWeather ? `${curWeather.temperatureC}°C` : 'N/A'}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-[11px] tabular-nums">
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Temp</span>
+              <span className="font-bold text-[#F3F6FA] font-mono text-xs truncate">
+                {hasTemp ? `${curWeather!.temperatureC}°C` : '—'}
               </span>
             </div>
 
-            {/* Condition */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">Sky</span>
-              <span className="font-medium text-[#38BDF8] truncate text-xs">
-                {curWeather?.condition || 'Monitored'}
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Sky</span>
+              <span className="font-medium text-[#35C7E8] truncate text-xs">
+                {curWeather?.condition || '—'}
               </span>
             </div>
 
-            {/* Humidity */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">Humidity</span>
-              <span className="font-medium text-[#CBD5E1] text-xs">
-                {curWeather?.humidity !== undefined ? `${curWeather.humidity}%` : 'N/A'}
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Humidity</span>
+              <span className="font-medium font-mono text-[#F3F6FA] text-xs truncate">
+                {hasHumidity ? `${curWeather!.humidity}%` : '—'}
               </span>
             </div>
 
-            {/* Wind */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">Wind</span>
-              <span className="font-medium text-[#CBD5E1] truncate text-xs">
-                {curWeather?.windSpeedKmh !== undefined ? `${curWeather.windSpeedKmh} km/h` : 'N/A'}
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Wind</span>
+              <span className="font-medium font-mono text-[#F3F6FA] truncate text-xs">
+                {hasWind ? `${curWeather!.windSpeedKmh} km/h` : '—'}
               </span>
             </div>
 
-            {/* AQI */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">AQI</span>
-              <span className="font-medium text-xs truncate" style={{ color: aqiVal && aqiVal > 200 ? '#EF4444' : aqiVal && aqiVal > 100 ? '#EAB308' : '#10B981' }}>
-                {aqiVal !== undefined ? `${aqiVal} (${aqiCat || 'AQI'})` : 'N/A'}
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">AQI</span>
+              <span
+                className="font-medium font-mono text-xs truncate"
+                style={{
+                  color: hasAqi
+                    ? aqiVal! > 200
+                      ? '#FCA5A5'
+                      : aqiVal! > 100
+                      ? '#FCD34D'
+                      : '#6EE7B7'
+                    : '#8295A8',
+                }}
+              >
+                {hasAqi ? `${aqiVal} (${aqiCat || 'AQI'})` : '—'}
               </span>
             </div>
 
-            {/* Warning Status */}
-            <div className="flex flex-col px-1">
-              <span className="text-[10px] text-[#94A3B8] uppercase">Warning</span>
+            <div className="flex flex-col px-1 min-w-0">
+              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Warning</span>
               {topWarning ? (
-                <span className="font-bold text-[10px] uppercase text-[#EF4444] truncate">
+                <span className="font-bold text-[10px] font-mono uppercase text-[#FCA5A5] truncate">
                   {topWarning.severity} Alert
                 </span>
               ) : (
-                <span className="font-medium text-[10px] text-[#10B981] truncate">
+                <span className="font-medium text-[10px] font-mono text-[#6EE7B7] truncate">
                   No Alert
                 </span>
               )}
@@ -367,43 +374,32 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       </div>
 
       {/* 3. NAVIGATION TABS */}
-      <div className="flex items-center border-b border-[#1F2C3F] bg-[#0A101B] px-4 text-xs font-medium">
-        <button
-          onClick={() => setActiveTab('CHAT')}
-          className={`py-2 px-3 border-b-2 transition-colors cursor-pointer ${
-            activeTab === 'CHAT'
-              ? 'border-[#38BDF8] text-[#38BDF8]'
-              : 'border-transparent text-[#94A3B8] hover:text-white'
-          }`}
-        >
-          Assistant Chat
-        </button>
-        <button
-          onClick={() => setActiveTab('REGIONS')}
-          className={`py-2 px-3 border-b-2 transition-colors cursor-pointer ${
-            activeTab === 'REGIONS'
-              ? 'border-[#38BDF8] text-[#38BDF8]'
-              : 'border-transparent text-[#94A3B8] hover:text-white'
-          }`}
-        >
-          All 36 States & UTs
-        </button>
-        <button
-          onClick={() => setActiveTab('ABOUT')}
-          className={`py-2 px-3 border-b-2 transition-colors cursor-pointer ${
-            activeTab === 'ABOUT'
-              ? 'border-[#38BDF8] text-[#38BDF8]'
-              : 'border-transparent text-[#94A3B8] hover:text-white'
-          }`}
-        >
-          Grounding Truth
-        </button>
+      <div className="flex items-center border-b border-[#26394B] bg-[#08131F] px-3 sm:px-4 text-xs font-mono font-medium overflow-x-auto scrollbar-none">
+        {(
+          [
+            { id: 'CHAT', label: 'Assistant Chat' },
+            { id: 'REGIONS', label: 'All 36 States & UTs' },
+            { id: 'ABOUT', label: 'Grounding Truth' },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`min-h-[44px] sm:min-h-[40px] py-2 px-3 border-b-2 transition-colors cursor-pointer shrink-0 ${
+              activeTab === tab.id
+                ? 'border-[#35C7E8] text-[#35C7E8] font-bold'
+                : 'border-transparent text-[#8295A8] hover:text-[#F3F6FA]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* 4. BODY CONTENT */}
       {activeTab === 'CHAT' && (
         <div className="flex-1 flex flex-col min-h-0">
-          {/* Scrollable message stream */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
             <QuickActions
               onSelectPrompt={(p) => handleSendMessage(p)}
@@ -420,12 +416,14 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             ))}
 
             {isLoading && (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[#0F172A] border border-[#1E293B] text-xs text-[#94A3B8]">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#38BDF8] animate-ping" />
-                  <span className="text-[#38BDF8] font-medium animate-pulse">{loadingMessage}</span>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-[#0B1927] border border-[#26394B] text-xs text-[#B5C3D1]">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Loader2 className="w-4 h-4 text-[#35C7E8] animate-spin shrink-0" />
+                  <span className="text-[#35C7E8] font-medium truncate">{loadingMessage}</span>
                 </div>
-                <span className="text-[10px] text-[#64748B] font-mono tracking-wider">PARALLEL PIPELINE</span>
+                <span className="text-[10px] text-[#8295A8] font-mono uppercase shrink-0 ml-2">
+                  Querying Providers
+                </span>
               </div>
             )}
 
@@ -433,7 +431,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
           </div>
 
           {/* Input field */}
-          <div className="p-3 sm:p-4 bg-[#0D1524] border-t border-[#1F2C3F] flex flex-col gap-2">
+          <div className="p-3 sm:p-4 bg-[#0B1927] border-t border-[#26394B] flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <input
                 ref={inputRef}
@@ -443,62 +441,22 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about weather, rainfall, warnings, AQI, agriculture..."
                 disabled={isLoading}
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#121D2C] border border-[#1F2C3F] text-sm text-white placeholder-[#64748B] focus:outline-none focus:border-[#38BDF8] transition-colors"
+                className="flex-1 min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg bg-[#08131F] border border-[#26394B] text-sm text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8] transition-colors"
               />
               <button
+                type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isLoading}
-                className="px-4 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-40 disabled:hover:bg-[#0284C7] text-white text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] disabled:opacity-40 text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring shrink-0"
               >
                 <span>Send</span>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
+                <Send className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-[#64748B] px-1">
-              {(() => {
-                const lastMsg = [...messages].reverse().find((m) => m.sender === 'assistant');
-                const isKnowledge =
-                  lastMsg?.structured?.responseType === 'knowledge' ||
-                  lastMsg?.structured?.intent === 'GENERAL_KNOWLEDGE' ||
-                  lastMsg?.structured?.intent === 'ABOUT_MAUSAM' ||
-                  lastMsg?.structured?.intent === 'ABOUT_DEVELOPER' ||
-                  lastMsg?.structured?.intent === 'HELP' ||
-                  lastMsg?.structured?.intent === 'GREETING';
-
-                if (isKnowledge) {
-                  return (
-                    <>
-                      <span>Grounding: MAUSAM Canonical Knowledge Base</span>
-                      {lastTiming ? (
-                        <span className="font-mono text-[#34D399]">
-                          Resolved in {lastTiming.totalMs}ms (Local Knowledge)
-                        </span>
-                      ) : (
-                        <span>Verified Knowledge Grounding</span>
-                      )}
-                    </>
-                  );
-                }
-
-                return (
-                  <>
-                    <span>Grounding: IMD & Open-Meteo Normalized Telemetry</span>
-                    {lastTiming ? (
-                      <span className="font-mono text-[#38BDF8]">
-                        Resolved in {lastTiming.totalMs}ms{' '}
-                        {lastTiming.aiMs === 0
-                          ? `(${lastMsg?.structured?.debug?.fastPath || 'Telemetry Fast-Path'})`
-                          : `(Providers: ${lastTiming.providersMs}ms)`}
-                      </span>
-                    ) : (
-                      <span>Zero-Discrepancy Fact Enforcement</span>
-                    )}
-                  </>
-                );
-              })()}
+            <div className="flex items-center justify-between text-[10px] text-[#8295A8] px-0.5 font-mono">
+              <span>Grounding: IMD, SACHET, CPCB &amp; Open-Meteo Telemetry</span>
+              <span>Zero-Discrepancy Enforcement</span>
             </div>
           </div>
         </div>
@@ -507,10 +465,10 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       {activeTab === 'REGIONS' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-white mb-1">
-              All 36 Indian States & Union Territories
+            <h3 className="text-sm font-bold text-[#F3F6FA] mb-1">
+              All 36 Indian States &amp; Union Territories
             </h3>
-            <p className="text-xs text-[#94A3B8]">
+            <p className="text-xs text-[#8295A8]">
               Select any state or union territory to query live meteorological observations.
             </p>
           </div>
@@ -519,19 +477,22 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             {INDIA_STATES_UTS.map((reg) => (
               <button
                 key={reg.id}
+                type="button"
                 onClick={() => {
                   setActiveTab('CHAT');
                   handleSendMessage(`What is the current weather in ${reg.name}?`);
                 }}
-                className="p-2.5 rounded-xl bg-[#121D2C] hover:bg-[#1A283C] border border-[#1F2C3F] hover:border-[#38BDF8]/40 transition-colors text-left flex items-center justify-between cursor-pointer"
+                className="min-h-[44px] p-2.5 rounded-lg bg-[#0B1927] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/45 transition-colors text-left flex items-center justify-between cursor-pointer m-focus-ring"
               >
                 <div>
-                  <span className="font-semibold text-white text-xs block">{reg.name}</span>
-                  <span className="text-[10px] text-[#94A3B8]">
-                    {reg.capital} • {reg.type === 'STATE' ? 'State' : 'Union Territory'}
+                  <span className="font-semibold text-[#F3F6FA] text-xs block">{reg.name}</span>
+                  <span className="text-[10px] text-[#8295A8]">
+                    {reg.capital} · {reg.type === 'STATE' ? 'State' : 'Union Territory'}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#38BDF8] font-mono">{reg.code}</span>
+                <span className="text-[11px] text-[#35C7E8] font-mono tabular-nums">
+                  {reg.code}
+                </span>
               </button>
             ))}
           </div>
@@ -539,25 +500,27 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       )}
 
       {activeTab === 'ABOUT' && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs text-[#CBD5E1] leading-relaxed">
-          <div className="p-3.5 rounded-xl bg-[#121D2C] border border-[#1F2C3F] space-y-2">
-            <h4 className="font-bold text-white text-sm">Truthful Meteorological Grounding</h4>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs text-[#B5C3D1] leading-relaxed">
+          <div className="m-panel p-4 space-y-1.5">
+            <h4 className="font-bold text-[#F3F6FA] text-sm">
+              Truthful Meteorological Grounding
+            </h4>
             <p>
-              Ask MAUSAM functions strictly as a tool-grounded meteorological system. Responses are not generated from latent training memories; they are verified against live station feeds and high-resolution numerical atmospheric models.
+              Ask MAUSAM operates as a tool-grounded meteorological system. Answers are synthesized from active station feeds, SACHET CAP bulletins, and calibrated atmospheric model data.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#121D2C] border border-[#1F2C3F] space-y-2">
-            <h4 className="font-bold text-white text-sm">Official IMD Data Connector</h4>
+          <div className="m-panel p-4 space-y-1.5">
+            <h4 className="font-bold text-[#F3F6FA] text-sm">Official IMD Data Connector</h4>
             <p>
-              Direct IMD API access requires registered credentials (<code className="text-[#38BDF8]">IMD_API_KEY</code>) set in the server environment. When direct IMD access is unconfigured, the system truthfully notes it and provides calibrated Open-Meteo telemetry fallback.
+              Direct IMD API access uses registered server credentials when provisioned. When direct IMD access is unconfigured, the system discloses the active provider and serves calibrated Open-Meteo telemetry.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#121D2C] border border-[#1F2C3F] space-y-2">
-            <h4 className="font-bold text-white text-sm">Zero Data Discrepancy Protocol</h4>
+          <div className="m-panel p-4 space-y-1.5">
+            <h4 className="font-bold text-[#F3F6FA] text-sm">Zero Data Discrepancy Protocol</h4>
             <p>
-              The top header, context strip, answer cards, and message bubble all share a single canonical context object (<code className="text-[#38BDF8]">AskMausamContext</code>). The Contradiction Detection Engine validates every candidate response against ground facts before rendering.
+              The header, context strip, answer cards, and message bubbles share a single synchronized canonical context so readings remain consistent across the assistant session.
             </p>
           </div>
         </div>

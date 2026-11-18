@@ -1,44 +1,47 @@
 /**
  * Forecast Normalization & Meteorological Quality Control Layer
  * Validates meteorological boundaries, ensures RH <= 100%,
- * calculates Dew Point, Heat Index, Beaufort Scale, and Wind Degrees.
+ * computes Dew Point / Apparent Temp strictly from verified inputs (no synthetic constants).
  */
 
 import { HourlyForecastItem, DailyForecastItem } from '../types';
 
 export interface NormalizedHourlyItem extends HourlyForecastItem {
-  validTemp: number;
-  validRainProb: number;
-  validPrecipMm: number;
-  validWindSpeed: number;
-  validWindDirection: string;
-  windDegree: number;
-  validHumidity: number;
-  validCloudCover: number;
-  dewPoint: number;
-  feelsLike: number;
-  uvIndex: number;
-  visibilityKm: number;
-  gustSpeed: number;
+  validTemp: number | null;
+  validRainProb: number | null;
+  validPrecipMm: number | null;
+  validWindSpeed: number | null;
+  validWindDirection: string | null;
+  windDegree: number | null;
+  validHumidity: number | null;
+  validCloudCover: number | null;
+  dewPoint: number | null;
+  feelsLike: number | null;
+  uvIndex: number | null;
+  visibilityKm: number | null;
+  gustSpeed: number | null;
 }
 
 export interface NormalizedDailyItem extends DailyForecastItem {
-  validHigh: number;
-  validLow: number;
-  validRainProb: number;
-  validPrecipMm: number;
-  validHumidity: number;
-  validWindSpeed: number;
-  validWindDirection: string;
-  validUv: number;
+  validHigh: number | null;
+  validLow: number | null;
+  validRainProb: number | null;
+  validPrecipMm: number | null;
+  validHumidity: number | null;
+  validWindSpeed: number | null;
+  validWindDirection: string | null;
+  validUv: number | null;
   dateFormatted: string;
-  visibilityKm: number;
-  validCloudCover: number;
+  visibilityKm: number | null;
+  validCloudCover: number | null;
 }
+
+const finiteNum = (val: unknown): number | null =>
+  typeof val === 'number' && Number.isFinite(val) ? val : null;
 
 /**
  * Calculates Dew Point using the Magnus-Tetens formula
- * T in °C, RH in % (0-100)
+ * T in °C, RH in % (1-100)
  */
 export function calculateDewPoint(tempC: number, rhPercent: number): number {
   const safeRh = Math.max(1, Math.min(100, rhPercent));
@@ -50,23 +53,21 @@ export function calculateDewPoint(tempC: number, rhPercent: number): number {
 }
 
 /**
- * Calculates Heat Index / Apparent Temperature in °C (Rothfusz equation)
+ * Calculates Heat Index / Apparent Temperature in °C (Australian apparent temp formula)
  */
 export function calculateApparentTemp(tempC: number, rhPercent: number, windSpeedKmh: number): number {
   const safeRh = Math.max(0, Math.min(100, rhPercent));
   const windMs = (windSpeedKmh * 1000) / 3600;
-
-  // Australian apparent temperature formula for general temperature range
   const e = (safeRh / 100) * 6.105 * Math.exp((17.27 * tempC) / (237.7 + tempC));
   const at = tempC + 0.33 * e - 0.70 * windMs - 4.0;
   return Math.round(at * 10) / 10;
 }
 
 /**
- * Maps cardinal wind directions to compass degrees
+ * Maps cardinal wind directions to compass degrees (returns null when unknown)
  */
-export function directionToDegrees(dirStr?: string): number {
-  if (!dirStr) return 45;
+export function directionToDegrees(dirStr?: string | null): number | null {
+  if (!dirStr) return null;
   const cleaned = dirStr.trim().toUpperCase();
   const map: Record<string, number> = {
     N: 0,
@@ -86,7 +87,7 @@ export function directionToDegrees(dirStr?: string): number {
     NW: 315,
     NNW: 337.5,
   };
-  return map[cleaned] !== undefined ? map[cleaned] : 45;
+  return map[cleaned] !== undefined ? map[cleaned] : null;
 }
 
 /**
@@ -108,42 +109,54 @@ export function getBeaufortCategory(windKmh: number): { force: number; descripti
 }
 
 /**
- * Normalizes hourly forecasts ensuring no NaN, null, or out-of-bound values reach UI
+ * Normalizes hourly forecasts strictly preserving null for missing telemetry
  */
 export function normalizeHourlyForecast(rawItems: HourlyForecastItem[]): NormalizedHourlyItem[] {
   if (!Array.isArray(rawItems) || rawItems.length === 0) return [];
 
-  return rawItems.map((item, idx) => {
-    const validTemp = typeof item.temp === 'number' && !isNaN(item.temp) ? Math.round(item.temp * 10) / 10 : 28;
-    const validRainProb = typeof item.precipitationProbability === 'number' && !isNaN(item.precipitationProbability)
-      ? Math.max(0, Math.min(100, Math.round(item.precipitationProbability)))
-      : (typeof item.rainProb === 'number' && !isNaN(item.rainProb) ? Math.max(0, Math.min(100, Math.round(item.rainProb))) : 20);
+  return rawItems.map((item) => {
+    const rawTemp = finiteNum(item.temp);
+    const validTemp = rawTemp !== null ? Math.round(rawTemp * 10) / 10 : null;
 
-    const rawPrecip = (item as unknown as { precipitationMm?: number }).precipitationMm;
-    const validPrecipMm = typeof rawPrecip === 'number' && !isNaN(rawPrecip)
-      ? Math.max(0, Math.round(rawPrecip * 10) / 10)
-      : Math.max(0, Math.round((validRainProb > 50 ? (validRainProb - 40) * 0.15 : 0) * 10) / 10);
+    const rawProb = finiteNum(item.precipitationProbability) ?? finiteNum(item.rainProb);
+    const validRainProb = rawProb !== null ? Math.max(0, Math.min(100, Math.round(rawProb))) : null;
 
-    const validWindSpeed = typeof item.windSpeed === 'number' && !isNaN(item.windSpeed)
-      ? Math.max(0, Math.round(item.windSpeed))
-      : 12;
+    const rawPrecip = finiteNum((item as unknown as { precipitationMm?: number }).precipitationMm);
+    const validPrecipMm = rawPrecip !== null ? Math.max(0, Math.round(rawPrecip * 10) / 10) : null;
 
-    const validWindDirection = item.windDirection || 'NE';
+    const rawWind = finiteNum(item.windSpeed);
+    const validWindSpeed = rawWind !== null ? Math.max(0, Math.round(rawWind)) : null;
+
+    const validWindDirection = item.windDirection ? item.windDirection.trim() : null;
     const windDegree = directionToDegrees(validWindDirection);
 
-    const validHumidity = typeof item.humidity === 'number' && !isNaN(item.humidity)
-      ? Math.max(0, Math.min(100, Math.round(item.humidity)))
-      : 74;
+    const rawHumidity = finiteNum(item.humidity);
+    const validHumidity = rawHumidity !== null ? Math.max(0, Math.min(100, Math.round(rawHumidity))) : null;
 
-    const validCloudCover = typeof item.cloudCover === 'number' && !isNaN(item.cloudCover)
-      ? Math.max(0, Math.min(100, Math.round(item.cloudCover)))
-      : 45;
+    const rawCloud = finiteNum(item.cloudCover);
+    const validCloudCover = rawCloud !== null ? Math.max(0, Math.min(100, Math.round(rawCloud))) : null;
 
-    const dewPoint = calculateDewPoint(validTemp, validHumidity);
-    const feelsLike = calculateApparentTemp(validTemp, validHumidity, validWindSpeed);
-    const uvIndex = idx >= 3 && idx <= 8 ? Math.round((7.5 - Math.abs(idx - 5) * 1.2) * 10) / 10 : 0;
-    const visibilityKm = validHumidity > 90 ? 4.5 : validRainProb > 60 ? 6.0 : 10.0;
-    const gustSpeed = Math.round(validWindSpeed * 1.35);
+    const dewPoint =
+      validTemp !== null && validHumidity !== null
+        ? calculateDewPoint(validTemp, validHumidity)
+        : null;
+
+    const rawFeels = finiteNum((item as unknown as { feelsLike?: number }).feelsLike);
+    const feelsLike =
+      rawFeels !== null
+        ? Math.round(rawFeels * 10) / 10
+        : validTemp !== null && validHumidity !== null && validWindSpeed !== null
+        ? calculateApparentTemp(validTemp, validHumidity, validWindSpeed)
+        : null;
+
+    const rawUv = finiteNum((item as unknown as { uvIndex?: number }).uvIndex);
+    const uvIndex = rawUv !== null ? Math.round(rawUv * 10) / 10 : null;
+
+    const rawVis = finiteNum((item as unknown as { visibilityKm?: number }).visibilityKm);
+    const visibilityKm = rawVis !== null ? Math.round(rawVis * 10) / 10 : null;
+
+    const rawGust = finiteNum((item as unknown as { gustSpeed?: number; windGusts?: number }).gustSpeed ?? (item as unknown as { windGusts?: number }).windGusts);
+    const gustSpeed = rawGust !== null ? Math.round(rawGust) : null;
 
     return {
       ...item,
@@ -165,35 +178,40 @@ export function normalizeHourlyForecast(rawItems: HourlyForecastItem[]): Normali
 }
 
 /**
- * Normalizes 7-day daily forecast data
+ * Normalizes 7-day daily forecast data strictly preserving null for missing telemetry
  */
 export function normalizeDailyForecast(rawItems: DailyForecastItem[]): NormalizedDailyItem[] {
   if (!Array.isArray(rawItems) || rawItems.length === 0) return [];
 
   return rawItems.map((item) => {
-    const validHigh = typeof item.high === 'number' && !isNaN(item.high) ? Math.round(item.high * 10) / 10 : 33;
-    const validLow = typeof item.low === 'number' && !isNaN(item.low) ? Math.round(item.low * 10) / 10 : 25;
-    const validRainProb = typeof item.rainProb === 'number' && !isNaN(item.rainProb)
-      ? Math.max(0, Math.min(100, Math.round(item.rainProb)))
-      : 30;
+    const rawHigh = finiteNum(item.high);
+    const validHigh = rawHigh !== null ? Math.round(rawHigh * 10) / 10 : null;
 
-    const rawPrecip = (item as unknown as { precipitationMm?: number }).precipitationMm;
-    const validPrecipMm = typeof rawPrecip === 'number' && !isNaN(rawPrecip)
-      ? Math.max(0, Math.round(rawPrecip * 10) / 10)
-      : Math.round((validRainProb > 40 ? (validRainProb - 30) * 0.25 : 0) * 10) / 10;
+    const rawLow = finiteNum(item.low);
+    const validLow = rawLow !== null ? Math.round(rawLow * 10) / 10 : null;
 
-    const validHumidity = typeof item.humidity === 'number' && !isNaN(item.humidity)
-      ? Math.max(0, Math.min(100, Math.round(item.humidity)))
-      : 72;
+    const rawProb = finiteNum(item.rainProb);
+    const validRainProb = rawProb !== null ? Math.max(0, Math.min(100, Math.round(rawProb))) : null;
 
-    const windParts = (item.wind || '12 km/h NE').split(' ');
-    const validWindSpeed = parseInt(windParts[0], 10) || 12;
-    const validWindDirection = windParts[2] || 'NE';
+    const rawPrecip = finiteNum((item as unknown as { precipitationMm?: number }).precipitationMm);
+    const validPrecipMm = rawPrecip !== null ? Math.max(0, Math.round(rawPrecip * 10) / 10) : null;
 
-    const validUv = typeof item.uv === 'number' && !isNaN(item.uv) ? item.uv : 7.0;
-    const dateFormatted = item.date || '30 Aug';
-    const visibilityKm = validHumidity > 90 ? 4.5 : validRainProb > 60 ? 6.0 : 10.0;
-    const validCloudCover = validRainProb > 50 ? 75 : validRainProb > 20 ? 45 : 20;
+    const rawHumidity = finiteNum(item.humidity);
+    const validHumidity = rawHumidity !== null ? Math.max(0, Math.min(100, Math.round(rawHumidity))) : null;
+
+    const windParts = item.wind ? item.wind.trim().split(/\s+/) : [];
+    const parsedWind = windParts[0] ? Number(windParts[0]) : NaN;
+    const validWindSpeed = Number.isFinite(parsedWind) ? Math.round(parsedWind) : null;
+    const validWindDirection = windParts[2] || null;
+
+    const rawUv = finiteNum(item.uv);
+    const validUv = rawUv !== null ? Math.round(rawUv * 10) / 10 : null;
+
+    const rawVis = finiteNum((item as unknown as { visibilityKm?: number }).visibilityKm);
+    const visibilityKm = rawVis !== null ? Math.round(rawVis * 10) / 10 : null;
+
+    const rawCloud = finiteNum((item as unknown as { cloudCover?: number }).cloudCover);
+    const validCloudCover = rawCloud !== null ? Math.max(0, Math.min(100, Math.round(rawCloud))) : null;
 
     return {
       ...item,
@@ -205,7 +223,7 @@ export function normalizeDailyForecast(rawItems: DailyForecastItem[]): Normalize
       validWindSpeed,
       validWindDirection,
       validUv,
-      dateFormatted,
+      dateFormatted: item.date || '—',
       visibilityKm,
       validCloudCover,
     };

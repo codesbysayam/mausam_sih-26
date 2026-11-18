@@ -1,26 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import {
-  MapPin,
-  Compass,
-  RefreshCw,
   Search,
   X,
   ShieldCheck,
   Radio,
   Clock,
   Crosshair,
-  Building2,
   Navigation,
   Trash2,
-  ExternalLink,
   CheckCircle2,
   AlertTriangle,
   Camera,
   Pin,
-  Sparkles,
   Wind,
   Droplets,
-  Thermometer,
   Loader2,
 } from 'lucide-react';
 import { LocationRecord, WeatherPin } from '../../types';
@@ -30,7 +23,7 @@ import { LocatingPhase } from '../../hooks/useUserLocation';
 import { GeolocationServiceError, NearestStationResult } from '../../services/geolocationService';
 
 function formatWeatherCondition(code?: number): string {
-  if (code === undefined || code === null) return 'Fair';
+  if (code === undefined || code === null) return '—';
   if (code === 0) return 'Clear Sky';
   if (code === 1) return 'Mainly Clear';
   if (code === 2) return 'Partly Cloudy';
@@ -124,11 +117,11 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
         const accuracy = Math.round(pos.coords.accuracy);
 
         try {
-          let temp = 25;
-          let feelsLike = 26;
-          let condition = 'Partly Cloudy';
-          let humidity = 65;
-          let windSpeed = 10;
+          let temp: number | null = null;
+          let feelsLike: number | null = null;
+          let condition = '—';
+          let humidity: number | null = null;
+          let windSpeed: number | null = null;
           let city = '';
           let district = '';
           let state = '';
@@ -139,11 +132,22 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
               const json = await res.json();
               const wData = json.data || json;
               if (wData) {
-                temp = Math.round(wData.temperature ?? wData.temp ?? 25);
-                feelsLike = Math.round(wData.feelsLike ?? temp);
+                const rawTemp = wData.temperature ?? wData.temp;
+                temp = typeof rawTemp === 'number' && Number.isFinite(rawTemp) ? Math.round(rawTemp) : null;
+                const rawFeels = wData.feelsLike;
+                feelsLike =
+                  typeof rawFeels === 'number' && Number.isFinite(rawFeels)
+                    ? Math.round(rawFeels)
+                    : temp;
                 condition = wData.condition || formatWeatherCondition(wData.weatherCode);
-                humidity = Math.round(wData.humidity ?? 65);
-                windSpeed = Math.round(wData.windSpeed ?? 10);
+                humidity =
+                  typeof wData.humidity === 'number' && Number.isFinite(wData.humidity)
+                    ? Math.round(wData.humidity)
+                    : null;
+                windSpeed =
+                  typeof wData.windSpeed === 'number' && Number.isFinite(wData.windSpeed)
+                    ? Math.round(wData.windSpeed)
+                    : null;
                 city = wData.location?.city || wData.location?.name || '';
                 district = wData.location?.district || '';
                 state = wData.location?.state || '';
@@ -152,29 +156,46 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
               throw new Error('API returned status ' + res.status);
             }
           } catch {
-            // Direct Open-Meteo fallback
             const omRes = await fetch(
               `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m`
             );
             if (omRes.ok) {
               const omJson = await omRes.json();
               const curr = omJson.current || {};
-              temp = Math.round(curr.temperature_2m ?? 25);
-              feelsLike = Math.round(curr.apparent_temperature ?? temp);
+              temp =
+                typeof curr.temperature_2m === 'number' && Number.isFinite(curr.temperature_2m)
+                  ? Math.round(curr.temperature_2m)
+                  : null;
+              feelsLike =
+                typeof curr.apparent_temperature === 'number' && Number.isFinite(curr.apparent_temperature)
+                  ? Math.round(curr.apparent_temperature)
+                  : temp;
               condition = formatWeatherCondition(curr.weather_code);
-              humidity = Math.round(curr.relative_humidity_2m ?? 65);
-              windSpeed = Math.round(curr.wind_speed_10m ?? 10);
+              humidity =
+                typeof curr.relative_humidity_2m === 'number' && Number.isFinite(curr.relative_humidity_2m)
+                  ? Math.round(curr.relative_humidity_2m)
+                  : null;
+              windSpeed =
+                typeof curr.wind_speed_10m === 'number' && Number.isFinite(curr.wind_speed_10m)
+                  ? Math.round(curr.wind_speed_10m)
+                  : null;
             }
           }
 
+          if (temp === null) {
+            setSnapshotError('Live atmospheric telemetry unavailable for this coordinate right now.');
+            return;
+          }
+
           const label = city || district || `${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
-          const formattedTime = new Intl.DateTimeFormat('en-IN', {
-            timeZone: 'Asia/Kolkata',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true,
-          }).format(new Date()) + ' IST';
+          const formattedTime =
+            new Intl.DateTimeFormat('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: true,
+            }).format(new Date()) + ' IST';
 
           const newPin: WeatherPin = {
             id: `pin-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -185,10 +206,10 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
             district: district || city || label,
             state: state || 'India',
             temperature: temp,
-            feelsLike,
+            feelsLike: feelsLike ?? temp,
             condition,
-            humidity,
-            windSpeed,
+            humidity: humidity ?? undefined,
+            windSpeed: windSpeed ?? undefined,
             accuracyMeters: accuracy,
             timestamp: formattedTime,
             rawTimestamp: Date.now(),
@@ -203,7 +224,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
             return updated;
           });
 
-          setSnapshotSuccess(`Pinned ${label} • ${temp}°C (${condition})`);
+          setSnapshotSuccess(`Pinned ${label} · ${temp}°C (${condition})`);
           setTimeout(() => setSnapshotSuccess(null), 4500);
         } catch (err: any) {
           setSnapshotError(err?.message || 'Failed to capture weather snapshot.');
@@ -270,19 +291,21 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
   const isGps = locationSource === 'DEVICE_GPS';
 
   const formatISTTime = (d: Date | null) => {
-    if (!d) return 'Live Synced';
-    return d.toLocaleTimeString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    }) + ' IST';
+    if (!d) return '—';
+    return (
+      d.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      }) + ' IST'
+    );
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
       role="dialog"
       aria-modal="true"
       aria-labelledby="location-center-title"
@@ -291,19 +314,19 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
 
       <div
         id="location-center-dialog"
-        className="relative w-full max-w-2xl bg-[#0B131E] border border-[#1E2E42] rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-2xl bg-[#0B1927] border border-[#26394B] rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E2E42] bg-[#070D15]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#26394B] bg-[#08131F]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#1499E8]/15 border border-[#1499E8]/30 flex items-center justify-center text-[#43C7F4]">
+            <div className="w-8 h-8 rounded-lg bg-[#35C7E8]/15 border border-[#35C7E8]/35 flex items-center justify-center text-[#35C7E8]">
               <Navigation className="w-4 h-4" />
             </div>
             <div>
-              <h2 id="location-center-title" className="text-base font-bold text-white tracking-tight">
+              <h2 id="location-center-title" className="text-base font-bold text-[#F3F6FA] tracking-tight">
                 Location &amp; Station Management
               </h2>
-              <p className="text-[11px] font-mono text-[#94A3B8]">
+              <p className="text-[11px] font-mono text-[#8295A8]">
                 Configure Active Meteorological Observation Point
               </p>
             </div>
@@ -312,7 +335,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[#111C27] hover:bg-[#1E2E42] border border-[#1E2E42] text-[#94A3B8] hover:text-white flex items-center justify-center transition-colors"
+            className="min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] rounded-lg bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA] flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close Location Dialog"
           >
             <X className="w-4 h-4" />
@@ -320,22 +343,22 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-xs text-[#CBD5E1]">
+        <div className="p-6 overflow-y-auto space-y-6 text-xs text-[#B5C3D1]">
           {/* Active Location Card */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-[#0F1926] to-[#152336] border border-[#1E2E42] relative overflow-hidden">
+          <div className="p-4 rounded-xl bg-[#101F2E] border border-[#26394B] relative overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span
                     className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border flex items-center gap-1 ${
                       isGps
-                        ? 'bg-[#10B981]/15 text-[#34D399] border-[#10B981]/30'
-                        : 'bg-[#1499E8]/15 text-[#43C7F4] border-[#1499E8]/30'
+                        ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/35'
+                        : 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/35'
                     }`}
                   >
                     {isGps ? (
                       <>
-                        <Crosshair className="w-3 h-3 animate-pulse" />
+                        <Crosshair className="w-3 h-3" />
                         DEVICE GPS LOCATION
                       </>
                     ) : (
@@ -346,74 +369,73 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                     )}
                   </span>
                   <span className="text-[10px] text-[#22C7A0] bg-[#22C7A0]/10 px-2 py-0.5 rounded border border-[#22C7A0]/30 font-mono">
-                    ● ACTIVE
+                    ACTIVE
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-white tracking-tight">
+                <h3 className="text-lg font-bold text-[#F3F6FA] tracking-tight">
                   {selectedLocation.city || selectedLocation.district}
                 </h3>
-                <p className="text-xs text-[#94A3B8]">
+                <p className="text-xs text-[#8295A8]">
                   {selectedLocation.district}, {selectedLocation.state}, India
-                  {selectedLocation.pincode ? ` • PIN ${selectedLocation.pincode}` : ''}
+                  {selectedLocation.pincode ? ` · PIN ${selectedLocation.pincode}` : ''}
                 </p>
               </div>
 
               {/* Coordinates & Accuracy */}
-              <div className="text-right sm:self-start bg-[#070D15]/80 p-2.5 rounded-lg border border-[#1E2E42] text-[11px] font-mono shrink-0">
-                <div className="text-[#38BDF8]">
-                  {typeof selectedLocation.lat === 'number' ? selectedLocation.lat.toFixed(4) : '--'}°N,{' '}
-                  {typeof selectedLocation.lng === 'number' ? selectedLocation.lng.toFixed(4) : '--'}°E
+              <div className="text-right sm:self-start bg-[#08131F] p-2.5 rounded-lg border border-[#26394B] text-[11px] font-mono tabular-nums shrink-0">
+                <div className="text-[#35C7E8]">
+                  {typeof selectedLocation.lat === 'number' ? selectedLocation.lat.toFixed(4) : '—'}°N,{' '}
+                  {typeof selectedLocation.lng === 'number' ? selectedLocation.lng.toFixed(4) : '—'}°E
                 </div>
                 {accuracyMeters !== null && (
-                  <div className="text-[#34D399] text-[10px] mt-0.5">
+                  <div className="text-[#22C7A0] text-[10px] mt-0.5">
                     Accuracy: ±{accuracyMeters} m
                   </div>
                 )}
-                <div className="text-[#94A3B8] text-[10px] mt-0.5">
-                  Elev: {selectedLocation.elevation || '45m ASL'}
+                <div className="text-[#8295A8] text-[10px] mt-0.5">
+                  Elev: {selectedLocation.elevation || '—'}
                 </div>
               </div>
             </div>
 
             {/* Nearest Observation Telemetry Station Info */}
-            <div className="mt-3.5 pt-3 border-t border-[#1E2E42]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px]">
-              <div className="flex items-center gap-2 text-[#94A3B8]">
-                <Radio className="w-3.5 h-3.5 text-[#43C7F4]" />
+            <div className="mt-3.5 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-2 text-[#8295A8]">
+                <Radio className="w-3.5 h-3.5 text-[#35C7E8]" />
                 <span>
                   Nearest IMD Observatory:{' '}
-                  <strong className="text-white">
+                  <strong className="text-[#F3F6FA]">
                     {nearestStationInfo?.name || selectedLocation.weatherStation || selectedLocation.displayName}
                   </strong>
                 </span>
               </div>
               {nearestStationInfo && (
-                <span className="text-[#38BDF8] font-mono">
+                <span className="text-[#35C7E8] font-mono tabular-nums">
                   {nearestStationInfo.distanceKm} km from position
                 </span>
               )}
             </div>
 
             {/* Observation Timestamp */}
-            <div className="mt-2 flex items-center justify-between text-[10px] text-[#64748B] font-mono">
+            <div className="mt-2 flex items-center justify-between text-[10px] text-[#8295A8] font-mono tabular-nums">
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 <span>Detection Time: {formatISTTime(lastDetectedAt)}</span>
               </div>
-              <span>Data: IMD AWS Network / Open-Meteo Integration</span>
+              <span>Data: IMD AWS Network / Open-Meteo</span>
             </div>
           </div>
 
           {/* Action Row: Primary Use My Location CTA & Snapshot Button */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Automatic Location Detection */}
-            <div className="p-4 rounded-xl bg-[#1499E8]/10 border border-[#1499E8]/30 flex flex-col justify-between gap-3">
+            <div className="p-4 rounded-xl bg-[#0B72B9]/10 border border-[#35C7E8]/30 flex flex-col justify-between gap-3">
               <div>
-                <span className="font-bold text-white text-xs flex items-center gap-1.5">
-                  <Crosshair className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span className="font-bold text-[#F3F6FA] text-xs flex items-center gap-1.5">
+                  <Crosshair className="w-3.5 h-3.5 text-[#35C7E8]" />
                   Automatic Detection
                 </span>
-                <span className="text-[11px] text-[#94A3B8] mt-1 block">
+                <span className="text-[11px] text-[#8295A8] mt-1 block">
                   Resolve device position to the nearest official IMD observatory.
                 </span>
               </div>
@@ -428,14 +450,13 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
               />
             </div>
 
-            {/* Instant Weather Snapshot CTA */}
-            <div className="p-4 rounded-xl bg-[#10B981]/10 border border-[#10B981]/30 flex flex-col justify-between gap-3">
+            <div className="p-4 rounded-xl bg-[#22C7A0]/10 border border-[#22C7A0]/30 flex flex-col justify-between gap-3">
               <div>
-                <span className="font-bold text-white text-xs flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-[#34D399]" />
+                <span className="font-bold text-[#F3F6FA] text-xs flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5 text-[#22C7A0]" />
                   Coordinate Snapshot
                 </span>
-                <span className="text-[11px] text-[#94A3B8] mt-1 block">
+                <span className="text-[11px] text-[#8295A8] mt-1 block">
                   Grab browser GPS coordinates, fetch live weather summary, and save to Recent Pins.
                 </span>
               </div>
@@ -445,16 +466,16 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                 type="button"
                 onClick={takeSnapshot}
                 disabled={isSnapping}
-                className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#10B981]/20 transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full px-4 min-h-[44px] sm:min-h-[38px] rounded-xl bg-[#22C7A0] hover:opacity-95 text-[#07111D] font-bold text-xs flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 cursor-pointer"
               >
                 {isSnapping ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Snapping Weather…</span>
                   </>
                 ) : (
                   <>
-                    <Camera className="w-4 h-4 text-white" />
+                    <Camera className="w-4 h-4" />
                     <span>Snapshot</span>
                   </>
                 )}
@@ -462,17 +483,17 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
             </div>
           </div>
 
-          {/* Feedback Banners for Snapshot */}
           {snapshotError && (
-            <div className="p-3 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-between text-xs text-[#F87171]">
+            <div className="p-3 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/35 flex items-center justify-between text-xs text-[#FCA5A5]">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <AlertTriangle className="w-4 h-4 shrink-0 text-[#EF4444]" />
                 <span>{snapshotError}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSnapshotError(null)}
-                className="text-[#94A3B8] hover:text-white p-1"
+                aria-label="Dismiss error"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -480,7 +501,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
           )}
 
           {snapshotSuccess && (
-            <div className="p-3 rounded-xl bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-between text-xs text-[#34D399]">
+            <div className="p-3 rounded-xl bg-[#22C7A0]/10 border border-[#22C7A0]/35 flex items-center justify-between text-xs text-[#22C7A0]">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{snapshotSuccess}</span>
@@ -488,7 +509,8 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSnapshotSuccess(null)}
-                className="text-[#94A3B8] hover:text-white p-1"
+                aria-label="Dismiss confirmation"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -499,9 +521,9 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Pin className="w-3.5 h-3.5 text-[#38BDF8]" />
-                <span className="font-bold text-white text-xs">Recent Pins</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#1E2E42] text-[#38BDF8] border border-[#283C55]">
+                <Pin className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <span className="font-bold text-[#F3F6FA] text-xs">Recent Pins</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums bg-[#101F2E] text-[#35C7E8] border border-[#26394B]">
                   {recentPins.length}
                 </span>
               </div>
@@ -511,7 +533,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                   id="btn-clear-recent-pins"
                   type="button"
                   onClick={handleClearAllPins}
-                  className="text-[11px] text-[#94A3B8] hover:text-[#EF4444] flex items-center gap-1 transition-colors"
+                  className="text-[11px] text-[#8295A8] hover:text-[#EF4444] flex items-center gap-1 transition-colors cursor-pointer min-h-[36px] px-1"
                 >
                   <Trash2 className="w-3 h-3" />
                   <span>Clear All Pins</span>
@@ -520,11 +542,11 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
             </div>
 
             {recentPins.length === 0 ? (
-              <div className="p-4 rounded-xl border border-dashed border-[#1E2E42] bg-[#070D15]/60 text-center text-[#94A3B8]">
-                <Pin className="w-5 h-5 mx-auto mb-1.5 opacity-40 text-[#38BDF8]" />
-                <p className="text-xs text-white/80 font-medium">No Pinned Weather Snapshots Yet</p>
-                <p className="text-[11px] text-[#64748B] mt-0.5">
-                  Click the <strong className="text-[#34D399]">Snapshot</strong> button above to capture instant coordinate weather metrics and pin them here.
+              <div className="p-4 rounded-xl border border-dashed border-[#26394B] bg-[#08131F] text-center text-[#8295A8]">
+                <Pin className="w-5 h-5 mx-auto mb-1.5 opacity-40 text-[#35C7E8]" />
+                <p className="text-xs text-[#F3F6FA] font-medium">No Pinned Weather Snapshots Yet</p>
+                <p className="text-[11px] text-[#8295A8] mt-0.5">
+                  Click the <strong className="text-[#22C7A0]">Snapshot</strong> button above to capture coordinate weather metrics and pin them here.
                 </p>
               </div>
             ) : (
@@ -533,65 +555,64 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                   <div
                     key={pin.id}
                     id={`pin-card-${pin.id}`}
-                    onClick={() => handleSelectPin(pin)}
-                    className="p-3 rounded-xl bg-[#0F1926] hover:bg-[#152336] border border-[#1E2E42] hover:border-[#1499E8]/60 transition-all text-left flex flex-col justify-between gap-2.5 cursor-pointer group shadow-sm"
+                    className="p-3 rounded-xl bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 transition-colors text-left flex flex-col justify-between gap-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectPin(pin)}
+                        className="min-w-0 flex-1 text-left cursor-pointer group"
+                      >
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-white text-xs truncate group-hover:text-[#38BDF8] transition-colors">
+                          <span className="font-bold text-[#F3F6FA] text-xs truncate group-hover:text-[#35C7E8] transition-colors">
                             {pin.label}
                           </span>
-                          <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-[#1E2E42] text-[#94A3B8]">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-[#08131F] text-[#8295A8] border border-[#26394B]">
                             {pin.state}
                           </span>
                         </div>
-                        <div className="text-[10px] font-mono text-[#64748B] mt-0.5">
+                        <div className="text-[10px] font-mono tabular-nums text-[#8295A8] mt-0.5">
                           {pin.lat.toFixed(3)}°N, {pin.lng.toFixed(3)}°E
-                          {pin.accuracyMeters ? ` • ±${pin.accuracyMeters}m` : ''}
+                          {pin.accuracyMeters ? ` · ±${pin.accuracyMeters}m` : ''}
                         </div>
-                      </div>
+                      </button>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <div className="text-right">
-                          <span className="text-sm font-bold text-white font-mono block">
-                            {pin.temperature}°C
-                          </span>
-                        </div>
+                        <span className="text-sm font-bold text-[#F3F6FA] font-mono tabular-nums">
+                          {typeof pin.temperature === 'number' ? `${pin.temperature}°C` : '—'}
+                        </span>
                         <button
                           type="button"
                           onClick={(e) => handleDeletePin(pin.id, e)}
                           title="Remove Pin"
-                          className="w-6 h-6 rounded-md hover:bg-[#EF4444]/20 text-[#64748B] hover:text-[#EF4444] flex items-center justify-center transition-colors"
+                          className="w-7 h-7 rounded-md hover:bg-[#EF4444]/15 text-[#8295A8] hover:text-[#EF4444] flex items-center justify-center transition-colors cursor-pointer"
                           aria-label={`Remove pin for ${pin.label}`}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] border-t border-[#1E2E42]/80 pt-2 text-[#94A3B8]">
+                    <div className="flex items-center justify-between text-[10px] border-t border-[#26394B] pt-2 text-[#8295A8]">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#38BDF8] bg-[#38BDF8]/10 px-1.5 py-0.5 rounded font-medium">
+                        <span className="text-[#35C7E8] bg-[#35C7E8]/10 px-1.5 py-0.5 rounded font-medium">
                           {pin.condition}
                         </span>
                         {pin.humidity !== undefined && (
-                          <span className="flex items-center gap-0.5 text-[#64748B]">
-                            <Droplets className="w-2.5 h-2.5 text-[#38BDF8]" />
+                          <span className="flex items-center gap-0.5 font-mono tabular-nums">
+                            <Droplets className="w-2.5 h-2.5 text-[#35C7E8]" />
                             {pin.humidity}%
                           </span>
                         )}
                         {pin.windSpeed !== undefined && (
-                          <span className="flex items-center gap-0.5 text-[#64748B]">
-                            <Wind className="w-2.5 h-2.5 text-[#34D399]" />
+                          <span className="flex items-center gap-0.5 font-mono tabular-nums">
+                            <Wind className="w-2.5 h-2.5 text-[#22C7A0]" />
                             {pin.windSpeed} km/h
                           </span>
                         )}
                       </div>
 
-                      <span className="text-[9px] font-mono text-[#64748B]">
-                        {pin.timestamp}
-                      </span>
+                      <span className="text-[9px] font-mono tabular-nums">{pin.timestamp}</span>
                     </div>
                   </div>
                 ))}
@@ -601,33 +622,33 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
 
           {/* Manual Location Search Input */}
           <div className="space-y-2">
-            <label htmlFor="modal-location-search" className="block font-bold text-white text-xs">
+            <label htmlFor="modal-location-search" className="block font-bold text-[#F3F6FA] text-xs">
               Search City, District, or Weather Station Manually
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#8295A8] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="modal-location-search"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search across 1,000+ national locations (e.g. Bhubaneswar, Safdarjung, Pune, Shimla)…"
-                className="w-full bg-[#0F1926] border border-[#1E2E42] focus:border-[#1499E8] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-[#64748B] outline-none transition-colors"
+                className="w-full bg-[#08131F] border border-[#26394B] focus:border-[#35C7E8] rounded-xl pl-10 pr-10 min-h-[44px] sm:min-h-[40px] text-xs text-[#F3F6FA] placeholder-[#8295A8] outline-none transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-white"
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[32px] min-h-[32px] flex items-center justify-center text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Instant Search Results */}
             {searchResults.length > 0 && (
-              <div className="border border-[#1E2E42] rounded-xl bg-[#0F1926] divide-y divide-[#1E2E42] max-h-48 overflow-y-auto mt-1 shadow-lg">
+              <div className="border border-[#26394B] rounded-xl bg-[#101F2E] divide-y divide-[#26394B] max-h-48 overflow-y-auto mt-1">
                 {searchResults.map((loc) => (
                   <button
                     key={loc.id}
@@ -637,15 +658,15 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                       setSearchQuery('');
                       onClose();
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-[#152336] flex items-center justify-between text-xs transition-colors"
+                    className="w-full text-left px-3.5 min-h-[44px] py-2 hover:bg-[#0B1927] flex items-center justify-between text-xs transition-colors cursor-pointer"
                   >
                     <div>
-                      <span className="font-bold text-white block">{loc.city}</span>
-                      <span className="text-[11px] text-[#94A3B8]">
+                      <span className="font-bold text-[#F3F6FA] block">{loc.city}</span>
+                      <span className="text-[11px] text-[#8295A8]">
                         {loc.district}, {loc.state}
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono text-[#38BDF8] bg-[#38BDF8]/10 px-2 py-0.5 rounded border border-[#38BDF8]/20">
+                    <span className="text-[10px] font-mono text-[#35C7E8] bg-[#35C7E8]/10 px-2 py-0.5 rounded border border-[#35C7E8]/25">
                       {loc.state}
                     </span>
                   </button>
@@ -656,7 +677,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
 
           {/* Quick Hub Switcher */}
           <div className="space-y-2">
-            <span className="block font-bold text-white text-xs">
+            <span className="block font-bold text-[#F3F6FA] text-xs">
               Popular National Weather Hubs
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -671,14 +692,14 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                       onClose();
                     }
                   }}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                  className={`p-2.5 min-h-[48px] rounded-xl border text-left transition-colors cursor-pointer ${
                     selectedLocation.id === hub.id
-                      ? 'bg-[#1499E8]/20 border-[#1499E8] text-white shadow-sm'
-                      : 'bg-[#0F1926] border-[#1E2E42] hover:border-[#1499E8]/50 text-[#CBD5E1] hover:text-white'
+                      ? 'bg-[#35C7E8]/15 border-[#35C7E8] text-[#F3F6FA]'
+                      : 'bg-[#101F2E] border-[#26394B] hover:border-[#38536A] text-[#B5C3D1] hover:text-[#F3F6FA]'
                   }`}
                 >
                   <span className="font-bold block text-xs truncate">{hub.name}</span>
-                  <span className="text-[10px] text-[#94A3B8] block truncate">{hub.state}</span>
+                  <span className="text-[10px] text-[#8295A8] block truncate">{hub.state}</span>
                 </button>
               ))}
             </div>
@@ -686,12 +707,12 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[#1E2E42] bg-[#070D15] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="px-6 py-3.5 border-t border-[#26394B] bg-[#08131F] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center flex-wrap gap-3">
             <button
               type="button"
               onClick={onOpenPrivacyModal}
-              className="text-[#43C7F4] hover:underline text-xs flex items-center gap-1 transition-colors"
+              className="text-[#35C7E8] hover:underline text-xs flex items-center gap-1 transition-colors cursor-pointer min-h-[40px] sm:min-h-[32px]"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Location Privacy &amp; Data Transparency</span>
@@ -704,7 +725,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                   onClearSavedLocation();
                   onClose();
                 }}
-                className="text-[#EF4444] hover:underline text-xs flex items-center gap-1 transition-colors"
+                className="text-[#EF4444] hover:underline text-xs flex items-center gap-1 transition-colors cursor-pointer min-h-[40px] sm:min-h-[32px]"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Reset to Default</span>
@@ -715,7 +736,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-[#1E2E42] hover:bg-[#283C55] text-white font-bold text-xs transition-colors self-end sm:self-auto"
+            className="px-4 min-h-[44px] sm:min-h-[36px] rounded-xl bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-[#F3F6FA] font-semibold text-xs transition-colors self-end sm:self-auto cursor-pointer"
           >
             Done
           </button>

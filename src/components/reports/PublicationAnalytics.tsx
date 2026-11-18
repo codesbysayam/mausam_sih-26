@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { MeteorologicalPublication } from '../../data/reportsAndArticles';
-import { BarChart3, PieChart, TrendingUp, Layers, CheckCircle2 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,70 +9,110 @@ import {
   YAxis,
   Tooltip,
   Cell,
-  PieChart as RePieChart,
-  Pie,
 } from 'recharts';
+import { DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
 
 interface PublicationAnalyticsProps {
   publications: MeteorologicalPublication[];
 }
 
-export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publications }) => {
-  // Monthly distribution data
-  const monthlyData = [
-    { month: 'Jan', count: 0, full: 'January 2026' },
-    { month: 'Feb', count: 0, full: 'February 2026' },
-    { month: 'Mar', count: 0, full: 'March 2026' },
-    { month: 'Apr', count: 0, full: 'April 2026' },
-    { month: 'May', count: 2, full: 'May 2026' },
-    { month: 'Jun', count: 2, full: 'June 2026' },
-    { month: 'Jul', count: 3, full: 'July 2026' },
-    { month: 'Aug', count: 5, full: 'August 2026' },
-  ];
+const MONTHS: Array<{ key: string; short: string; full: string; matchers: string[] }> = [
+  { key: 'Jan', short: 'Jan', full: 'January', matchers: ['january', ' jan '] },
+  { key: 'Feb', short: 'Feb', full: 'February', matchers: ['february', ' feb '] },
+  { key: 'Mar', short: 'Mar', full: 'March', matchers: ['march', ' mar '] },
+  { key: 'Apr', short: 'Apr', full: 'April', matchers: ['april', ' apr '] },
+  { key: 'May', short: 'May', full: 'May', matchers: ['may'] },
+  { key: 'Jun', short: 'Jun', full: 'June', matchers: ['june', ' jun '] },
+  { key: 'Jul', short: 'Jul', full: 'July', matchers: ['july', ' jul '] },
+  { key: 'Aug', short: 'Aug', full: 'August', matchers: ['august', ' aug '] },
+  { key: 'Sep', short: 'Sep', full: 'September', matchers: ['september', ' sep '] },
+  { key: 'Oct', short: 'Oct', full: 'October', matchers: ['october', ' oct '] },
+  { key: 'Nov', short: 'Nov', full: 'November', matchers: ['november', ' nov '] },
+  { key: 'Dec', short: 'Dec', full: 'December', matchers: ['december', ' dec '] },
+];
 
-  // Category composition data
-  const categoryData = [
-    { name: 'Research Monographs', count: 5, color: '#818CF8' },
-    { name: 'Official Bulletins', count: 3, color: '#38BDF8' },
-    { name: 'Climatological Studies', count: 2, color: '#F59E0B' },
-    { name: 'Environmental Registries', count: 2, color: '#10B981' },
-  ];
+export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publications }) => {
+  const { monthlyData, peakMonth, categoryData, totalCount } = useMemo(() => {
+    const countsByMonth = MONTHS.map((m) => {
+      const count = publications.filter((p) => {
+        const lower = ` ${p.date.toLowerCase()} `;
+        return m.matchers.some((token) => lower.includes(token));
+      }).length;
+      return {
+        month: m.short,
+        count,
+        full: m.full,
+      };
+    });
+
+    // Keep Jan–Aug visible at minimum, plus any Sep–Dec that have entries
+    const activeMonths = countsByMonth.filter((m, idx) => idx <= 7 || m.count > 0);
+    const peak = activeMonths.reduce(
+      (best, cur) => (cur.count > best.count ? cur : best),
+      activeMonths[0] || { month: '—', count: 0, full: '—' }
+    );
+
+    const researchMonographs = publications.filter(
+      (p) =>
+        p.category === 'Scientific Monograph' ||
+        p.type === 'Research Article' ||
+        p.type === 'Technical Monograph'
+    ).length;
+
+    const officialBulletins = publications.filter(
+      (p) =>
+        p.category === 'National Weather Observation' ||
+        p.category === 'Sub-Divisional Report' ||
+        p.category === 'Agricultural Meteorology'
+    ).length;
+
+    const climatologicalStudies = publications.filter(
+      (p) => p.category === 'Climatological Study'
+    ).length;
+
+    const environmentalAndCyclone = Math.max(
+      0,
+      publications.length - researchMonographs - officialBulletins - climatologicalStudies
+    );
+
+    const categories = [
+      { name: 'Research Monographs', count: researchMonographs, color: '#35C7E8' },
+      { name: 'Official Bulletins', count: officialBulletins, color: '#22C7A0' },
+      { name: 'Climatological Studies', count: climatologicalStudies, color: '#F59E0B' },
+      { name: 'Environmental & Technical', count: environmentalAndCyclone, color: '#0B72B9' },
+    ];
+
+    return {
+      monthlyData: activeMonths,
+      peakMonth: peak,
+      categoryData: categories,
+      totalCount: Math.max(1, publications.length),
+    };
+  }, [publications]);
 
   return (
-    <div
-      id="publication-analytics-section"
-      className="rounded-3xl bg-[#0B131D] border border-[#1E2E40] p-5 sm:p-7 shadow-xl space-y-5"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#1E2E40] gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#38BDF8]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
-              Bibliometric Intelligence
-            </span>
-          </div>
-          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
-            Publication Activity &amp; Research Distribution
-          </h3>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs font-mono text-[#94A3B8]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
-            Active Monsoon Cycle
+    <DataPanel id="publication-analytics-section" className="space-y-5">
+      <SectionHeading
+        title="Publication Activity & Research Distribution"
+        subtitle="Dynamically indexed issuance counts across active meteorological cycles and disciplines"
+        icon={<BarChart3 className="w-4 h-4" />}
+        badge={
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[#35C7E8] tabular-nums">
+            {publications.length} Indexed
           </span>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left: Monthly Issuance Activity Bar Chart */}
-        <div className="lg:col-span-2 p-4 rounded-2xl bg-[#080E16] border border-[#1E2E40]">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-              Monthly Publication Volume (2026 Cycle)
+        <div className="lg:col-span-2 m-panel-inset p-4">
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <span className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider">
+              Monthly Publication Volume
             </span>
-            <span className="text-[11px] font-mono text-[#38BDF8] bg-[#38BDF8]/10 px-2 py-0.5 rounded border border-[#38BDF8]/20">
-              Peak: August (5 Reports)
+            <span className="text-[11px] font-mono tabular-nums text-[#35C7E8] bg-[#35C7E8]/12 px-2.5 py-0.5 rounded border border-[#35C7E8]/30">
+              Peak: {peakMonth.full} ({peakMonth.count}{' '}
+              {peakMonth.count === 1 ? 'Report' : 'Reports'})
             </span>
           </div>
 
@@ -81,16 +121,16 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <XAxis
                   dataKey="month"
-                  stroke="#64748B"
+                  stroke="#8295A8"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#1E2E40' }}
+                  axisLine={{ stroke: '#26394B' }}
                 />
                 <YAxis
-                  stroke="#64748B"
+                  stroke="#8295A8"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#1E2E40' }}
+                  axisLine={{ stroke: '#26394B' }}
                   allowDecimals={false}
                 />
                 <Tooltip
@@ -98,20 +138,26 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-[#0F172A] border border-[#38BDF8]/40 p-2 rounded-lg text-xs font-mono shadow-xl">
-                          <p className="text-white font-bold">{data.full}</p>
-                          <p className="text-[#38BDF8] mt-1">{data.count} Publications Issued</p>
+                        <div className="bg-[#0B1927] border border-[#35C7E8]/40 p-2.5 rounded-lg text-xs font-mono tabular-nums shadow-xl">
+                          <p className="text-[#F3F6FA] font-bold">{data.full}</p>
+                          <p className="text-[#35C7E8] mt-1">{data.count} Publications Issued</p>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {monthlyData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.month === 'Aug' ? '#38BDF8' : entry.count > 0 ? '#2563EB' : '#1E2E40'}
+                      fill={
+                        entry.month === peakMonth.month && entry.count > 0
+                          ? '#35C7E8'
+                          : entry.count > 0
+                          ? '#0B72B9'
+                          : '#172A3B'
+                      }
                     />
                   ))}
                 </Bar>
@@ -121,37 +167,39 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
         </div>
 
         {/* Right: Domain Breakdown Distribution */}
-        <div className="p-4 rounded-2xl bg-[#080E16] border border-[#1E2E40] flex flex-col justify-between">
-          <span className="text-xs font-mono font-bold text-white uppercase tracking-wider block mb-3">
-            Domain Classification
-          </span>
+        <div className="m-panel-inset p-4 flex flex-col justify-between">
+          <div>
+            <span className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider block mb-3.5">
+              Domain Classification
+            </span>
 
-          <div className="space-y-3">
-            {categoryData.map((item) => (
-              <div key={item.name} className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-[#CBD5E1] truncate">{item.name}</span>
-                  <span className="text-white font-bold">{item.count}</span>
+            <div className="space-y-3">
+              {categoryData.map((item) => (
+                <div key={item.name} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-mono tabular-nums">
+                    <span className="text-[#B5C3D1] truncate">{item.name}</span>
+                    <span className="text-[#F3F6FA] font-bold">{item.count}</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-[#172A3B] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.round((item.count / totalCount) * 100)}%`,
+                        backgroundColor: item.color,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#1E2E40] overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${(item.count / publications.length) * 100}%`,
-                      backgroundColor: item.color,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1E2E40] text-[11px] font-mono text-[#94A3B8] flex items-center justify-between">
-            <span>Primary Focus:</span>
-            <span className="text-[#38BDF8] font-bold">Atmospheric &amp; Synoptic</span>
+          <div className="mt-4 pt-3 border-t border-[#26394B] text-[11px] font-mono text-[#8295A8] flex items-center justify-between">
+            <span>Primary Focus</span>
+            <span className="text-[#35C7E8] font-bold">Atmospheric &amp; Synoptic</span>
           </div>
         </div>
       </div>
-    </div>
+    </DataPanel>
   );
 };

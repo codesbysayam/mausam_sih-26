@@ -1,10 +1,12 @@
 import React from 'react';
+import { FilterX, Globe2, Search, X } from 'lucide-react';
 import {
   WarningFilterState,
   IndiaMetRegion,
   HazardCategory,
-  AlertSeverity,
 } from '../../types/warningTypes';
+import { renderHazardIcon } from './hazardIcon';
+import { DataPanel } from '../ui/ObservatoryPrimitives';
 
 interface WarningFilterBarProps {
   filter: WarningFilterState;
@@ -12,6 +14,7 @@ interface WarningFilterBarProps {
   onResetFilters: () => void;
   activeCount: number;
   totalCount: number;
+  isUnavailable?: boolean;
 }
 
 const REGION_OPTIONS: { id: IndiaMetRegion; label: string }[] = [
@@ -20,10 +23,10 @@ const REGION_OPTIONS: { id: IndiaMetRegion; label: string }[] = [
   { id: 'east', label: 'East & Northeast' },
   { id: 'central', label: 'Central' },
   { id: 'south', label: 'South Peninsular' },
-  { id: 'west', label: 'Island Territories' },
+  { id: 'west', label: 'West & Islands' },
 ];
 
-const HAZARD_PILLS: { id: HazardCategory | 'all'; label: string; icon: string }[] = [
+const HAZARD_TABS: { id: HazardCategory | 'all'; label: string; icon: string }[] = [
   { id: 'all', label: 'All Hazards', icon: 'apps' },
   { id: 'heavy_rain', label: 'Rainfall', icon: 'rainy' },
   { id: 'flood', label: 'Flood', icon: 'flood' },
@@ -41,6 +44,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
   onResetFilters,
   activeCount,
   totalCount,
+  isUnavailable = false,
 }) => {
   const isFiltered =
     filter.region !== 'all' ||
@@ -60,16 +64,10 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
   };
 
   return (
-    <div
-      id="warning-filter-bar-container"
-      className="bg-[#0B263D] border border-[#1D5278] rounded-md p-4 shadow-sm flex flex-col gap-3.5"
-    >
-      {/* 1. Top Search Bar */}
+    <DataPanel id="warning-filter-bar-container" className="flex flex-col gap-3.5">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#AFC4D8] text-[18px] pointer-events-none">
-            search
-          </span>
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8295A8] pointer-events-none" />
           <input
             id="input-warning-search"
             type="text"
@@ -77,7 +75,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onChange={(e) => handleUpdate('searchQuery', e.target.value)}
             placeholder="Search by state, district, hazard keyword, or bulletin ID..."
             aria-label="Search weather warnings"
-            className="w-full pl-9 pr-9 py-2 bg-[#081F33] border border-[#1D5278] rounded text-xs text-white placeholder-[#AFC4D8] focus:outline-none focus:border-[#1565C0] transition-colors"
+            className="w-full min-h-[42px] pl-9 pr-9 py-2 bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8] transition-colors"
           />
           {filter.searchQuery && (
             <button
@@ -85,18 +83,18 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
               type="button"
               onClick={() => handleUpdate('searchQuery', '')}
               aria-label="Clear search input"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#AFC4D8] hover:text-white cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer p-1"
             >
-              <span className="material-symbols-outlined text-[16px]">close</span>
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-          <div className="text-xs text-[#AFC4D8] font-mono px-2.5 py-1 rounded bg-[#081F33] border border-[#1D5278]">
-            <span>Showing: </span>
-            <strong className="text-white">{activeCount}</strong>
-            <span className="text-[#AFC4D8]"> of {totalCount} Bulletins</span>
+          <div className="text-xs text-[#B5C3D1] font-mono tabular-nums px-3 py-2 rounded-lg bg-[#08131F] border border-[#26394B]">
+            <span>Showing </span>
+            <strong className="text-[#F3F6FA]">{isUnavailable ? '—' : activeCount}</strong>
+            <span className="text-[#8295A8]"> / {isUnavailable ? '—' : totalCount}</span>
           </div>
 
           {isFiltered && (
@@ -104,18 +102,16 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
               id="btn-reset-filters"
               type="button"
               onClick={onResetFilters}
-              className="px-2.5 py-1 rounded bg-[#081F33] hover:bg-[#102D47] text-[#AFC4D8] hover:text-white border border-[#1D5278] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-3 py-2 min-h-[40px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">filter_alt_off</span>
+              <FilterX className="w-3.5 h-3.5 text-[#35C7E8]" />
               <span>Reset</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. Severity Tabs & Region Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1 border-t border-[#1D5278]">
-        {/* Severity Tabs / Pills */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-[#26394B]">
         <div
           id="severity-filter-pills"
           role="tablist"
@@ -126,10 +122,10 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             id="tab-sev-all"
             type="button"
             onClick={() => handleUpdate('severity', 'all')}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer border whitespace-nowrap ${
+            className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'all'
-                ? 'bg-[#1565C0] text-white border-[#E3F2FD] shadow-xs'
-                : 'bg-[#081F33] text-[#AFC4D8] hover:text-white border-[#1D5278]'
+                ? 'bg-[#0B72B9] text-white border-[#35C7E8]'
+                : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] border-[#26394B]'
             }`}
           >
             All Warnings
@@ -139,73 +135,68 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             id="tab-sev-red"
             type="button"
             onClick={() => handleUpdate('severity', 'red')}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'red'
-                ? 'bg-[#FF0000] text-white border-white shadow-xs'
-                : 'bg-[#081F33] text-[#FF4D4D] hover:bg-[#FF0000]/10 border-[#FF0000]/50'
+                ? 'bg-[#EF4444] text-white border-[#FCA5A5]'
+                : 'bg-[#08131F] text-[#FCA5A5] hover:bg-[#EF4444]/10 border-[#EF4444]/35'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#FF0000]" />
-            <span>Red Alert</span>
+            Red Alert
           </button>
 
           <button
             id="tab-sev-orange"
             type="button"
             onClick={() => handleUpdate('severity', 'orange')}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'orange'
-                ? 'bg-[#FFA500] text-[#0B263D] border-white shadow-xs'
-                : 'bg-[#081F33] text-[#FFA500] hover:bg-[#FFA500]/10 border-[#FFA500]/50'
+                ? 'bg-[#F97316] text-white border-[#FDBA74]'
+                : 'bg-[#08131F] text-[#FDBA74] hover:bg-[#F97316]/10 border-[#F97316]/35'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#FFA500]" />
-            <span>Orange Alert</span>
+            Orange Alert
           </button>
 
           <button
             id="tab-sev-yellow"
             type="button"
             onClick={() => handleUpdate('severity', 'yellow')}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'yellow'
-                ? 'bg-[#FFFF00] text-[#0B263D] border-white shadow-xs'
-                : 'bg-[#081F33] text-[#FFFF00] hover:bg-[#FFFF00]/10 border-[#FFFF00]/50'
+                ? 'bg-[#EAB308] text-[#07111D] border-[#FDE047]'
+                : 'bg-[#08131F] text-[#FDE047] hover:bg-[#EAB308]/10 border-[#EAB308]/35'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#FFFF00]" />
-            <span>Yellow Watch</span>
+            Yellow Watch
           </button>
 
           <button
             id="tab-sev-green"
             type="button"
             onClick={() => handleUpdate('severity', 'green')}
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'green'
-                ? 'bg-[#008000] text-white border-white shadow-xs'
-                : 'bg-[#081F33] text-[#00E676] hover:bg-[#008000]/10 border-[#008000]/50'
+                ? 'bg-[#22C7A0] text-[#07111D] border-[#6EE7B7]'
+                : 'bg-[#08131F] text-[#6EE7B7] hover:bg-[#22C7A0]/10 border-[#22C7A0]/35'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-[#008000]" />
-            <span>Green / Normal</span>
+            Normal / Green
           </button>
         </div>
 
-        {/* Region Selector */}
         <div className="flex items-center gap-2 shrink-0">
           <label
             htmlFor="select-met-region"
-            className="text-xs text-[#AFC4D8] font-semibold flex items-center gap-1"
+            className="text-xs text-[#B5C3D1] font-semibold flex items-center gap-1"
           >
-            <span className="material-symbols-outlined text-[16px]">travel_explore</span>
+            <Globe2 className="w-4 h-4 text-[#35C7E8]" />
             <span className="hidden sm:inline">Region:</span>
           </label>
           <select
             id="select-met-region"
             value={filter.region}
             onChange={(e) => handleUpdate('region', e.target.value as IndiaMetRegion)}
-            className="bg-[#081F33] border border-[#1D5278] text-white text-xs rounded px-2.5 py-1.5 focus:outline-none focus:border-[#1565C0] cursor-pointer"
+            className="min-h-[38px] bg-[#08131F] border border-[#26394B] text-[#F3F6FA] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
           >
             {REGION_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -216,37 +207,36 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
         </div>
       </div>
 
-      {/* 3. Hazard Category Pills */}
       <div
         id="hazard-category-pills-row"
         role="tablist"
         aria-label="Filter warnings by hazard category"
-        className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-[#1D5278] scrollbar-thin scrollbar-thumb-[#1D5278]"
+        className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-[#26394B] scrollbar-none"
       >
-        {HAZARD_PILLS.map((pill) => {
-          const isActive = filter.hazard === pill.id;
+        {HAZARD_TABS.map((tab) => {
+          const isActive = filter.hazard === tab.id;
           return (
             <button
-              key={pill.id}
-              id={`btn-hazard-pill-${pill.id}`}
+              key={tab.id}
+              id={`btn-hazard-pill-${tab.id}`}
               type="button"
               role="tab"
               aria-selected={isActive}
-              onClick={() => handleUpdate('hazard', pill.id)}
-              className={`px-3 py-1 rounded text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer border whitespace-nowrap ${
+              onClick={() => handleUpdate('hazard', tab.id)}
+              className={`px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer border whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#102D47] text-[#E3F2FD] border-[#1565C0] shadow-xs'
-                  : 'bg-[#081F33] text-[#AFC4D8] hover:text-white hover:bg-[#102D47] border-[#1D5278]'
+                  ? 'bg-[#101F2E] text-[#F3F6FA] border-[#35C7E8]'
+                  : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B]'
               }`}
             >
-              <span className="material-symbols-outlined text-[15px] text-[#4FA8E0]">
-                {pill.icon}
+              <span className="text-[#35C7E8]">
+                {renderHazardIcon(tab.icon, 'w-3.5 h-3.5')}
               </span>
-              <span>{pill.label}</span>
+              <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
-    </div>
+    </DataPanel>
   );
 };

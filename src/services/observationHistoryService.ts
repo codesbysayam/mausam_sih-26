@@ -95,7 +95,14 @@ class ObservationHistoryService {
     const locName = location.displayName || `${location.city}, ${location.state}`;
 
     // Fallback if current telemetry is unavailable
-    if (!current || current.temp === undefined || current.temp === null) {
+    if (
+      !current ||
+      typeof current.temp !== 'number' ||
+      !Number.isFinite(current.temp) ||
+      typeof current.humidity !== 'number' ||
+      typeof current.windSpeed !== 'number' ||
+      typeof current.pressure !== 'number'
+    ) {
       return {
         hasValidComparison: false,
         locationId: locId,
@@ -109,9 +116,9 @@ class ObservationHistoryService {
           pressure: { parameter: 'Pressure', currentVal: 'Unavailable', previousVal: 'Unavailable', unit: 'hPa', diff: null, direction: 'unavailable', displayDiff: 'Comparison unavailable' },
           rainfall: { parameter: 'Rainfall', currentVal: 'Unavailable', previousVal: 'Unavailable', unit: 'mm', diff: null, direction: 'unavailable', displayDiff: 'Rainfall comparison unavailable' },
         },
-        overallStatus: 'UNAVAILABLE',
-        lastUpdatedText: 'Awaiting Telemetry',
-        sourceText: location.imdStation ? `IMD Station (${location.imdStation})` : 'IMD / Surface Grid',
+        overallStatus: current?.observationStatus === 'LOADING' ? 'RECENT' : 'UNAVAILABLE',
+        lastUpdatedText: current?.observationStatus === 'LOADING' ? 'Synchronizing Telemetry…' : 'Awaiting Telemetry',
+        sourceText: current?.observationSource || (location.imdStation ? `IMD Station (${location.imdStation})` : 'Open-Meteo Surface Analysis'),
       };
     }
 
@@ -126,12 +133,16 @@ class ObservationHistoryService {
       windDirection: current.windDirection,
       pressure: Math.round(current.pressure * 10) / 10,
       precipitation: Math.round((current.precipitation ?? current.precipitationMm ?? 0) * 10) / 10,
-      rainfallLast1h: current.rainfallLast1h !== undefined ? Math.round(current.rainfallLast1h * 10) / 10 : undefined,
-      rainfallLast24h: current.rainfallLast24h !== undefined ? Math.round(current.rainfallLast24h * 10) / 10 : undefined,
+      rainfallLast1h: typeof current.rainfallLast1h === 'number' ? Math.round(current.rainfallLast1h * 10) / 10 : undefined,
+      rainfallLast24h: typeof current.rainfallLast24h === 'number' ? Math.round(current.rainfallLast24h * 10) / 10 : undefined,
       condition: current.condition || 'Clear',
-      aqi: current.aqiIndex ?? current.aqiPm25,
-      source: current.observationSource || (location.imdStation ? `IMD AWS (${location.imdStation})` : 'IMD-WRF Surface Telemetry'),
-      status: current.observationStatus || (current.isLive ? 'LIVE' : 'RECENT'),
+      aqi: current.aqiIndex ?? current.aqiPm25 ?? undefined,
+      source: current.observationSource || (location.imdStation ? `IMD AWS (${location.imdStation})` : 'Open-Meteo Surface Analysis'),
+      status: current.observationStatus && current.observationStatus !== 'LOADING'
+        ? current.observationStatus
+        : current.isLive
+        ? 'LIVE'
+        : 'RECENT',
     };
 
     // Retrieve historical observations for this specific station
@@ -150,7 +161,7 @@ class ObservationHistoryService {
     }
 
     // If no prior stored observation exists in cache, check if meteorological service provided previous hour telemetry
-    if (!previousObs && current.previousHourTelemetry && current.previousHourTelemetry.temp !== undefined) {
+    if (!previousObs && current.previousHourTelemetry && typeof current.previousHourTelemetry.temp === 'number') {
       const prevHour = current.previousHourTelemetry;
       previousObs = {
         locationId: locId,

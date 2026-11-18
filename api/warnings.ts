@@ -780,7 +780,7 @@ export class SachetService {
         affectedAreasHeadline: `${opts.city || ''}, ${opts.country}`,
         affectedDistricts: [],
         description: 'Official IMD / NDMA warnings cover Indian territory and waters.',
-        validUntil: 'N/A',
+        validUntil: 'Unavailable',
         issuedAt: new Date().toISOString(),
         source: 'NDMA/SACHET',
         updatedAt: new Date().toISOString(),

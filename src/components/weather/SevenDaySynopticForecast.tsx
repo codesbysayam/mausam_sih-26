@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { DailyForecastItem } from '../../types';
 import { getWeatherVisualConfig } from '../../utils/weatherIcons';
+import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
 import {
   CalendarDays,
   Droplets,
@@ -12,277 +13,277 @@ import {
   Thermometer,
   CloudRain,
   Sun,
-  ShieldCheck,
-  AlertTriangle,
-  Sunrise,
-  Sunset,
-  Eye,
 } from 'lucide-react';
 
 interface SevenDaySynopticForecastProps {
   daily: DailyForecastItem[];
 }
 
+const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
 export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> = ({
   daily = [],
 }) => {
   const [showDetailedTable, setShowDetailedTable] = useState(false);
 
-  // Compute global max and min across 7 days for relative range bars
   const { globalMin, globalMax } = useMemo(() => {
-    let min = 100;
-    let max = -100;
+    let min = Infinity;
+    let max = -Infinity;
     daily.forEach((d) => {
-      if (typeof d.low === 'number' && d.low < min) min = d.low;
-      if (typeof d.high === 'number' && d.high > max) max = d.high;
+      if (isFiniteNum(d.low) && d.low < min) min = d.low;
+      if (isFiniteNum(d.high) && d.high > max) max = d.high;
     });
-    if (min === 100) min = 20;
-    if (max === -100) max = 35;
+    if (min === Infinity) min = 15;
+    if (max === -Infinity) max = 35;
     return { globalMin: min, globalMax: max };
   }, [daily]);
 
-  // Derive compact weekly summary strictly from actual forecast data
   const weeklySummary = useMemo(() => {
     if (!daily || daily.length === 0) return null;
 
-    let hottest = { day: daily[0].day, high: daily[0].high ?? 0 };
-    let coolest = { day: daily[0].day, low: daily[0].low ?? 100 };
-    let wettest = { day: daily[0].day, rainProb: daily[0].rainProb ?? 0 };
-    let windiest = { day: daily[0].day, windVal: 0 };
-    let bestDay = { day: daily[0].day, score: -1 };
+    let hottest: { day: string; high: number } | null = null;
+    let coolest: { day: string; low: number } | null = null;
+    let wettest: { day: string; rainProb: number } | null = null;
+    let windiest: { day: string; windVal: number } | null = null;
+    let bestDay: { day: string; score: number } | null = null;
 
     daily.forEach((d) => {
-      const h = typeof d.high === 'number' ? d.high : 28;
-      const l = typeof d.low === 'number' ? d.low : 22;
-      const r = typeof d.rainProb === 'number' ? d.rainProb : 0;
-      // parse wind number
+      const h = isFiniteNum(d.high) ? d.high : null;
+      const l = isFiniteNum(d.low) ? d.low : null;
+      const r = isFiniteNum(d.rainProb) ? d.rainProb : null;
       const windMatch = typeof d.wind === 'string' ? d.wind.match(/\d+/) : null;
-      const wVal = windMatch ? parseInt(windMatch[0], 10) : 10;
+      const wVal = windMatch ? parseInt(windMatch[0], 10) : null;
 
-      if (h > hottest.high) hottest = { day: d.day, high: h };
-      if (l < coolest.low) coolest = { day: d.day, low: l };
-      if (r > wettest.rainProb) wettest = { day: d.day, rainProb: r };
-      if (wVal > windiest.windVal) windiest = { day: d.day, windVal: wVal };
+      if (h !== null && (!hottest || h > hottest.high)) hottest = { day: d.day, high: h };
+      if (l !== null && (!coolest || l < coolest.low)) coolest = { day: d.day, low: l };
+      if (r !== null && (!wettest || r > wettest.rainProb)) wettest = { day: d.day, rainProb: r };
+      if (wVal !== null && (!windiest || wVal > windiest.windVal)) windiest = { day: d.day, windVal: wVal };
 
-      // Outdoor score formula: penalize rain heavily, penalize extreme heat (>38) or intense wind (>35)
-      let score = 100 - r * 1.2;
-      if (h > 35) score -= (h - 35) * 5;
-      if (wVal > 25) score -= (wVal - 25) * 2;
-      if (score > bestDay.score) {
-        bestDay = { day: d.day, score };
+      if (h !== null && r !== null) {
+        let score = 100 - r * 1.2;
+        if (h > 35) score -= (h - 35) * 5;
+        if (wVal !== null && wVal > 25) score -= (wVal - 25) * 2;
+        if (!bestDay || score > bestDay.score) {
+          bestDay = { day: d.day, score };
+        }
       }
     });
 
     return {
-      hottestDay: `${hottest.day} (${Math.round(hottest.high)}°C)`,
-      coolestDay: `${coolest.day} (${Math.round(coolest.low)}°C)`,
-      wettestDay: `${wettest.day} (${wettest.rainProb}% rain prob)`,
-      windiestDay: `${windiest.day} (${windiest.windVal} km/h)`,
-      bestOutdoorDay: `${bestDay.day} (Favorable outdoor conditions)`,
+      hottestDay: hottest ? `${hottest.day} (${Math.round(hottest.high)}°C)` : '—',
+      coolestDay: coolest ? `${coolest.day} (${Math.round(coolest.low)}°C)` : '—',
+      wettestDay: wettest ? `${wettest.day} (${wettest.rainProb}% prob)` : '—',
+      windiestDay: windiest ? `${windiest.day} (${windiest.windVal} km/h)` : '—',
+      bestOutdoorDay: bestDay ? `${bestDay.day} (Lowest rain/heat load)` : '—',
     };
   }, [daily]);
 
+  if (!daily || daily.length === 0) {
+    return (
+      <DataPanel id="seven-day-synoptic-forecast-section" className="h-full">
+        <UnavailableState
+          title="7-Day Extended Forecast Unavailable"
+          reason="Extended daily ensemble guidance is currently unavailable for this location."
+          source="Open-Meteo Daily Ensemble"
+        />
+      </DataPanel>
+    );
+  }
+
   return (
-    <div
-      id="seven-day-synoptic-forecast-section"
-      className="bg-[#1E2733] border border-[#314255] rounded-lg p-4 sm:p-5 shadow-md flex flex-col gap-4"
-    >
-      {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#314255]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-[#0B72B9]/15 border border-[#0B72B9]/30 flex items-center justify-center text-[#4FA8E0]">
-            <CalendarDays className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-tight">
-              7-Day Synoptic Extended Outlook
-            </h3>
-            <p className="text-[11px] text-[#8A94A6]">
-              Calibrated via IMD Multi-Model Ensemble (MME) & NCMRWF Unified Model
-            </p>
-          </div>
-        </div>
+    <DataPanel id="seven-day-synoptic-forecast-section" className="flex flex-col gap-4 h-full">
+      <SectionHeading
+        title="7-Day Extended Synoptic Outlook"
+        subtitle="Multi-day thermal envelope, rain probability, and surface wind matrix"
+        icon={<CalendarDays className="w-4 h-4" />}
+        action={
+          <button
+            type="button"
+            onClick={() => setShowDetailedTable(!showDetailedTable)}
+            className="px-3 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-xs font-semibold text-[#35C7E8] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Table className="w-3.5 h-3.5" />
+            <span>{showDetailedTable ? 'Hide Matrix Table' : 'Numerical Matrix'}</span>
+            {showDetailedTable ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={() => setShowDetailedTable(!showDetailedTable)}
-          className="px-3 py-1.5 bg-[#151D26] hover:bg-[#314255] border border-[#314255] hover:border-[#4FA8E0] text-xs font-semibold text-[#4FA8E0] rounded flex items-center gap-1.5 transition-all self-start sm:self-auto"
-        >
-          <Table className="w-3.5 h-3.5" />
-          <span>{showDetailedTable ? 'Hide Detailed Table' : 'View Numerical Table'}</span>
-          {showDetailedTable ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        </button>
-      </div>
-
-      {/* Compact Weekly Summary Bar */}
       {weeklySummary && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#EF5350]/15 text-[#EF5350] flex items-center justify-center shrink-0">
+          <div className="m-panel-inset p-2.5 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#FCA5A5] flex items-center justify-center shrink-0">
               <Flame className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Hottest Day</div>
-              <div className="text-xs font-bold text-white truncate">{weeklySummary.hottestDay}</div>
+              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Warmest Day</div>
+              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+                {weeklySummary.hottestDay}
+              </div>
             </div>
           </div>
 
-          <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#38BDF8]/15 text-[#38BDF8] flex items-center justify-center shrink-0">
+          <div className="m-panel-inset p-2.5 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#35C7E8]/12 border border-[#35C7E8]/30 text-[#35C7E8] flex items-center justify-center shrink-0">
               <Thermometer className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Coolest Day</div>
-              <div className="text-xs font-bold text-white truncate">{weeklySummary.coolestDay}</div>
+              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Coolest Night</div>
+              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+                {weeklySummary.coolestDay}
+              </div>
             </div>
           </div>
 
-          <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#0B72B9]/20 text-[#4FA8E0] flex items-center justify-center shrink-0">
+          <div className="m-panel-inset p-2.5 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#0B72B9]/15 border border-[#0B72B9]/35 text-[#7DD3FC] flex items-center justify-center shrink-0">
               <CloudRain className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Wettest Day</div>
-              <div className="text-xs font-bold text-[#4FA8E0] truncate">{weeklySummary.wettestDay}</div>
+              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Wettest Day</div>
+              <div className="text-xs font-bold text-[#35C7E8] font-mono tabular-nums truncate">
+                {weeklySummary.wettestDay}
+              </div>
             </div>
           </div>
 
-          <div className="p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#2ECC71]/15 text-[#2ECC71] flex items-center justify-center shrink-0">
+          <div className="m-panel-inset p-2.5 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
               <Wind className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Windiest Day</div>
-              <div className="text-xs font-bold text-white truncate">{weeklySummary.windiestDay}</div>
+              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Windiest Day</div>
+              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+                {weeklySummary.windiestDay}
+              </div>
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 lg:col-span-1 p-2.5 rounded bg-[#151D26] border border-[#314255] flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#22C7A0]/15 text-[#22C7A0] flex items-center justify-center shrink-0">
+          <div className="col-span-2 sm:col-span-1 m-panel-inset p-2.5 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
               <Sun className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8A94A6] uppercase font-semibold">Best Outdoor Day</div>
-              <div className="text-xs font-bold text-[#22C7A0] truncate">{weeklySummary.bestOutdoorDay}</div>
+              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Best Window</div>
+              <div className="text-xs font-bold text-[#6EE7B7] truncate">{weeklySummary.bestOutdoorDay}</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 7-Day Forecast Cards Strip / Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+      {/* 7-Day Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3">
         {daily.map((item, idx) => {
           const visual = getWeatherVisualConfig(item.condition);
           const IconComp = visual.icon;
 
-          const highVal =
-            typeof item.high === 'number' && !Number.isNaN(item.high)
-              ? Math.round(item.high)
-              : 29;
-          const lowVal =
-            typeof item.low === 'number' && !Number.isNaN(item.low)
-              ? Math.round(item.low)
-              : 24;
-
-          const rainProb = item.rainProb || 0;
+          const highVal = isFiniteNum(item.high) ? Math.round(item.high) : null;
+          const lowVal = isFiniteNum(item.low) ? Math.round(item.low) : null;
+          const rainProb = isFiniteNum(item.rainProb) ? Math.round(item.rainProb) : null;
           const isToday = idx === 0 || item.day.toLowerCase().includes('today');
 
-          // Calculate bar percentage
           const rangeTotal = Math.max(1, globalMax - globalMin);
-          const leftPercent = Math.max(0, Math.min(80, ((lowVal - globalMin) / rangeTotal) * 100));
-          const widthPercent = Math.max(20, Math.min(100 - leftPercent, ((highVal - lowVal) / rangeTotal) * 100));
+          const leftPercent =
+            lowVal !== null ? Math.max(0, Math.min(80, ((lowVal - globalMin) / rangeTotal) * 100)) : 0;
+          const widthPercent =
+            highVal !== null && lowVal !== null
+              ? Math.max(18, Math.min(100 - leftPercent, ((highVal - lowVal) / rangeTotal) * 100))
+              : 0;
 
-          // Warning status heuristic based on condition and rain prob
-          const hasWarning = rainProb >= 70 || item.condition.toLowerCase().includes('thunder');
-          const warningBadge = hasWarning ? { label: 'Watch', color: '#FFC857', bg: 'bg-[#FFC857]/15 border-[#FFC857]/40 text-[#FFC857]' } : { label: 'Normal', color: '#22C7A0', bg: 'bg-[#22C7A0]/15 border-[#22C7A0]/30 text-[#22C7A0]' };
+          const hasWarning =
+            (rainProb !== null && rainProb >= 70) ||
+            (item.condition || '').toLowerCase().includes('thunder');
 
           return (
             <div
               key={idx}
               id={`daily-forecast-card-${idx}`}
-              className={`p-3.5 rounded-lg border flex flex-col justify-between gap-3 transition-all ${
+              className={`p-3 rounded-lg border flex flex-col justify-between gap-2.5 transition-colors ${
                 isToday
-                  ? 'bg-[#151D26] border-[#4FA8E0] shadow-md ring-1 ring-[#4FA8E0]/40'
-                  : 'bg-[#151D26] border-[#314255] hover:border-[#4FA8E0]/60'
+                  ? 'bg-[#101F2E] border-[#35C7E8]'
+                  : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
               }`}
             >
-              {/* Day Header */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <div>
-                  <div className="text-xs font-bold text-white uppercase tracking-tight">
+                  <div className="text-xs font-bold text-[#F3F6FA] uppercase tracking-tight">
                     {isToday ? 'Today' : item.day}
                   </div>
-                  <div className="text-[10px] text-[#8A94A6]">{item.date}</div>
+                  <div className="text-[10px] font-mono text-[#8295A8]">{item.date}</div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${warningBadge.bg}`}>
-                    {warningBadge.label}
+                <span
+                  className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border ${
+                    hasWarning
+                      ? 'bg-[#F59E0B]/12 border-[#F59E0B]/40 text-[#FCD34D]'
+                      : 'bg-[#22C7A0]/12 border-[#22C7A0]/30 text-[#6EE7B7]'
+                  }`}
+                >
+                  {hasWarning ? 'Watch' : 'Normal'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5 my-0.5">
+                <div className="p-2 rounded-lg bg-[#0B1927] border border-[#26394B] shrink-0">
+                  <IconComp className={`w-5 h-5 ${visual.iconColor}`} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-[#F3F6FA] truncate">
+                    {item.condition || '—'}
+                  </div>
+                  <div className="text-[10px] text-[#8295A8] truncate">
+                    {rainProb !== null ? `${rainProb}% Rain Prob` : 'PoP unavailable'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between text-xs font-mono tabular-nums">
+                  <span className="text-[#8295A8] font-semibold">
+                    {lowVal !== null ? `${lowVal}°` : '—'}
                   </span>
-                  {isToday && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#4FA8E0]/20 text-[#4FA8E0] border border-[#4FA8E0]/40">
-                      LIVE
-                    </span>
+                  <span className="text-[#F3F6FA] font-bold">
+                    {highVal !== null ? `${highVal}°` : '—'}
+                  </span>
+                </div>
+
+                <div className="relative w-full h-1.5 bg-[#0B1927] border border-[#26394B] rounded-full overflow-hidden">
+                  {widthPercent > 0 && (
+                    <div
+                      className="absolute h-full rounded-full bg-gradient-to-r from-[#35C7E8] to-[#EF4444]"
+                      style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
+                    />
                   )}
                 </div>
               </div>
 
-              {/* Weather Condition & Icon */}
-              <div className="flex items-center gap-2.5 my-1">
-                <div className="p-2 rounded-lg bg-[#1E2733] border border-[#314255] shrink-0">
-                  <IconComp className={`w-5 h-5 ${visual.iconColor}`} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-white truncate">
-                    {item.condition || 'Partly Cloudy'}
-                  </div>
-                  <div className="text-[10px] text-[#8A94A6] truncate">
-                    {rainProb > 40 ? `${rainProb}% Rain Prob` : 'Stable Sky'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Visual Temperature Range Bar */}
-              <div className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between text-xs font-mono">
-                  <span className="text-[#8A94A6] font-semibold">{lowVal}°</span>
-                  <span className="text-white font-bold">{highVal}°</span>
-                </div>
-
-                {/* Range Track Bar */}
-                <div className="relative w-full h-1.5 bg-[#1E2733] rounded-full overflow-hidden">
-                  <div
-                    className="absolute h-full rounded-full bg-gradient-to-r from-[#4FA8E0] to-[#E74C3C]"
-                    style={{
-                      left: `${leftPercent}%`,
-                      width: `${widthPercent}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Secondary Details: Rain, Wind, Humidity, UV */}
-              <div className="pt-2 border-t border-[#314255]/70 flex flex-col gap-1 text-[10px] text-[#8A94A6]">
+              <div className="pt-2 border-t border-[#26394B]/70 flex flex-col gap-1 text-[10px] text-[#8295A8] font-mono tabular-nums">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Droplets className="w-3 h-3 text-[#4FA8E0]" />
-                    PoP:
+                  <span className="font-sans flex items-center gap-1">
+                    <Droplets className="w-3 h-3 text-[#35C7E8]" />
+                    PoP
                   </span>
-                  <span className="font-mono text-[#4FA8E0] font-bold">{rainProb}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Wind className="w-3 h-3 text-[#2ECC71]" />
-                    Wind:
+                  <span className="text-[#35C7E8] font-bold">
+                    {rainProb !== null ? `${rainProb}%` : '—'}
                   </span>
-                  <span className="font-mono text-[#DCE3EB]">{item.wind || '12 km/h'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Humidity:</span>
-                  <span className="font-mono text-[#DCE3EB]">{item.humidity || 72}%</span>
+                  <span className="font-sans flex items-center gap-1">
+                    <Wind className="w-3 h-3 text-[#22C7A0]" />
+                    Wind
+                  </span>
+                  <span className="text-[#B5C3D1] truncate max-w-[85px]">{item.wind || '—'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>UV Index:</span>
-                  <span className="font-mono text-[#FFC857]">{item.uv || (idx % 2 === 0 ? '7 (High)' : '5 (Mod)')}</span>
+                  <span className="font-sans">Humidity</span>
+                  <span className="text-[#B5C3D1]">
+                    {isFiniteNum(item.humidity) ? `${Math.round(item.humidity)}%` : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-sans">UV Index</span>
+                  <span className="text-[#FCD34D]">
+                    {isFiniteNum(item.uv) ? item.uv.toFixed(1) : '—'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -290,69 +291,73 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
         })}
       </div>
 
-      {/* Detailed Numerical Table (Expandable) */}
+      {/* Expandable Numerical Matrix */}
       {showDetailedTable && (
-        <div
-          id="detailed-synoptic-table-container"
-          className="bg-[#151D26] border border-[#314255] rounded-lg p-3 overflow-x-auto"
-        >
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#314255] text-xs">
-            <span className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5">
-              <Table className="w-3.5 h-3.5 text-[#4FA8E0]" />
-              7-Day Multi-Model Ensemble Forecast Matrix
+        <div id="detailed-synoptic-table-container" className="m-panel-inset p-3 overflow-x-auto">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#26394B] text-xs">
+            <span className="font-bold text-[#F3F6FA] uppercase text-[11px] flex items-center gap-1.5">
+              <Table className="w-3.5 h-3.5 text-[#35C7E8]" />
+              7-Day Numerical Forecast Matrix
             </span>
-            <span className="text-[10px] text-[#8A94A6]">Calibrated against IMD Standard Climatology</span>
+            <span className="text-[10px] text-[#8295A8]">Upstream NWP / Daily Ensemble</span>
           </div>
 
           <table className="w-full text-left text-xs border-collapse min-w-[750px]">
             <thead>
-              <tr className="border-b border-[#314255] text-[#8A94A6] uppercase text-[10px] tracking-wider bg-[#1E2733]/50">
+              <tr className="border-b border-[#26394B] text-[#8295A8] uppercase text-[10px] tracking-wider bg-[#0B1927]">
                 <th className="p-2.5">Date &amp; Day</th>
                 <th className="p-2.5">Condition</th>
-                <th className="p-2.5">Min / Max Temp</th>
-                <th className="p-2.5">Precip Probability</th>
-                <th className="p-2.5">Relative Humidity</th>
+                <th className="p-2.5">Max / Min Temp</th>
+                <th className="p-2.5">Rain Prob</th>
+                <th className="p-2.5">Humidity</th>
                 <th className="p-2.5">Surface Wind</th>
                 <th className="p-2.5">UV Index</th>
-                <th className="p-2.5">Warning Alert</th>
+                <th className="p-2.5">Advisory</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#314255]/60 font-mono text-[#DCE3EB]">
+            <tbody className="divide-y divide-[#26394B]/60 font-mono tabular-nums text-[#B5C3D1]">
               {daily.map((item, idx) => {
-                const rainProb = item.rainProb || 0;
-                const hasWarning = rainProb >= 70 || item.condition.toLowerCase().includes('thunder');
+                const rainProb = isFiniteNum(item.rainProb) ? Math.round(item.rainProb) : null;
+                const hasWarning =
+                  (rainProb !== null && rainProb >= 70) ||
+                  (item.condition || '').toLowerCase().includes('thunder');
                 return (
-                  <tr key={idx} className="hover:bg-[#1E2733]/60 transition-colors">
+                  <tr key={idx} className="hover:bg-[#101F2E] transition-colors">
                     <td className="p-2.5 font-sans">
-                      <span className="font-bold text-white block">{item.day}</span>
-                      <span className="text-[10px] text-[#8A94A6]">{item.date}</span>
+                      <span className="font-bold text-[#F3F6FA] block">{item.day}</span>
+                      <span className="text-[10px] font-mono text-[#8295A8]">{item.date}</span>
                     </td>
-                    <td className="p-2.5 font-sans text-white">{item.condition}</td>
+                    <td className="p-2.5 font-sans text-[#F3F6FA]">{item.condition || '—'}</td>
                     <td className="p-2.5">
-                      <span className="text-white font-bold">{item.high}°C</span> /{' '}
-                      <span className="text-[#8A94A6]">{item.low}°C</span>
-                    </td>
-                    <td className="p-2.5">
-                      <span className={`font-bold ${rainProb > 40 ? 'text-[#4FA8E0]' : 'text-[#8A94A6]'}`}>
-                        {rainProb}%
+                      <span className="text-[#F3F6FA] font-bold">
+                        {isFiniteNum(item.high) ? `${Math.round(item.high)}°C` : '—'}
+                      </span>{' '}
+                      /{' '}
+                      <span className="text-[#8295A8]">
+                        {isFiniteNum(item.low) ? `${Math.round(item.low)}°C` : '—'}
                       </span>
                     </td>
-                    <td className="p-2.5 text-[#DCE3EB]">{item.humidity || 75}% RH</td>
-                    <td className="p-2.5 text-[#DCE3EB]">
-                      {item.wind || '12 km/h E'}
+                    <td className="p-2.5">
+                      <span className={`font-bold ${rainProb !== null && rainProb > 40 ? 'text-[#35C7E8]' : 'text-[#8295A8]'}`}>
+                        {rainProb !== null ? `${rainProb}%` : '—'}
+                      </span>
                     </td>
-                    <td className="p-2.5 text-[#FFC857]">
-                      {item.uv || (idx % 2 === 0 ? '7 High' : '5 Mod')}
+                    <td className="p-2.5">
+                      {isFiniteNum(item.humidity) ? `${Math.round(item.humidity)}%` : '—'}
+                    </td>
+                    <td className="p-2.5">{item.wind || '—'}</td>
+                    <td className="p-2.5 text-[#FCD34D]">
+                      {isFiniteNum(item.uv) ? item.uv.toFixed(1) : '—'}
                     </td>
                     <td className="p-2.5 font-sans">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
                           hasWarning
-                            ? 'bg-[#FFC857]/15 border-[#FFC857]/40 text-[#FFC857]'
-                            : 'bg-[#22C7A0]/15 border-[#22C7A0]/30 text-[#22C7A0]'
+                            ? 'bg-[#F59E0B]/12 border-[#F59E0B]/40 text-[#FCD34D]'
+                            : 'bg-[#22C7A0]/12 border-[#22C7A0]/30 text-[#6EE7B7]'
                         }`}
                       >
-                        {hasWarning ? 'Yellow Watch' : 'Green (No Warning)'}
+                        {hasWarning ? 'Watch' : 'Normal'}
                       </span>
                     </td>
                   </tr>
@@ -362,6 +367,6 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
           </table>
         </div>
       )}
-    </div>
+    </DataPanel>
   );
 };

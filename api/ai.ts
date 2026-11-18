@@ -123,7 +123,7 @@ export default async function handler(req: any, res: any) {
     if (cur.pressureHpa !== undefined) factsList.push({ label: 'Pressure', value: `${cur.pressureHpa} hPa` });
   }
   if (aqi && (aqi.index !== undefined || aqi.category)) {
-    factsList.push({ label: 'Air Quality', value: `AQI ${aqi.index ?? 'N/A'} (${aqi.category || 'Monitored'})`, source: aqi.source || 'CPCB / Open-Meteo' });
+    factsList.push({ label: 'Air Quality', value: `AQI ${aqi.index ?? '—'} (${aqi.category || 'Monitored'})`, source: aqi.source || 'CPCB / Open-Meteo' });
   }
   if (warnings.length > 0) {
     factsList.push({ label: 'Warning Advisory', value: `${warnings[0].headline} (${warnings[0].severity?.toUpperCase?.() || 'ACTIVE'} ALERT)`, source: 'IMD Bulletin' });
@@ -172,12 +172,13 @@ export default async function handler(req: any, res: any) {
     if (cur && typeof cur.temperatureC === 'number') {
       fallbackText += `• **Temperature**: ${cur.temperatureC}°C (Feels like ${cur.feelsLikeC ?? cur.temperatureC}°C)\n`;
       fallbackText += `• **Condition**: ${cur.condition}\n`;
-      fallbackText += `• **Humidity**: ${cur.relativeHumidity ?? cur.humidity ?? 'N/A'}%\n`;
-      fallbackText += `• **Wind**: ${cur.windSpeedKmh ?? 'N/A'} km/h ${cur.windDirection || ''}\n`;
-      fallbackText += `• **Rain Probability**: ${cur.precipitationProbability ?? cur.rainProbability ?? 0}%\n`;
+      const humVal = cur.relativeHumidity ?? cur.humidity;
+      fallbackText += `• **Humidity**: ${typeof humVal === 'number' ? `${humVal}%` : 'Unavailable'}\n`;
+      fallbackText += `• **Wind**: ${typeof cur.windSpeedKmh === 'number' ? `${cur.windSpeedKmh} km/h` : 'Unavailable'} ${cur.windDirection || ''}\n`;
+      fallbackText += `• **Rain Probability**: ${typeof (cur.precipitationProbability ?? cur.rainProbability) === 'number' ? `${cur.precipitationProbability ?? cur.rainProbability}%` : '—'}\n`;
     }
     if (aqi && (aqi.index !== undefined || aqi.category)) {
-      fallbackText += `• **Air Quality**: AQI ${aqi.index ?? aqi.aqi ?? 'N/A'} (${aqi.category || 'Monitored'})\n`;
+      fallbackText += `• **Air Quality**: AQI ${aqi.index ?? aqi.aqi ?? '—'} (${aqi.category || 'Monitored'})\n`;
     }
     if (warnings.length > 0) {
       fallbackText += `\n⚠️ **Warning Notice**: ${warnings[0].headline} (${warnings[0].severity?.toUpperCase?.() || 'ACTIVE'} ALERT)`;
@@ -200,18 +201,18 @@ export default async function handler(req: any, res: any) {
     const systemInstruction = `You are Ask MAUSAM, the official meteorological intelligence assistant for India.
 You MUST adhere strictly to the verified meteorological ground truth provided below:
 Location: ${loc.name || loc.city}, ${loc.state || 'India'} (Lat: ${loc.latitude || loc.lat}, Lng: ${loc.longitude || loc.lng})
-Current Temperature: ${cur?.temperatureC ?? 'N/A'}°C (Feels like: ${cur?.feelsLikeC ?? 'N/A'}°C)
+Current Temperature: ${cur?.temperatureC ?? 'Unavailable'}°C (Feels like: ${cur?.feelsLikeC ?? 'Unavailable'}°C)
 Current Condition: ${cur?.condition ?? 'Reported'}
-Relative Humidity: ${cur?.humidity ?? cur?.relativeHumidity ?? 'N/A'}%
-Wind Speed: ${cur?.windSpeedKmh ?? 'N/A'} km/h ${cur?.windDirection || ''}
-Rain Probability: ${cur?.precipitationProbability ?? cur?.rainProbability ?? 0}%
-Air Quality Index: ${aqi?.index ?? aqi?.aqi ?? 'N/A'} (${aqi?.category || 'Monitored'})
+Relative Humidity: ${cur?.humidity ?? cur?.relativeHumidity ?? 'Unavailable'}%
+Wind Speed: ${cur?.windSpeedKmh ?? 'Unavailable'} km/h ${cur?.windDirection || ''}
+Rain Probability: ${cur?.precipitationProbability ?? cur?.rainProbability ?? '—'}%
+Air Quality Index: ${aqi?.index ?? aqi?.aqi ?? 'Unavailable'} (${aqi?.category || 'Monitored'})
 Active Warnings: ${warnings.length > 0 ? warnings.map((w: any) => `${w.severity?.toUpperCase?.()}: ${w.headline || w.title}`).join('; ') : 'None'}
 Data Source: ${primarySource}
 Language: ${preferredLanguage}
 
 RULES:
-1. NEVER contradict the verified temperature (${cur?.temperatureC ?? 'N/A'}°C) or condition (${cur?.condition ?? 'N/A'}).
+1. NEVER contradict the verified temperature (${cur?.temperatureC ?? 'Unavailable'}°C) or condition (${cur?.condition ?? 'Unavailable'}).
 2. NEVER claim Open-Meteo is IMD or vice versa.
 3. NEVER say "all clear" if there is an active warning.
 4. If asked about a forecast, explain the expected trend based on the parameters.
@@ -266,12 +267,13 @@ RULES:
     let fallbackText = `**${loc.name || loc.city}** Weather Summary:\n\n`;
     if (cur && typeof cur.temperatureC === 'number') {
       fallbackText += `• **Temperature**: ${cur.temperatureC}°C (${cur.condition})\n`;
-      fallbackText += `• **Relative Humidity**: ${cur.relativeHumidity ?? cur.humidity ?? 'N/A'}%\n`;
-      fallbackText += `• **Wind**: ${cur.windSpeedKmh ?? 'N/A'} km/h ${cur.windDirection || ''}\n`;
-      fallbackText += `• **Rain Probability**: ${cur.precipitationProbability ?? cur.rainProbability ?? 0}%\n`;
+      const humVal = cur.relativeHumidity ?? cur.humidity;
+      fallbackText += `• **Relative Humidity**: ${typeof humVal === 'number' ? `${humVal}%` : 'Unavailable'}\n`;
+      fallbackText += `• **Wind**: ${typeof cur.windSpeedKmh === 'number' ? `${cur.windSpeedKmh} km/h` : 'Unavailable'} ${cur.windDirection || ''}\n`;
+      fallbackText += `• **Rain Probability**: ${typeof (cur.precipitationProbability ?? cur.rainProbability) === 'number' ? `${cur.precipitationProbability ?? cur.rainProbability}%` : '—'}\n`;
     }
     if (aqi && (aqi.index !== undefined || aqi.category)) {
-      fallbackText += `• **Air Quality**: AQI ${aqi.index ?? aqi.aqi ?? 'N/A'} (${aqi.category || 'Monitored'})\n`;
+      fallbackText += `• **Air Quality**: AQI ${aqi.index ?? aqi.aqi ?? '—'} (${aqi.category || 'Monitored'})\n`;
     }
 
     return sendJson(res, 200, {

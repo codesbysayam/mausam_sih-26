@@ -29,9 +29,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (isUser) {
     return (
       <div className="flex justify-end mb-3">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#0284C7] text-white px-3.5 py-2.5 shadow-sm">
+        <div className="max-w-[85%] rounded-xl rounded-tr-sm bg-[#0B72B9] border border-[#35C7E8]/35 text-[#F3F6FA] px-3.5 py-2.5">
           <p className="text-xs sm:text-sm leading-relaxed">{message.text}</p>
-          <span className="block text-[10px] text-white/70 text-right mt-1 font-mono">{time}</span>
+          <span className="block text-[10px] text-[#F3F6FA]/75 text-right mt-1 font-mono tabular-nums">
+            {time}
+          </span>
         </div>
       </div>
     );
@@ -56,111 +58,86 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   return (
     <div className="flex flex-col gap-1.5 mb-4">
       {/* Sender Header */}
-      <div className="flex items-center justify-between text-xs text-[#94A3B8] px-1">
-        <div className="flex items-center gap-1.5">
-          <span className={`w-2 h-2 rounded-full ${isKnowledgeResponse ? 'bg-[#34D399]' : 'bg-[#38BDF8]'}`} />
-          <span className="font-semibold text-white tracking-wide">Ask MAUSAM</span>
-          <span className="text-[10px] text-[#64748B]">•</span>
-          <span className="text-[10px] font-mono text-[#94A3B8] truncate max-w-[180px]">
+      <div className="flex items-center justify-between text-xs text-[#8295A8] px-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 ${
+              isKnowledgeResponse ? 'bg-[#22C7A0]' : 'bg-[#35C7E8]'
+            }`}
+          />
+          <span className="font-semibold text-[#F3F6FA] tracking-wide">Ask MAUSAM</span>
+          <span>·</span>
+          <span className="text-[10px] font-mono text-[#B5C3D1] truncate max-w-[180px]">
             {isKnowledgeResponse ? 'Knowledge Base' : sourceName}
           </span>
         </div>
-        <span className="text-[10px] font-mono text-[#64748B]">{time}</span>
+        <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">{time}</span>
       </div>
 
       {/* Main Bubble Content */}
-      <div className="rounded-2xl rounded-tl-sm bg-[#0F172A] border border-[#1E293B] p-3.5 sm:p-4 text-[#D7DEE8] shadow-sm flex flex-col gap-3">
-        {/* Knowledge Category Tag */}
+      <div className="rounded-xl rounded-tl-sm bg-[#0B1927] border border-[#26394B] p-3.5 sm:p-4 text-[#B5C3D1] flex flex-col gap-3">
         {isKnowledgeResponse && structured?.knowledge && (
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold tracking-wider uppercase bg-[#35C7E8]/12 text-[#35C7E8] border border-[#35C7E8]/35">
               {structured.knowledge.category}
             </span>
-            <span className="text-xs text-[#94A3B8] font-medium truncate">
+            <span className="text-xs text-[#8295A8] font-medium truncate">
               {structured.knowledge.title}
             </span>
           </div>
         )}
 
-        {/* Safe, Sanitized Markdown Narrative */}
         <MarkdownRenderer content={message.text} />
 
-        {/* Specialized Multi-Location Comparison Widget (when applicable) */}
         {intent === 'MULTI_LOCATION_COMPARISON' && structured?.comparison && (
-          <div className="pt-2 border-t border-[#1E293B]">
+          <div className="pt-2 border-t border-[#26394B]">
             <ComparisonAnswer comparison={structured.comparison} />
           </div>
         )}
 
-        {/* Fact Chips / Verified Grounding Context (only when non-empty) */}
         {!isKnowledgeResponse && facts.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#1E293B]">
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#26394B]">
             {facts.map((fact, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 rounded-md bg-[#162234] border border-[#1F2C3F] text-[11px] text-[#94A3B8]"
+                className="px-2 py-1 rounded-md bg-[#08131F] border border-[#26394B] text-[11px] font-mono text-[#B5C3D1] tabular-nums"
               >
-                <strong className="text-white font-medium">{fact.label}:</strong> {fact.value}
+                <strong className="text-[#F3F6FA] font-semibold">{fact.label}:</strong> {fact.value}
               </span>
             ))}
           </div>
         )}
 
-        {/* Switch Location Quick Action - ONLY when response is location-specific */}
-        {!isKnowledgeResponse && context?.location && onSelectLocation && !structured?.debug?.locationIsContextOnly && (
-          <div className="flex items-center justify-between pt-2 border-t border-[#1E293B] text-[11px]">
-            <span className="text-[#94A3B8] truncate">Grounded in: {context.location.name}</span>
-            <button
-              onClick={() => onSelectLocation(context.location.name)}
-              className="text-[#38BDF8] hover:underline font-medium shrink-0 ml-2"
-            >
-              Switch Location
-            </button>
-          </div>
-        )}
-
-        {/* Intent Debugger in Development Mode (Requirement 17) */}
-        {Boolean((import.meta as any)?.env?.DEV ?? true) && structured?.debug && (
-          <div className="p-2.5 rounded-lg bg-[#070B12] border border-[#1E293B] text-[11px] font-mono text-[#94A3B8] space-y-1">
-            <div className="flex items-center justify-between border-b border-[#1E293B] pb-1">
-              <span className="text-[#38BDF8] font-bold text-[10px] tracking-wider uppercase">Intent Debugger (Dev Mode)</span>
-              <span className="text-[#34D399] font-semibold">{structured.debug.latencyMs}ms</span>
-            </div>
-            <div className="grid grid-cols-[80px_1fr] gap-1 text-[10px]">
-              <span className="text-[#64748B]">USER:</span>
-              <span className="text-white truncate">&ldquo;{structured.debug.query}&rdquo;</span>
-
-              <span className="text-[#64748B]">INTENT:</span>
-              <span className="text-[#FBBF24] font-semibold">{structured.debug.intent}</span>
-
-              <span className="text-[#64748B]">LOCATION:</span>
-              <span className={structured.debug.locationIsContextOnly ? 'text-[#94A3B8]' : 'text-[#38BDF8]'}>
-                {structured.debug.location}
+        {!isKnowledgeResponse &&
+          context?.location &&
+          onSelectLocation &&
+          !structured?.debug?.locationIsContextOnly && (
+            <div className="flex items-center justify-between pt-2 border-t border-[#26394B] text-[11px]">
+              <span className="text-[#8295A8] truncate">
+                Grounded in: {context.location.name}
               </span>
-
-              <span className="text-[#64748B]">PROVIDERS:</span>
-              <span className={structured.debug.providers.length === 0 ? 'text-[#34D399]' : 'text-[#CBD5E1]'}>
-                {structured.debug.providers.length > 0 ? structured.debug.providers.join(', ') : 'NONE'}
-              </span>
-
-              <span className="text-[#64748B]">FAST PATH:</span>
-              <span className="text-[#38BDF8]">{structured.debug.fastPath}</span>
+              <button
+                type="button"
+                onClick={() => onSelectLocation(context.location.name)}
+                className="min-h-[36px] px-2 text-[#35C7E8] hover:underline font-mono font-semibold shrink-0 ml-2 cursor-pointer"
+              >
+                Switch Location
+              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Suggested Follow-up Prompts */}
         {followUps.length > 0 && (
-          <div className="pt-2 border-t border-[#1E293B] flex flex-col gap-1.5">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">
+          <div className="pt-2 border-t border-[#26394B] flex flex-col gap-2">
+            <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-[#8295A8]">
               Suggested Inquiries
             </span>
             <div className="flex flex-wrap gap-1.5">
               {followUps.map((promptText, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => onSelectPrompt(promptText)}
-                  className="px-2.5 py-1 rounded-lg text-xs bg-[#1E293B] hover:bg-[#334155] text-[#CBD5E1] hover:text-white border border-[#334155] transition-colors text-left"
+                  className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] transition-colors text-left cursor-pointer m-focus-ring"
                 >
                   {promptText}
                 </button>

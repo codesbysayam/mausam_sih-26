@@ -394,7 +394,7 @@ class WarningService {
         affectedAreasHeadline: location?.city || location?.district || 'Selected Location',
         affectedDistricts: [],
         description: 'Official real-time warning feed is currently unreachable. Surface telemetry and NWP forecasts remain active.',
-        validUntil: 'N/A',
+        validUntil: 'Unavailable',
         issuedAt: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
         source: 'NDMA/SACHET',
         updatedAt: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),

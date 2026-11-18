@@ -240,14 +240,14 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const calendarContent = (
     <div
-      className={`date-range-picker-content flex flex-col md:flex-row bg-[#0B141E] border border-[#1E2D3D] rounded-2xl shadow-2xl overflow-hidden text-slate-100 max-w-[95vw] sm:max-w-none ${className}`}
+      className={`date-range-picker-content flex flex-col md:flex-row bg-[#0B1927] border border-[#26394B] rounded-2xl shadow-2xl overflow-hidden text-[#F3F6FA] max-w-[95vw] sm:max-w-none ${className}`}
       role="region"
       aria-label="Date Range Calendar"
     >
       {/* PRESETS SIDEBAR */}
       {presets.length > 0 && (
-        <div className="w-full md:w-40 bg-[#071018] border-b md:border-b-0 md:border-r border-[#162331] p-3 flex flex-row md:flex-col gap-1 overflow-x-auto">
-          <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider px-2 py-1 hidden md:block">
+        <div className="w-full md:w-40 bg-[#08131F] border-b md:border-b-0 md:border-r border-[#26394B] p-3 flex flex-row md:flex-col gap-1 overflow-x-auto">
+          <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase tracking-wider px-2 py-1 hidden md:block">
             Quick Presets
           </span>
           {presets.map((p) => (
@@ -255,7 +255,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               key={p.label}
               type="button"
               onClick={() => handlePresetSelect(p)}
-              className="whitespace-nowrap text-left px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-[#93A4B8] hover:text-white hover:bg-[#111F30] transition-colors cursor-pointer shrink-0"
+              className="whitespace-nowrap text-left px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-[#B5C3D1] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer shrink-0"
             >
               {p.label}
             </button>
@@ -266,11 +266,11 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       {/* CALENDAR BODY */}
       <div className="p-4 w-full sm:w-[320px] select-none">
         {/* Navigation Header */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#162331]">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26394B]">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1 rounded-lg text-[#93A4B8] hover:text-white hover:bg-[#111F30] transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[#8295A8] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer"
             aria-label="Previous Month"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -343,7 +343,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         </div>
 
         {/* Selected Range Display & Controls */}
-        <div className="mt-3 pt-2.5 border-t border-[#162331] flex items-center justify-between text-[11px] font-mono">
+        <div className="mt-3 pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono">
           <div className="text-[#93A4B8] truncate mr-2">
             {tempRange.startDate ? (
               <span>
@@ -405,7 +405,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           triggerHaptic('tap');
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-2 bg-[#080E16] hover:bg-[#111F30] border border-[#1E2E40] hover:border-[#38BDF8]/50 text-[#D1DCE8] hover:text-white rounded-2xl px-3.5 py-2.5 text-xs font-mono transition-all cursor-pointer"
+        className="flex items-center gap-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 text-[#B5C3D1] hover:text-white rounded-xl px-3.5 py-2.5 text-xs font-mono transition-all cursor-pointer"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >

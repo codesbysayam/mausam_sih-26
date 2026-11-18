@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+import {
+  Layers,
+  Download,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  Eye,
+  EyeOff,
+  Check,
+} from 'lucide-react';
 import { downloadRadarIntensityCsv } from '../../utils/radarCsvExporter';
 
 export type LegendMetricMode = 'all' | 'precipitation' | 'wind';
@@ -244,11 +255,9 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
   const [windUnit, setWindUnit] = useState<WindUnit>('km/h');
   const [hoveredInterval, setHoveredInterval] = useState<string | null>(null);
 
-  // Export CSV state
   const [exportStatus, setExportStatus] = useState<'idle' | 'success'>('idle');
   const [exportedFilename, setExportedFilename] = useState<string>('');
 
-  // Internal state if parent is uncontrolled
   const [internalLevels, setInternalLevels] = useState<PrecipLevelId[]>(ALL_PRECIP_LEVEL_IDS);
   const effectiveLevels = activePrecipLevels !== undefined ? activePrecipLevels : internalLevels;
 
@@ -282,12 +291,9 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
 
   const handleToggleLevel = (id: PrecipLevelId) => {
     if (effectiveLevels.includes(id)) {
-      // If it's the last one, still allow toggling (or keep empty)
-      const next = effectiveLevels.filter((lvl) => lvl !== id);
-      updateLevels(next);
+      updateLevels(effectiveLevels.filter((lvl) => lvl !== id));
     } else {
       const next = [...effectiveLevels, id];
-      // Maintain sort order
       next.sort(
         (a, b) => ALL_PRECIP_LEVEL_IDS.indexOf(a) - ALL_PRECIP_LEVEL_IDS.indexOf(b)
       );
@@ -295,9 +301,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
     }
   };
 
-  const handleSelectAll = () => {
-    updateLevels(ALL_PRECIP_LEVEL_IDS);
-  };
+  const handleSelectAll = () => updateLevels(ALL_PRECIP_LEVEL_IDS);
 
   const handleSelectPreset = (preset: 'all' | 'modPlus' | 'severe' | 'clear') => {
     switch (preset) {
@@ -338,7 +342,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
           : `${item.rateRange} mm/hr`;
       return {
         title: `${item.label} (${valStr})`,
-        description: `${item.description} • ${isAct ? 'Currently visible on map' : 'Filtered out on map'} (Click to toggle)`,
+        description: `${item.description} · ${isAct ? 'Visible on map' : 'Filtered out'} (Click to toggle)`,
         color: item.color,
       };
     }
@@ -371,38 +375,35 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {/* Collapsed Pill State */}
       {isCollapsed ? (
         <button
           type="button"
           onClick={() => setIsCollapsed(false)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#071727]/90 hover:bg-[#0A2238]/95 backdrop-blur-md border text-[#E1EEF8] shadow-2xl transition-all group cursor-pointer max-w-[calc(100vw-24px)] ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B1927]/95 hover:bg-[#101F2E] backdrop-blur-md border text-[#F3F6FA] shadow-xl transition-colors cursor-pointer max-w-[calc(100vw-24px)] ${
             isFilteringActive
-              ? 'border-[#F59E0B] ring-1 ring-[#F59E0B]/50'
-              : 'border-[#19456B]/90'
+              ? 'border-[#F59E0B]'
+              : 'border-[#26394B]'
           }`}
           title="Expand persistent radar intensity legend panel and filter map layers"
           aria-expanded={false}
         >
-          <span className="material-symbols-outlined text-[16px] text-[#38BDF8] group-hover:rotate-45 transition-transform">
-            layers
-          </span>
+          <Layers className="w-4 h-4 text-[#35C7E8] shrink-0" />
           <div className="flex flex-col text-left">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono font-bold tracking-wider text-white">
+              <span className="text-[10px] font-mono font-bold tracking-wider text-[#F3F6FA]">
                 RADAR LEGEND
               </span>
               {isFilteringActive && (
-                <span className="text-[8px] font-bold px-1 rounded bg-[#F59E0B] text-black">
+                <span className="text-[8px] font-bold px-1 rounded bg-[#F59E0B] text-slate-950 font-mono">
                   FILTERED ({effectiveLevels.length}/6)
                 </span>
               )}
             </div>
-            <span className="text-[9px] text-[#8AA1B7]">
-              🌧️ Precip ({precipUnit === 'in/h' ? 'in/hr' : precipUnit === 'mm/h' ? 'mm/hr' : 'dBZ'}) • 💨 Wind ({windUnit})
+            <span className="text-[9px] text-[#8295A8] font-mono">
+              Precip ({precipUnit === 'in/h' ? 'in/hr' : precipUnit === 'mm/h' ? 'mm/hr' : 'dBZ'}) · Wind ({windUnit})
             </span>
           </div>
-          {/* Mini Gradient Preview Bar showing filtered or active dots */}
+
           <div className="flex items-center gap-0.5 ml-1">
             {PRECIP_INTERVALS.map((intv) => {
               const isAct = effectiveLevels.includes(intv.id);
@@ -410,7 +411,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                 <div
                   key={intv.id}
                   className={`w-2 h-2.5 rounded-xs transition-opacity ${
-                    isAct ? 'opacity-100 shadow-xs' : 'opacity-20 grayscale'
+                    isAct ? 'opacity-100' : 'opacity-20 grayscale'
                   }`}
                   style={{ backgroundColor: intv.color }}
                   title={`${intv.label}: ${isAct ? 'Visible' : 'Hidden'}`}
@@ -418,7 +419,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               );
             })}
           </div>
-          {/* Quick Export CSV icon button in collapsed pill */}
+
           <span
             role="button"
             tabIndex={0}
@@ -432,159 +433,101 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                 handleExportCsv();
               }
             }}
-            className="w-5 h-5 rounded hover:bg-[#102C48] text-[#38BDF8] hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-0.5"
+            className="w-6 h-6 rounded hover:bg-[#101F2E] text-[#35C7E8] hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-0.5"
             title="Download currently filtered radar intensity data as CSV"
             aria-label="Export filtered data as CSV"
           >
-            <span className="material-symbols-outlined text-[13px]">
-              {exportStatus === 'success' ? 'check_circle' : 'download'}
-            </span>
+            {exportStatus === 'success' ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#6EE7B7]" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
           </span>
-          <span className="material-symbols-outlined text-[14px] text-[#38BDF8]">
-            expand_more
-          </span>
+          <ChevronDown className="w-4 h-4 text-[#35C7E8] shrink-0" />
         </button>
       ) : (
-        /* Expanded Full Glassmorphism Panel */
-        <div className="w-[300px] sm:w-[340px] max-w-[calc(100vw-24px)] rounded-xl bg-[#071727]/90 backdrop-blur-md border border-[#19456B]/90 text-[#E1EEF8] shadow-2xl p-2.5 sm:p-3 flex flex-col gap-2">
-          {/* 1. Header with Title, Mode Switcher & Collapse Button */}
-          <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[#143755]">
+        <div className="w-[300px] sm:w-[340px] max-w-[calc(100vw-24px)] rounded-xl bg-[#0B1927]/95 backdrop-blur-md border border-[#26394B] text-[#F3F6FA] shadow-xl p-3 flex flex-col gap-2.5">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[#26394B]">
             <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-[#38BDF8]">
-                filter_drama
-              </span>
+              <Layers className="w-4 h-4 text-[#35C7E8] shrink-0" />
               <div className="flex flex-col">
-                <span className="font-mono text-[11px] font-bold text-[#F0F6FC] tracking-wider leading-none">
+                <span className="font-mono text-[11px] font-bold text-[#F3F6FA] tracking-wider leading-none">
                   RADAR INTENSITY
                 </span>
-                <span className="text-[8.5px] text-[#7E96AE] font-mono leading-tight">
-                  Interactive Layer Filter
+                <span className="text-[9px] text-[#8295A8] font-mono leading-tight">
+                  Layer Filter
                 </span>
               </div>
             </div>
 
-            {/* Metric Mode Switcher Tabs */}
-            <div className="flex items-center bg-[#0B2136] p-0.5 rounded-md border border-[#163B5D]">
-              <button
-                type="button"
-                onClick={() => handleSelectMetric('all')}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
-                  metricMode === 'all'
-                    ? 'bg-[#1565C0] text-white shadow-xs'
-                    : 'text-[#8AA1B7] hover:text-white'
-                }`}
-                title="Show both precipitation and wind speed legends"
-              >
-                ALL
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSelectMetric('precipitation')}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
-                  metricMode === 'precipitation'
-                    ? 'bg-[#1565C0] text-white shadow-xs'
-                    : 'text-[#8AA1B7] hover:text-white'
-                }`}
-                title="Show precipitation reflectivity and rain rate filter"
-              >
-                PRECIP
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSelectMetric('wind')}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-all cursor-pointer ${
-                  metricMode === 'wind'
-                    ? 'bg-[#1565C0] text-white shadow-xs'
-                    : 'text-[#8AA1B7] hover:text-white'
-                }`}
-                title="Show wind speed and gale warning scales"
-              >
-                WIND
-              </button>
+            <div className="flex items-center bg-[#08131F] p-0.5 rounded-md border border-[#26394B]">
+              {(['all', 'precipitation', 'wind'] as LegendMetricMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => handleSelectMetric(mode)}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-colors cursor-pointer uppercase ${
+                    metricMode === mode
+                      ? 'bg-[#0B72B9] text-white'
+                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                  }`}
+                >
+                  {mode === 'precipitation' ? 'PRECIP' : mode}
+                </button>
+              ))}
             </div>
 
-            {/* Minimize / Collapse Button */}
             <button
               type="button"
               onClick={() => setIsCollapsed(true)}
-              className="w-5 h-5 rounded hover:bg-[#102C48] text-[#8AA1B7] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA] flex items-center justify-center transition-colors cursor-pointer"
               title="Collapse legend panel"
+              aria-label="Collapse legend panel"
               aria-expanded={true}
             >
-              <span className="material-symbols-outlined text-[15px]">expand_less</span>
+              <ChevronUp className="w-4 h-4" />
             </button>
           </div>
 
-          {/* 2. Precipitation Section & Interactive Layer Filter */}
+          {/* Precipitation Filter */}
           {(metricMode === 'all' || metricMode === 'precipitation') && (
             <div className="flex flex-col gap-1.5">
-              {/* Subheader with Unit Switcher & Active Filter Count */}
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-                  <span className="font-mono font-bold text-[#38BDF8]">PRECIPITATION</span>
-                  <span className="text-[#8AA1B7] text-[8.5px] hidden xs:inline">
+                  <span className="font-mono font-bold text-[#35C7E8]">PRECIPITATION</span>
+                  <span className="text-[#8295A8] text-[9px] hidden xs:inline">
                     ({precipUnit === 'dBZ' ? 'Reflectivity' : precipUnit === 'in/h' ? 'Imperial' : 'Metric'})
                   </span>
                 </div>
-                {/* Unit Switcher: segmented buttons (dBZ / mm/hr / in/hr) */}
                 <div
-                  className="flex items-center bg-[#061421] p-0.5 rounded border border-[#19456B] text-[8.5px] font-mono shadow-inner"
+                  className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B] text-[9px] font-mono"
                   role="group"
                   aria-label="Precipitation unit toggle"
                 >
-                  <button
-                    type="button"
-                    onClick={() => setPrecipUnit('dBZ')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      precipUnit === 'dBZ'
-                        ? 'bg-[#38BDF8] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Radar Echo Reflectivity: Decibels of Z (dBZ)"
-                  >
-                    dBZ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPrecipUnit('mm/h')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      precipUnit === 'mm/h'
-                        ? 'bg-[#38BDF8] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Metric Rain Rate: Millimeters per hour (mm/hr)"
-                  >
-                    mm/hr
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPrecipUnit('in/h')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      precipUnit === 'in/h'
-                        ? 'bg-[#38BDF8] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Imperial Rain Rate: Inches per hour (in/hr) for international users"
-                  >
-                    in/hr
-                  </button>
+                  {(['dBZ', 'mm/h', 'in/h'] as PrecipUnit[]).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setPrecipUnit(u)}
+                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer font-bold ${
+                        precipUnit === u
+                          ? 'bg-[#35C7E8] text-[#07111D]'
+                          : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      }`}
+                    >
+                      {u === 'dBZ' ? 'dBZ' : u === 'mm/h' ? 'mm/hr' : 'in/hr'}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Intensity Layer Filter Presets Bar */}
-              <div className="flex items-center justify-between bg-[#061421] px-2 py-1 rounded-md border border-[#143755] text-[9px] font-mono">
-                <span className="text-[#8AA1B7] font-semibold flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px] text-[#38BDF8]">
-                    tune
-                  </span>
+              <div className="flex items-center justify-between bg-[#08131F] px-2 py-1 rounded-md border border-[#26394B] text-[9px] font-mono">
+                <span className="text-[#8295A8] font-semibold flex items-center gap-1">
+                  <SlidersHorizontal className="w-3 h-3 text-[#35C7E8]" />
                   <span>Filter:</span>
-                  <strong
-                    className={
-                      isFilteringActive ? 'text-[#F59E0B]' : 'text-[#22C7A0]'
-                    }
-                  >
-                    {effectiveLevels.length}/6 active
+                  <strong className={isFilteringActive ? 'text-[#FCD34D]' : 'text-[#6EE7B7]'}>
+                    {effectiveLevels.length}/6
                   </strong>
                 </span>
 
@@ -592,40 +535,25 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectPreset('all')}
-                    className={`px-1.5 py-0.5 rounded text-[8.5px] transition-colors cursor-pointer ${
+                    className={`px-1.5 py-0.5 rounded text-[9px] transition-colors cursor-pointer ${
                       effectiveLevels.length === 6
-                        ? 'bg-[#1565C0] text-white font-bold'
-                        : 'text-[#8AA1B7] hover:text-white bg-[#0A2238]'
+                        ? 'bg-[#0B72B9] text-white font-bold'
+                        : 'text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E]'
                     }`}
-                    title="Enable all precipitation intensity levels"
                   >
                     All
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectPreset('modPlus')}
-                    className="px-1.5 py-0.5 rounded text-[8.5px] text-[#8AA1B7] hover:text-white bg-[#0A2238] hover:bg-[#123352] transition-colors cursor-pointer"
-                    title={
-                      precipUnit === 'in/h'
-                        ? 'Filter to Moderate and above (≥0.16 in/hr)'
-                        : precipUnit === 'mm/h'
-                        ? 'Filter to Moderate and above (≥4 mm/hr)'
-                        : 'Filter to Moderate and above (≥30 dBZ)'
-                    }
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E] transition-colors cursor-pointer"
                   >
                     {precipUnit === 'in/h' ? '≥0.16 in/hr' : precipUnit === 'mm/h' ? '≥4 mm/hr' : '≥30 dBZ'}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectPreset('severe')}
-                    className="px-1.5 py-0.5 rounded text-[8.5px] text-[#8AA1B7] hover:text-white bg-[#0A2238] hover:bg-[#123352] transition-colors cursor-pointer"
-                    title={
-                      precipUnit === 'in/h'
-                        ? 'Filter to Severe / Storms only (≥0.60 in/hr)'
-                        : precipUnit === 'mm/h'
-                        ? 'Filter to Severe / Storms only (≥15 mm/hr)'
-                        : 'Filter to Severe / Storms only (≥40 dBZ)'
-                    }
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E] transition-colors cursor-pointer"
                   >
                     {precipUnit === 'in/h' ? '≥0.60 in/hr' : precipUnit === 'mm/h' ? '≥15 mm/hr' : '≥40 dBZ'}
                   </button>
@@ -633,8 +561,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                     <button
                       type="button"
                       onClick={handleSelectAll}
-                      className="px-1 py-0.5 rounded text-[8.5px] text-[#F59E0B] hover:text-white underline cursor-pointer"
-                      title="Reset layer filter to display all intensities"
+                      className="px-1 py-0.5 rounded text-[9px] text-[#FCD34D] hover:text-white underline cursor-pointer"
                     >
                       Reset
                     </button>
@@ -642,30 +569,27 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   <button
                     type="button"
                     onClick={handleExportCsv}
-                    className="px-1.5 py-0.5 rounded text-[8.5px] text-[#38BDF8] hover:text-white bg-[#0A2238] hover:bg-[#123352] border border-[#19456B] transition-colors cursor-pointer flex items-center gap-0.5"
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[#35C7E8] hover:text-white bg-[#101F2E] border border-[#26394B] transition-colors cursor-pointer flex items-center gap-0.5"
                     title="Download currently filtered intensity data as CSV"
                   >
-                    <span className="material-symbols-outlined text-[10px]">
-                      {exportStatus === 'success' ? 'check_circle' : 'download'}
-                    </span>
+                    {exportStatus === 'success' ? (
+                      <CheckCircle2 className="w-2.5 h-2.5 text-[#6EE7B7]" />
+                    ) : (
+                      <Download className="w-2.5 h-2.5" />
+                    )}
                     <span>CSV</span>
                   </button>
                 </div>
               </div>
 
-              {/* Continuous Visual Gradient Bar showing active bands */}
-              <div className="relative">
-                <div
-                  className="h-2 rounded-sm shadow-xs border border-[#163B5D]/60"
-                  style={{
-                    background:
-                      'linear-gradient(to right, #0284C7 0%, #10B981 20%, #FACC15 40%, #FB923C 60%, #EF4444 80%, #C026D3 100%)',
-                  }}
-                  title="RainViewer & IMD Reflectivity Spectrum: Blue (Trace) to Magenta (Severe Hail)"
-                />
-              </div>
+              <div
+                className="h-2 rounded-sm border border-[#26394B]"
+                style={{
+                  background:
+                    'linear-gradient(to right, #0284C7 0%, #10B981 20%, #FACC15 40%, #FB923C 60%, #EF4444 80%, #C026D3 100%)',
+                }}
+              />
 
-              {/* Interactive Color-Coded Toggle Buttons Grid */}
               <div className="grid grid-cols-2 gap-1.5">
                 {PRECIP_INTERVALS.map((interval) => {
                   const isHovered = hoveredInterval === `precip-${interval.id}`;
@@ -686,56 +610,52 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       onMouseLeave={() => setHoveredInterval(null)}
                       aria-pressed={isActive}
                       aria-label={`Toggle ${interval.label} (${displayValue}) map layer`}
-                      className={`p-1.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`p-1.5 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
                         isActive
                           ? isHovered
-                            ? 'bg-[#0E2C48] border-[#38BDF8] ring-1 ring-[#38BDF8]/50 shadow-md'
-                            : 'bg-[#0A1F33]/90 border-[#19456B]'
-                          : 'bg-[#05111D]/60 border-[#142B3F] opacity-50 grayscale-[0.4]'
-                      }`}
-                      title={`${interval.label} (${displayValue}): ${
-                        isActive
-                          ? 'Visible on map. Click to filter out.'
-                          : 'Filtered out. Click to show on map.'
+                            ? 'bg-[#101F2E] border-[#35C7E8]'
+                            : 'bg-[#08131F] border-[#26394B]'
+                          : 'bg-[#07111D]/60 border-[#26394B]/50 opacity-50'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1 w-full mb-1">
                         <div className="flex items-center gap-1.5 truncate">
                           <span
-                            className="w-3 h-3 rounded-xs shrink-0 shadow-xs flex items-center justify-center text-[8px] font-black"
+                            className="w-3 h-3 rounded-xs shrink-0 flex items-center justify-center"
                             style={{
                               backgroundColor: interval.color,
                               color: interval.textColor,
                             }}
                           >
-                            {isActive ? '✓' : ''}
+                            {isActive && <Check className="w-2.5 h-2.5" />}
                           </span>
                           <span
-                            className={`font-mono font-bold text-[9.5px] truncate ${
-                              isActive ? 'text-[#F0F6FC]' : 'text-[#8AA1B7] line-through'
+                            className={`font-mono font-bold text-[9.5px] truncate tabular-nums ${
+                              isActive ? 'text-[#F3F6FA]' : 'text-[#8295A8] line-through'
                             }`}
                           >
                             {displayValue}
                           </span>
                         </div>
 
-                        {/* Interactive Toggle Switch Button Indicator */}
                         <span
-                          className={`text-[8px] font-mono font-bold px-1 py-0.2 rounded transition-colors shrink-0 ${
+                          className={`text-[8px] font-mono font-bold px-1 rounded shrink-0 ${
                             isActive
-                              ? 'bg-[#1565C0] text-white'
-                              : 'bg-[#162738] text-[#6E8294]'
+                              ? 'bg-[#0B72B9] text-white'
+                              : 'bg-[#101F2E] text-[#8295A8]'
                           }`}
                         >
                           {isActive ? 'ON' : 'OFF'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[8.5px] text-[#8AA1B7] font-medium leading-tight truncate">
+                      <div className="flex items-center justify-between text-[9px] text-[#8295A8] font-medium leading-tight truncate">
                         <span className="truncate">{interval.shortLabel}</span>
-                        <span className="text-[10px] opacity-70">
-                          {isActive ? '👁️' : '👁️‍🗨️'}
-                        </span>
+                        {isActive ? (
+                          <Eye className="w-3 h-3 text-[#B5C3D1] shrink-0" />
+                        ) : (
+                          <EyeOff className="w-3 h-3 text-[#8295A8] shrink-0" />
+                        )}
                       </div>
                     </button>
                   );
@@ -744,80 +664,50 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
             </div>
           )}
 
-          {/* 3. Wind Speed Section */}
+          {/* Wind Speed Section */}
           {(metricMode === 'all' || metricMode === 'wind') && (
             <div
               className={`flex flex-col gap-1.5 ${
-                metricMode === 'all' ? 'pt-2 border-t border-[#143755]' : ''
+                metricMode === 'all' ? 'pt-2 border-t border-[#26394B]' : ''
               }`}
             >
-              {/* Subheader with Unit Switcher */}
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00C897]" />
-                  <span className="font-mono font-bold text-[#00C897]">WIND SPEED</span>
-                  <span className="text-[#8AA1B7] text-[8.5px] hidden xs:inline">
+                  <span className="font-mono font-bold text-[#6EE7B7]">WIND SPEED</span>
+                  <span className="text-[#8295A8] text-[9px] hidden xs:inline">
                     ({windUnit === 'km/h' ? 'Radial Vel.' : windUnit === 'mph' ? 'Statute' : 'Knots'})
                   </span>
                 </div>
-                {/* Wind Unit Switcher: segmented control (km/h / kt / mph) */}
                 <div
-                  className="flex items-center bg-[#061421] p-0.5 rounded border border-[#19456B] text-[8.5px] font-mono shadow-inner"
+                  className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B] text-[9px] font-mono"
                   role="group"
                   aria-label="Wind speed unit toggle"
                 >
-                  <button
-                    type="button"
-                    onClick={() => setWindUnit('km/h')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      windUnit === 'km/h'
-                        ? 'bg-[#00C897] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Metric: Kilometers per hour (km/h)"
-                  >
-                    km/h
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setWindUnit('kt')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      windUnit === 'kt'
-                        ? 'bg-[#00C897] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Aviation / Nautical: Knots (kt)"
-                  >
-                    kt
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setWindUnit('mph')}
-                    className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-bold ${
-                      windUnit === 'mph'
-                        ? 'bg-[#00C897] text-[#031322] shadow-xs'
-                        : 'text-[#8AA1B7] hover:text-white hover:bg-[#0E2840]'
-                    }`}
-                    title="Imperial: Miles per hour (mph) for international users"
-                  >
-                    mph
-                  </button>
+                  {(['km/h', 'kt', 'mph'] as WindUnit[]).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setWindUnit(u)}
+                      className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer font-bold ${
+                        windUnit === u
+                          ? 'bg-[#22C7A0] text-[#07111D]'
+                          : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Continuous Visual Gradient Bar */}
-              <div className="relative">
-                <div
-                  className="h-2 rounded-sm shadow-xs border border-[#163B5D]/60"
-                  style={{
-                    background:
-                      'linear-gradient(to right, #38BDF8 0%, #00C897 20%, #F59E0B 40%, #EA580C 60%, #DC2626 80%, #7E22CE 100%)',
-                  }}
-                  title="Doppler Velocity Spectrum: Cyan (Light) to Purple (Cyclone Force)"
-                />
-              </div>
+              <div
+                className="h-2 rounded-sm border border-[#26394B]"
+                style={{
+                  background:
+                    'linear-gradient(to right, #38BDF8 0%, #00C897 20%, #F59E0B 40%, #EA580C 60%, #DC2626 80%, #7E22CE 100%)',
+                }}
+              />
 
-              {/* Color-Coded Intensity Grid for Wind */}
               <div className="grid grid-cols-3 gap-1">
                 {WIND_INTERVALS.map((interval) => {
                   const isHovered = hoveredInterval === `wind-${interval.id}`;
@@ -833,23 +723,23 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       key={interval.id}
                       onMouseEnter={() => setHoveredInterval(`wind-${interval.id}`)}
                       onMouseLeave={() => setHoveredInterval(null)}
-                      className={`p-1 rounded border transition-all cursor-default ${
+                      className={`p-1 rounded border transition-colors cursor-default ${
                         isHovered
-                          ? 'bg-[#0E2C48] border-[#00C897] ring-1 ring-[#00C897]/40 scale-[1.02]'
-                          : 'bg-[#0A1F33]/80 border-[#143755]'
+                          ? 'bg-[#101F2E] border-[#6EE7B7]'
+                          : 'bg-[#08131F] border-[#26394B]'
                       }`}
                       title={`${interval.label} (${interval.kmhRange} km/h | ${interval.ktRange} kt | ${interval.mphRange} mph): ${interval.description}`}
                     >
                       <div className="flex items-center gap-1 mb-0.5">
                         <span
-                          className="w-2.5 h-2.5 rounded-xs shrink-0 shadow-xs"
+                          className="w-2.5 h-2.5 rounded-xs shrink-0"
                           style={{ backgroundColor: interval.color }}
                         />
-                        <span className="font-mono font-bold text-[9px] text-[#F0F6FC] truncate">
+                        <span className="font-mono font-bold text-[9px] text-[#F3F6FA] truncate tabular-nums">
                           {displayValue}
                         </span>
                       </div>
-                      <div className="text-[8.5px] text-[#8AA1B7] font-medium leading-tight truncate">
+                      <div className="text-[8.5px] text-[#8295A8] font-medium leading-tight truncate">
                         {interval.label}
                       </div>
                     </div>
@@ -859,63 +749,62 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
             </div>
           )}
 
-          {/* Interactive Hover Insight Callout */}
           {activeHoverInfo && (
-            <div className="bg-[#051424] border border-[#1A4E7E] p-1.5 rounded-md text-[9.5px] text-[#D1E6F7] flex items-center gap-1.5 transition-all">
+            <div className="bg-[#08131F] border border-[#35C7E8]/40 p-1.5 rounded-md text-[9.5px] text-[#B5C3D1] flex items-center gap-1.5">
               <span
-                className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                className="w-2.5 h-2.5 rounded-xs shrink-0"
                 style={{ backgroundColor: activeHoverInfo.color }}
               />
               <div className="truncate">
-                <strong className="text-white mr-1">{activeHoverInfo.title}:</strong>
-                <span className="text-[#A4BFD8]">{activeHoverInfo.description}</span>
+                <strong className="text-[#F3F6FA] mr-1">{activeHoverInfo.title}:</strong>
+                <span>{activeHoverInfo.description}</span>
               </div>
             </div>
           )}
 
-          {/* 4. Export Filtered Data Action Card & Meteorological Footer */}
-          <div className="pt-2 border-t border-[#143755] flex flex-col gap-1.5">
-            {/* Primary 'Export Data' Button */}
+          {/* Export Filtered Data Action */}
+          <div className="pt-2 border-t border-[#26394B] flex flex-col gap-1.5">
             <button
               type="button"
               id="btn-export-radar-legend-csv"
               onClick={handleExportCsv}
-              className={`w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg border text-[10px] font-mono font-bold transition-all shadow-sm cursor-pointer select-none active:scale-[0.98] ${
+              className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-[10px] font-mono font-bold transition-colors cursor-pointer select-none ${
                 exportStatus === 'success'
-                  ? 'bg-[#064E3B] border-[#10B981] text-[#A7F3D0] shadow-[0_0_12px_rgba(16,185,129,0.35)]'
-                  : 'bg-[#0A243D] hover:bg-[#12385C] border-[#1E507D] hover:border-[#38BDF8] text-[#E0F2FE] hover:text-white'
+                  ? 'bg-[#22C7A0]/15 border-[#22C7A0]/45 text-[#6EE7B7]'
+                  : 'bg-[#08131F] hover:bg-[#101F2E] border-[#26394B] hover:border-[#35C7E8] text-[#F3F6FA]'
               }`}
-              title="Download currently filtered precipitation intensity, reflectivity thresholds & synoptic observations as a properly formatted CSV file"
+              title="Download currently filtered precipitation intensity, reflectivity thresholds & synoptic observations as CSV"
             >
-              <span className="material-symbols-outlined text-[15px] text-[#38BDF8]">
-                {exportStatus === 'success' ? 'check_circle' : 'download'}
-              </span>
+              {exportStatus === 'success' ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#6EE7B7]" />
+              ) : (
+                <Download className="w-3.5 h-3.5 text-[#35C7E8]" />
+              )}
               <span>
                 {exportStatus === 'success'
-                  ? 'CSV Exported Successfully!'
-                  : `Export Data (CSV) • ${effectiveLevels.length} of 6 Active`}
+                  ? 'CSV Exported'
+                  : `Export Data (CSV) · ${effectiveLevels.length} of 6 Active`}
               </span>
             </button>
 
             {exportStatus === 'success' && exportedFilename && (
-              <div className="text-[8.5px] font-mono text-[#34D399] flex items-center justify-center gap-1 bg-[#062D24] px-2 py-0.5 rounded border border-[#0B624E]/80 animate-fadeIn">
-                <span className="material-symbols-outlined text-[11px]">task_alt</span>
+              <div className="text-[8.5px] font-mono text-[#6EE7B7] flex items-center justify-center gap-1 bg-[#22C7A0]/10 px-2 py-0.5 rounded border border-[#22C7A0]/30">
+                <CheckCircle2 className="w-3 h-3 shrink-0" />
                 <span className="truncate">Saved as {exportedFilename}</span>
               </div>
             )}
 
-            {/* Meteorological Insight Footer */}
-            <div className="flex items-center justify-between text-[8.5px] font-mono text-[#7A93AA] pt-0.5">
+            <div className="flex items-center justify-between text-[8.5px] font-mono text-[#8295A8] pt-0.5">
               <span>
                 {isFilteringActive ? (
-                  <span className="text-[#F59E0B] font-bold">
+                  <span className="text-[#FCD34D] font-bold">
                     Filter Active ({effectiveLevels.length}/6)
                   </span>
                 ) : (
                   <span>IMD Doppler DWR Standard</span>
                 )}
               </span>
-              <span className="text-[#38BDF8]">Calibrated S/C-Band</span>
+              <span className="text-[#35C7E8]">Calibrated S/C-Band</span>
             </div>
           </div>
         </div>

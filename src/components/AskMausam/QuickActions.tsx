@@ -1,7 +1,6 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
 // Quick Actions & Meteorological Query Chips
-// Categories: Weather, Rain, Forecast, Warnings, AQI, Agriculture, Travel, Health
 // ====================================================================
 
 import React from 'react';
@@ -11,7 +10,10 @@ interface QuickActionsProps {
   currentLocationName?: string;
 }
 
-export const QuickActions: React.FC<QuickActionsProps> = ({ onSelectPrompt, currentLocationName }) => {
+export const QuickActions: React.FC<QuickActionsProps> = ({
+  onSelectPrompt,
+  currentLocationName,
+}) => {
   const loc = currentLocationName || 'Current Location';
 
   const actionChips = [
@@ -27,15 +29,16 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onSelectPrompt, curr
 
   return (
     <div className="flex flex-col gap-1.5 pb-2">
-      <div className="flex items-center justify-between text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+      <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
         <span>Quick Inquiries</span>
       </div>
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {actionChips.map((chip) => (
           <button
             key={chip.label}
+            type="button"
             onClick={() => onSelectPrompt(chip.prompt)}
-            className="px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap bg-[#121D2C] hover:bg-[#1A283C] text-[#CBD5E1] hover:text-white border border-[#1F2C3F] transition-colors cursor-pointer"
+            className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-[#0B1927] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] transition-colors cursor-pointer m-focus-ring"
           >
             {chip.label}
           </button>

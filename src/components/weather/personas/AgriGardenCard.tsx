@@ -1,9 +1,10 @@
 import React from 'react';
+import { Sprout, Snowflake, Leaf } from 'lucide-react';
 
 interface AgriGardenCardProps {
-  soilMoisturePercent: number;
+  soilMoisturePercent: number | null;
   soilMoistureStatus: 'Dry' | 'Optimal' | 'Saturated';
-  threeDayRainfallTotalMm: number;
+  threeDayRainfallTotalMm: number | null;
   frostAlertActive: boolean;
   frostAlertMessage: string | null;
   currentCropSeason: 'Kharif' | 'Rabi' | 'Zaid';
@@ -25,122 +26,124 @@ export const AgriGardenCard: React.FC<AgriGardenCardProps> = ({
   city,
   state,
 }) => {
+  const soilVal =
+    typeof soilMoisturePercent === 'number' && Number.isFinite(soilMoisturePercent)
+      ? soilMoisturePercent
+      : null;
+  const rainVal =
+    typeof threeDayRainfallTotalMm === 'number' && Number.isFinite(threeDayRainfallTotalMm)
+      ? threeDayRainfallTotalMm
+      : null;
+
   const soilBadgeColor =
-    soilMoistureStatus === 'Optimal'
-      ? 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40'
+    soilVal === null
+      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      : soilMoistureStatus === 'Optimal'
+      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
       : soilMoistureStatus === 'Dry'
-      ? 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40'
-      : 'bg-[#0B72B9]/15 text-[#4FA8E0] border-[#0B72B9]/40';
+      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      : 'bg-[#0B72B9]/15 text-[#7DD3FC] border-[#0B72B9]/35';
 
   return (
-    <div className="mausam-card p-4 sm:p-5 border border-[#334155] flex flex-col justify-between h-full">
+    <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#334155]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#27AE60]/15 text-[#2ECC71] flex items-center justify-center border border-[#27AE60]/30">
-              <span className="material-symbols-outlined text-[20px]">agriculture</span>
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#22C7A0] flex items-center justify-center border border-[#26394B]">
+              <Sprout className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                Agriculture &amp; Gardeners
+              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
+                Agriculture &amp; Gardening
               </h3>
-              <p className="text-[11px] text-[#8A94A6]">
-                Gramin Krishi Mausam Sewa (GKMS) • {city}, {state}
+              <p className="text-[11px] text-[#8295A8]">
+                Agromet Crop &amp; Soil Guidance • {city}, {state}
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#27AE60]/15 text-[#2ECC71] border border-[#27AE60]/40">
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#22C7A0]/12 text-[#6EE7B7] border border-[#22C7A0]/35">
             {currentCropSeason} Season
           </span>
         </div>
 
-        {/* Frost Alert (if cold wave or ground frost danger active) */}
         {frostAlertActive && (
-          <div className="mt-3.5 p-3 rounded bg-[#0B72B9]/20 border border-[#4FA8E0]/50 flex items-start gap-2 text-xs text-[#4FA8E0]">
-            <span className="material-symbols-outlined text-[20px] shrink-0 text-[#4FA8E0]">
-              ac_unit
-            </span>
+          <div className="mt-3.5 p-3 rounded-lg bg-[#0B72B9]/12 border border-[#35C7E8]/40 flex items-start gap-2.5 text-xs">
+            <Snowflake className="w-4 h-4 shrink-0 text-[#35C7E8] mt-0.5" />
             <div>
-              <strong className="block font-bold text-white">Frost Alert: Ground Frost Risk Tonight</strong>
-              <p className="text-[11px] text-[#D7DEE8] mt-0.5">
-                {frostAlertMessage || 'Projected ground minimum below 4°C. Cover nursery seedlings and apply light sprinkler irrigation to mitigate frost injury.'}
+              <strong className="block font-bold text-[#F3F6FA]">Frost Risk Tonight</strong>
+              <p className="text-[11px] text-[#B5C3D1] mt-0.5">
+                {frostAlertMessage ||
+                  'Projected surface minimum below 4°C. Cover nursery beds and apply light protective irrigation.'}
               </p>
             </div>
           </div>
         )}
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-          {/* Soil Moisture */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#8A94A6]">Soil Moisture</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${soilBadgeColor}`}>
-                {soilMoistureStatus}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 font-mono tabular-nums">
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">Soil Moisture</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${soilBadgeColor}`}>
+                {soilVal !== null ? soilMoistureStatus : '—'}
               </span>
             </div>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-white">{soilMoisturePercent}</span>
-              <span className="text-[10px] text-[#8A94A6]">% vol</span>
+              <span className="text-2xl font-bold text-[#F3F6FA]">{soilVal ?? '—'}</span>
+              {soilVal !== null && <span className="text-[10px] font-sans text-[#8295A8]">% vol</span>}
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              Root-zone (0–30 cm depth)
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              Root-zone (0–30 cm)
             </span>
           </div>
 
-          {/* 3-Day Rainfall Forecast */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155]">
-            <span className="text-[10px] uppercase font-bold text-[#8A94A6] block">
-              3-Day Rainfall
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+            <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
+              3-Day Rain
             </span>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-2xl font-bold font-mono text-[#4FA8E0]">
-                {threeDayRainfallTotalMm}
-              </span>
-              <span className="text-[10px] text-[#8A94A6]">mm</span>
+              <span className="text-2xl font-bold text-[#35C7E8]">{rainVal ?? '—'}</span>
+              {rainVal !== null && <span className="text-[10px] font-sans text-[#8295A8]">mm</span>}
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              {threeDayRainfallTotalMm > 15 ? 'Significant rain expected' : 'Light / Dry conditions'}
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              {rainVal === null
+                ? 'Unavailable'
+                : rainVal > 15
+                ? 'Significant rain expected'
+                : 'Light / Dry period'}
             </span>
           </div>
 
-          {/* Irrigation Schedule */}
-          <div className="p-3 bg-[#17212B] rounded border border-[#334155] col-span-2 sm:col-span-1">
-            <span className="text-[10px] uppercase font-bold text-[#8A94A6] block">
+          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B] col-span-2 sm:col-span-1">
+            <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
               Irrigation Plan
             </span>
-            <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-sm font-bold text-[#2ECC71] truncate">
-                {threeDayRainfallTotalMm > 15 ? 'Hold Irrigation' : 'Normal Water'}
+            <div className="mt-2">
+              <span className="text-sm font-sans font-bold text-[#6EE7B7] block truncate">
+                {rainVal === null ? 'Unavailable' : rainVal > 15 ? 'Hold Irrigation' : 'Normal Schedule'}
               </span>
             </div>
-            <span className="text-[10px] text-[#8A94A6] block mt-1 truncate">
-              Agromet Water Balance
+            <span className="text-[10px] font-sans text-[#8295A8] block mt-1 truncate">
+              Water Balance Guidance
             </span>
           </div>
         </div>
 
-        {/* Seasonal Planting Guidance */}
-        <div className="mt-3.5 p-3 rounded bg-[#131A22] border border-[#334155] flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-[#2ECC71] text-[18px] shrink-0 mt-0.5">
-            eco
-          </span>
+        <div className="mt-3.5 p-3 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-start gap-2.5">
+          <Leaf className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="text-[#D7DEE8]">
-              <strong>Crop &amp; Garden Advice ({currentCropSeason}):</strong> {seasonalPlantingTip}
+            <p className="text-[#F3F6FA]">
+              <strong>Crop &amp; Field Advice ({currentCropSeason}):</strong> {seasonalPlantingTip}
             </p>
-            <p className="text-[11px] text-[#8A94A6]">
-              <strong>Irrigation Guidance:</strong> {irrigationRecommendation}
+            <p className="text-[11px] text-[#8295A8]">
+              <strong>Irrigation:</strong> {irrigationRecommendation}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Footer Source */}
-      <div className="mt-4 pt-3 border-t border-[#334155] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8A94A6]">
-        <span>Source: <strong>Gramin Krishi Mausam Sewa (GKMS) &amp; IMD Meghdoot</strong></span>
-        <span>Validation: <strong>ICAR Agro-Meteorological Standards</strong></span>
+      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
+        <span>Source: <strong className="text-[#B5C3D1]">GKMS Framework &amp; Open-Meteo Soil</strong></span>
+        <span>ICAR Crop Season Context</span>
       </div>
     </div>
   );

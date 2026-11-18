@@ -1,4 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  WifiOff,
+} from 'lucide-react';
 import { WarningRecord } from '../../types/warningTypes';
 import { AudioAlertToggle } from '../common/AudioAlertToggle';
 
@@ -6,17 +13,19 @@ interface WarningTickerProps {
   warnings: WarningRecord[];
   onSelectWarning: (warning: WarningRecord) => void;
   source?: string;
+  isUnavailable?: boolean;
 }
 
 export const WarningTicker: React.FC<WarningTickerProps> = ({
   warnings,
   onSelectWarning,
   source = 'NDMA / SACHET CAP Feed',
+  isUnavailable = false,
 }) => {
   const activeAlerts = warnings.filter((w) => w.severity !== 'green');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const nextAlert = useCallback(() => {
     if (activeAlerts.length <= 1) return;
@@ -40,58 +49,67 @@ export const WarningTicker: React.FC<WarningTickerProps> = ({
     };
   }, [activeAlerts.length, isPaused, nextAlert]);
 
+  if (isUnavailable) {
+    return (
+      <div
+        id="warning-ticker-unavailable"
+        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 m-panel-inset border-[#F59E0B]/35 text-xs"
+      >
+        <div className="flex items-center gap-2 text-[#FCD34D]">
+          <WifiOff className="w-4 h-4 shrink-0" />
+          <span className="font-mono font-bold uppercase tracking-wider text-[11px]">
+            Warning Ticker Unverified:
+          </span>
+          <span className="text-[#B5C3D1]">
+            Real-time CAP alert ticker paused while SACHET/NDMA gateway is unreachable.
+          </span>
+        </div>
+        <span className="text-[11px] font-mono text-[#8295A8]">{source}</span>
+      </div>
+    );
+  }
+
   if (activeAlerts.length === 0) {
     return (
       <div
         id="warning-ticker-stable"
-        className="flex items-center justify-between gap-3 px-3.5 py-2 bg-[#071A2D] border border-[#1D4E73] rounded-md text-xs"
+        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 m-panel-inset border-[#22C7A0]/30 text-xs"
       >
-        <div className="flex items-center gap-2 text-[#008000]">
-          <span className="material-symbols-outlined text-[16px]">verified</span>
-          <span className="font-bold uppercase tracking-wider text-[11px]">
+        <div className="flex items-center gap-2 text-[#6EE7B7]">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span className="font-mono font-bold uppercase tracking-wider text-[11px]">
             National Synoptic Baseline:
           </span>
-          <span className="text-[#D7DEE8]">
+          <span className="text-[#B5C3D1]">
             No critical severe weather alerts currently in effect across sub-divisions.
           </span>
         </div>
-        <span className="text-[11px] font-mono text-[#B8C7D9]">{source}</span>
+        <span className="text-[11px] font-mono text-[#8295A8]">{source}</span>
       </div>
     );
   }
 
   const currentWarning = activeAlerts[currentIndex] || activeAlerts[0];
 
-  const getTickerStyle = (severity: string) => {
-    switch (severity) {
-      case 'red':
-        return {
-          bg: 'bg-[#0B2239]',
-          border: 'border-[#FF0000]/60',
-          tagBg: 'bg-[#FF0000] text-white',
-          textColor: 'text-[#FFD2CE]',
-          btnBorder: 'border-[#FF0000]/50 hover:bg-[#FF0000] hover:text-white',
-        };
-      case 'orange':
-        return {
-          bg: 'bg-[#0B2239]',
-          border: 'border-[#FFA500]/60',
-          tagBg: 'bg-[#FFA500] text-[#071A2D] font-bold',
-          textColor: 'text-[#FFE2D1]',
-          btnBorder: 'border-[#FFA500]/50 hover:bg-[#FFA500] hover:text-[#071A2D]',
-        };
-      default:
-        return {
-          bg: 'bg-[#0B2239]',
-          border: 'border-[#FFFF00]/60',
-          tagBg: 'bg-[#FFFF00] text-[#071A2D] font-bold',
-          textColor: 'text-[#FFF3C4]',
-          btnBorder: 'border-[#FFFF00]/50 hover:bg-[#FFFF00] hover:text-[#071A2D]',
-        };
-    }
+  const styleMap: Record<
+    string,
+    { border: string; tag: string }
+  > = {
+    red: {
+      border: 'border-[#EF4444]/45',
+      tag: 'bg-[#EF4444]/20 text-[#FCA5A5] border-[#EF4444]/40',
+    },
+    orange: {
+      border: 'border-[#F97316]/45',
+      tag: 'bg-[#F97316]/20 text-[#FDBA74] border-[#F97316]/40',
+    },
+    yellow: {
+      border: 'border-[#EAB308]/45',
+      tag: 'bg-[#EAB308]/20 text-[#FDE047] border-[#EAB308]/40',
+    },
   };
 
-  const style = getTickerStyle(currentWarning.severity);
+  const style = styleMap[currentWarning.severity] || styleMap.yellow;
 
   return (
     <div
@@ -102,60 +120,56 @@ export const WarningTicker: React.FC<WarningTickerProps> = ({
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
-      className={`relative flex items-center justify-between gap-3 px-3 py-2 rounded-md border shadow-sm transition-colors ${style.bg} ${style.border}`}
+      className={`m-panel px-3.5 py-2.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 ${style.border}`}
     >
-      {/* Left: Tag & Alert Title */}
       <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
         <span
-          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 ${style.tagBg}`}
+          className={`px-2 py-0.5 rounded border text-[10px] font-mono font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 tabular-nums ${style.tag}`}
         >
-          <span className="material-symbols-outlined text-[13px]">warning</span>
+          <AlertTriangle className="w-3 h-3" />
           <span>
-            Active Alert ({currentIndex + 1}/{activeAlerts.length})
+            Alert {currentIndex + 1}/{activeAlerts.length}
           </span>
         </span>
 
-        <div className="truncate text-xs text-[#D7DEE8] font-medium flex items-center gap-2">
-          <span className="font-bold text-white truncate">
+        <div className="truncate text-xs text-[#B5C3D1] font-medium flex items-center gap-2 min-w-0">
+          <span className="font-bold text-[#F3F6FA] truncate">
             {currentWarning.title}
           </span>
-          <span className="text-[#B8C7D9] hidden sm:inline">—</span>
-          <span className="text-[#B8C7D9] hidden sm:inline truncate">
+          <span className="text-[#8295A8] hidden sm:inline">—</span>
+          <span className="text-[#8295A8] hidden sm:inline truncate">
             {currentWarning.state} ({currentWarning.affectedAreaText})
           </span>
-          <span className="text-[#B8C7D9] hidden md:inline">•</span>
-          <span className="text-[#E3F2FD] font-mono text-[11px] hidden md:inline">
+          <span className="text-[#8295A8] hidden md:inline">·</span>
+          <span className="text-[#B5C3D1] font-mono text-[11px] hidden md:inline tabular-nums">
             Valid until {currentWarning.validUntil}
           </span>
         </div>
       </div>
 
-      {/* Right: Controls, Audio Alert Toggle & View Button */}
       <div className="flex items-center gap-1.5 shrink-0">
         <AudioAlertToggle variant="ticker" />
 
-        {/* View Details Button */}
         <button
           id={`btn-ticker-view-${currentWarning.id}`}
           type="button"
           onClick={() => onSelectWarning(currentWarning)}
-          className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider text-white bg-[#071A2D] border transition-all cursor-pointer ${style.btnBorder}`}
+          className="px-3 py-1.5 min-h-[36px] sm:min-h-[32px] rounded-lg text-[11px] font-semibold text-[#F3F6FA] bg-[#08131F] hover:bg-[#101F2E] border border-[#38536A] transition-colors cursor-pointer m-focus-ring"
         >
           View Bulletin
         </button>
 
-        {/* Previous / Next Ticker Buttons */}
         {activeAlerts.length > 1 && (
-          <div className="flex items-center gap-0.5 bg-[#071A2D] border border-[#1D4E73] rounded p-0.5">
+          <div className="flex items-center gap-0.5 bg-[#08131F] border border-[#26394B] rounded-lg p-0.5">
             <button
               id="btn-ticker-prev"
               type="button"
               onClick={prevAlert}
               title="Previous Alert"
               aria-label="Previous Warning"
-              className="w-6 h-6 rounded flex items-center justify-center text-[#B8C7D9] hover:text-white hover:bg-[#102D47] transition-colors cursor-pointer"
+              className="w-8 h-8 sm:w-7 sm:h-7 rounded flex items-center justify-center text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">chevron_left</span>
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               id="btn-ticker-next"
@@ -163,9 +177,9 @@ export const WarningTicker: React.FC<WarningTickerProps> = ({
               onClick={nextAlert}
               title="Next Alert"
               aria-label="Next Warning"
-              className="w-6 h-6 rounded flex items-center justify-center text-[#B8C7D9] hover:text-white hover:bg-[#102D47] transition-colors cursor-pointer"
+              className="w-8 h-8 sm:w-7 sm:h-7 rounded flex items-center justify-center text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}

@@ -17,15 +17,12 @@ import {
   TrendingUp,
   CloudRain,
   Thermometer,
-  Calendar,
-  Layers,
   Info,
-  ChevronRight,
   Flame,
-  Droplets,
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
+import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
 
 interface HomeHistoricalClimateTrendsProps {
   location: LocationRecord;
@@ -132,161 +129,145 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
     };
   }, [monthlyData]);
 
+  const coordLat = typeof location.lat === 'number' && !Number.isNaN(location.lat) ? `${location.lat.toFixed(2)}°N` : '—';
+  const coordLng = typeof location.lng === 'number' && !Number.isNaN(location.lng) ? `${location.lng.toFixed(2)}°E` : '—';
+
   return (
-    <div
-      id="historical-climate-trends-section"
-      className="mausam-panel bg-[#0B131E] border border-[#162331] rounded-2xl p-5 sm:p-7 flex flex-col gap-6 shadow-xl relative overflow-hidden"
-    >
-      {/* Decorative gradient glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#1499E8]/5 rounded-full blur-3xl pointer-events-none" />
+    <DataPanel id="historical-climate-trends-section" className="flex flex-col gap-5">
+      <SectionHeading
+        icon={<History className="w-4 h-4" />}
+        title="Historical Climate Trends & IMD Normals"
+        subtitle={`1991–2020 climatological baseline calibrated for ${location.city || location.name} (${coordLat}, ${coordLng})`}
+        badge={<SourceStatus status="REFERENCE" labelOverride="CLIMATOLOGICAL REFERENCE" />}
+        action={
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center p-1 bg-[#08131F] rounded-lg border border-[#26394B]">
+              <button
+                type="button"
+                onClick={() => setActiveTab('temperature')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
+                  activeTab === 'temperature'
+                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                }`}
+              >
+                <Thermometer className="w-3.5 h-3.5" />
+                <span>Temp (°C)</span>
+              </button>
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#162331] relative z-10">
-        <div className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-[#1499E8]/15 border border-[#1499E8]/30 flex items-center justify-center text-[#43C7F4] shrink-0">
-            <History className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-base sm:text-lg font-bold text-[#F4F7FA] tracking-tight">
-                Historical Climate Trends &amp; IMD Normals
-              </h2>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#1499E8]/15 text-[#43C7F4] border border-[#1499E8]/30">
-                1991–2020 NORMALS VS. RECENT YEARS
-              </span>
+              <button
+                type="button"
+                onClick={() => setActiveTab('rainfall')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
+                  activeTab === 'rainfall'
+                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                }`}
+              >
+                <CloudRain className="w-3.5 h-3.5" />
+                <span>Rain (mm)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('decadal')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
+                  activeTab === 'decadal'
+                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>10-Yr Trend</span>
+              </button>
             </div>
-            <p className="text-xs text-[#93A4B8] mt-0.5">
-              Multi-year meteorological comparison and decadal anomalies calibrated for{' '}
-              <strong className="text-[#D1DCE8]">{location.city || location.name}</strong> ({typeof location.lat === 'number' ? location.lat.toFixed(2) : '20.29'}°N, {typeof location.lng === 'number' ? location.lng.toFixed(2) : '85.82'}°E)
-            </p>
+
+            {activeTab !== 'decadal' && (
+              <select
+                aria-label="Comparison Year"
+                value={compareYear}
+                onChange={(e) => setCompareYear(e.target.value as '2025' | '2024' | '2023')}
+                className="bg-[#08131F] border border-[#26394B] text-xs text-[#F3F6FA] rounded-lg px-3 py-2 min-h-[40px] font-mono focus:outline-none focus:border-[#35C7E8] m-focus-ring"
+              >
+                <option value="2025">vs 2025</option>
+                <option value="2024">vs 2024</option>
+                <option value="2023">vs 2023</option>
+              </select>
+            )}
           </div>
-        </div>
-
-        {/* View Switchers */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center p-1 bg-[#111C27] rounded-xl border border-[#162331]">
-            <button
-              type="button"
-              onClick={() => setActiveTab('temperature')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                activeTab === 'temperature'
-                  ? 'bg-[#FF9F43] text-black shadow-md'
-                  : 'text-[#93A4B8] hover:text-[#F4F7FA]'
-              }`}
-            >
-              <Thermometer className="w-3.5 h-3.5" />
-              <span>Temperature (°C)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('rainfall')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                activeTab === 'rainfall'
-                  ? 'bg-[#43C7F4] text-black shadow-md'
-                  : 'text-[#93A4B8] hover:text-[#F4F7FA]'
-              }`}
-            >
-              <CloudRain className="w-3.5 h-3.5" />
-              <span>Rainfall (mm)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('decadal')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                activeTab === 'decadal'
-                  ? 'bg-[#22C7A0] text-black shadow-md'
-                  : 'text-[#93A4B8] hover:text-[#F4F7FA]'
-              }`}
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>10-Year Trend</span>
-            </button>
-          </div>
-
-          {activeTab !== 'decadal' && (
-            <select
-              value={compareYear}
-              onChange={(e) => setCompareYear(e.target.value as any)}
-              className="bg-[#111C27] border border-[#162331] text-xs text-[#D1DCE8] rounded-xl px-3 py-2 font-mono focus:outline-none focus:border-[#1499E8]"
-            >
-              <option value="2025">Compare vs 2025</option>
-              <option value="2024">Compare vs 2024</option>
-              <option value="2023">Compare vs 2023</option>
-            </select>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Metric Highlights Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 relative z-10">
-        <div className="bg-[#111C27] border border-[#162331] rounded-xl p-3.5">
-          <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider block">
-            Annual Mean Temp
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="m-panel-inset p-3.5">
+          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+            Regional Mean Temp
           </span>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold font-mono text-[#F4F7FA]">{stats.avgRecentT}°C</span>
-            <span className="text-xs font-semibold text-[#FF9F43] flex items-center">
+          <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
+            <span className="text-2xl font-bold text-[#F3F6FA]">{stats.avgRecentT}°C</span>
+            <span className="text-xs font-semibold text-[#F59E0B] flex items-center">
               <ArrowUpRight className="w-3.5 h-3.5" />
               +{stats.tempDiff}°C
             </span>
           </div>
-          <span className="text-[10px] text-[#93A4B8] block mt-0.5">vs. Normal {stats.avgNormalT}°C</span>
+          <span className="text-[11px] text-[#8295A8] block mt-0.5 font-mono tabular-nums">
+            vs. Normal {stats.avgNormalT}°C
+          </span>
         </div>
 
-        <div className="bg-[#111C27] border border-[#162331] rounded-xl p-3.5">
-          <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider block">
+        <div className="m-panel-inset p-3.5">
+          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
             Annual Precipitation
           </span>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold font-mono text-[#43C7F4]">{stats.totalRecentRain} mm</span>
-            <span className={`text-xs font-semibold flex items-center ${stats.rainDiffPct >= 0 ? 'text-[#22C7A0]' : 'text-[#FF6B6B]'}`}>
+          <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
+            <span className="text-2xl font-bold text-[#35C7E8]">{stats.totalRecentRain} mm</span>
+            <span className={`text-xs font-semibold flex items-center ${stats.rainDiffPct >= 0 ? 'text-[#22C7A0]' : 'text-[#EF4444]'}`}>
               {stats.rainDiffPct >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
               {stats.rainDiffPct >= 0 ? `+${stats.rainDiffPct}%` : `${stats.rainDiffPct}%`}
             </span>
           </div>
-          <span className="text-[10px] text-[#93A4B8] block mt-0.5">vs. Normal {stats.totalNormalRain} mm</span>
+          <span className="text-[11px] text-[#8295A8] block mt-0.5 font-mono tabular-nums">
+            vs. Normal {stats.totalNormalRain} mm
+          </span>
         </div>
 
-        <div className="bg-[#111C27] border border-[#162331] rounded-xl p-3.5">
-          <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider block">
-            Annual Heatwave Days
+        <div className="m-panel-inset p-3.5">
+          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+            National Heatwave Days
           </span>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold font-mono text-[#F1C40F]">31 Days</span>
-            <span className="text-xs font-semibold text-[#FF9F43] flex items-center">
+          <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
+            <span className="text-2xl font-bold text-[#F59E0B]">31 Days</span>
+            <span className="text-xs font-semibold text-[#F97316] flex items-center">
               <Flame className="w-3.5 h-3.5 mr-0.5" />
-              +17 Days
+              +17d
             </span>
           </div>
-          <span className="text-[10px] text-[#93A4B8] block mt-0.5">Decadal Average: 14 Days</span>
+          <span className="text-[11px] text-[#8295A8] block mt-0.5">All-India 2025 vs 14d decadal mean</span>
         </div>
 
-        <div className="bg-[#111C27] border border-[#162331] rounded-xl p-3.5">
-          <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider block">
-            Monsoon Reliability
+        <div className="m-panel-inset p-3.5">
+          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+            All-India Monsoon LPA
           </span>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold font-mono text-[#22C7A0]">Normal (104%)</span>
+          <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
+            <span className="text-2xl font-bold text-[#22C7A0]">104%</span>
           </div>
-          <span className="text-[10px] text-[#93A4B8] block mt-0.5">Long Period Average (LPA)</span>
+          <span className="text-[11px] text-[#8295A8] block mt-0.5">Normal Category (NCC Benchmark)</span>
         </div>
       </div>
 
       {/* Main Interactive Recharts Area */}
-      <div className="bg-[#0e1724] border border-[#162331] rounded-xl p-4 sm:p-6 relative z-10">
+      <div className="m-panel-inset p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#D1DCE8]">
-              {activeTab === 'temperature'
-                ? `Monthly Mean Temperature: IMD Normal vs. ${compareYear}`
-                : activeTab === 'rainfall'
-                ? `Monthly Cumulative Rainfall: IMD Normal vs. ${compareYear}`
-                : '10-Year Climate Trajectory (2016–2025): Annual Mean Temperature & Heatwave Days'}
-            </span>
-          </div>
-          <span className="text-[11px] text-[#8A94A6] font-mono">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#F3F6FA]">
+            {activeTab === 'temperature'
+              ? `Monthly Mean Temperature: IMD Normal vs. ${compareYear}`
+              : activeTab === 'rainfall'
+              ? `Monthly Cumulative Rainfall: IMD Normal vs. ${compareYear}`
+              : '10-Year National Trajectory (2016–2025): Mean Temp & Heatwave Days'}
+          </span>
+          <span className="text-[11px] text-[#8295A8] font-mono">
             Source: IMD National Climate Centre (NCC)
           </span>
         </div>
@@ -440,18 +421,17 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
       </div>
 
       {/* Synoptic Climate Assessment Footer */}
-      <div className="bg-[#111C27]/80 border border-[#162331] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#93A4B8] relative z-10">
+      <div className="m-panel-inset px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#8295A8]">
         <div className="flex items-center gap-2.5">
-          <Info className="w-4 h-4 text-[#43C7F4] shrink-0" />
+          <Info className="w-4 h-4 text-[#35C7E8] shrink-0" />
           <span>
-            Climate normal baseline reflects official IMD Climatological Tables. Summer pre-monsoon warming rate for the region is estimated at{' '}
-            <strong className="text-[#F4F7FA]">+0.28°C / decade</strong> since 1991.
+            Climate normal baseline reflects official IMD Climatological Tables (1991–2020 WMO benchmark).
           </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-[#43C7F4]">
-          <span>WMO Benchmark Normals 1991–2020</span>
+        <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-[#35C7E8]">
+          <span>WMO Normals 1991–2020</span>
         </div>
       </div>
-    </div>
+    </DataPanel>
   );
 };

@@ -152,12 +152,12 @@ Current atmospheric observations are temporarily unavailable from the station ne
       };
     }
 
-    const temp = typeof w.temperatureC === 'number' ? `${w.temperatureC.toFixed(1)}°C` : 'N/A';
+    const temp = typeof w.temperatureC === 'number' ? `${w.temperatureC.toFixed(1)}°C` : 'Unavailable';
     const feels = typeof w.feelsLikeC === 'number' ? `${w.feelsLikeC.toFixed(1)}°C` : temp;
-    const condition = w.condition || 'Clear';
-    const humidity = typeof w.humidity === 'number' ? `${w.humidity}%` : 'N/A';
-    const wind = typeof w.windSpeedKmh === 'number' ? `${w.windSpeedKmh} km/h ${w.windDirection ? `(${w.windDirection})` : ''}` : 'N/A';
-    const precip = typeof w.precipitationMm === 'number' ? `${w.precipitationMm} mm` : '0 mm';
+    const condition = w.condition || 'Reported';
+    const humidity = typeof w.humidity === 'number' ? `${w.humidity}%` : 'Unavailable';
+    const wind = typeof w.windSpeedKmh === 'number' ? `${w.windSpeedKmh} km/h ${w.windDirection ? `(${w.windDirection})` : ''}` : 'Unavailable';
+    const precip = typeof w.precipitationMm === 'number' ? `${w.precipitationMm} mm` : '—';
 
     return {
       markdown: `### Current Weather: ${locName}
@@ -289,8 +289,8 @@ Real-time air quality telemetry is temporarily unavailable for this monitoring s
     const aqiVal = a.index;
     const cat = a.category || 'Moderate';
     const dominant = a.dominantPollutant || 'PM2.5';
-    const pm25 = typeof a.pm25 === 'number' ? `${a.pm25.toFixed(1)} µg/m³` : 'N/A';
-    const pm10 = typeof a.pm10 === 'number' ? `${a.pm10.toFixed(1)} µg/m³` : 'N/A';
+    const pm25 = typeof a.pm25 === 'number' ? `${a.pm25.toFixed(1)} µg/m³` : 'Unavailable';
+    const pm10 = typeof a.pm10 === 'number' ? `${a.pm10.toFixed(1)} µg/m³` : 'Unavailable';
 
     let alertLevel: 'GREEN' | 'YELLOW' | 'ORANGE' | 'RED' = 'GREEN';
     if (aqiVal > 300) alertLevel = 'RED';
@@ -366,10 +366,10 @@ Real-time air quality telemetry is temporarily unavailable for this monitoring s
     const warnings = ctx.warnings || [];
     const sourceStatus = ctx.sources || [];
 
-    const temp = w && typeof w.temperatureC === 'number' ? `${w.temperatureC.toFixed(1)}°C` : 'N/A';
-    const condition = w?.condition || 'Clear';
-    const humidity = w && typeof w.humidity === 'number' ? `${w.humidity}%` : 'N/A';
-    const aqiVal = a && typeof a.index === 'number' ? `${a.index} (${a.category})` : 'N/A';
+    const temp = w && typeof w.temperatureC === 'number' ? `${w.temperatureC.toFixed(1)}°C` : 'Unavailable';
+    const condition = w?.condition || 'Reported';
+    const humidity = w && typeof w.humidity === 'number' ? `${w.humidity}%` : 'Unavailable';
+    const aqiVal = a && typeof a.index === 'number' ? `${a.index} (${a.category})` : 'Unavailable';
     const warningStatus = warnings.length > 0
       ? `⚠️ ${warnings.length} Active Warning(s) (${warnings[0].severity.toUpperCase()})`
       : '🟢 No Active Warnings';

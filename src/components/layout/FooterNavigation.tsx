@@ -29,14 +29,22 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
   const { t } = useLanguage();
 
   return (
-    <nav aria-label="Legal and API Links" className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center md:justify-end">
+    <nav
+      aria-label="Legal and API Links"
+      className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center md:justify-end"
+    >
       {FOOTER_LINKS.map((link, index) => {
         const isActive = activeTab === link.id;
-        const translatedLabel = link.id === 'debug' ? 'Data & Sources' : t(link.labelKey, link.defaultLabel);
+        const translatedLabel =
+          link.id === 'debug' ? 'Data & Sources' : t(link.labelKey, link.defaultLabel);
 
         return (
           <React.Fragment key={link.id}>
-            {index > 0 && <span className="text-white/15 select-none" aria-hidden="true">•</span>}
+            {index > 0 && (
+              <span className="text-[#38536A] select-none hidden sm:inline" aria-hidden="true">
+                •
+              </span>
+            )}
             <button
               type="button"
               id={`footer-link-${link.id}`}
@@ -44,10 +52,10 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
                 e.preventDefault();
                 onNavigate(link.id);
               }}
-              className={`transition-colors cursor-pointer text-xs py-1 rounded focus:outline-none focus:ring-1 focus:ring-[#38BDF8] ${
+              className={`transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded focus:outline-none focus:ring-1 focus:ring-[#35C7E8] ${
                 isActive
-                  ? 'text-[#38BDF8] font-semibold underline underline-offset-2'
-                  : 'text-[#8EA3B8] hover:text-[#F4F7FA] hover:underline'
+                  ? 'text-[#35C7E8] font-semibold underline underline-offset-2'
+                  : 'text-[#8295A8] hover:text-[#F3F6FA] hover:underline'
               }`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -56,7 +64,9 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
           </React.Fragment>
         );
       })}
-      <span className="text-white/15 select-none" aria-hidden="true">•</span>
+      <span className="text-[#38536A] select-none hidden sm:inline" aria-hidden="true">
+        •
+      </span>
       <button
         type="button"
         id="footer-link-storage-preferences"
@@ -66,7 +76,7 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
             (window as any).MausamConsent.openPreferences();
           }
         }}
-        className="transition-colors cursor-pointer text-xs py-1 rounded text-[#8EA3B8] hover:text-[#38BDF8] hover:underline focus:outline-none focus:ring-1 focus:ring-[#38BDF8]"
+        className="transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded text-[#8295A8] hover:text-[#35C7E8] hover:underline focus:outline-none focus:ring-1 focus:ring-[#35C7E8]"
       >
         Privacy &amp; Storage Preferences
       </button>

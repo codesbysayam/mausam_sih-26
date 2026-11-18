@@ -61,16 +61,28 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
         detail: 'Waiting for forecast horizon',
       };
     }
+    const tempStr =
+      typeof h.temp === 'number' && Number.isFinite(h.temp)
+        ? `${Math.round(h.temp)}°C`
+        : '—';
+    const rainStr =
+      typeof h.rainProb === 'number' && Number.isFinite(h.rainProb)
+        ? `Rain ${Math.round(h.rainProb)}%`
+        : 'Rain —';
+    const windStr =
+      typeof h.windSpeed === 'number' && Number.isFinite(h.windSpeed)
+        ? `${Math.round(h.windSpeed)} km/h`
+        : 'Wind —';
     return {
       time: h.time,
       kind: safeIdx === 0 || h.isNow ? 'CURRENT' : 'FORECAST',
-      detail: `${Math.round(h.temp)}°C · Rain ${Math.round(h.rainProb)}% · ${Math.round(h.windSpeed)} km/h`,
+      detail: `${tempStr} · ${rainStr} · ${windStr}`,
     };
   }, [isRadarMode, radarFrames, hourlySlots, safeIdx]);
 
   if (totalSlots === 0) {
     return (
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-xl px-4 py-2 text-xs text-[#7F93A8]">
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-xl px-4 py-2 text-xs text-[#8295A8]">
         Forecast timeline waiting for atmospheric feed...
       </div>
     );
@@ -89,7 +101,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               type="button"
               onClick={() => setTimelineIndex((p) => (p > 0 ? p - 1 : totalSlots - 1))}
               aria-label="Previous time step"
-              className="p-1.5 rounded-lg text-[#B8C7D9] hover:text-white hover:bg-white/5 cursor-pointer"
+              className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
             >
               <SkipBack className="w-3.5 h-3.5" />
             </button>
@@ -97,7 +109,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               type="button"
               onClick={() => setIsTimelinePlaying((v) => !v)}
               aria-label={isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'}
-              className="w-7 h-7 rounded-lg bg-[#35C7E8] text-[#05101C] flex items-center justify-center hover:opacity-95 cursor-pointer"
+              className="w-11 h-11 sm:w-8 sm:h-8 rounded-lg bg-[#35C7E8] text-[#07111D] flex items-center justify-center hover:opacity-95 cursor-pointer spatial-focus-ring"
             >
               {isTimelinePlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
             </button>
@@ -105,7 +117,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               type="button"
               onClick={() => setTimelineIndex((p) => (p + 1) % totalSlots)}
               aria-label="Next time step"
-              className="p-1.5 rounded-lg text-[#B8C7D9] hover:text-white hover:bg-white/5 cursor-pointer"
+              className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
             >
               <SkipForward className="w-3.5 h-3.5" />
             </button>
@@ -118,7 +130,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
                 }}
                 title="Jump to current observation"
                 aria-label="Reset to Now"
-                className="p-1.5 rounded-lg text-[#35C7E8] hover:bg-[#35C7E8]/15 cursor-pointer"
+                className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#35C7E8] hover:bg-[#35C7E8]/15 cursor-pointer spatial-focus-ring"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -128,16 +140,16 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
           {/* Active Timestamp & Meteorological Status */}
           <div className="flex items-center gap-2 min-w-0 text-xs">
             <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 ${
+              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 border ${
                 activeLabel.kind === 'CURRENT' || activeLabel.kind === 'OBSERVED'
-                  ? 'bg-[#26B982]/15 text-[#26B982]'
-                  : 'bg-[#35C7E8]/15 text-[#35C7E8]'
+                  ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/35'
+                  : 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/35'
               }`}
             >
               {activeLabel.kind}
             </span>
-            <span className="font-semibold text-white tabular-nums shrink-0">{activeLabel.time}</span>
-            <span className="text-[#B8C7D9] truncate hidden sm:inline tabular-nums">
+            <span className="font-mono font-semibold text-[#F3F6FA] tabular-nums shrink-0">{activeLabel.time}</span>
+            <span className="text-[#B5C3D1] truncate hidden sm:inline tabular-nums">
               · {activeLabel.detail}
             </span>
           </div>
@@ -157,7 +169,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             aria-label="Scrub atmospheric timeline"
             className="w-full h-1.5 accent-[#35C7E8] cursor-pointer"
           />
-          <span className="text-[10px] font-mono text-[#7F93A8] tabular-nums shrink-0">
+          <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">
             {safeIdx + 1}/{totalSlots}
           </span>
         </div>

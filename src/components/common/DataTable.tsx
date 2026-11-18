@@ -49,7 +49,7 @@ export function DataTable<T>({
               <tr>
                 <td
                   colSpan={safeColumns.length || 1}
-                  className="text-center py-6 text-[#8A94A6]"
+                  className="text-center py-6 text-[#8295A8]"
                 >
                   {emptyMessage}
                 </td>
@@ -81,7 +81,7 @@ export function DataTable<T>({
       {/* Mobile View: Stacked Card Layout to Prevent Horizontal Scrolling */}
       <div className="md:hidden flex flex-col gap-3 w-full">
         {safeData.length === 0 ? (
-          <div className="text-center py-6 text-[#8A94A6] bg-[#0E1722] rounded-xl border border-[#1E2E40] text-xs">
+          <div className="text-center py-6 text-[#8295A8] bg-[#08131F] rounded-xl border border-[#26394B] text-xs">
             {emptyMessage}
           </div>
         ) : (
@@ -92,14 +92,14 @@ export function DataTable<T>({
             return (
               <div
                 key={keyExtractor(row, idx)}
-                className="bg-[#0F1925] border border-[#1E2E40] rounded-xl p-3.5 flex flex-col gap-2.5 shadow-sm text-xs"
+                className="bg-[#0B1927] border border-[#26394B] rounded-xl p-3.5 flex flex-col gap-2.5 text-xs"
               >
                 {firstCol && (
-                  <div className="flex items-center justify-between border-b border-[#1E2E40] pb-2">
-                    <span className="text-[11px] font-bold text-[#38BDF8] uppercase tracking-wider">
+                  <div className="flex items-center justify-between border-b border-[#26394B] pb-2">
+                    <span className="text-[11px] font-bold text-[#35C7E8] uppercase tracking-wider">
                       {firstCol.header}
                     </span>
-                    <div className="text-right">
+                    <div className="text-right font-mono tabular-nums text-[#F3F6FA]">
                       {firstCol.render
                         ? firstCol.render(row, idx)
                         : firstCol.accessorKey
@@ -114,10 +114,10 @@ export function DataTable<T>({
                       key={cIdx}
                       className="flex items-center justify-between gap-3 text-xs"
                     >
-                      <span className="text-[11px] font-semibold text-[#8EA3B8] shrink-0">
+                      <span className="text-[11px] font-semibold text-[#8295A8] shrink-0">
                         {col.header}
                       </span>
-                      <div className="text-right">
+                      <div className="text-right font-mono tabular-nums text-[#F3F6FA]">
                         {col.render
                           ? col.render(row, idx)
                           : col.accessorKey

@@ -78,11 +78,29 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
       warningMessage: state.warningMessage,
       source: state.dataSource,
       metrics: [
-        { label: 'Temperature', value: `${state.temperature}°C` },
-        { label: 'Wind', value: `${state.windSpeed} km/h ${state.windDir}` },
-        { label: 'Rainfall', value: `${state.rainfall} mm` },
-        { label: 'Humidity', value: `${state.humidity}%` },
-        { label: 'AQI', value: `${state.aqi}` },
+        {
+          label: 'Temperature',
+          value: typeof state.temperature === 'number' && Number.isFinite(state.temperature) ? `${state.temperature}°C` : '—',
+        },
+        {
+          label: 'Wind',
+          value:
+            typeof state.windSpeed === 'number' && Number.isFinite(state.windSpeed)
+              ? `${state.windSpeed} km/h ${state.windDir || ''}`.trim()
+              : '—',
+        },
+        {
+          label: 'Rainfall',
+          value: typeof state.rainfall === 'number' && Number.isFinite(state.rainfall) ? `${state.rainfall} mm` : '—',
+        },
+        {
+          label: 'Humidity',
+          value: typeof state.humidity === 'number' && Number.isFinite(state.humidity) ? `${state.humidity}%` : '—',
+        },
+        {
+          label: 'AQI',
+          value: typeof state.aqi === 'number' && Number.isFinite(state.aqi) ? `${state.aqi}` : '—',
+        },
       ],
     });
   };
@@ -119,14 +137,14 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
       />
 
       {reason && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-lg px-3.5 py-2 flex items-center gap-3 text-xs text-[#F4F7FB]">
-          <span className="text-[#E8B64D]">2D Map Mode active:</span>
-          <span className="text-[#B8C7D9]">{reason}</span>
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-lg px-3.5 py-2 flex items-center gap-3 text-xs text-[#F3F6FA]">
+          <span className="text-[#F59E0B] font-medium">2D Map Mode active:</span>
+          <span className="text-[#B5C3D1]">{reason}</span>
           {onSwitchBackTo3D && (
             <button
               type="button"
               onClick={onSwitchBackTo3D}
-              className="text-[#35C7E8] hover:underline font-semibold cursor-pointer"
+              className="text-[#35C7E8] hover:underline font-semibold cursor-pointer min-h-[32px] px-1"
             >
               Retry 3D
             </button>

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { WeatherDataBundle } from '../services/weatherService';
 import { LocationRecord } from '../types';
 import { OFFICIAL_PUBLICATIONS, MeteorologicalPublication } from '../data/reportsAndArticles';
-import { ReportsHero } from '../components/reports/ReportsHero';
 import { ReportIntelligenceStrip } from '../components/reports/ReportIntelligenceStrip';
 import { ReportOfTheDay } from '../components/reports/ReportOfTheDay';
 import { FeaturedReportCard } from '../components/reports/FeaturedReportCard';
@@ -20,14 +19,17 @@ import { RecentlyViewedReports } from '../components/reports/RecentlyViewedRepor
 import { ReportPreviewDrawer } from '../components/reports/ReportPreviewDrawer';
 import { ResearchSourcesSection } from '../components/reports/ResearchSourcesSection';
 import { useSavedReports } from '../hooks/useSavedReports';
-import { LocationStatusBar } from '../components/location/LocationStatusBar';
 import { DataTable, ColumnDef } from '../components/common/DataTable';
-import { Sparkles, FileText, Search, BookOpen, Layers, Bookmark, ExternalLink } from 'lucide-react';
+import { PageHeader, DataPanel, MetricValue } from '../components/ui/ObservatoryPrimitives';
+import { Search, Bookmark, ExternalLink, RotateCcw } from 'lucide-react';
 
 interface ReportsPageProps {
   weatherBundle: WeatherDataBundle;
   selectedLocation: LocationRecord;
 }
+
+const isValidNumeric = (v: unknown): v is number =>
+  typeof v === 'number' && !Number.isNaN(v) && Number.isFinite(v);
 
 export const ReportsPage: React.FC<ReportsPageProps> = ({
   weatherBundle,
@@ -50,15 +52,20 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
     clearRecentlyViewed,
   } = useSavedReports();
 
-  // Dynamically generate a live district bulletin customized for the current selected location
+  const cur = weatherBundle?.current;
+  const hasTemp = isValidNumeric(cur?.temp);
+  const hasHumidity = isValidNumeric(cur?.humidity);
+  const hasPressure = isValidNumeric(cur?.pressure);
+  const hasWind = isValidNumeric(cur?.windSpeed);
+
+  // Dynamically generate a district bulletin synchronized to verified location telemetry
   const dynamicDistrictBulletin: MeteorologicalPublication = useMemo(() => {
-    const cur = weatherBundle?.current;
-    const temp = typeof cur?.temp === 'number' && !Number.isNaN(cur.temp) ? `${cur.temp}°C` : 'Unavailable';
-    const humidity = typeof cur?.humidity === 'number' && !Number.isNaN(cur.humidity) ? `${cur.humidity}%` : 'Unavailable';
+    const temp = hasTemp ? `${cur!.temp}°C` : 'Unavailable';
+    const humidity = hasHumidity ? `${cur!.humidity}%` : 'Unavailable';
     const condition = cur?.condition || 'Telemetry pending';
-    const pressure = typeof cur?.pressure === 'number' && !Number.isNaN(cur.pressure) ? `${cur.pressure} hPa` : 'Unavailable';
-    const windSpeed = typeof cur?.windSpeed === 'number' && !Number.isNaN(cur.windSpeed) ? `${cur.windSpeed} km/h` : 'Unavailable';
-    const sourceLabel = cur?.dataSource || 'Open-Meteo';
+    const pressure = hasPressure ? `${cur!.pressure} hPa` : 'Unavailable';
+    const windSpeed = hasWind ? `${cur!.windSpeed} km/h` : 'Unavailable';
+    const sourceLabel = cur?.dataSource || 'Open-Meteo / IMD Feed';
 
     const refDate = weatherBundle?.lastFetchedAt ? new Date(weatherBundle.lastFetchedAt) : new Date();
     const safeDate = Number.isNaN(refDate.getTime()) ? new Date() : refDate;
@@ -82,7 +89,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
       author: 'State Meteorological & Surface Synthesis Division',
       abstract: `Location-specific meteorological summary and telemetry report for ${selectedLocation.city} (${selectedLocation.state}) derived from ${sourceLabel} point observations and 7-day numerical forecast guidance.`,
       keywords: [selectedLocation.city, selectedLocation.state, 'Surface Telemetry', 'Local Nowcast', sourceLabel],
-      synopticSummary: `Latest readings for ${selectedLocation.city} (${sourceLabel}) indicate surface temperature of ${temp}, relative humidity at ${humidity}, mean sea-level pressure of ${pressure}, and surface wind at ${windSpeed} (${condition}).`,
+      synopticSummary: `Latest telemetry for ${selectedLocation.city} (${sourceLabel}) reports surface temperature of ${temp}, relative humidity at ${humidity}, mean sea-level pressure of ${pressure}, and surface wind at ${windSpeed} (${condition}).`,
       recommendations: [
         `Public and district authorities in ${selectedLocation.city} should monitor localized radar nowcasts during convective periods.`,
         'Agricultural workers in adjoining taluks should adjust field irrigation in accordance with 3-day precipitation probabilities.',
@@ -95,11 +102,11 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           tableData: {
             headers: ['Atmospheric Metric', 'Current Reading', 'Unit / Reference', 'Status'],
             rows: [
-              ['Surface Temperature', temp, '°C (2m Air)', cur?.temp !== undefined ? 'Observed / Modelled' : 'Unavailable'],
-              ['Relative Humidity', humidity, '% RH', cur?.humidity !== undefined ? 'Observed / Modelled' : 'Unavailable'],
-              ['Atmospheric Pressure', pressure, 'hPa (MSLP)', cur?.pressure !== undefined ? 'Normal Range' : 'Unavailable'],
-              ['Wind Velocity', windSpeed, 'km/h (10m)', cur?.windSpeed !== undefined ? 'Surface Flow' : 'Unavailable'],
-              ['General Condition', condition, 'Sky State', cur?.condition ? 'Current' : 'Pending']
+              ['Surface Temperature', temp, '°C (2m Air)', hasTemp ? 'Telemetry Recorded' : 'Unavailable'],
+              ['Relative Humidity', humidity, '% RH', hasHumidity ? 'Telemetry Recorded' : 'Unavailable'],
+              ['Atmospheric Pressure', pressure, 'hPa (MSLP)', hasPressure ? 'Telemetry Recorded' : 'Unavailable'],
+              ['Wind Velocity', windSpeed, 'km/h (10m)', hasWind ? 'Telemetry Recorded' : 'Unavailable'],
+              ['General Condition', condition, 'Sky State', cur?.condition ? 'Current' : 'Unavailable']
             ]
           }
         },
@@ -109,7 +116,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         }
       ]
     };
-  }, [weatherBundle, selectedLocation]);
+  }, [weatherBundle, selectedLocation, cur, hasTemp, hasHumidity, hasPressure, hasWind]);
 
   // Combine dynamic bulletin with official archive
   const allPublications: MeteorologicalPublication[] = useMemo(() => {
@@ -117,10 +124,41 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
     return [dynamicDistrictBulletin, ...staticItems];
   }, [dynamicDistrictBulletin]);
 
-  // Featured flagship report (Monsoon report or dynamic bulletin)
+  // Publication intelligence summary counts
+  const libraryCounts = useMemo(() => {
+    const total = allPublications.length;
+    const research = allPublications.filter(
+      (p) =>
+        p.type === 'Research Article' ||
+        p.type === 'Technical Monograph' ||
+        p.category === 'Scientific Monograph' ||
+        p.category === 'Climatological Study'
+    ).length;
+    const official = allPublications.filter(
+      (p) =>
+        p.type === 'PDF Bulletin' ||
+        p.type === 'GKMS Bulletin' ||
+        p.type === 'Government Publication' ||
+        p.category === 'National Weather Observation' ||
+        p.category === 'Sub-Divisional Report' ||
+        p.category === 'Agricultural Meteorology'
+    ).length;
+    const technical = allPublications.filter(
+      (p) =>
+        p.category === 'Environmental Registry' ||
+        p.id.includes('radar') ||
+        p.id.includes('satellite') ||
+        p.id.includes('ncmrwf') ||
+        p.id.includes('wmo')
+    ).length;
+    return { total, research, official, technical };
+  }, [allPublications]);
+
+  // Featured flagship report
   const featuredReport = useMemo(() => {
     return (
       allPublications.find((p) => p.id === 'monsoon-seasonal-rainfall-2026') ||
+      allPublications.find((p) => p.id === 'monsoon-seasonal-distribution-2026') ||
       allPublications[0]
     );
   }, [allPublications]);
@@ -139,7 +177,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
     const q = searchQuery.trim().toLowerCase();
 
     const filtered = allPublications.filter((pub) => {
-      // 1. Search Query
       const matchesSearch =
         q === '' ||
         pub.title.toLowerCase().includes(q) ||
@@ -150,7 +187,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         pub.documentNumber.toLowerCase().includes(q) ||
         pub.keywords.some((k) => k.toLowerCase().includes(q));
 
-      // 2. Category Filter
       let matchesCategory = true;
       if (selectedCategory === 'SAVED') {
         matchesCategory = savedReportIds.includes(pub.id);
@@ -195,7 +231,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           pub.keywords.some((k) => k.toLowerCase().includes('satellite') || k.toLowerCase().includes('isro'));
       }
 
-      // 3. Date Range Filter
       let matchesDateRange = true;
       if (dateRange[0] || dateRange[1]) {
         const pubDate = new Date(pub.date);
@@ -216,7 +251,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
       return matchesSearch && matchesCategory && matchesDateRange;
     });
 
-    // Sort order
     return [...filtered].sort((a, b) => {
       if (sortOption === 'TITLE') {
         return a.title.localeCompare(b.title);
@@ -227,7 +261,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
       if (sortOption === 'OLDEST') {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      // NEWEST default
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
   }, [allPublications, searchQuery, selectedCategory, sortOption, savedReportIds, dateRange]);
@@ -241,14 +274,26 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
   const handleSelectTopic = (topicQuery: string) => {
     setSearchQuery(topicQuery);
     setSelectedCategory('ALL');
-    // Smooth scroll to the library listing
     const el = document.getElementById('reports-search-filter-system');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  // Stacked mobile card-friendly table column definitions
+  const updatedAtIST = useMemo(() => {
+    if (!weatherBundle?.lastFetchedAt) return null;
+    const d = new Date(weatherBundle.lastFetchedAt);
+    if (Number.isNaN(d.getTime())) return null;
+    return (
+      d.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata',
+      }) + ' IST'
+    );
+  }, [weatherBundle?.lastFetchedAt]);
+
   const publicationColumns: ColumnDef<MeteorologicalPublication>[] = useMemo(
     () => [
       {
@@ -256,13 +301,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         align: 'left',
         render: (pub) => (
           <div className="flex flex-col gap-1 max-w-sm">
-            <span className="font-bold text-white text-xs hover:text-[#38BDF8] transition-colors cursor-pointer" onClick={() => handleOpenPublication(pub)}>
+            <button
+              type="button"
+              onClick={() => handleOpenPublication(pub)}
+              className="text-left font-bold text-[#F3F6FA] text-xs hover:text-[#35C7E8] transition-colors cursor-pointer"
+            >
               {pub.title}
-            </span>
-            <div className="flex items-center gap-2 text-[10px] text-[#64748B] font-mono">
+            </button>
+            <div className="flex items-center gap-2 text-[10px] text-[#8295A8] font-mono tabular-nums">
               <span>{pub.documentNumber}</span>
-              <span>•</span>
-              <span className="text-[#94A3B8]">{pub.author}</span>
+              <span>·</span>
+              <span className="text-[#B5C3D1] truncate">{pub.author}</span>
             </div>
           </div>
         ),
@@ -272,8 +321,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         align: 'left',
         render: (pub) => (
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] font-semibold text-[#38BDF8]">{pub.category}</span>
-            <span className="text-[10px] text-[#94A3B8]">{pub.type}</span>
+            <span className="text-[11px] font-semibold text-[#35C7E8]">{pub.category}</span>
+            <span className="text-[10px] text-[#8295A8]">{pub.type}</span>
           </div>
         ),
       },
@@ -281,9 +330,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         header: 'Date & Size',
         align: 'left',
         render: (pub) => (
-          <div className="flex flex-col gap-0.5 text-[11px] font-mono text-[#CBD5E1]">
+          <div className="flex flex-col gap-0.5 text-[11px] font-mono tabular-nums text-[#B5C3D1]">
             <span>{pub.date}</span>
-            <span className="text-[10px] text-[#64748B]">{pub.size}</span>
+            <span className="text-[10px] text-[#8295A8]">{pub.size}</span>
           </div>
         ),
       },
@@ -295,19 +344,20 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             <button
               type="button"
               onClick={() => toggleSaveReport(pub.id)}
-              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+              className={`min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer m-focus-ring ${
                 isReportSaved(pub.id)
-                  ? 'border-[#F59E0B]/50 bg-[#F59E0B]/15 text-[#F59E0B]'
-                  : 'border-[#1E2E40] bg-[#0A1017] text-[#64748B] hover:text-white'
+                  ? 'border-[#F59E0B]/40 bg-[#F59E0B]/12 text-[#F59E0B]'
+                  : 'border-[#26394B] bg-[#08131F] text-[#8295A8] hover:text-[#F3F6FA] hover:border-[#38536A]'
               }`}
               title={isReportSaved(pub.id) ? 'Saved to library' : 'Save publication'}
+              aria-label={isReportSaved(pub.id) ? 'Saved to library' : 'Save publication'}
             >
               <Bookmark className={`w-3.5 h-3.5 ${isReportSaved(pub.id) ? 'fill-[#F59E0B]' : ''}`} />
             </button>
             <button
               type="button"
               onClick={() => handleOpenPublication(pub)}
-              className="px-2.5 py-1 rounded-lg bg-[#38BDF8]/10 hover:bg-[#38BDF8] text-[#38BDF8] hover:text-[#0A1017] border border-[#38BDF8]/30 text-xs font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+              className="min-h-[40px] px-3 rounded-lg bg-[#101F2E] hover:bg-[#35C7E8] text-[#35C7E8] hover:text-[#07111D] border border-[#35C7E8]/40 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
               <span>Read</span>
               <ExternalLink className="w-3 h-3" />
@@ -320,15 +370,55 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
   );
 
   return (
-    <div id="mausam-reports-library-page" className="space-y-6 pb-12">
-      {/* Unified Compact Location Status Bar */}
-      <LocationStatusBar location={selectedLocation} />
-
-      {/* 1. Hero Introduction & Publication Intelligence Stats */}
-      <ReportsHero publications={allPublications} />
+    <div id="mausam-reports-library-page" className="space-y-5 pb-12">
+      {/* 1. Unified Observatory PageHeader */}
+      <PageHeader
+        id="reports-hero"
+        eyebrow="Official Meteorological Research & Bulletin Library"
+        title="Reports & Research"
+        description="Meteorological bulletins, climatological studies, agrometeorological advisories, and technical monographs curated across national earth-science institutes."
+        coordinates={`${selectedLocation.city}, ${selectedLocation.state} · ${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`}
+        status={hasTemp ? 'LIVE' : 'REFERENCE'}
+        statusLabel={hasTemp ? 'DISTRICT SYNTHESIS LIVE' : 'ARCHIVE + PENDING TELEMETRY'}
+        source={cur?.dataSource ? `${cur.dataSource} · IMD / MoES Archive` : 'IMD / MoES Institutional Archive'}
+        updatedAt={updatedAtIST}
+        actions={
+          <button
+            type="button"
+            onClick={() => handleOpenPublication(dynamicDistrictBulletin)}
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] border border-[#35C7E8]/40 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-2 m-focus-ring"
+          >
+            <span>Open District Bulletin ({selectedLocation.city})</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+        }
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5 pt-1">
+          <MetricValue
+            label="Total Publications"
+            value={libraryCounts.total}
+            valueClassName="text-lg font-bold text-[#F3F6FA]"
+          />
+          <MetricValue
+            label="Research Papers"
+            value={libraryCounts.research}
+            valueClassName="text-lg font-bold text-[#35C7E8]"
+          />
+          <MetricValue
+            label="Official Bulletins"
+            value={libraryCounts.official}
+            valueClassName="text-lg font-bold text-[#22C7A0]"
+          />
+          <MetricValue
+            label="Technical Studies"
+            value={libraryCounts.technical}
+            valueClassName="text-lg font-bold text-[#F59E0B]"
+          />
+        </div>
+      </PageHeader>
 
       {/* 2. Horizontal Intelligence Summary Strip */}
-      <ReportIntelligenceStrip />
+      <ReportIntelligenceStrip publications={allPublications} />
 
       {/* 3. Report of the Day (Editorial Spotlight) */}
       <ReportOfTheDay
@@ -388,16 +478,16 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           onClear={clearRecentlyViewed}
         />
 
-        {/* Publication Results (List / Grid View) */}
+        {/* Publication Results (List / Grid / Table View) */}
         {filteredPublications.length === 0 ? (
-          <div className="rounded-3xl bg-[#0B141F] border border-[#1E2E40] text-center py-16 px-4 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#38BDF8]/10 border border-[#38BDF8]/30 flex items-center justify-center text-[#38BDF8] mx-auto">
-              <Search className="w-6 h-6" />
+          <DataPanel variant="inset" className="text-center py-14 px-4 space-y-3">
+            <div className="w-11 h-11 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] mx-auto">
+              <Search className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-[#F3F6FA]">
               No matching meteorological publications found
             </h3>
-            <p className="text-xs text-[#94A3B8] max-w-md mx-auto">
+            <p className="text-xs text-[#8295A8] max-w-md mx-auto">
               Try adjusting your search terms, exploring a different domain topic, or resetting your filter category.
             </p>
             <button
@@ -405,12 +495,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('ALL');
+                setDateRange([null, null]);
               }}
-              className="px-4 py-2 rounded-xl bg-[#38BDF8] text-[#0A1017] text-xs font-mono font-bold hover:bg-[#0284C7] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Library Filters</span>
             </button>
-          </div>
+          </DataPanel>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPublications.map((pub) => (
@@ -425,14 +517,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             ))}
           </div>
         ) : viewMode === 'table' ? (
-          <div className="rounded-2xl bg-[#0B131D] border border-[#1E2E40] p-4 shadow-xl">
+          <DataPanel className="p-4">
             <DataTable
               data={filteredPublications}
               columns={publicationColumns}
               keyExtractor={(pub) => pub.id}
               emptyMessage="No publications match your filter criteria."
             />
-          </div>
+          </DataPanel>
         ) : (
           <div className="space-y-3">
             {filteredPublications.map((pub) => (

@@ -24,12 +24,12 @@ export interface TravelConditionsSummary {
 
 export interface HealthWeatherSummary {
   heatStressCategory: string;
-  heatIndexC: number;
+  heatIndexC: number | null;
   uvRiskLevel: string;
   coldRiskLevel: string;
   airQualityExposure: string;
   humidityDiscomfort: string;
-  humidexValue: number;
+  humidexValue: number | null;
   asthmaRespiratoryRisk: string;
   lightningCaution: string;
   pollenAdvice: string;
@@ -100,6 +100,9 @@ export class WeatherDecisionEngine {
     const BADGE_CAUTION = 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40';
     const BADGE_AVOID = 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/40';
 
+    const tempLabel = temp !== null ? `${temp}°C` : 'Temp —';
+    const windLabel = typeof weather.windSpeed === 'number' ? `${windKm} km/h` : 'Wind —';
+
     // 1. Outdoor activity
     if (isThunder || alerts.some((a) => a.severity === 'red' || a.severity === 'severe')) {
       items.push({
@@ -119,7 +122,7 @@ export class WeatherDecisionEngine {
         status: 'CAUTION',
         badgeColor: BADGE_CAUTION,
         recommendation: isRaining ? 'Rain occurring. Plan sheltered alternatives.' : aqi && aqi > 200 ? 'Poor air quality. Limit strenuous physical exertion.' : 'High thermal or wind stress. Rest in shade frequently.',
-        basisValue: isRaining ? `${rainMm}mm rain / ${rainProb}% prob` : `Heat Index ${heatIndex ? Math.round(heatIndex) : temp}°C / AQI ${aqi ?? 'N/A'}`,
+        basisValue: isRaining ? `${rainMm}mm rain / ${rainProb}% prob` : `Heat Index ${heatIndex !== null ? `${Math.round(heatIndex)}°C` : tempLabel} / AQI ${aqi ?? 'Unavailable'}`,
       });
     } else {
       items.push({
@@ -128,8 +131,8 @@ export class WeatherDecisionEngine {
         label: 'Outdoor Activity',
         status: 'GOOD',
         badgeColor: BADGE_GOOD,
-        recommendation: 'Conditions favorable for recreation, field trips, and outdoor labor.',
-        basisValue: `${temp}°C, Wind ${windKm} km/h, AQI ${aqi ?? 'Good'}`,
+        recommendation: temp !== null ? 'Conditions favorable for recreation, field trips, and outdoor labor.' : 'Awaiting live ambient telemetry to finalize outdoor guidance.',
+        basisValue: `${tempLabel}, ${windLabel}, AQI ${aqi ?? 'Unavailable'}`,
       });
     }
 
@@ -152,7 +155,7 @@ export class WeatherDecisionEngine {
         status: 'CAUTION',
         badgeColor: BADGE_CAUTION,
         recommendation: 'Early morning or late evening preferred. Hydrate adequately.',
-        basisValue: `AQI ${aqi ?? 'Mod'}, Temp ${temp}°C, Rain ${rainProb}%`,
+        basisValue: `AQI ${aqi ?? 'Unavailable'}, ${tempLabel}, Rain ${rainProb}%`,
       });
     } else {
       items.push({
@@ -161,8 +164,8 @@ export class WeatherDecisionEngine {
         label: 'Running / Walking',
         status: 'GOOD',
         badgeColor: BADGE_GOOD,
-        recommendation: 'Pleasant temperatures and clean air. Great time for jogging or walking.',
-        basisValue: `Comfortable ${temp}°C, Wind ${windKm} km/h`,
+        recommendation: temp !== null ? 'Pleasant temperatures and clean air. Great time for jogging or walking.' : 'Awaiting surface temperature and wind telemetry.',
+        basisValue: `${tempLabel}, ${windLabel}`,
       });
     }
 
@@ -218,7 +221,7 @@ export class WeatherDecisionEngine {
         status: 'CAUTION',
         badgeColor: BADGE_CAUTION,
         recommendation: 'Wet asphalt and reduced braking grip. Maintain double following distance.',
-        basisValue: `Vis ${visKm ?? 3} km, Wet pavement`,
+        basisValue: visKm !== null ? `Vis ${visKm} km, Wet pavement` : 'Wet pavement',
       });
     } else {
       items.push({
@@ -228,7 +231,7 @@ export class WeatherDecisionEngine {
         status: 'GOOD',
         badgeColor: BADGE_GOOD,
         recommendation: 'Road surface dry, optimal daylight visibility, and calm crosswinds.',
-        basisValue: `Visibility ${visKm ?? 10} km, Clear pavement`,
+        basisValue: visKm !== null ? `Visibility ${visKm} km, Clear pavement` : 'Visibility unavailable',
       });
     }
 
@@ -274,7 +277,7 @@ export class WeatherDecisionEngine {
         status: 'AVOID',
         badgeColor: BADGE_AVOID,
         recommendation: 'Extreme heat stress risk. Danger of heat exhaustion or heat stroke. Stay in air-conditioned areas.',
-        basisValue: `Heat Index ${Math.round(heatIndex!)}°C / Dry Bulb ${temp}°C`,
+        basisValue: `Heat Index ${heatIndex !== null ? Math.round(heatIndex) : temp}°C / Dry Bulb ${tempLabel}`,
       });
     } else if ((heatIndex !== null && heatIndex >= 38) || (temp !== null && temp >= 36)) {
       items.push({
@@ -284,7 +287,7 @@ export class WeatherDecisionEngine {
         status: 'CAUTION',
         badgeColor: BADGE_CAUTION,
         recommendation: 'Drink electrolytes regularly; wear light-colored cotton garments; avoid noon sun.',
-        basisValue: `Heat Index ${Math.round(heatIndex!)}°C (RH ${rh}%)`,
+        basisValue: `Heat Index ${heatIndex !== null ? Math.round(heatIndex) : temp}°C (RH ${rh ?? '—'}%)`,
       });
     } else {
       items.push({
@@ -293,8 +296,8 @@ export class WeatherDecisionEngine {
         label: 'Heat Exposure Risk',
         status: 'GOOD',
         badgeColor: BADGE_GOOD,
-        recommendation: 'Ambient temperatures well within safe physiological comfort limits.',
-        basisValue: `Heat Index ${heatIndex ? Math.round(heatIndex) : temp}°C`,
+        recommendation: temp !== null ? 'Ambient temperatures well within safe physiological comfort limits.' : 'Thermal telemetry unavailable.',
+        basisValue: heatIndex !== null ? `Heat Index ${Math.round(heatIndex)}°C` : tempLabel,
       });
     }
 
@@ -474,52 +477,75 @@ export class WeatherDecisionEngine {
     weather: CurrentWeather,
     hourly: HourlyForecastItem[] = []
   ): TravelConditionsSummary {
-    const visKm = weather.visibilityKm ?? (weather.visibility ? Math.round(weather.visibility / 100) / 10 : 10);
-    const rainMm = weather.precipitation || 0;
+    const visKm =
+      typeof weather.visibilityKm === 'number' && !Number.isNaN(weather.visibilityKm)
+        ? weather.visibilityKm
+        : typeof weather.visibility === 'number' && !Number.isNaN(weather.visibility)
+        ? Math.round(weather.visibility / 100) / 10
+        : null;
+    const rainMm = typeof weather.precipitation === 'number' && !Number.isNaN(weather.precipitation) ? weather.precipitation : 0;
     const isRaining = weather.isRainingNow || rainMm > 0.2;
-    const windKm = weather.windSpeed || 0;
-    const gustsKm = weather.windGusts || windKm * 1.3;
-    const temp = weather.temp;
-    const rh = weather.humidity;
-    const heatIndex = this.calculateHeatIndex(temp, rh);
+    const windKm = typeof weather.windSpeed === 'number' && !Number.isNaN(weather.windSpeed) ? weather.windSpeed : null;
+    const gustsKm = typeof weather.windGusts === 'number' && !Number.isNaN(weather.windGusts) ? weather.windGusts : null;
+    const temp = typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? weather.temp : null;
+    const rh = typeof weather.humidity === 'number' && !Number.isNaN(weather.humidity) ? weather.humidity : null;
+    const heatIndex = temp !== null && rh !== null ? this.calculateHeatIndex(temp, rh) : temp;
 
     let roadCondition = 'Dry & Clear';
     if (isRaining && rainMm > 5.0) roadCondition = 'Waterlogged / Severe Standing Water';
     else if (isRaining) roadCondition = 'Wet & Slick';
-    else if (visKm < 1.0) roadCondition = 'Reduced Visibility / Fog Caution';
+    else if (visKm !== null && visKm < 1.0) roadCondition = 'Reduced Visibility / Fog Caution';
 
-    let visibilityStatus = 'Good (> 10 km)';
-    if (visKm < 0.5) visibilityStatus = `Very Dense Fog (${Math.round(visKm * 1000)} m)`;
-    else if (visKm < 1.0) visibilityStatus = `Dense Fog (${Math.round(visKm * 1000)} m)`;
-    else if (visKm < 4.0) visibilityStatus = `Moderate Mist (${visKm} km)`;
-    else if (visKm < 10.0) visibilityStatus = `Clear (${visKm} km)`;
+    let visibilityStatus = 'Unavailable';
+    if (visKm !== null) {
+      if (visKm < 0.5) visibilityStatus = `Very Dense Fog (${Math.round(visKm * 1000)} m)`;
+      else if (visKm < 1.0) visibilityStatus = `Dense Fog (${Math.round(visKm * 1000)} m)`;
+      else if (visKm < 4.0) visibilityStatus = `Moderate Mist (${visKm} km)`;
+      else if (visKm < 10.0) visibilityStatus = `Clear (${visKm} km)`;
+      else visibilityStatus = `Good (${visKm} km)`;
+    }
 
-    let fogStatus = visKm < 1.0 ? 'Dense Fog Present' : visKm < 3.0 ? 'Shallow Mist' : 'No Fog';
+    const fogStatus =
+      visKm === null ? 'Unavailable' : visKm < 1.0 ? 'Dense Fog Present' : visKm < 3.0 ? 'Shallow Mist' : 'No Fog';
 
-    let windStatus = gustsKm > 50 ? `High Crosswinds (Gusts ${gustsKm} km/h)` : `Normal (${windKm} km/h)`;
+    const windStatus =
+      gustsKm !== null && gustsKm > 50
+        ? `High Crosswinds (Gusts ${gustsKm} km/h)`
+        : windKm !== null
+        ? `Normal (${windKm} km/h)`
+        : 'Unavailable';
 
-    let heatStressStatus = heatIndex > 42 ? `Severe Heat (${heatIndex}°C)` : heatIndex > 36 ? `Warm (${heatIndex}°C)` : 'Comfortable';
+    const heatStressStatus =
+      heatIndex === null
+        ? 'Unavailable'
+        : heatIndex > 42
+        ? `Severe Heat (${heatIndex}°C)`
+        : heatIndex > 36
+        ? `Warm (${heatIndex}°C)`
+        : 'Comfortable';
 
-    let floodRisk = rainMm > 15 ? 'High Risk' : rainMm > 3 ? 'Moderate Risk in Low Areas' : 'Low / None';
+    const floodRisk = rainMm > 15 ? 'High Risk' : rainMm > 3 ? 'Moderate Risk in Low Areas' : 'Low / None';
 
-    const condLower = weather.condition.toLowerCase();
-    let thunderstormRisk = condLower.includes('thunder') ? 'Active Thunderstorm' : weather.precipitationProbability > 60 ? 'Moderate Convective Risk' : 'Low';
+    const condLower = (weather.condition || '').toLowerCase();
+    const rainProb = typeof weather.precipitationProbability === 'number' ? weather.precipitationProbability : 0;
+    const thunderstormRisk = condLower.includes('thunder')
+      ? 'Active Thunderstorm'
+      : rainProb > 60
+      ? 'Moderate Convective Risk'
+      : 'Low';
 
     // Calculate best travel window from hourly forecast
-    let bestTravelWindow = 'Next 6 hours clear';
+    let bestTravelWindow = hourly.length > 0 ? 'All-day window favorable' : 'Awaiting hourly feed';
     if (hourly.length > 0) {
       const rainHours = hourly.filter((h) => (h.precipitationProbability || 0) > 40);
       if (rainHours.length > 0) {
-        const firstRain = rainHours[0];
-        bestTravelWindow = `Clear until ${firstRain.time} IST`;
-      } else {
-        bestTravelWindow = 'All-day window favorable';
+        bestTravelWindow = `Clear until ${rainHours[0].time} IST`;
       }
     }
 
     const advisoryNote = isRaining
       ? 'Reduce highway speeds by 15-20 km/h on wet bituminous roads. Maintain extra headlight distance.'
-      : visKm < 2.0
+      : visKm !== null && visKm < 2.0
       ? 'Use yellow fog lamps; follow road lane markings carefully; avoid overtaking on unlit highways.'
       : 'Routine highway and commuter conditions across all national and state arterial routes.';
 
@@ -540,39 +566,77 @@ export class WeatherDecisionEngine {
    * Generates health and physiological weather indicators
    */
   static generateHealthWeather(weather: CurrentWeather): HealthWeatherSummary {
-    const temp = weather.temp;
-    const rh = weather.humidity;
-    const heatIndex = this.calculateHeatIndex(temp, rh);
-    const humidex = this.calculateHumidex(temp, rh);
-    const uv = weather.uvIndex || 4;
-    const aqi = weather.aqi || 60;
+    const temp = typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? weather.temp : null;
+    const rh = typeof weather.humidity === 'number' && !Number.isNaN(weather.humidity) ? weather.humidity : null;
+    const heatIndex = temp !== null && rh !== null ? this.calculateHeatIndex(temp, rh) : temp;
+    const humidex = temp !== null && rh !== null ? this.calculateHumidex(temp, rh) : null;
+    const uv = typeof weather.uvIndex === 'number' && !Number.isNaN(weather.uvIndex) ? weather.uvIndex : null;
+    const aqi =
+      typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi)
+        ? weather.aqi
+        : typeof weather.aqiIndex === 'number' && !Number.isNaN(weather.aqiIndex)
+        ? weather.aqiIndex
+        : null;
 
-    let heatStressCategory = 'Normal';
-    if (heatIndex >= 45) heatStressCategory = 'Extreme Danger';
-    else if (heatIndex >= 40) heatStressCategory = 'Danger';
-    else if (heatIndex >= 35) heatStressCategory = 'Extreme Caution';
-    else if (heatIndex >= 30) heatStressCategory = 'Caution';
+    let heatStressCategory = 'Unavailable';
+    if (heatIndex !== null) {
+      if (heatIndex >= 45) heatStressCategory = 'Extreme Danger';
+      else if (heatIndex >= 40) heatStressCategory = 'Danger';
+      else if (heatIndex >= 35) heatStressCategory = 'Extreme Caution';
+      else if (heatIndex >= 30) heatStressCategory = 'Caution';
+      else heatStressCategory = 'Normal';
+    }
 
-    let uvRiskLevel = 'Low';
-    if (uv >= 11) uvRiskLevel = 'Extreme';
-    else if (uv >= 8) uvRiskLevel = 'Very High';
-    else if (uv >= 6) uvRiskLevel = 'High';
-    else if (uv >= 3) uvRiskLevel = 'Moderate';
+    let uvRiskLevel = 'Unavailable';
+    if (uv !== null) {
+      if (uv >= 11) uvRiskLevel = 'Extreme';
+      else if (uv >= 8) uvRiskLevel = 'Very High';
+      else if (uv >= 6) uvRiskLevel = 'High';
+      else if (uv >= 3) uvRiskLevel = 'Moderate';
+      else uvRiskLevel = 'Low';
+    }
 
-    let coldRiskLevel = temp < 5 ? 'Cold Wave Warning' : temp < 12 ? 'Mild Cold Discomfort' : 'None';
+    const coldRiskLevel =
+      temp === null ? 'Unavailable' : temp < 5 ? 'Cold Wave Warning' : temp < 12 ? 'Mild Cold Discomfort' : 'None';
 
-    let airQualityExposure = aqi > 300 ? 'Severe Health Threat' : aqi > 200 ? 'Unhealthy for All' : aqi > 100 ? 'Unhealthy for Sensitive' : 'Satisfactory';
+    const airQualityExposure =
+      aqi === null
+        ? 'Unavailable'
+        : aqi > 300
+        ? 'Severe Health Threat'
+        : aqi > 200
+        ? 'Unhealthy for All'
+        : aqi > 100
+        ? 'Unhealthy for Sensitive'
+        : 'Satisfactory';
 
-    let humidityDiscomfort = humidex > 45 ? 'Dangerous Discomfort' : humidex > 38 ? 'General Discomfort' : humidex > 30 ? 'Moderate Discomfort' : 'Little to No Discomfort';
+    const humidityDiscomfort =
+      humidex === null
+        ? 'Unavailable'
+        : humidex > 45
+        ? 'Dangerous Discomfort'
+        : humidex > 38
+        ? 'General Discomfort'
+        : humidex > 30
+        ? 'Moderate Discomfort'
+        : 'Little to No Discomfort';
 
-    let asthmaRespiratoryRisk = aqi > 180 || weather.pollen === 'High' || weather.pollen === 'Very High' ? 'Elevated Respiratory Alert' : 'Normal Baseline';
+    const asthmaRespiratoryRisk =
+      aqi === null && !weather.pollen
+        ? 'Unavailable'
+        : (aqi !== null && aqi > 180) || weather.pollen === 'High' || weather.pollen === 'Very High'
+        ? 'Elevated Respiratory Alert'
+        : 'Normal Baseline';
 
-    const condLower = weather.condition.toLowerCase();
-    let lightningCaution = condLower.includes('thunder') ? 'Stay Indoors - Active Electrical Discharges' : 'No Lightning Risk';
+    const condLower = (weather.condition || '').toLowerCase();
+    const lightningCaution = condLower.includes('thunder')
+      ? 'Stay Indoors - Active Electrical Discharges'
+      : 'No Lightning Risk';
 
-    let pollenAdvice = weather.pollenCount
-      ? `Estimated ${weather.pollenCount} grains/m³ (${weather.pollen} risk)`
-      : 'Pollen telemetry within routine seasonal baseline.';
+    const pollenAdvice =
+      weather.pollenCount !== null && weather.pollenCount !== undefined
+        ? `${weather.pollenCount} grains/m³ (${weather.pollen || 'Low'} risk)`
+        : 'Pollen telemetry unavailable for this station.';
 
     return {
       heatStressCategory,

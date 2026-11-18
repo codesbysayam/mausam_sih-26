@@ -127,22 +127,22 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   const effectiveTab: AnalyzeOrFooterView = activeTab === 'home' ? 'weather' : activeTab;
 
   return (
-    <div id="mausam-analyze-workspace" className="pt-[64px] pb-6 min-h-screen w-full bg-[#07111D]">
+    <div id="mausam-analyze-workspace" className="pt-[68px] sm:pt-[64px] pb-8 min-h-screen w-full bg-[#07111D]">
       {/* Compact Scientific Workstation Strip */}
       <div className="max-w-[1560px] mx-auto px-3 lg:px-6 mb-4">
-        <div className="spatial-hud-surface rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0 flex-1">
+        <div className="m-panel px-2.5 py-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none min-w-0 flex-1">
             <button
               type="button"
               onClick={() => setMode('explore')}
-              className="px-2.5 py-1.5 rounded-lg bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-xs font-semibold text-[#35C7E8] hover:bg-[#35C7E8]/20 flex items-center gap-1 shrink-0 cursor-pointer"
+              className="px-2.5 min-h-[36px] rounded-lg bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-xs font-semibold text-[#7DD3FC] hover:bg-[#35C7E8]/20 flex items-center gap-1.5 shrink-0 cursor-pointer m-focus-ring"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <Globe className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">3D Explore</span>
             </button>
 
-            <div className="h-4 w-px bg-[#84A8CC]/20 mx-1 shrink-0" />
+            <div className="h-4 w-px bg-[#26394B] mx-1 shrink-0" />
 
             {ANALYZE_TABS.map((t) => {
               const isActive = effectiveTab === t.id;
@@ -151,10 +151,11 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   key={t.id}
                   type="button"
                   onClick={() => onNavigateTab(t.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-3 min-h-[36px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer m-focus-ring ${
                     isActive
                       ? 'bg-[#35C7E8] text-[#05101C] font-semibold'
-                      : 'text-[#B8C7D9] hover:text-white hover:bg-white/5'
+                      : 'text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E]'
                   }`}
                 >
                   {t.label}
@@ -164,13 +165,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           </div>
 
           {/* Real Provider Health Strip */}
-          <div className="hidden xl:flex items-center gap-2 text-[10px] font-mono text-[#7F93A8] shrink-0">
+          <div className="hidden xl:flex items-center gap-2.5 text-[10px] font-mono text-[#8295A8] shrink-0 pl-2 border-l border-[#26394B]">
             {(['SACHET', 'IMD', 'RADAR', 'NWP'] as const).map((pid) => {
               const vis = getProviderStatusVisual(providers[pid].status);
               return (
-                <span key={pid} className="flex items-center gap-1">
+                <span key={pid} className="inline-flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${vis.dotClass}`} />
-                  <span>{pid}</span>
+                  <span className="text-[#B5C3D1]">{pid}</span>
                 </span>
               );
             })}

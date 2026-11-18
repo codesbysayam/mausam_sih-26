@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
+import { Wind, Gauge, Droplets } from 'lucide-react';
 import { NWPForecastPoint } from '../../types/nwp';
-import { Wind, Gauge, Droplets, Compass } from 'lucide-react';
+import { DataPanel, SectionHeading, MetricValue, UnavailableState } from '../ui/ObservatoryPrimitives';
 
 interface WindPressureChartsProps {
   points: NWPForecastPoint[];
@@ -8,12 +9,10 @@ interface WindPressureChartsProps {
 
 export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }) => {
   const chartPoints = useMemo(() => points.slice(0, 24), [points]);
-
   const currentPoint = chartPoints[0];
-  const windDirDeg = currentPoint?.windDirection10m ?? 0;
 
-  // Direction arrow symbol and cardinal based on degrees
-  const getDirectionInfo = (deg: number) => {
+  const getDirectionInfo = (deg?: number) => {
+    if (typeof deg !== 'number' || !Number.isFinite(deg)) return null;
     const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
     const cardinals = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const idx = Math.round((deg % 360) / 45) % 8;
@@ -24,16 +23,19 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
     };
   };
 
-  const dirInfo = getDirectionInfo(windDirDeg);
+  const dirInfo = getDirectionInfo(currentPoint?.windDirection10m);
 
-  // Pressure range for MSLP chart
-  const pressures = chartPoints.map((p) => p.pressureMSL).filter((p): p is number => typeof p === 'number');
-  const minPressure = pressures.length > 0 ? Math.floor(Math.min(...pressures) - 2) : 1000;
-  const maxPressure = pressures.length > 0 ? Math.ceil(Math.max(...pressures) + 2) : 1020;
-  const pressRange = maxPressure - minPressure || 1;
+  const validPressures = chartPoints
+    .map((p, i) => (typeof p.pressureMSL === 'number' && Number.isFinite(p.pressureMSL) ? { i, val: p.pressureMSL } : null))
+    .filter((v): v is { i: number; val: number } => v !== null);
 
-  // Humidity range (0-100%)
-  const humidities = chartPoints.map((p) => p.relativeHumidity).filter((h): h is number => typeof h === 'number');
+  const minPressure = validPressures.length > 0 ? Math.floor(Math.min(...validPressures.map((v) => v.val)) - 2) : null;
+  const maxPressure = validPressures.length > 0 ? Math.ceil(Math.max(...validPressures.map((v) => v.val)) + 2) : null;
+  const pressRange = minPressure !== null && maxPressure !== null ? maxPressure - minPressure || 1 : 1;
+
+  const validHumidities = chartPoints
+    .map((p, i) => (typeof p.relativeHumidity === 'number' && Number.isFinite(p.relativeHumidity) ? { i, val: p.relativeHumidity } : null))
+    .filter((v): v is { i: number; val: number } => v !== null);
 
   const svgW = 400;
   const svgH = 110;
@@ -42,150 +44,172 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
   const uW = svgW - padX * 2;
   const uH = svgH - padY * 2;
 
-  // Pressure path
-  const pressCoords = chartPoints.map((p, i) => {
-    const x = padX + (i / Math.max(chartPoints.length - 1, 1)) * uW;
-    const val = p.pressureMSL ?? minPressure;
-    const y = svgH - padY - ((val - minPressure) / pressRange) * uH;
-    return { x, y, val };
+  const pressCoords =
+    minPressure !== null
+      ? validPressures.map((v) => {
+          const x = padX + (v.i / Math.max(chartPoints.length - 1, 1)) * uW;
+          const y = svgH - padY - ((v.val - minPressure) / pressRange) * uH;
+          return { x, y, val: v.val };
+        })
+      : [];
+
+  const pressPath = pressCoords.reduce((acc, c, idx) => (idx === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`), '');
+
+  const humidCoords = validHumidities.map((v) => {
+    const x = padX + (v.i / Math.max(chartPoints.length - 1, 1)) * uW;
+    const y = svgH - padY - (v.val / 100) * uH;
+    return { x, y, val: v.val };
   });
 
-  const pressPath = pressCoords.reduce((acc, c, i) => {
-    return i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`;
-  }, '');
+  const humidPath = humidCoords.reduce((acc, c, idx) => (idx === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`), '');
 
-  // Humidity path
-  const humidCoords = chartPoints.map((p, i) => {
-    const x = padX + (i / Math.max(chartPoints.length - 1, 1)) * uW;
-    const val = p.relativeHumidity ?? 50;
-    const y = svgH - padY - (val / 100) * uH;
-    return { x, y, val };
-  });
-
-  const humidPath = humidCoords.reduce((acc, c, i) => {
-    return i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`;
-  }, '');
+  const gustStatus =
+    typeof currentPoint?.windGusts10m === 'number'
+      ? currentPoint.windGusts10m > 45
+        ? 'MODERATE GUST RISK'
+        : 'NORMAL GRADIENT'
+      : '—';
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {/* 13. WIND OUTLOOK */}
-      <div className="nwp-card flex flex-col gap-3 rounded-2xl p-4 sm:p-5 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#1D5278]/60">
-          <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-[#29B6F6]" />
-            <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-              Wind Outlook (10m Vector Field)
-            </h3>
+      <DataPanel className="flex flex-col gap-4">
+        <SectionHeading
+          title="Wind Outlook (10m Vector Field)"
+          subtitle="Surface flow, peak gusts, and directional azimuth"
+          icon={<Wind className="w-4 h-4" />}
+          action={
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#08131F] border border-[#26394B] text-xs font-mono tabular-nums">
+              <span className="text-[#8295A8]">DIRECTION:</span>
+              <span className="text-[#35C7E8] font-bold">
+                {dirInfo ? `${dirInfo.arrow} ${dirInfo.deg}° (${dirInfo.cardinal})` : '—'}
+              </span>
+            </div>
+          }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="Sustained Speed"
+              value={currentPoint?.windSpeed10m}
+              unit="km/h"
+              precision={1}
+              hint="Mean 10m boundary velocity"
+            />
           </div>
 
-          {/* Actual direction indicator */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#081F33] border border-[#1D5278] text-xs font-mono">
-            <span className="text-[#AFC4D8]">CURRENT DIRECTION:</span>
-            <span className="text-[#29B6F6] font-bold">
-              {dirInfo.arrow} {dirInfo.deg}° ({dirInfo.cardinal})
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="Peak Gust"
+              value={currentPoint?.windGusts10m}
+              unit="km/h"
+              precision={1}
+              valueClassName="text-xl sm:text-2xl font-bold text-[#35C7E8]"
+              hint="Turbulent gust potential"
+            />
+          </div>
+
+          <div className="m-panel-inset p-3.5">
+            <MetricValue
+              label="Vector Azimuth"
+              value={currentPoint?.windDirection10m}
+              unit="°"
+              precision={0}
+              valueClassName="text-xl sm:text-2xl font-bold text-[#FCD34D]"
+              hint="Meteorological origin bearing"
+            />
+          </div>
+
+          <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-1">
+            <span className="text-[11px] font-medium text-[#8295A8] uppercase tracking-wider">
+              Gust Regime
+            </span>
+            <span
+              className={`text-sm font-bold font-mono ${
+                gustStatus === 'MODERATE GUST RISK'
+                  ? 'text-[#FCD34D]'
+                  : gustStatus === 'NORMAL GRADIENT'
+                  ? 'text-[#6EE7B7]'
+                  : 'text-[#8295A8]'
+              }`}
+            >
+              {gustStatus}
+            </span>
+            <span className="text-[11px] text-[#8295A8]">
+              {typeof currentPoint?.windGusts10m === 'number' ? 'Synoptic pressure driven' : 'Gust telemetry unavailable'}
             </span>
           </div>
         </div>
+      </DataPanel>
 
-        {/* 24-hr Wind & Gusts mini graph */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-[#081F33] border border-[#1D5278]">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Sustained Speed</span>
-            <span className="text-xl font-bold font-mono text-white">
-              {currentPoint?.windSpeed10m !== undefined ? `${currentPoint.windSpeed10m} km/h` : '—'}
-            </span>
-            <span className="text-[10px] text-slate-400 font-sans">Mean 10-meter boundary velocity</span>
-          </div>
-
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-[#081F33] border border-[#1D5278]">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Peak Gust</span>
-            <span className="text-xl font-bold font-mono text-[#29B6F6]">
-              {currentPoint?.windGusts10m !== undefined ? `${currentPoint.windGusts10m} km/h` : '—'}
-            </span>
-            <span className="text-[10px] text-slate-400 font-sans">Turbulent kinetic gust potential</span>
-          </div>
-
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-[#081F33] border border-[#1D5278]">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Vector Azimuth</span>
-            <span className="text-xl font-bold font-mono text-amber-300">
-              {currentPoint?.windDirection10m !== undefined ? `${currentPoint.windDirection10m}°` : '—'}
-            </span>
-            <span className="text-[10px] text-slate-400 font-sans">Meteorological origin direction</span>
-          </div>
-
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-[#081F33] border border-[#1D5278]">
-            <span className="text-[10px] uppercase font-mono text-[#AFC4D8]">Convective Threat</span>
-            <span className="text-sm font-bold font-mono text-[#00E676] mt-1">
-              {(currentPoint?.windGusts10m || 0) > 45 ? 'MODERATE GUST RISK' : 'NORMAL GRADIENT'}
-            </span>
-            <span className="text-[10px] text-slate-400 font-sans">Synoptic pressure driven</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 14. PRESSURE + HUMIDITY (2 equal cards on desktop, 1 on mobile) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Card 1: Sea Level Pressure */}
-        <div className="nwp-card flex flex-col justify-between gap-3 rounded-2xl p-4 sm:p-5 shadow-md">
-          <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-            <div className="flex items-center gap-2">
-              <Gauge className="w-4 h-4 text-purple-400" />
-              <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-                Sea Level Pressure (MSLP)
-              </h4>
-            </div>
-            <span className="text-xs font-mono font-bold text-purple-300">
-              {currentPoint?.pressureMSL !== undefined ? `${currentPoint.pressureMSL} hPa` : '—'}
-            </span>
-          </div>
+        <DataPanel className="flex flex-col justify-between gap-3">
+          <SectionHeading
+            title="Sea Level Pressure (MSLP)"
+            icon={<Gauge className="w-4 h-4" />}
+            action={
+              <span className="text-xs font-mono font-bold text-[#35C7E8] tabular-nums">
+                {typeof currentPoint?.pressureMSL === 'number' ? `${currentPoint.pressureMSL} hPa` : '—'}
+              </span>
+            }
+          />
 
-          <div className="w-full">
-            <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
-              <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#1D5278" strokeDasharray="3 3" />
-              <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#1D5278" strokeDasharray="3 3" />
-              <path d={pressPath} fill="none" stroke="#C084FC" strokeWidth="2" />
-              {pressCoords.length > 0 && (
-                <circle cx={pressCoords[0].x} cy={pressCoords[0].y} r="3.5" fill="#C084FC" />
-              )}
-            </svg>
-          </div>
+          {pressCoords.length >= 2 ? (
+            <>
+              <div className="w-full">
+                <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
+                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#26394B" strokeDasharray="3 3" />
+                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#26394B" strokeDasharray="3 3" />
+                  <path d={pressPath} fill="none" stroke="#A78BFA" strokeWidth="2" />
+                  <circle cx={pressCoords[0].x} cy={pressCoords[0].y} r="3.5" fill="#A78BFA" />
+                </svg>
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+                <span>Range: {minPressure} – {maxPressure} hPa</span>
+                <span>24h Barometric Trend</span>
+              </div>
+            </>
+          ) : (
+            <UnavailableState
+              title="Pressure Series Unavailable"
+              reason="MSLP time-series was not returned in this model stream."
+            />
+          )}
+        </DataPanel>
 
-          <div className="flex items-center justify-between text-[10px] font-mono text-[#AFC4D8] pt-1 border-t border-[#1D5278]/50">
-            <span>Range: {minPressure} – {maxPressure} hPa</span>
-            <span>24h Barometric Trend</span>
-          </div>
-        </div>
+        <DataPanel className="flex flex-col justify-between gap-3">
+          <SectionHeading
+            title="Relative Humidity"
+            icon={<Droplets className="w-4 h-4" />}
+            action={
+              <span className="text-xs font-mono font-bold text-[#35C7E8] tabular-nums">
+                {typeof currentPoint?.relativeHumidity === 'number' ? `${currentPoint.relativeHumidity}%` : '—'}
+              </span>
+            }
+          />
 
-        {/* Card 2: Relative Humidity */}
-        <div className="nwp-card flex flex-col justify-between gap-3 rounded-2xl p-4 sm:p-5 shadow-md">
-          <div className="flex items-center justify-between pb-2 border-b border-[#1D5278]/60">
-            <div className="flex items-center gap-2">
-              <Droplets className="w-4 h-4 text-[#29B6F6]" />
-              <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-sans">
-                Relative Humidity
-              </h4>
-            </div>
-            <span className="text-xs font-mono font-bold text-[#29B6F6]">
-              {currentPoint?.relativeHumidity !== undefined ? `${currentPoint.relativeHumidity}%` : '—'}
-            </span>
-          </div>
-
-          <div className="w-full">
-            <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
-              <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#1D5278" strokeDasharray="3 3" />
-              <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#1D5278" strokeDasharray="3 3" />
-              <path d={humidPath} fill="none" stroke="#29B6F6" strokeWidth="2" />
-              {humidCoords.length > 0 && (
-                <circle cx={humidCoords[0].x} cy={humidCoords[0].y} r="3.5" fill="#29B6F6" />
-              )}
-            </svg>
-          </div>
-
-          <div className="flex items-center justify-between text-[10px] font-mono text-[#AFC4D8] pt-1 border-t border-[#1D5278]/50">
-            <span>Dew Point: {currentPoint?.dewPoint2m !== undefined ? `${currentPoint.dewPoint2m}°C` : '—'}</span>
-            <span>Boundary Layer Moisture</span>
-          </div>
-        </div>
+          {humidCoords.length >= 2 ? (
+            <>
+              <div className="w-full">
+                <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
+                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#26394B" strokeDasharray="3 3" />
+                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#26394B" strokeDasharray="3 3" />
+                  <path d={humidPath} fill="none" stroke="#35C7E8" strokeWidth="2" />
+                  <circle cx={humidCoords[0].x} cy={humidCoords[0].y} r="3.5" fill="#35C7E8" />
+                </svg>
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+                <span>Dew Point: {typeof currentPoint?.dewPoint2m === 'number' ? `${currentPoint.dewPoint2m}°C` : '—'}</span>
+                <span>Boundary Layer Moisture</span>
+              </div>
+            </>
+          ) : (
+            <UnavailableState
+              title="Humidity Series Unavailable"
+              reason="2m relative humidity series was not supplied by this model stream."
+            />
+          )}
+        </DataPanel>
       </div>
     </div>
   );

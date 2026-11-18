@@ -1,18 +1,20 @@
 import React from 'react';
+import { getWeatherVisualConfig } from '../../../utils/weatherIcons';
+import { Calendar, TrendingUp } from 'lucide-react';
 
 interface EventPlannerCardProps {
   extendedForecast: Array<{
     date: string;
     dayOfWeek: string;
-    tempMax: number;
-    tempMin: number;
+    tempMax: number | null;
+    tempMin: number | null;
     condition: string;
     icon: string;
-    rainProbabilityPercent: number;
-    comfortIndexValue: number;
+    rainProbabilityPercent: number | null;
+    comfortIndexValue: number | null;
     comfortCategory: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
   }>;
-  comfortIndexToday: number;
+  comfortIndexToday: number | null;
   comfortCategoryToday: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
   eventRecommendation: string;
   city: string;
@@ -28,120 +30,123 @@ export const EventPlannerCard: React.FC<EventPlannerCardProps> = ({
   const getComfortBadge = (cat: string) => {
     switch (cat) {
       case 'Pleasant':
-        return 'bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/40';
       case 'Comfortable':
-        return 'bg-[#27AE60]/15 text-[#27AE60] border-[#27AE60]/40';
+        return 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35';
       case 'Warm & Humid':
-        return 'bg-[#F1C40F]/15 text-[#F1C40F] border-[#F1C40F]/40';
+        return 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35';
       case 'Uncomfortable':
-        return 'bg-[#FF8C42]/15 text-[#FF8C42] border-[#FF8C42]/40';
+        return 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35';
       default:
-        return 'bg-[#E74C3C]/15 text-[#E74C3C] border-[#E74C3C]/40';
+        return 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
     }
   };
 
   return (
-    <div className="mausam-card p-4 sm:p-5 border border-[#334155] flex flex-col justify-between h-full">
+    <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#334155]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#16A085]/15 text-[#1ABC9C] flex items-center justify-center border border-[#16A085]/30">
-              <span className="material-symbols-outlined text-[20px]">event</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#22C7A0] flex items-center justify-center border border-[#26394B]">
+              <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                Event Planners &amp; Organizers
+              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
+                Event Planners &amp; Venue Logistics
               </h3>
-              <p className="text-[11px] text-[#8A94A6]">
-                Extended 7-Day Forecast &amp; Thermal Comfort Index • {city}
+              <p className="text-[11px] text-[#8295A8]">
+                7-Day Extended Forecast &amp; Thermal Comfort • {city}
               </p>
             </div>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getComfortBadge(comfortCategoryToday)}`}>
-            Comfort: {comfortCategoryToday} ({comfortIndexToday})
+          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${getComfortBadge(comfortCategoryToday)}`}>
+            Comfort: {comfortCategoryToday}
+            {typeof comfortIndexToday === 'number' ? ` (${comfortIndexToday})` : ''}
           </span>
         </div>
 
-        {/* 7-Day Extended Table */}
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-xs text-left">
+          <table className="w-full text-xs text-left font-mono tabular-nums">
             <thead>
-              <tr className="border-b border-[#334155] text-[10px] uppercase text-[#8A94A6]">
+              <tr className="border-b border-[#26394B] text-[10px] font-sans uppercase text-[#8295A8]">
                 <th className="pb-2 font-bold">Day</th>
                 <th className="pb-2 font-bold text-center">Condition</th>
-                <th className="pb-2 font-bold text-right">Temp (Max/Min)</th>
+                <th className="pb-2 font-bold text-right">Max / Min</th>
                 <th className="pb-2 font-bold text-right">Rain Prob</th>
                 <th className="pb-2 font-bold text-right">Comfort</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#334155]/60">
-              {extendedForecast.slice(0, 7).map((item, idx) => (
-                <tr key={idx} className="hover:bg-[#17212B]/80 transition-colors">
-                  <td className="py-2 text-white font-medium">
-                    <span>{item.dayOfWeek}</span>
-                    <span className="text-[10px] text-[#8A94A6] block">{item.date}</span>
-                  </td>
-                  <td className="py-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">
-                        {item.icon}
+            <tbody className="divide-y divide-[#26394B]/60">
+              {extendedForecast.slice(0, 7).map((item, idx) => {
+                const visual = getWeatherVisualConfig(item.condition);
+                const CondIcon = visual.icon;
+                const rainPct =
+                  typeof item.rainProbabilityPercent === 'number' && Number.isFinite(item.rainProbabilityPercent)
+                    ? item.rainProbabilityPercent
+                    : null;
+
+                return (
+                  <tr key={idx} className="hover:bg-[#0B1927] transition-colors">
+                    <td className="py-2 font-sans text-[#F3F6FA] font-medium">
+                      <span>{item.dayOfWeek}</span>
+                      <span className="text-[10px] font-mono text-[#8295A8] block">{item.date}</span>
+                    </td>
+                    <td className="py-2 text-center font-sans">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <CondIcon className={`w-4 h-4 ${visual.iconColor}`} />
+                        <span className="text-[11px] text-[#B5C3D1] hidden sm:inline">{item.condition || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="py-2 text-right font-bold">
+                      <span className="text-[#F3F6FA]">
+                        {typeof item.tempMax === 'number' ? `${item.tempMax}°` : '—'}
                       </span>
-                      <span className="text-[11px] text-[#D7DEE8] hidden sm:inline">{item.condition}</span>
-                    </div>
-                  </td>
-                  <td className="py-2 text-right font-mono font-bold">
-                    <span className="text-white">{item.tempMax}°</span>
-                    <span className="text-[#8A94A6] text-[10px] ml-1">/ {item.tempMin}°</span>
-                  </td>
-                  <td className="py-2 text-right font-mono">
-                    <span
-                      className={`text-xs font-bold ${
-                        item.rainProbabilityPercent > 50
-                          ? 'text-[#4FA8E0]'
-                          : item.rainProbabilityPercent > 25
-                          ? 'text-[#F1C40F]'
-                          : 'text-[#2ECC71]'
-                      }`}
-                    >
-                      {item.rainProbabilityPercent}%
-                    </span>
-                  </td>
-                  <td className="py-2 text-right">
-                    <span
-                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded border inline-block ${getComfortBadge(
-                        item.comfortCategory
-                      )}`}
-                    >
-                      {item.comfortCategory}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                      <span className="text-[#8295A8] text-[10px] ml-1">
+                        / {typeof item.tempMin === 'number' ? `${item.tempMin}°` : '—'}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right">
+                      <span
+                        className={`text-xs font-bold ${
+                          rainPct === null
+                            ? 'text-[#8295A8]'
+                            : rainPct > 50
+                            ? 'text-[#35C7E8]'
+                            : rainPct > 25
+                            ? 'text-[#FCD34D]'
+                            : 'text-[#6EE7B7]'
+                        }`}
+                      >
+                        {rainPct !== null ? `${rainPct}%` : '—'}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-sans">
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded border inline-block ${getComfortBadge(
+                          item.comfortCategory
+                        )}`}
+                      >
+                        {item.comfortCategory}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-        {/* Venue Planning Guidance */}
-        <div className="mt-3.5 p-3 rounded bg-[#131A22] border border-[#334155] flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-[#1ABC9C] text-[18px] shrink-0 mt-0.5">
-            insights
-          </span>
+        <div className="mt-3.5 p-3 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-start gap-2.5">
+          <TrendingUp className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
           <div className="text-xs">
-            <p className="text-white font-semibold">
-              Venue Logistics &amp; Setup Advisory:
-            </p>
-            <p className="text-[11px] text-[#8A94A6] mt-0.5 leading-relaxed">
-              {eventRecommendation}
-            </p>
+            <p className="text-[#F3F6FA] font-semibold">Venue Logistics &amp; Setup Advisory</p>
+            <p className="text-[11px] text-[#8295A8] mt-0.5 leading-relaxed">{eventRecommendation}</p>
           </div>
         </div>
       </div>
 
-      {/* Footer Source */}
-      <div className="mt-4 pt-3 border-t border-[#334155] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8A94A6]">
-        <span>Source: <strong>IMD Extended Numerical Forecast &amp; Steadman Thermal Comfort Model</strong></span>
-        <span>Horizon: <strong>7–14 Day Projection</strong></span>
+      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
+        <span>Source: <strong className="text-[#B5C3D1]">Extended Numerical Forecast &amp; Thermal Comfort Model</strong></span>
+        <span>7-Day Projection</span>
       </div>
     </div>
   );

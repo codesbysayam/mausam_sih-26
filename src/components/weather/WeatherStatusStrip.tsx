@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { CurrentWeather, WeatherAlert } from '../../types';
 import {
   CheckCircle2,
-  AlertTriangle,
   Eye,
   Sun,
   Droplets,
@@ -24,10 +23,9 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
       id: string;
       icon: React.ComponentType<{ className?: string }>;
       text: string;
-      severity: 'safe' | 'warning' | 'info';
+      severity: 'safe' | 'warning' | 'info' | 'muted';
     }> = [];
 
-    // 1. Severe Weather / Alerts Status
     const severeAlerts = alerts.filter(
       (a) => a.severity === 'red' || a.severity === 'orange' || a.severity === 'Severe' || a.severity === 'Moderate'
     );
@@ -43,25 +41,34 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
       items.push({
         id: 'no-severe',
         icon: CheckCircle2,
-        text: 'No severe atmospheric hazards detected in this subdivision',
+        text: 'No severe weather warnings active in bulletin feed',
         severity: 'safe',
       });
     }
 
-    // 2. Visibility
-    const vis = weather.visibility ?? 10;
-    if (vis < 1) {
+    const vis =
+      typeof weather.visibilityKm === 'number' && Number.isFinite(weather.visibilityKm)
+        ? weather.visibilityKm
+        : typeof weather.visibility === 'number' && Number.isFinite(weather.visibility)
+        ? weather.visibility > 100
+          ? Number((weather.visibility / 1000).toFixed(1))
+          : weather.visibility
+        : null;
+
+    if (vis === null) {
+      items.push({ id: 'vis', icon: Eye, text: 'Visibility unavailable', severity: 'muted' });
+    } else if (vis < 1) {
       items.push({
         id: 'vis',
         icon: Eye,
-        text: `Dense Fog / Poor Visibility (${vis} km) – Exercise caution when commuting`,
+        text: `Dense Fog (${vis} km visibility)`,
         severity: 'warning',
       });
     } else if (vis < 4) {
       items.push({
         id: 'vis',
         icon: Eye,
-        text: `Moderate Visibility (${vis} km) due to surface haze / mist`,
+        text: `Reduced Visibility (${vis} km)`,
         severity: 'info',
       });
     } else {
@@ -73,77 +80,81 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
       });
     }
 
-    // 3. UV Exposure
-    const uv = weather.uvIndex ?? 5;
-    if (uv >= 8) {
+    const uv = typeof weather.uvIndex === 'number' && Number.isFinite(weather.uvIndex) ? weather.uvIndex : null;
+    if (uv === null) {
+      items.push({ id: 'uv', icon: Sun, text: 'UV Index unavailable', severity: 'muted' });
+    } else if (uv >= 8) {
       items.push({
         id: 'uv',
         icon: Sun,
-        text: `Very High UV Index (${uv}) – Sun protection required during solar noon`,
+        text: `Very High UV (${uv}) — Sun protection advised`,
         severity: 'warning',
       });
     } else if (uv >= 6) {
       items.push({
         id: 'uv',
         icon: Sun,
-        text: `High UV Radiation (${uv}) – Moderate protection recommended`,
+        text: `High UV (${uv})`,
         severity: 'info',
       });
     } else {
       items.push({
         id: 'uv',
         icon: Sun,
-        text: `Safe UV Exposure Index (${uv})`,
+        text: `UV Exposure ${uv}`,
         severity: 'safe',
       });
     }
 
-    // 4. Humidity & Moisture
-    const hum = weather.humidity ?? 70;
-    if (hum >= 90) {
+    const hum = typeof weather.humidity === 'number' && Number.isFinite(weather.humidity) ? Math.round(weather.humidity) : null;
+    if (hum === null) {
+      items.push({ id: 'humidity', icon: Droplets, text: 'Humidity unavailable', severity: 'muted' });
+    } else if (hum >= 90) {
       items.push({
         id: 'humidity',
         icon: Droplets,
-        text: `Elevated Relative Humidity (${hum}%) – High boundary layer moisture`,
+        text: `High Humidity (${hum}%)`,
         severity: 'info',
       });
     } else if (hum <= 25) {
       items.push({
         id: 'humidity',
         icon: Droplets,
-        text: `Low Humidity (${hum}%) – Dry synoptic air mass`,
+        text: `Low Humidity (${hum}%)`,
         severity: 'info',
       });
     } else {
       items.push({
         id: 'humidity',
         icon: Droplets,
-        text: `Comfortable Ambient Humidity (${hum}%)`,
+        text: `Humidity ${hum}%`,
         severity: 'safe',
       });
     }
 
-    // 5. Wind
-    const wind = weather.windSpeed ?? 5;
-    if (wind > 40) {
+    const wind = typeof weather.windSpeed === 'number' && Number.isFinite(weather.windSpeed) ? Math.round(weather.windSpeed) : null;
+    const windDir = weather.windDirection && weather.windDirection !== '—' ? weather.windDirection : '';
+    if (wind === null) {
+      items.push({ id: 'wind', icon: Wind, text: 'Wind speed unavailable', severity: 'muted' });
+    } else if (wind > 40) {
       items.push({
         id: 'wind',
         icon: Wind,
-        text: `Strong Gusty Surface Winds (${wind} km/h ${weather.windDirection || ''})`,
+        text: `Strong Winds (${wind} km/h ${windDir})`.trim(),
         severity: 'warning',
       });
     } else if (wind > 20) {
       items.push({
         id: 'wind',
         icon: Wind,
-        text: `Moderate Breeze (${wind} km/h ${weather.windDirection || ''})`,
+        text: `Moderate Breeze (${wind} km/h ${windDir})`.trim(),
         severity: 'info',
       });
     } else {
       items.push({
         id: 'wind',
         icon: Wind,
-        text: `Gentle Surface Wind (${wind} km/h ${weather.windDirection || ''})`,
+        text: `Light Wind (${wind} km/h ${windDir})`.trim(),
         severity: 'safe',
       });
     }
@@ -154,31 +165,33 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
   return (
     <div
       id="weather-operational-status-strip"
-      className="bg-[#151D26] border border-[#314255] rounded-lg p-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      className="m-panel px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
     >
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[11px] font-bold text-[#8A94A6] uppercase tracking-wider bg-[#1E2733] px-2.5 py-1 rounded border border-[#314255]">
+        <span className="text-[10px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider bg-[#08131F] px-2.5 py-1 rounded-md border border-[#26394B]">
           SYNOPTIC STATUS
         </span>
       </div>
 
-      <div className="flex items-center gap-2.5 flex-wrap flex-1 text-xs">
+      <div className="flex items-center gap-2 flex-wrap flex-1 text-xs">
         {statusItems.map((item) => {
           const Icon = item.icon;
           const badgeClass =
             item.severity === 'warning'
-              ? 'bg-[#E74C3C]/15 text-[#FF7675] border-[#E74C3C]/40'
+              ? 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35'
               : item.severity === 'info'
-              ? 'bg-[#F1C40F]/10 text-[#F7DC6F] border-[#F1C40F]/30'
-              : 'bg-[#2ECC71]/10 text-[#2ECC71] border-[#2ECC71]/30';
+              ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+              : item.severity === 'muted'
+              ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+              : 'bg-[#22C7A0]/10 text-[#6EE7B7] border-[#22C7A0]/30';
 
           return (
             <div
               key={item.id}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border text-[11px] font-medium ${badgeClass}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium font-mono tabular-nums ${badgeClass}`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span>{item.text}</span>
+              <span className="font-sans">{item.text}</span>
             </div>
           );
         })}

@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from 'react';
+import { ChevronRight, MapPin, Search, X } from 'lucide-react';
 import { StateWarningSummary, AlertSeverity, WarningRecord } from '../../types/warningTypes';
 import { STATE_ALERT_SEVERITIES } from '../../data/nationalWarningsData';
+import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
 
 interface StateWatchlistPanelProps {
   selectedState: string | null;
   onSelectState: (stateName: string, stateCode: string) => void;
   onOpenStateDrawer?: (summary: StateWarningSummary) => void;
   warnings?: WarningRecord[];
+  isUnavailable?: boolean;
 }
 
 export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
@@ -14,33 +17,57 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
   onSelectState,
   onOpenStateDrawer,
   warnings = [],
+  isUnavailable = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | 'all'>('all');
 
-  // Dynamic state list with overlay of active warnings
   const statesList = useMemo(() => {
-    const baseList = Object.values(STATE_ALERT_SEVERITIES).map((s) => {
-      const live = warnings.find(
-        (w) =>
-          w.state.toLowerCase() === s.stateName.toLowerCase() ||
-          w.stateCode.toLowerCase() === s.stateCode.replace('in-', '').toLowerCase()
-      );
-      if (live) {
+    const baseList: StateWarningSummary[] = Object.values(STATE_ALERT_SEVERITIES).map((s) => {
+      const matched = isUnavailable
+        ? []
+        : warnings.filter(
+            (w) =>
+              w.state.toLowerCase() === s.stateName.toLowerCase() ||
+              w.stateCode.toLowerCase() === s.stateCode.replace('in-', '').toLowerCase() ||
+              w.stateCode.toLowerCase() === s.stateCode.toLowerCase()
+          );
+
+      if (matched.length > 0) {
+        const order: Record<AlertSeverity, number> = {
+          red: 4,
+          orange: 3,
+          yellow: 2,
+          purple: 1,
+          green: 0,
+        };
+        const sorted = [...matched].sort(
+          (a, b) => (order[b.severity] ?? 0) - (order[a.severity] ?? 0)
+        );
+        const top = sorted[0];
         return {
           ...s,
-          highestSeverity: live.severity,
-          activeCount: 1,
-          primaryHazard: live.hazardCategory,
-          primaryHazardLabel: live.hazardLabel,
-          bulletinHeadline: live.title,
-          validityRange: live.validUntil,
+          highestSeverity: top.severity,
+          activeCount: matched.length,
+          primaryHazard: top.hazardCategory,
+          primaryHazardLabel: top.hazardLabel,
+          bulletinHeadline: top.title,
+          validityRange: top.validUntil,
         };
       }
-      return s;
+
+      return {
+        ...s,
+        highestSeverity: 'green',
+        activeCount: 0,
+        primaryHazardLabel: isUnavailable ? 'Feed Unreachable' : 'Normal Seasonal Conditions',
+        bulletinHeadline: isUnavailable
+          ? 'SACHET / NDMA feed unreachable — alert status unverified.'
+          : 'No active severe weather warning',
+        validityRange: isUnavailable ? 'Unavailable' : 'Routine Synoptic Cycle',
+      };
     });
 
-    // Sort states strictly by severity: Red -> Orange -> Yellow -> Purple -> Green, then alphabetical
     return baseList.sort((a, b) => {
       const order: Record<AlertSeverity, number> = {
         red: 4,
@@ -53,7 +80,7 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
       if (diff !== 0) return diff;
       return a.stateName.localeCompare(b.stateName);
     });
-  }, [warnings]);
+  }, [warnings, isUnavailable]);
 
   const filteredStates = useMemo(() => {
     return statesList.filter((s) => {
@@ -82,36 +109,43 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
   }, [statesList, selectedState]);
 
   const getSeverityBadge = (sev: AlertSeverity) => {
+    if (isUnavailable) {
+      return {
+        bg: 'bg-[#8295A8]/12 text-[#B5C3D1] border-[#38536A]',
+        dot: 'bg-[#8295A8]',
+        label: 'UNVERIFIED',
+      };
+    }
     switch (sev) {
       case 'red':
         return {
-          bg: 'bg-[#FF0000]/20 text-[#FF4D4D] border-[#FF0000]/60',
-          dot: 'bg-[#FF0000]',
+          bg: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/45',
+          dot: 'bg-[#EF4444]',
           label: 'RED ALERT',
         };
       case 'orange':
         return {
-          bg: 'bg-[#FFA500]/20 text-[#FFA500] border-[#FFA500]/60',
-          dot: 'bg-[#FFA500]',
+          bg: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/45',
+          dot: 'bg-[#F97316]',
           label: 'ORANGE ALERT',
         };
       case 'yellow':
         return {
-          bg: 'bg-[#FFFF00]/20 text-[#FFFF00] border-[#FFFF00]/60',
-          dot: 'bg-[#FFFF00]',
+          bg: 'bg-[#EAB308]/15 text-[#FDE047] border-[#EAB308]/45',
+          dot: 'bg-[#EAB308]',
           label: 'YELLOW WATCH',
         };
       case 'purple':
         return {
-          bg: 'bg-[#1565C0]/20 text-[#E3F2FD] border-[#1565C0]/60',
-          dot: 'bg-[#1565C0]',
+          bg: 'bg-[#35C7E8]/15 text-[#7DD3FC] border-[#35C7E8]/45',
+          dot: 'bg-[#35C7E8]',
           label: 'ADVISORY',
         };
       default:
         return {
-          bg: 'bg-[#008000]/20 text-[#00E676] border-[#008000]/60',
-          dot: 'bg-[#008000]',
-          label: 'GREEN CODE',
+          bg: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
+          dot: 'bg-[#22C7A0]',
+          label: 'NORMAL',
         };
     }
   };
@@ -121,61 +155,49 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
   const yellowCount = statesList.filter((s) => s.highestSeverity === 'yellow').length;
 
   return (
-    <div
+    <DataPanel
       id="state-warning-watchlist-panel"
-      className="bg-[#0B263D] border border-[#1D5278] rounded-md p-4 sm:p-5 shadow-md flex flex-col justify-between gap-3.5 h-full"
+      className="flex flex-col justify-between gap-3.5 h-full"
     >
-      {/* 1. Header Bar: Title, Tally Chips */}
-      <div className="flex flex-col gap-2.5 pb-3 border-b border-[#1D5278]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#081F33] border border-[#1D5278] flex items-center justify-center text-[#E3F2FD]">
-              <span className="material-symbols-outlined text-[18px]">travel_explore</span>
+      <div className="flex flex-col gap-3">
+        <SectionHeading
+          title="State Warning Watchlist"
+          subtitle="Subdivision early warning status (36 States & UTs)"
+          icon={<MapPin className="w-4 h-4" />}
+          action={
+            <div className="flex items-center gap-1.5 font-mono tabular-nums text-[10px]">
+              <span className="px-2 py-0.5 rounded font-bold bg-[#EF4444]/15 text-[#FCA5A5] border border-[#EF4444]/35">
+                {isUnavailable ? '—' : redCount} Red
+              </span>
+              <span className="px-2 py-0.5 rounded font-bold bg-[#F97316]/15 text-[#FDBA74] border border-[#F97316]/35">
+                {isUnavailable ? '—' : orangeCount} Org
+              </span>
+              <span className="px-2 py-0.5 rounded font-bold bg-[#EAB308]/15 text-[#FDE047] border border-[#EAB308]/35">
+                {isUnavailable ? '—' : yellowCount} Yel
+              </span>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#F5F9FC] uppercase tracking-tight">
-                State Warning Watchlist
-              </h3>
-              <p className="text-[11px] text-[#AFC4D8]">
-                Subdivision Early Warning Telemetry &amp; Status
-              </p>
-            </div>
-          </div>
+          }
+        />
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-[#FF0000]/20 text-[#FF4D4D] border border-[#FF0000]/50">
-              {redCount} Red
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-[#FFA500]/20 text-[#FFA500] border border-[#FFA500]/50">
-              {orangeCount} Orange
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-[#FFFF00]/20 text-[#FFFF00] border border-[#FFFF00]/50">
-              {yellowCount} Yellow
-            </span>
-          </div>
-        </div>
-
-        {/* Search & Severity Filter Bar */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-[#AFC4D8]">
-              search
-            </span>
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8295A8] pointer-events-none" />
             <input
               id="input-watchlist-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search state or hazard..."
-              className="w-full pl-8 pr-3 py-1.5 bg-[#081F33] border border-[#1D5278] rounded text-xs text-white placeholder-[#AFC4D8] focus:outline-none focus:border-[#1565C0]"
+              className="w-full min-h-[38px] pl-8 pr-8 py-1.5 bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#AFC4D8] hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer"
+                aria-label="Clear state filter"
               >
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -183,34 +205,31 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
           <select
             id="select-watchlist-severity"
             value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value as any)}
-            className="bg-[#081F33] border border-[#1D5278] rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#1565C0] cursor-pointer"
+            onChange={(e) => setSeverityFilter(e.target.value as AlertSeverity | 'all')}
+            className="min-h-[38px] bg-[#08131F] border border-[#26394B] rounded-lg px-2.5 py-1.5 text-xs text-[#F3F6FA] focus:outline-none focus:border-[#35C7E8] cursor-pointer"
           >
             <option value="all">All ({statesList.length})</option>
-            <option value="red">Red ({redCount})</option>
-            <option value="orange">Orange ({orangeCount})</option>
-            <option value="yellow">Yellow ({yellowCount})</option>
+            <option value="red">Red ({isUnavailable ? '—' : redCount})</option>
+            <option value="orange">Orange ({isUnavailable ? '—' : orangeCount})</option>
+            <option value="yellow">Yellow ({isUnavailable ? '—' : yellowCount})</option>
             <option value="purple">Advisory</option>
-            <option value="green">Green</option>
+            <option value="green">Normal</option>
           </select>
         </div>
       </div>
 
-      {/* 2. Focused State Summary Banner (When a state is active) */}
       {activeFocusedState && (
         <div
           id="watchlist-focused-state-card"
-          className="p-3 rounded bg-[#081F33] border border-[#1565C0] flex flex-col gap-2 relative"
+          className="p-3 rounded-lg bg-[#08131F] border border-[#35C7E8]/45 flex flex-col gap-2"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[#E3F2FD] text-[16px]">
-                pin_drop
-              </span>
-              <span className="text-xs font-bold text-white uppercase tracking-tight">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+              <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-tight truncate">
                 {activeFocusedState.stateName}
               </span>
-              <span className="text-[10px] text-[#AFC4D8] font-mono">
+              <span className="text-[10px] text-[#8295A8] font-mono shrink-0">
                 ({activeFocusedState.capital})
               </span>
             </div>
@@ -218,7 +237,7 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
               const badge = getSeverityBadge(activeFocusedState.highestSeverity);
               return (
                 <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${badge.bg}`}
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider shrink-0 ${badge.bg}`}
                 >
                   {badge.label}
                 </span>
@@ -226,33 +245,34 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
             })()}
           </div>
 
-          <p className="text-[11px] text-[#AFC4D8] leading-tight line-clamp-2">
+          <p className="text-[11px] text-[#B5C3D1] leading-snug line-clamp-2">
             {activeFocusedState.bulletinHeadline}
           </p>
 
-          <div className="flex items-center justify-between text-[10px] text-[#AFC4D8] pt-1 border-t border-[#1D5278]/80">
-            <span className="truncate max-w-[180px]">Station: {activeFocusedState.representativeStation}</span>
+          <div className="flex items-center justify-between text-[10px] text-[#8295A8] pt-1.5 border-t border-[#26394B]">
+            <span className="truncate max-w-[180px] font-mono">
+              Station: {activeFocusedState.representativeStation}
+            </span>
             {onOpenStateDrawer && (
               <button
                 type="button"
                 onClick={() => onOpenStateDrawer(activeFocusedState)}
-                className="text-[#E3F2FD] hover:underline font-semibold flex items-center gap-0.5 cursor-pointer shrink-0"
+                className="text-[#35C7E8] hover:underline font-semibold flex items-center gap-0.5 cursor-pointer shrink-0"
               >
                 <span>Full Advisory</span>
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
       )}
 
-      {/* 3. State List Scrollable View with Clean Scrollbar */}
       <div
         id="watchlist-states-scroll"
-        className="flex-1 overflow-y-auto max-h-[380px] sm:max-h-[420px] pr-1 space-y-1.5 scrollbar-thin scrollbar-thumb-[#1D5278]"
+        className="flex-1 overflow-y-auto max-h-[380px] sm:max-h-[420px] pr-1 space-y-1.5"
       >
         {filteredStates.length === 0 ? (
-          <div className="text-center py-8 text-[#AFC4D8] text-xs">
+          <div className="text-center py-8 text-[#8295A8] text-xs">
             No states match filter criteria.
           </div>
         ) : (
@@ -265,57 +285,55 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
             const badge = getSeverityBadge(st.highestSeverity);
 
             return (
-              <div
+              <button
                 key={st.stateCode}
+                type="button"
                 id={`watchlist-item-${st.stateCode}`}
                 onClick={() => onSelectState(st.stateName, st.stateCode)}
-                className={`p-2.5 rounded border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                className={`w-full text-left p-2.5 min-h-[46px] rounded-lg border transition-colors cursor-pointer flex items-center justify-between gap-2.5 ${
                   isSelected
-                    ? 'bg-[#102D47] border-[#1565C0] shadow-sm'
-                    : 'bg-[#081F33]/90 border-[#1D5278]/70 hover:bg-[#081F33] hover:border-[#1D5278]'
+                    ? 'bg-[#101F2E] border-[#35C7E8]'
+                    : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${badge.dot}`} />
+                  <span className={`w-2 h-2 rounded-sm shrink-0 ${badge.dot}`} />
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-white truncate flex items-center gap-1.5">
+                    <div className="text-xs font-bold text-[#F3F6FA] truncate flex items-center gap-1.5">
                       <span>{st.stateName}</span>
-                      {st.activeCount > 0 && (
-                        <span className="text-[10px] font-mono text-[#AFC4D8] font-normal">
+                      {st.activeCount > 0 && !isUnavailable && (
+                        <span className="text-[10px] font-mono text-[#8295A8] font-normal tabular-nums">
                           ({st.activeCount} alert{st.activeCount > 1 ? 's' : ''})
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] text-[#AFC4D8] truncate">
-                      {st.primaryHazardLabel} • {st.capital}
+                    <div className="text-[10px] text-[#8295A8] truncate">
+                      {st.primaryHazardLabel} · {st.capital}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span
-                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider whitespace-nowrap ${badge.bg}`}
+                    className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider whitespace-nowrap ${badge.bg}`}
                   >
                     {badge.label}
                   </span>
-                  <span className="material-symbols-outlined text-[16px] text-[#AFC4D8]">
-                    chevron_right
-                  </span>
+                  <ChevronRight className="w-4 h-4 text-[#8295A8]" />
                 </div>
-              </div>
+              </button>
             );
           })
         )}
       </div>
 
-      {/* 4. Footer: Status Indication */}
-      <div className="pt-2 border-t border-[#1D5278] flex items-center justify-between text-[10px] text-[#AFC4D8]">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#008000]" />
-          <span>IMD National Warning Database</span>
-        </div>
-        <span>36 States &amp; UTs</span>
+      <div className="pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[10px] text-[#8295A8]">
+        <SourceStatus
+          status={isUnavailable ? 'UNAVAILABLE' : warnings.length > 0 ? 'LIVE' : 'ALL_CLEAR'}
+          source="SACHET / IMD Registry"
+        />
+        <span className="font-mono tabular-nums">36 States &amp; UTs</span>
       </div>
-    </div>
+    </DataPanel>
   );
 };

@@ -301,7 +301,7 @@ function buildGroundedAnswerText(context: AskMausamContext, intent: WeatherInten
 
   if (intent === 'AQI' || intent === 'AIR_QUALITY') {
     if (aqi && aqi.status === 'AVAILABLE') {
-      return `Air Quality in **${loc.name}** is currently **${aqi.category}** with an AQI of **${aqi.index ?? 'N/A'}** (Dominant pollutant: ${aqi.dominantPollutant || 'PM2.5'}).`;
+      return `Air Quality in **${loc.name}** is currently **${aqi.category}** with an AQI of **${aqi.index ?? '—'}** (Dominant pollutant: ${aqi.dominantPollutant || 'PM2.5'}).`;
     }
     return `Official Air Quality monitoring station data is currently unavailable for **${loc.name}**. Real-time surface meteorology continues to stream.`;
   }
@@ -320,11 +320,11 @@ function buildGroundedAnswerText(context: AskMausamContext, intent: WeatherInten
   if (cur) {
     let text = `Current weather in **${loc.name}** is **${cur.temperatureC}°C** with **${cur.condition}**.\n\n`;
     text += `• **Feels Like**: ${cur.feelsLikeC ?? cur.temperatureC}°C\n`;
-    text += `• **Relative Humidity**: ${cur.humidity ?? 'N/A'}%\n`;
-    text += `• **Wind**: ${cur.windSpeedKmh ?? 'N/A'} km/h ${cur.windDirection || ''}\n`;
-    text += `• **Rain Probability**: ${cur.precipitationProbability ?? 0}%\n`;
+    text += `• **Relative Humidity**: ${typeof cur.humidity === 'number' ? `${cur.humidity}%` : 'Unavailable'}\n`;
+    text += `• **Wind**: ${typeof cur.windSpeedKmh === 'number' ? `${cur.windSpeedKmh} km/h` : 'Unavailable'} ${cur.windDirection || ''}\n`;
+    text += `• **Rain Probability**: ${typeof cur.precipitationProbability === 'number' ? `${cur.precipitationProbability}%` : '—'}\n`;
     if (aqi && aqi.status === 'AVAILABLE') {
-      text += `• **Air Quality**: ${aqi.category} (AQI ${aqi.index ?? 'N/A'})\n`;
+      text += `• **Air Quality**: ${aqi.category} (AQI ${aqi.index ?? '—'})\n`;
     }
     if (warnings.length > 0) {
       text += `\n⚠️ **Advisory**: ${warnings[0].headline} (${warnings[0].severity.toUpperCase()} ALERT)`;

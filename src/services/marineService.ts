@@ -190,34 +190,47 @@ class MarineService {
         };
       }
 
-      const swellHeight = current.swell_wave_height !== null && current.swell_wave_height !== undefined
-        ? Math.round(current.swell_wave_height * 10) / 10
-        : Math.round(waveHeight * 0.7 * 10) / 10;
+      const swellHeight =
+        typeof current.swell_wave_height === 'number' && Number.isFinite(current.swell_wave_height)
+          ? Math.round(current.swell_wave_height * 10) / 10
+          : null;
 
-      const wavePeriod = current.wave_period ? Math.round(current.wave_period) : 6;
-      const swellPeriod = current.swell_wave_period ? Math.round(current.swell_wave_period) : 8;
-      const sst = current.sea_surface_temperature !== null && current.sea_surface_temperature !== undefined
-        ? Math.round(current.sea_surface_temperature * 10) / 10
-        : 28.5;
+      const wavePeriod =
+        typeof current.wave_period === 'number' && Number.isFinite(current.wave_period)
+          ? Math.round(current.wave_period)
+          : null;
+      const swellPeriod =
+        typeof current.swell_wave_period === 'number' && Number.isFinite(current.swell_wave_period)
+          ? Math.round(current.swell_wave_period)
+          : null;
+      const sst =
+        typeof current.sea_surface_temperature === 'number' && Number.isFinite(current.sea_surface_temperature)
+          ? Math.round(current.sea_surface_temperature * 10) / 10
+          : null;
 
-      const currentVelocity = current.ocean_current_velocity !== null && current.ocean_current_velocity !== undefined
-        ? Math.round((current.ocean_current_velocity * 3.6) * 10) / 10 // convert m/s to km/h
-        : 1.8;
+      const currentVelocity =
+        typeof current.ocean_current_velocity === 'number' && Number.isFinite(current.ocean_current_velocity)
+          ? Math.round(current.ocean_current_velocity * 3.6 * 10) / 10
+          : null;
 
-      const currentDirDeg = current.ocean_current_direction ?? 210;
-      const currentDirCompass = this.degToCompass(currentDirDeg);
+      const currentDirDeg =
+        typeof current.ocean_current_direction === 'number' && Number.isFinite(current.ocean_current_direction)
+          ? Math.round(current.ocean_current_direction)
+          : null;
+      const currentDirCompass = currentDirDeg !== null ? this.degToCompass(currentDirDeg) : null;
 
-      const windWaveHeight = current.wind_wave_height !== null && current.wind_wave_height !== undefined
-        ? Math.round(current.wind_wave_height * 10) / 10
-        : Math.max(0.2, Math.round((waveHeight - (swellHeight || 0.4)) * 10) / 10);
+      const windWaveHeight =
+        typeof current.wind_wave_height === 'number' && Number.isFinite(current.wind_wave_height)
+          ? Math.round(current.wind_wave_height * 10) / 10
+          : null;
 
       // Derive fishing suitability
       let fishingSuitability: MarineObservation['fishingSuitability'] = 'Favorable';
-      if (waveHeight >= 3.5 || swellHeight >= 2.5) {
+      if (waveHeight >= 3.5 || (swellHeight !== null && swellHeight >= 2.5)) {
         fishingSuitability = 'Prohibited';
-      } else if (waveHeight >= 2.5 || swellHeight >= 1.8) {
+      } else if (waveHeight >= 2.5 || (swellHeight !== null && swellHeight >= 1.8)) {
         fishingSuitability = 'Advisory - Restrict Navigation';
-      } else if (waveHeight >= 1.5 || currentVelocity >= 3.5) {
+      } else if (waveHeight >= 1.5 || (currentVelocity !== null && currentVelocity >= 3.5)) {
         fishingSuitability = 'Caution';
       } else {
         fishingSuitability = 'Favorable';
@@ -233,17 +246,7 @@ class MarineService {
         beachSafetyStatus = 'Safe';
       }
 
-      // Compute tidal timing approximate based on local longitude
       const now = new Date();
-      const currentH = now.getHours();
-      const highTideHour = (currentH + 3) % 24;
-      const lowTideHour = (currentH + 9) % 24;
-      const formatTime = (h: number) => {
-        const period = h >= 12 ? 'PM' : 'AM';
-        const displayH = h % 12 === 0 ? 12 : h % 12;
-        return `${displayH.toString().padStart(2, '0')}:15 ${period} IST`;
-      };
-
       const result: MarineObservation = {
         isApplicable: true,
         waveHeightMeters: waveHeight,
@@ -255,12 +258,13 @@ class MarineService {
         currentDirectionDeg: currentDirDeg,
         currentDirectionCompass: currentDirCompass,
         windWaveHeightMeters: windWaveHeight,
-        highTideTime: formatTime(highTideHour),
-        lowTideTime: formatTime(lowTideHour),
+        highTideTime: null,
+        lowTideTime: null,
         fishingSuitability,
         beachSafetyStatus,
-        source: 'INCOIS Ocean Met & Copernicus Marine Telemetry',
-        timestampFormatted: now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) + ' IST',
+        source: 'Open-Meteo Marine Telemetry',
+        timestampFormatted:
+          now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) + ' IST',
         status: 'LIVE',
       };
 

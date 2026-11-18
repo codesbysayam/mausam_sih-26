@@ -104,8 +104,8 @@ export interface WeatherStation {
   lng: number;
   elevation: string;
   status: 'active' | 'calibrating' | 'standby';
-  pm25: number;
-  temp: number;
+  pm25: number | null;
+  temp: number | null;
   condition: string;
   weatherType: WeatherConditionType;
   normalizedCondition?: NormalizedWeatherCondition;
@@ -116,87 +116,87 @@ export interface WeatherStation {
 }
 
 export interface CurrentWeather {
-  temp: number;
+  temp: number | null;
   unit: 'C' | 'F';
-  high: number;
-  low: number;
-  tempMax?: number;
-  tempMin?: number;
-  feelsLike?: number;
+  high: number | null;
+  low: number | null;
+  tempMax?: number | null;
+  tempMin?: number | null;
+  feelsLike?: number | null;
   dataSource?: string;
   condition: string;
   conditionKey?: CentralWeatherCondition;
   isDay?: boolean;
-  wmoCode?: number;
+  wmoCode?: number | null;
   normalizedCondition: NormalizedWeatherCondition;
   weatherType: WeatherConditionType;
   icon: string;
-  windSpeed: number; // km/h
+  windSpeed: number | null; // km/h
   windDirection: string;
-  windDirectionDeg?: number;
-  windGusts?: number;
-  humidity: number; // %
-  pressure: number; // hPa
-  dewPoint: number; // °C
-  uvIndex: number;
+  windDirectionDeg?: number | null;
+  windGusts?: number | null;
+  humidity: number | null; // %
+  pressure: number | null; // hPa
+  dewPoint: number | null; // °C
+  uvIndex: number | null;
   uvDescription?: string;
-  pollen: 'Low' | 'Moderate' | 'High' | 'Very High';
-  pollenCount?: number; // grains/m³
-  grassPollen?: number; // grains/m³
-  treePollen?: number; // grains/m³
-  weedPollen?: number; // grains/m³
-  aqi?: number;
-  aqiPm25: number; // µg/m³
-  aqiPm10?: number; // µg/m³
-  aqiIndex?: number; // Indian CPCB / US AQI Index
+  pollen: 'Low' | 'Moderate' | 'High' | 'Very High' | null;
+  pollenCount?: number | null; // grains/m³
+  grassPollen?: number | null; // grains/m³
+  treePollen?: number | null; // grains/m³
+  weedPollen?: number | null; // grains/m³
+  aqi?: number | null;
+  aqiPm25: number | null; // µg/m³
+  aqiPm10?: number | null; // µg/m³
+  aqiIndex?: number | null; // Indian CPCB / US AQI Index
   aqiDescription?: string;
-  no2?: number; // µg/m³
-  so2?: number; // µg/m³
-  co?: number; // µg/m³
-  o3?: number; // µg/m³
-  dust?: number; // µg/m³
-  aqiStatus: 'Good' | 'Moderate' | 'Unhealthy for Sensitive' | 'Unhealthy' | 'Hazardous';
-  precipitation: number; // mm currently
-  precipitationMm?: number;
-  rainfall?: number; // mm
-  precipitationProbability: number; // %
+  no2?: number | null; // µg/m³
+  so2?: number | null; // µg/m³
+  co?: number | null; // µg/m³
+  o3?: number | null; // µg/m³
+  dust?: number | null; // µg/m³
+  aqiStatus: 'Good' | 'Moderate' | 'Unhealthy for Sensitive' | 'Unhealthy' | 'Hazardous' | 'Unavailable';
+  precipitation: number | null; // mm currently
+  precipitationMm?: number | null;
+  rainfall?: number | null; // mm
+  precipitationProbability: number | null; // %
   isRainingNow: boolean;
   rainExpectedSummary?: string;
-  cloudCover?: number;
-  visibility?: number;
-  visibilityKm?: number;
+  cloudCover?: number | null;
+  visibility?: number | null;
+  visibilityKm?: number | null;
   elevation?: string;
-  sunrise?: string;
-  sunset?: string;
-  solarNoon?: string;
-  daylightDuration?: string;
-  dayLength?: string;
-  nightDuration?: string;
-  dawnTime?: string;
-  duskTime?: string;
-  civilDawn?: string;
-  civilDusk?: string;
-  solarElevationDeg?: number;
-  solarRadiation?: number; // W/m² direct normal or global solar irradiance
-  pressureTendency?: 'Rising' | 'Steady' | 'Falling';
-  pressureTendencyHpa?: number;
-  rainfallLast1h?: number; // mm
-  rainfallLast3h?: number; // mm
-  rainfallLast24h?: number; // mm
-  moonrise?: string;
-  moonset?: string;
-  moonPhase?: string;
-  moonIllumination?: number; // percentage 0-100
-  soilMoisture?: number; // m³/m³
-  soilTemperature?: number; // °C
-  evapotranspiration?: number; // mm FAO ET0
+  sunrise?: string | null;
+  sunset?: string | null;
+  solarNoon?: string | null;
+  daylightDuration?: string | null;
+  dayLength?: string | null;
+  nightDuration?: string | null;
+  dawnTime?: string | null;
+  duskTime?: string | null;
+  civilDawn?: string | null;
+  civilDusk?: string | null;
+  solarElevationDeg?: number | null;
+  solarRadiation?: number | null; // W/m² direct normal or global solar irradiance
+  pressureTendency?: 'Rising' | 'Steady' | 'Falling' | null;
+  pressureTendencyHpa?: number | null;
+  rainfallLast1h?: number | null; // mm
+  rainfallLast3h?: number | null; // mm
+  rainfallLast24h?: number | null; // mm
+  moonrise?: string | null;
+  moonset?: string | null;
+  moonPhase?: string | null;
+  moonIllumination?: number | null; // percentage 0-100
+  soilMoisture?: number | null; // m³/m³
+  soilTemperature?: number | null; // °C
+  evapotranspiration?: number | null; // mm FAO ET0
   stationName: string;
   stationCode: string;
   locationId?: string;
   lastUpdated: string;
   lastUpdatedTimestamp?: number;
   source: string;
-  observationStatus?: 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE';
+  observationStatus?: 'LOADING' | 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE';
   observationSource?: string;
   observationTimeFormatted?: string;
   previousHourTelemetry?: {
@@ -358,6 +358,7 @@ export interface DailyForecastItem {
   high: number;
   low: number;
   rainProb: number;
+  precipMm?: number | null;
   uv: number;
   aqi: number;
   humidity: number;

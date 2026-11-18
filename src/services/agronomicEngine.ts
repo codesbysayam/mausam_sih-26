@@ -48,7 +48,7 @@ export interface CropPhenologyProfile {
   stage: PhenologicalStage;
   weatherSensitivity: 'HIGH' | 'MODERATE' | 'LOW';
   waterRequirement: 'CRITICAL' | 'MODERATE' | 'LOW';
-  diseaseEnvironment: 'ELEVATED' | 'FAVORABLE' | 'LOW';
+  diseaseEnvironment: 'ELEVATED' | 'FAVORABLE' | 'LOW' | 'UNAVAILABLE';
   optimumTempRange: [number, number]; // [min, max]
   maxWindToleranceKmh: number;
   criticalETdemandMm: number;
@@ -67,11 +67,12 @@ export function getCropPhenologyProfile(
   stage: PhenologicalStage,
   weather?: WeatherDataBundle
 ): CropPhenologyProfile {
-  const currentTemp = weather?.current?.temp ?? 30;
-  const currentRH = weather?.current?.humidity ?? 75;
-  const rain24h = weather?.current?.precipitation ?? 10;
-  const isHighRH = currentRH > 75;
-  const isWet = rain24h > 15;
+  const currentTemp = typeof weather?.current?.temp === 'number' ? weather.current.temp : null;
+  const currentRH = typeof weather?.current?.humidity === 'number' ? weather.current.humidity : null;
+  const rain24h = typeof weather?.current?.precipitation === 'number' ? weather.current.precipitation : null;
+  const hasTelemetry = currentTemp !== null && currentRH !== null;
+  const isHighRH = currentRH !== null && currentRH > 75;
+  const isWet = rain24h !== null && rain24h > 15;
 
   const baseProfiles: Record<CropType, Record<PhenologicalStage, Omit<CropPhenologyProfile, 'crop' | 'stage'>>> = {
     'Rice (Paddy)': {
@@ -340,7 +341,7 @@ export function getCropPhenologyProfile(
       'Grain formation': {
         weatherSensitivity: 'HIGH',
         waterRequirement: 'CRITICAL',
-        diseaseEnvironment: currentTemp > 30 ? 'ELEVATED' : 'LOW',
+        diseaseEnvironment: currentTemp !== null && currentTemp > 30 ? 'ELEVATED' : 'LOW',
         optimumTempRange: [18, 25],
         maxWindToleranceKmh: 22,
         criticalETdemandMm: 4.8,
@@ -1379,11 +1380,13 @@ export function getCropPhenologyProfile(
     crop,
     stage,
     ...stageProfile,
+    diseaseEnvironment: hasTelemetry ? stageProfile.diseaseEnvironment : 'UNAVAILABLE',
   };
 }
 
 export interface FarmOperationsEvaluation {
-  overallStatus: 'OPTIMAL' | 'CAUTION' | 'RESTRICTED';
+  isDataAvailable: boolean;
+  overallStatus: 'OPTIMAL' | 'CAUTION' | 'RESTRICTED' | 'UNAVAILABLE';
   overallReason: string;
   operations: {
     id: string;
@@ -1403,18 +1406,32 @@ export function evaluateFarmOperations(
   stage: PhenologicalStage
 ): FarmOperationsEvaluation {
   const current = weather?.current;
-  const temp = current?.temp ?? 30;
-  const rain24h = current?.precipitation ?? 0;
-  const rainProb = current?.precipitationProbability ?? (weather?.daily?.[0]?.rainProb ?? 20);
-  const windSpeed = current?.windSpeed ?? 12;
-  const humidity = current?.humidity ?? 68;
+  const temp = typeof current?.temp === 'number' ? current.temp : null;
+  const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
+  const windSpeed = typeof current?.windSpeed === 'number' ? current.windSpeed : null;
+  const rain24h = typeof current?.precipitation === 'number' ? current.precipitation : null;
+  const dailyRainProb = typeof weather?.daily?.[0]?.rainProb === 'number' ? weather.daily[0].rainProb : null;
+  const rainProb =
+    typeof current?.precipitationProbability === 'number'
+      ? current.precipitationProbability
+      : dailyRainProb;
 
-  const isRainImminent = rain24h > 5 || rainProb > 55;
-  const isHighWind = windSpeed > 15;
+  if (temp === null || humidity === null) {
+    return {
+      isDataAvailable: false,
+      overallStatus: 'UNAVAILABLE',
+      overallReason:
+        'Live surface observation telemetry is currently unavailable. Tactical farm scheduling is suspended until station metrics sync.',
+      operations: [],
+    };
+  }
+
+  const isRainImminent = (rain24h !== null && rain24h > 5) || (rainProb !== null && rainProb > 55);
+  const isHighWind = windSpeed !== null && windSpeed > 15;
   const isExtremeHeat = temp > 38;
 
   let overallStatus: FarmOperationsEvaluation['overallStatus'] = 'OPTIMAL';
-  let overallReason = 'Favorable atmospheric conditions for standard agricultural operations across the district.';
+  let overallReason = `Atmospheric readings (${Math.round(temp)}°C, ${Math.round(humidity)}% RH) support standard ${crop} operations during ${stage}.`;
 
   if (isRainImminent && isHighWind) {
     overallStatus = 'RESTRICTED';
@@ -1433,26 +1450,26 @@ export function evaluateFarmOperations(
   let irrigationColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
   let irrigationWindow = '06:00 – 09:30 IST / 16:30 – 18:30 IST';
   let irrigationReason = 'Maintain optimal root zone moisture balance.';
-  let irrigationTrigger = `Ambient Temp: ${temp}°C | RH: ${humidity}%`;
+  let irrigationTrigger = `Ambient Temp: ${Math.round(temp)}°C | RH: ${Math.round(humidity)}%`;
 
-  if (rain24h > 15 || rainProb > 60) {
+  if ((rain24h !== null && rain24h > 15) || (rainProb !== null && rainProb > 60)) {
     irrigationStatus = 'DEFER';
-    irrigationColor = 'rose';
+    irrigationColor = 'cyan';
     irrigationWindow = 'Hold for next 48 hours';
     irrigationReason = 'Significant precipitation forecast meets crop evapotranspirative demand.';
-    irrigationTrigger = `Rain Probability: ${rainProb}% | 24h Rain: ${rain24h}mm`;
-  } else if (rain24h > 5 || rainProb > 35) {
+    irrigationTrigger = `Rain Prob: ${rainProb !== null ? `${Math.round(rainProb)}%` : '—'} | 24h Rain: ${rain24h !== null ? `${rain24h}mm` : '—'}`;
+  } else if ((rain24h !== null && rain24h > 5) || (rainProb !== null && rainProb > 35)) {
     irrigationStatus = 'CAUTION';
     irrigationColor = 'amber';
     irrigationWindow = 'Light surface cycle / As needed';
     irrigationReason = 'Light showers expected; verify soil moisture tension before activating pumps.';
-    irrigationTrigger = `Rain Probability: ${rainProb}% | Light Showers`;
+    irrigationTrigger = `Rain Prob: ${rainProb !== null ? `${Math.round(rainProb)}%` : '—'} | Light Showers`;
   } else if (temp > 35) {
     irrigationStatus = 'RECOMMENDED';
     irrigationColor = 'emerald';
     irrigationWindow = 'Early Morning (05:30 – 08:30 IST)';
     irrigationReason = 'High evapotranspiration rate; early morning application minimizes evaporative loss.';
-    irrigationTrigger = `High ET demand | Temp: ${temp}°C`;
+    irrigationTrigger = `High ET demand | Temp: ${Math.round(temp)}°C`;
   }
 
   // 2. SPRAYING
@@ -1460,57 +1477,63 @@ export function evaluateFarmOperations(
   let sprayingColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
   let sprayingWindow = '06:30 – 09:30 IST (Clear Calm Slot)';
   let sprayingReason = 'Calm winds and clear sky facilitate uniform droplet deposition.';
-  let sprayingTrigger = `Wind: ${windSpeed} km/h | Rain: ${rainProb}%`;
+  let sprayingTrigger = `Wind: ${windSpeed !== null ? `${Math.round(windSpeed)} km/h` : '—'} | Rain: ${rainProb !== null ? `${Math.round(rainProb)}%` : '—'}`;
 
   if (isRainImminent) {
     sprayingStatus = 'NOT RECOMMENDED';
     sprayingColor = 'rose';
     sprayingWindow = 'Postpone until weather clears';
     sprayingReason = 'High risk of foliar wash-off and chemical dilution from rainfall.';
-    sprayingTrigger = `Precipitation Risk: ${rainProb}%`;
+    sprayingTrigger = `Precipitation Risk: ${rainProb !== null ? `${Math.round(rainProb)}%` : 'Active'}`;
   } else if (isHighWind) {
     sprayingStatus = 'NOT RECOMMENDED';
     sprayingColor = 'rose';
     sprayingWindow = 'Window opens when wind drops < 12 km/h';
     sprayingReason = 'Excessive wind causes spray drift, uneven coverage, and off-target hazard.';
-    sprayingTrigger = `Wind Speed: ${windSpeed} km/h (Threshold: 15 km/h)`;
+    sprayingTrigger = `Wind Speed: ${windSpeed !== null ? `${Math.round(windSpeed)} km/h` : '—'} (Threshold: 15 km/h)`;
+  } else if (windSpeed === null) {
+    sprayingStatus = 'CAUTION';
+    sprayingColor = 'amber';
+    sprayingWindow = 'Verify local wind before spraying';
+    sprayingReason = 'Surface anemometer telemetry unavailable; verify calm canopy air before drift-sensitive spraying.';
+    sprayingTrigger = `Temp: ${Math.round(temp)}°C | Wind: Unavailable`;
   } else if (temp > 34) {
     sprayingStatus = 'CAUTION';
     sprayingColor = 'amber';
     sprayingWindow = 'Strictly 06:00 – 08:30 IST';
     sprayingReason = 'Avoid midday spraying to prevent rapid droplet evaporation and foliar phytotoxicity.';
-    sprayingTrigger = `Daytime Max Temp: ${temp}°C`;
+    sprayingTrigger = `Daytime Temp: ${Math.round(temp)}°C`;
   }
 
   // 3. FERTILIZATION
   let fertStatus: 'RECOMMENDED' | 'CAUTION' | 'NOT RECOMMENDED' | 'DEFER' = 'RECOMMENDED';
   let fertColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
   let fertWindow = 'Morning hours on dry foliage';
-  let fertReason = 'Soil moisture is optimal for nutrient dissolution and root uptake.';
-  let fertTrigger = `Optimal soil moisture | Moderate temp`;
+  let fertReason = 'Soil moisture and ambient temperatures support nutrient dissolution and root uptake.';
+  let fertTrigger = `Temp: ${Math.round(temp)}°C | Rain Prob: ${rainProb !== null ? `${Math.round(rainProb)}%` : '—'}`;
 
-  if (rain24h > 20 || rainProb > 65) {
+  if ((rain24h !== null && rain24h > 20) || (rainProb !== null && rainProb > 65)) {
     fertStatus = 'NOT RECOMMENDED';
     fertColor = 'rose';
     fertWindow = 'Postpone broadcasting';
     fertReason = 'Heavy rain causes severe leaching of Nitrogen and surface fertilizer runoff.';
-    fertTrigger = `Heavy Rain Risk: ${rainProb}%`;
+    fertTrigger = `Heavy Rain Risk: ${rainProb !== null ? `${Math.round(rainProb)}%` : 'Active'}`;
   } else if (isRainImminent) {
     fertStatus = 'CAUTION';
     fertColor = 'amber';
     fertWindow = 'Apply between light showers only';
     fertReason = 'Ensure fertilizer is incorporated into soil rather than broadcasted on wet surface.';
-    fertTrigger = `Moist surface condition`;
+    fertTrigger = `Moist surface condition (${rainProb !== null ? `${Math.round(rainProb)}%` : 'rain active'})`;
   }
 
   // 4. SOWING / TILLAGE
   let sowingStatus: 'RECOMMENDED' | 'CAUTION' | 'NOT RECOMMENDED' | 'DEFER' = 'RECOMMENDED';
   let sowingColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
   let sowingWindow = 'Morning to Afternoon (08:00 – 16:00 IST)';
-  let sowingReason = 'Soil tilth and moisture content are in ideal working condition.';
-  let sowingTrigger = `Stable soil moisture profile`;
+  let sowingReason = 'Soil tilth and moisture content are in workable condition.';
+  let sowingTrigger = `RH: ${Math.round(humidity)}% | 24h Rain: ${rain24h !== null ? `${rain24h}mm` : '—'}`;
 
-  if (rain24h > 35) {
+  if (rain24h !== null && rain24h > 35) {
     sowingStatus = 'NOT RECOMMENDED';
     sowingColor = 'rose';
     sowingWindow = 'Hold until field reaches field capacity';
@@ -1529,23 +1552,24 @@ export function evaluateFarmOperations(
   let harvestColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
   let harvestWindow = '10:00 – 16:00 IST (Dry Sunshine)';
   let harvestReason = 'Low atmospheric humidity accelerates crop drying and smooth mechanical threshing.';
-  let harvestTrigger = `RH: ${humidity}% | Clear sky`;
+  let harvestTrigger = `RH: ${Math.round(humidity)}% | Temp: ${Math.round(temp)}°C`;
 
   if (isRainImminent) {
     harvestStatus = 'NOT RECOMMENDED';
     harvestColor = 'rose';
     harvestWindow = 'Defer harvest; secure drying yard';
     harvestReason = 'Rain causes grain shattering, lodging of mature stands, and high storage moisture.';
-    harvestTrigger = `Rain risk: ${rainProb}%`;
+    harvestTrigger = `Rain risk: ${rainProb !== null ? `${Math.round(rainProb)}%` : 'Active'}`;
   } else if (humidity > 80) {
     harvestStatus = 'CAUTION';
     harvestColor = 'amber';
     harvestWindow = 'Midday only (11:00 – 15:00 IST)';
     harvestReason = 'High morning foliar dew dampens stalks; wait for canopy to dry completely.';
-    harvestTrigger = `Elevated morning RH: ${humidity}%`;
+    harvestTrigger = `Elevated morning RH: ${Math.round(humidity)}%`;
   }
 
   return {
+    isDataAvailable: true,
     overallStatus,
     overallReason,
     operations: [
@@ -1608,10 +1632,10 @@ export interface SevenDayAgriculturalItem {
   dateStr: string;
   tempMax: number;
   tempMin: number;
-  rainMm: number;
-  rainProb: number;
-  humidity: number;
-  windKmh: number;
+  rainMm: number | null;
+  rainProb: number | null;
+  humidity: number | null;
+  windKmh: number | null;
   conditionText: string;
   cropImpact: string;
   fieldSuitability: {
@@ -1624,6 +1648,17 @@ export interface SevenDayAgriculturalItem {
   };
 }
 
+function parseWindSpeedKmh(windRaw: unknown): number | null {
+  if (typeof windRaw === 'number' && !Number.isNaN(windRaw)) {
+    return Math.round(windRaw);
+  }
+  if (typeof windRaw === 'string') {
+    const match = windRaw.match(/(\d+(?:\.\d+)?)/);
+    if (match) return Math.round(parseFloat(match[1]));
+  }
+  return null;
+}
+
 export function generate7DayAgriculturalForecast(
   weather: WeatherDataBundle | undefined,
   crop: CropType,
@@ -1632,40 +1667,54 @@ export function generate7DayAgriculturalForecast(
   const daily = weather?.daily || [];
   const dayNames = ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
 
-  return dayNames.map((dName, idx) => {
+  const items: SevenDayAgriculturalItem[] = [];
+
+  for (let idx = 0; idx < Math.min(7, daily.length); idx++) {
     const dItem: DailyForecastItem | undefined = daily[idx];
-    const tempMax = dItem ? Math.round(dItem.high) : 32 - (idx % 3);
-    const tempMin = dItem ? Math.round(dItem.low) : 24 + (idx % 2);
-    const rainProb = dItem ? dItem.rainProb : (idx === 0 ? 60 : 20);
-    const rainMm = rainProb > 70 ? 18 : rainProb > 40 ? 6 : 0;
-    const humidity = dItem ? Math.round(dItem.humidity) : (rainMm > 0 ? 82 : 68);
-    const windKmh = 12 + (idx % 4);
-    const conditionText = dItem ? dItem.condition : (rainMm > 15 ? 'Moderate Showers' : rainMm > 0 ? 'Light Rain' : 'Partly Cloudy');
+    if (!dItem || typeof dItem.high !== 'number' || typeof dItem.low !== 'number') {
+      continue;
+    }
 
-    // Date String
-    const now = new Date();
-    now.setDate(now.getDate() + idx);
-    const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    const tempMax = Math.round(dItem.high);
+    const tempMin = Math.round(dItem.low);
+    const rainProb = typeof dItem.rainProb === 'number' && !Number.isNaN(dItem.rainProb) ? Math.round(dItem.rainProb) : null;
+    const explicitRain = (dItem as unknown as { precipitation?: number; rainMm?: number }).precipitation
+      ?? (dItem as unknown as { rainMm?: number }).rainMm;
+    const rainMm =
+      typeof explicitRain === 'number' && !Number.isNaN(explicitRain)
+        ? Math.round(explicitRain * 10) / 10
+        : rainProb !== null
+        ? (rainProb > 70 ? 18 : rainProb > 40 ? 6 : 0)
+        : null;
+    const humidity = typeof dItem.humidity === 'number' && !Number.isNaN(dItem.humidity) ? Math.round(dItem.humidity) : null;
+    const windKmh = parseWindSpeedKmh(dItem.wind);
+    const conditionText = dItem.condition || 'Forecast Synced';
+    const dName = dItem.day || dayNames[idx] || `Day ${idx + 1}`;
 
-    // Derive Crop Impact
+    let dateStr = dItem.date;
+    if (!dateStr) {
+      const now = new Date();
+      now.setDate(now.getDate() + idx);
+      dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    }
+
     let cropImpact = 'Balanced growth conditions; steady thermal accumulation.';
-    if (rainMm > 25) {
+    if (rainMm !== null && rainMm > 25) {
       cropImpact = `Heavy rainfall may cause surface pooling around ${crop} root zone. Check drainage.`;
-    } else if (rainMm > 8) {
+    } else if (rainMm !== null && rainMm > 8) {
       cropImpact = `Moderate moisture recharge beneficial for ${crop} during ${stage} phase.`;
     } else if (tempMax > 38) {
       cropImpact = `High thermal load (>38°C); watch for leaf curl and moisture stress in ${crop}.`;
-    } else if (windKmh > 25) {
+    } else if (windKmh !== null && windKmh > 25) {
       cropImpact = `Gusty surface winds (${windKmh} km/h); inspect tall stands for mechanical stress.`;
     }
 
-    // Suitability calculations
     let irrigation: 'LOW NEED' | 'MODERATE' | 'CRITICAL' | 'HOLD' = 'MODERATE';
     let irrigationColor: 'emerald' | 'amber' | 'rose' | 'cyan' = 'emerald';
-    if (rainMm > 10 || rainProb > 60) {
+    if ((rainMm !== null && rainMm > 10) || (rainProb !== null && rainProb > 60)) {
       irrigation = 'HOLD';
       irrigationColor = 'rose';
-    } else if (rainMm > 2) {
+    } else if (rainMm !== null && rainMm > 2) {
       irrigation = 'LOW NEED';
       irrigationColor = 'cyan';
     } else if (tempMax > 35) {
@@ -1675,25 +1724,25 @@ export function generate7DayAgriculturalForecast(
 
     let spraying: 'IDEAL' | 'ACCEPTABLE' | 'AVOID' | 'CAUTION' = 'IDEAL';
     let sprayingColor: 'emerald' | 'amber' | 'rose' = 'emerald';
-    if (rainProb > 50 || windKmh > 18) {
+    if ((rainProb !== null && rainProb > 50) || (windKmh !== null && windKmh > 18)) {
       spraying = 'AVOID';
       sprayingColor = 'rose';
-    } else if (rainProb > 25 || windKmh > 12 || tempMax > 35) {
+    } else if ((rainProb !== null && rainProb > 25) || (windKmh !== null && windKmh > 12) || tempMax > 35) {
       spraying = 'CAUTION';
       sprayingColor = 'amber';
     }
 
     let harvesting: 'FAVORABLE' | 'CAUTION' | 'AVOID' = 'FAVORABLE';
     let harvestingColor: 'emerald' | 'amber' | 'rose' = 'emerald';
-    if (rainProb > 50 || rainMm > 5) {
+    if ((rainProb !== null && rainProb > 50) || (rainMm !== null && rainMm > 5)) {
       harvesting = 'AVOID';
       harvestingColor = 'rose';
-    } else if (humidity > 78 || rainProb > 25) {
+    } else if ((humidity !== null && humidity > 78) || (rainProb !== null && rainProb > 25)) {
       harvesting = 'CAUTION';
       harvestingColor = 'amber';
     }
 
-    return {
+    items.push({
       dayName: dName,
       dateStr,
       tempMax,
@@ -1712,31 +1761,39 @@ export function generate7DayAgriculturalForecast(
         harvesting,
         harvestingColor,
       },
-    };
-  });
+    });
+  }
+
+  return items;
 }
 
 export interface RiskFactorItem {
   id: string;
   name: string;
-  level: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
-  score: number; // 0-100
-  color: 'emerald' | 'amber' | 'orange' | 'rose';
+  level: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'UNAVAILABLE';
+  score: number | null; // 0-100
+  color: 'emerald' | 'amber' | 'orange' | 'rose' | 'slate';
   driver: string;
   managementAction: string;
 }
 
 export function evaluateWeatherCropRisks(
   weather: WeatherDataBundle | undefined,
-  crop: CropType,
-  stage: PhenologicalStage
+  _crop: CropType,
+  _stage: PhenologicalStage
 ): RiskFactorItem[] {
   const current = weather?.current;
-  const temp = current?.temp ?? 30;
-  const humidity = current?.humidity ?? 68;
-  const rain24h = current?.precipitation ?? 0;
-  const rainProb = current?.precipitationProbability ?? (weather?.daily?.[0]?.rainProb ?? 20);
-  const windSpeed = current?.windSpeed ?? 12;
+  const temp = typeof current?.temp === 'number' ? current.temp : null;
+  if (temp === null) {
+    return [];
+  }
+
+  const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
+  const rain24h = typeof current?.precipitation === 'number' ? current.precipitation : null;
+  const dailyRainProb = typeof weather?.daily?.[0]?.rainProb === 'number' ? weather.daily[0].rainProb : null;
+  const rainProb =
+    typeof current?.precipitationProbability === 'number' ? current.precipitationProbability : dailyRainProb;
+  const windSpeed = typeof current?.windSpeed === 'number' ? current.windSpeed : null;
 
   // 1. HEAT STRESS
   let heatLevel: RiskFactorItem['level'] = 'LOW';
@@ -1761,115 +1818,153 @@ export function evaluateWeatherCropRisks(
   }
 
   // 2. WATER STRESS (Deficit)
-  let waterDeficitLevel: RiskFactorItem['level'] = 'LOW';
-  let waterDeficitScore = 20;
-  let waterDeficitColor: RiskFactorItem['color'] = 'emerald';
-  let waterDeficitAction = 'Soil moisture balance meets crop requirement.';
-  if (rain24h === 0 && temp > 35 && humidity < 40) {
-    waterDeficitLevel = 'HIGH';
-    waterDeficitScore = 78;
-    waterDeficitColor = 'orange';
-    waterDeficitAction = 'Deploy drip/sprinkler cycle immediately to avoid permanent wilting point.';
-  } else if (rain24h === 0 && temp > 32) {
-    waterDeficitLevel = 'MODERATE';
-    waterDeficitScore = 45;
-    waterDeficitColor = 'amber';
-    waterDeficitAction = 'Inspect root zone tension; prepare next irrigation rotation.';
+  let waterDeficitLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let waterDeficitScore: number | null = null;
+  let waterDeficitColor: RiskFactorItem['color'] = 'slate';
+  let waterDeficitAction = 'Precipitation and relative humidity sensors required to compute vapor-deficit water stress.';
+  if (humidity !== null && rain24h !== null) {
+    waterDeficitLevel = 'LOW';
+    waterDeficitScore = 20;
+    waterDeficitColor = 'emerald';
+    waterDeficitAction = 'Soil moisture balance meets crop requirement.';
+    if (rain24h === 0 && temp > 35 && humidity < 40) {
+      waterDeficitLevel = 'HIGH';
+      waterDeficitScore = 78;
+      waterDeficitColor = 'orange';
+      waterDeficitAction = 'Deploy drip/sprinkler cycle immediately to avoid permanent wilting point.';
+    } else if (rain24h === 0 && temp > 32) {
+      waterDeficitLevel = 'MODERATE';
+      waterDeficitScore = 45;
+      waterDeficitColor = 'amber';
+      waterDeficitAction = 'Inspect root zone tension; prepare next irrigation rotation.';
+    }
   }
 
   // 3. EXCESS RAIN & WATERLOGGING
-  let rainLevel: RiskFactorItem['level'] = 'LOW';
-  let rainScore = 15;
-  let rainColor: RiskFactorItem['color'] = 'emerald';
-  let rainAction = 'Field drainage channels operational without standing surface pools.';
-  if (rain24h > 50 || rainProb > 85) {
-    rainLevel = 'CRITICAL';
-    rainScore = 90;
-    rainColor = 'rose';
-    rainAction = 'Open all peripheral bund drains immediately to avoid root asphyxiation.';
-  } else if (rain24h > 25 || rainProb > 65) {
-    rainLevel = 'HIGH';
-    rainScore = 72;
-    rainColor = 'orange';
-    rainAction = 'Clear silt and weeds from drainage furrows; suspend all pumping.';
-  } else if (rain24h > 10 || rainProb > 40) {
-    rainLevel = 'MODERATE';
-    rainScore = 46;
-    rainColor = 'amber';
-    rainAction = 'Monitor low-lying plots for localized surface ponding.';
+  let rainLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let rainScore: number | null = null;
+  let rainColor: RiskFactorItem['color'] = 'slate';
+  let rainAction = 'Gauge or forecast precipitation telemetry unavailable.';
+  if (rain24h !== null || rainProb !== null) {
+    const r24 = rain24h ?? 0;
+    const rp = rainProb ?? 0;
+    rainLevel = 'LOW';
+    rainScore = 15;
+    rainColor = 'emerald';
+    rainAction = 'Field drainage channels operational without standing surface pools.';
+    if (r24 > 50 || rp > 85) {
+      rainLevel = 'CRITICAL';
+      rainScore = 90;
+      rainColor = 'rose';
+      rainAction = 'Open all peripheral bund drains immediately to avoid root asphyxiation.';
+    } else if (r24 > 25 || rp > 65) {
+      rainLevel = 'HIGH';
+      rainScore = 72;
+      rainColor = 'orange';
+      rainAction = 'Clear silt and weeds from drainage furrows; suspend all pumping.';
+    } else if (r24 > 10 || rp > 40) {
+      rainLevel = 'MODERATE';
+      rainScore = 46;
+      rainColor = 'amber';
+      rainAction = 'Monitor low-lying plots for localized surface ponding.';
+    }
   }
 
   // 4. HIGH HUMIDITY & DEW PERIOD
-  let rhLevel: RiskFactorItem['level'] = 'LOW';
-  let rhScore = 22;
-  let rhColor: RiskFactorItem['color'] = 'emerald';
-  let rhAction = 'Foliar surface dries quickly under gentle daytime ventilation.';
-  if (humidity > 85) {
-    rhLevel = 'HIGH';
-    rhScore = 80;
-    rhColor = 'orange';
-    rhAction = 'Extended leaf wetness (>10h) triggers fungal spore incubation. Avoid night watering.';
-  } else if (humidity > 72) {
-    rhLevel = 'MODERATE';
-    rhScore = 52;
-    rhColor = 'amber';
-    rhAction = 'Maintain canopy spacing; inspect bottom leaves for water-soaked spots.';
+  let rhLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let rhScore: number | null = null;
+  let rhColor: RiskFactorItem['color'] = 'slate';
+  let rhAction = 'Relative humidity sensor telemetry unavailable.';
+  if (humidity !== null) {
+    rhLevel = 'LOW';
+    rhScore = 22;
+    rhColor = 'emerald';
+    rhAction = 'Foliar surface dries quickly under gentle daytime ventilation.';
+    if (humidity > 85) {
+      rhLevel = 'HIGH';
+      rhScore = 80;
+      rhColor = 'orange';
+      rhAction = 'Extended leaf wetness (>10h) triggers fungal spore incubation. Avoid night watering.';
+    } else if (humidity > 72) {
+      rhLevel = 'MODERATE';
+      rhScore = 52;
+      rhColor = 'amber';
+      rhAction = 'Maintain canopy spacing; inspect bottom leaves for water-soaked spots.';
+    }
   }
 
   // 5. WIND DAMAGE & LODGING
-  let windLevel: RiskFactorItem['level'] = 'LOW';
-  let windScore = 15;
-  let windColor: RiskFactorItem['color'] = 'emerald';
-  let windAction = 'Gentle wind flow; no mechanical lodging hazard.';
-  if (windSpeed > 35) {
-    windLevel = 'CRITICAL';
-    windScore = 88;
-    windColor = 'rose';
-    windAction = 'Tying/propping of tall crop stands; suspend all boom spraying.';
-  } else if (windSpeed > 22) {
-    windLevel = 'HIGH';
-    windScore = 68;
-    windColor = 'orange';
-    windAction = 'Postpone chemical spraying due to excessive droplet drift.';
-  } else if (windSpeed > 14) {
-    windLevel = 'MODERATE';
-    windScore = 42;
-    windColor = 'amber';
-    windAction = 'Calibrate spray nozzle pressure for low-drift droplets.';
+  let windLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let windScore: number | null = null;
+  let windColor: RiskFactorItem['color'] = 'slate';
+  let windAction = 'Surface wind anemometer telemetry unavailable.';
+  if (windSpeed !== null) {
+    windLevel = 'LOW';
+    windScore = 15;
+    windColor = 'emerald';
+    windAction = 'Gentle wind flow; no mechanical lodging hazard.';
+    if (windSpeed > 35) {
+      windLevel = 'CRITICAL';
+      windScore = 88;
+      windColor = 'rose';
+      windAction = 'Tying/propping of tall crop stands; suspend all boom spraying.';
+    } else if (windSpeed > 22) {
+      windLevel = 'HIGH';
+      windScore = 68;
+      windColor = 'orange';
+      windAction = 'Postpone chemical spraying due to excessive droplet drift.';
+    } else if (windSpeed > 14) {
+      windLevel = 'MODERATE';
+      windScore = 42;
+      windColor = 'amber';
+      windAction = 'Calibrate spray nozzle pressure for low-drift droplets.';
+    }
   }
 
   // 6. PEST PRESSURE
-  let pestLevel: RiskFactorItem['level'] = 'LOW';
-  let pestScore = 25;
-  let pestColor: RiskFactorItem['color'] = 'emerald';
-  let pestAction = 'Pest counts below Economic Threshold Level (ETL).';
-  if (humidity > 75 && temp >= 26 && temp <= 33) {
-    pestLevel = 'HIGH';
-    pestScore = 75;
-    pestColor = 'orange';
-    pestAction = 'Favorable microclimate for sucking pests and borers. Install pheromone traps.';
-  } else if (humidity > 65 || temp > 28) {
-    pestLevel = 'MODERATE';
-    pestScore = 48;
-    pestColor = 'amber';
-    pestAction = 'Scout 20 hill samples diagonally across field twice weekly.';
+  let pestLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let pestScore: number | null = null;
+  let pestColor: RiskFactorItem['color'] = 'slate';
+  let pestAction = 'Temperature and humidity telemetry required to evaluate pest pressure.';
+  if (humidity !== null) {
+    pestLevel = 'LOW';
+    pestScore = 25;
+    pestColor = 'emerald';
+    pestAction = 'Pest counts below Economic Threshold Level (ETL).';
+    if (humidity > 75 && temp >= 26 && temp <= 33) {
+      pestLevel = 'HIGH';
+      pestScore = 75;
+      pestColor = 'orange';
+      pestAction = 'Favorable microclimate for sucking pests and borers. Install pheromone traps.';
+    } else if (humidity > 65 || temp > 28) {
+      pestLevel = 'MODERATE';
+      pestScore = 48;
+      pestColor = 'amber';
+      pestAction = 'Scout 20 hill samples diagonally across field twice weekly.';
+    }
   }
 
   // 7. DISEASE PRESSURE
-  let diseaseLevel: RiskFactorItem['level'] = 'LOW';
-  let diseaseScore = 20;
-  let diseaseColor: RiskFactorItem['color'] = 'emerald';
-  let diseaseAction = 'Atmospheric parameters unfavorable for pathogen sporulation.';
-  if (humidity > 80 && temp >= 22 && temp <= 30) {
-    diseaseLevel = 'HIGH';
-    diseaseScore = 82;
-    diseaseColor = 'orange';
-    diseaseAction = 'Environmental conditions favorable for foliar blights/sheath rot. Keep bio-fungicides ready.';
-  } else if (humidity > 70) {
-    diseaseLevel = 'MODERATE';
-    diseaseScore = 50;
-    diseaseColor = 'amber';
-    diseaseAction = 'Ensure proper field drainage and air circulation in crop canopy.';
+  let diseaseLevel: RiskFactorItem['level'] = 'UNAVAILABLE';
+  let diseaseScore: number | null = null;
+  let diseaseColor: RiskFactorItem['color'] = 'slate';
+  let diseaseAction = 'Relative humidity telemetry required to estimate spore incubation risk.';
+  if (humidity !== null) {
+    diseaseLevel = 'LOW';
+    diseaseScore = 20;
+    diseaseColor = 'emerald';
+    diseaseAction = 'Atmospheric parameters unfavorable for pathogen sporulation.';
+    if (humidity > 80 && temp >= 22 && temp <= 30) {
+      diseaseLevel = 'HIGH';
+      diseaseScore = 82;
+      diseaseColor = 'orange';
+      diseaseAction = 'Environmental conditions favorable for foliar blights/sheath rot. Keep bio-fungicides ready.';
+    } else if (humidity > 70) {
+      diseaseLevel = 'MODERATE';
+      diseaseScore = 50;
+      diseaseColor = 'amber';
+      diseaseAction = 'Ensure proper field drainage and air circulation in crop canopy.';
+    }
   }
 
   return [
@@ -1879,7 +1974,7 @@ export function evaluateWeatherCropRisks(
       level: heatLevel,
       score: heatScore,
       color: heatColor,
-      driver: `Max Air Temp: ${temp}°C`,
+      driver: `Air Temp: ${Math.round(temp * 10) / 10}°C`,
       managementAction: heatAction,
     },
     {
@@ -1897,7 +1992,7 @@ export function evaluateWeatherCropRisks(
       level: rainLevel,
       score: rainScore,
       color: rainColor,
-      driver: `24h Precip: ${rain24h}mm | Prob: ${rainProb}%`,
+      driver: `24h Precip: ${rain24h !== null ? `${rain24h}mm` : '—'} | Prob: ${rainProb !== null ? `${Math.round(rainProb)}%` : '—'}`,
       managementAction: rainAction,
     },
     {
@@ -1906,7 +2001,7 @@ export function evaluateWeatherCropRisks(
       level: rhLevel,
       score: rhScore,
       color: rhColor,
-      driver: `Relative Humidity: ${humidity}%`,
+      driver: `Relative Humidity: ${humidity !== null ? `${Math.round(humidity)}%` : '—'}`,
       managementAction: rhAction,
     },
     {
@@ -1915,7 +2010,7 @@ export function evaluateWeatherCropRisks(
       level: windLevel,
       score: windScore,
       color: windColor,
-      driver: `Wind Velocity: ${windSpeed} km/h`,
+      driver: `Wind Velocity: ${windSpeed !== null ? `${Math.round(windSpeed)} km/h` : '—'}`,
       managementAction: windAction,
     },
     {
@@ -1924,7 +2019,7 @@ export function evaluateWeatherCropRisks(
       level: pestLevel,
       score: pestScore,
       color: pestColor,
-      driver: `Overcast Skies & Warm Microclimate`,
+      driver: humidity !== null ? `Temp ${Math.round(temp)}°C & RH ${Math.round(humidity)}%` : 'Humidity unavailable',
       managementAction: pestAction,
     },
     {
@@ -1933,7 +2028,7 @@ export function evaluateWeatherCropRisks(
       level: diseaseLevel,
       score: diseaseScore,
       color: diseaseColor,
-      driver: `Leaf Wetness & Incubation Index`,
+      driver: humidity !== null ? `Leaf Wetness Proxy (RH ${Math.round(humidity)}%)` : 'Humidity unavailable',
       managementAction: diseaseAction,
     },
   ];
@@ -1943,10 +2038,10 @@ export interface Timeline72hItem {
   offsetLabel: string;
   hourTime: string;
   tempC: number;
-  humidityPct: number;
-  windKmh: number;
-  rainMm: number;
-  rainProbPct: number;
+  humidityPct: number | null;
+  windKmh: number | null;
+  rainMm: number | null;
+  rainProbPct: number | null;
   fieldSuitability: 'OPTIMAL' | 'MODERATE' | 'RESTRICTED';
   recommendedOperation: string;
 }
@@ -1955,7 +2050,11 @@ export function generate72HourTimeline(
   weather: WeatherDataBundle | undefined
 ): Timeline72hItem[] {
   const hourly = weather?.hourly || [];
-  const offsets = [
+  if (hourly.length === 0) {
+    return [];
+  }
+
+  const candidateOffsets = [
     { offset: '+0H (NOW)', index: 0 },
     { offset: '+6H', index: 6 },
     { offset: '+12H', index: 12 },
@@ -1963,44 +2062,52 @@ export function generate72HourTimeline(
     { offset: '+24H', index: 24 },
     { offset: '+36H', index: 36 },
     { offset: '+48H', index: 48 },
-    { offset: '+72H', index: Math.min(71, hourly.length - 1) },
+    { offset: '+72H', index: 71 },
   ];
 
   const now = new Date();
+  const timeline: Timeline72hItem[] = [];
 
-  return offsets.map(({ offset, index }) => {
+  for (const { offset, index } of candidateOffsets) {
+    if (index >= hourly.length) continue;
     const item: HourlyForecastItem | undefined = hourly[index];
-    const targetDate = new Date(now.getTime() + (index || 0) * 3600 * 1000);
-    const hourTime = targetDate.toLocaleTimeString('en-IN', {
+    if (!item || typeof item.temp !== 'number' || Number.isNaN(item.temp)) {
+      continue;
+    }
+
+    const targetDate = new Date(now.getTime() + index * 3600 * 1000);
+    const hourTime = item.time || targetDate.toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
     });
 
-    const tempC = item ? Math.round(item.temp) : 28;
-    const humidityPct = item ? Math.round(item.humidity) : 75;
-    const windKmh = item ? Math.round(item.windSpeed) : 12;
-    const rainMm = item?.qpf ? Math.round(item.qpf * 10) / 10 : 0;
-    const rainProbPct = item ? item.rainProb : (rainMm > 0 ? 60 : 15);
+    const tempC = Math.round(item.temp);
+    const humidityPct = typeof item.humidity === 'number' && !Number.isNaN(item.humidity) ? Math.round(item.humidity) : null;
+    const windKmh = typeof item.windSpeed === 'number' && !Number.isNaN(item.windSpeed) ? Math.round(item.windSpeed) : null;
+    const rawRain = item.qpf ?? item.precipitation;
+    const rainMm = typeof rawRain === 'number' && !Number.isNaN(rawRain) ? Math.round(rawRain * 10) / 10 : null;
+    const rawProb = item.rainProb ?? item.precipitationProbability;
+    const rainProbPct = typeof rawProb === 'number' && !Number.isNaN(rawProb) ? Math.round(rawProb) : null;
 
     let fieldSuitability: Timeline72hItem['fieldSuitability'] = 'OPTIMAL';
-    let recommendedOperation = 'Ideal for canopy inspection & weeding';
+    let recommendedOperation = 'Suitable for canopy inspection and manual weeding';
 
-    if (rainProbPct > 55 || rainMm > 5) {
+    if ((rainProbPct !== null && rainProbPct > 55) || (rainMm !== null && rainMm > 5)) {
       fieldSuitability = 'RESTRICTED';
       recommendedOperation = 'Hold field equipment; check drainage bunds';
-    } else if (windKmh > 15) {
+    } else if (windKmh !== null && windKmh > 15) {
       fieldSuitability = 'MODERATE';
       recommendedOperation = 'Avoid spray drift; manual weeding permitted';
     } else if (tempC > 35) {
       fieldSuitability = 'MODERATE';
       recommendedOperation = 'Operate irrigation pumps early in dawn';
-    } else if (humidityPct < 75 && windKmh < 12) {
+    } else if (humidityPct !== null && humidityPct < 75 && windKmh !== null && windKmh < 12) {
       fieldSuitability = 'OPTIMAL';
       recommendedOperation = 'Safe window for foliar nutrient spraying';
     }
 
-    return {
+    timeline.push({
       offsetLabel: offset,
       hourTime,
       tempC,
@@ -2010,6 +2117,8 @@ export function generate72HourTimeline(
       rainProbPct,
       fieldSuitability,
       recommendedOperation,
-    };
-  });
+    });
+  }
+
+  return timeline;
 }
