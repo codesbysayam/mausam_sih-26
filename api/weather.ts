@@ -140,85 +140,58 @@ export default async function handler(req: any, res: any) {
       case 'aqi': {
         const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&timezone=auto`;
         const aqiRes = await fetch(aqiUrl);
+        if (!aqiRes.ok) {
+          return sendJson(res, 502, { status: 'error', provider: 'OPEN_METEO_AIR_QUALITY', dataStatus: 'UNAVAILABLE', data: null, error: `Air-quality provider returned HTTP ${aqiRes.status}` });
+        }
         const aqiData = await aqiRes.json();
-        const currentAqi = aqiData?.current || {};
-
-        const aqiVal = currentAqi.us_aqi || currentAqi.european_aqi || 55;
-        let category = 'Satisfactory';
-        let color = '#EAB308';
-        if (aqiVal <= 50) {
-          category = 'Good';
-          color = '#22C55E';
-        } else if (aqiVal <= 100) {
-          category = 'Moderate';
-          color = '#EAB308';
-        } else if (aqiVal <= 150) {
-          category = 'Poor';
-          color = '#F97316';
-        } else if (aqiVal <= 200) {
-          category = 'Unhealthy';
-          color = '#EF4444';
-        } else if (aqiVal <= 300) {
-          category = 'Severe';
-          color = '#A855F7';
-        } else {
-          category = 'Hazardous';
-          color = '#7F1D1D';
+        const currentAqi = aqiData?.current;
+        const aqiVal = currentAqi?.us_aqi ?? currentAqi?.european_aqi;
+        if (!currentAqi || !Number.isFinite(aqiVal)) {
+          return sendJson(res, 503, { status: 'error', provider: 'OPEN_METEO_AIR_QUALITY', dataStatus: 'UNAVAILABLE', data: null, error: 'Provider response did not contain a valid AQI value' });
         }
 
-        const payload = {
+        let category = 'Hazardous';
+        let color = '#7F1D1D';
+        if (aqiVal <= 50) { category = 'Good'; color = '#22C55E'; }
+        else if (aqiVal <= 100) { category = 'Moderate'; color = '#EAB308'; }
+        else if (aqiVal <= 150) { category = 'Poor'; color = '#F97316'; }
+        else if (aqiVal <= 200) { category = 'Very Poor'; color = '#EF4444'; }
+        else if (aqiVal <= 300) { category = 'Severe'; color = '#A855F7'; }
+
+        return sendJson(res, 200, {
           status: 'success',
           source: 'Open-Meteo Air Quality',
-          provider: 'CPCB_HYBRID',
-          dataStatus: 'OFFICIAL_LIVE',
-          observedAt: currentAqi.time || new Date().toISOString(),
+          provider: 'OPEN_METEO_AIR_QUALITY',
+          dataStatus: 'MODELLED_LIVE',
+          observedAt: currentAqi.time || null,
           data: {
             aqi: aqiVal,
+            aqiScale: currentAqi.us_aqi != null ? 'US_AQI' : 'EUROPEAN_AQI',
             category,
-            dominantPollutant: 'PM2.5',
+            dominantPollutant: null,
             color,
             components: {
-              pm2_5: currentAqi.pm2_5 ?? 15,
-              pm10: currentAqi.pm10 ?? 35,
-              no2: currentAqi.nitrogen_dioxide ?? 12,
-              so2: currentAqi.sulphur_dioxide ?? 6,
-              co: currentAqi.carbon_monoxide ? currentAqi.carbon_monoxide / 1000 : 0.6,
-              o3: currentAqi.ozone ?? 30,
+              pm2_5: currentAqi.pm2_5 ?? null,
+              pm10: currentAqi.pm10 ?? null,
+              no2: currentAqi.nitrogen_dioxide ?? null,
+              so2: currentAqi.sulphur_dioxide ?? null,
+              co: currentAqi.carbon_monoxide ?? null,
+              o3: currentAqi.ozone ?? null,
             },
-            advisory:
-              aqiVal > 150
-                ? 'Sensitive groups should reduce prolonged outdoor exertion.'
-                : 'Air quality is acceptable for routine outdoor activities.',
+            advisory: null,
           },
-        };
-        return sendJson(res, 200, payload, {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
-        });
+        }, { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' });
       }
-
       case 'marine': {
-        const payload = {
-          status: 'success',
-          source: 'INCOIS / Open Ocean Marine Guidance',
-          provider: 'INCOIS',
-          dataStatus: 'OFFICIAL_LIVE',
-          observedAt: new Date().toISOString(),
-          data: {
-            waveHeightM: 1.2,
-            wavePeriodSec: 7.5,
-            swellHeightM: 0.9,
-            waterTempC: 28.2,
-            tideStatus: 'FLOOD',
-            tideHeightM: 1.85,
-            seaCondition: 'Moderate',
-            fishermenWarning: 'No deep-sea alert in effect for coastal waters.',
-          },
-        };
-        return sendJson(res, 200, payload, {
-          'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=600',
+        return sendJson(res, 501, {
+          status: 'error',
+          source: 'MAUSAM Marine Data Gateway',
+          provider: 'NOT_CONFIGURED',
+          dataStatus: 'NOT_CONFIGURED',
+          data: null,
+          error: 'A verified marine provider is not configured. Marine conditions are not inferred from atmospheric weather data.',
         });
       }
-
       case 'hourly':
       case 'daily':
       case 'forecast':
@@ -301,7 +274,7 @@ export default async function handler(req: any, res: any) {
           return sendJson(res, 200, {
             status: 'success',
             source: 'Open-Meteo',
-            dataStatus: 'OFFICIAL_LIVE',
+            dataStatus: 'MODELLED_LIVE',
             data: normalizedHourly,
           });
         }
@@ -310,7 +283,7 @@ export default async function handler(req: any, res: any) {
           return sendJson(res, 200, {
             status: 'success',
             source: 'Open-Meteo',
-            dataStatus: 'OFFICIAL_LIVE',
+            dataStatus: 'MODELLED_LIVE',
             data: normalizedDaily,
           });
         }
@@ -319,7 +292,7 @@ export default async function handler(req: any, res: any) {
           return sendJson(res, 200, {
             status: 'success',
             source: 'Open-Meteo',
-            dataStatus: 'OFFICIAL_LIVE',
+            dataStatus: 'MODELLED_LIVE',
             data: {
               current: normalizedCurrent,
               daily: normalizedDaily,
@@ -329,13 +302,13 @@ export default async function handler(req: any, res: any) {
         }
 
         if (mode === 'bundle') {
-          return sendJson(res, 200, {
-            status: 'success',
-            source: 'Open-Meteo Global Surface',
-            dataStatus: 'OFFICIAL_LIVE',
-            current: normalizedCurrent,
-            forecast: normalizedDaily,
-            hourly: normalizedHourly,
+          return sendJson(res, 409, {
+            status: 'error',
+            source: 'MAUSAM Weather Gateway',
+            provider: 'OPEN_METEO',
+            dataStatus: 'SCHEMA_MISMATCH',
+            data: null,
+            error: 'The forecast gateway does not provide the PersonaDataBundle schema. Use mode=forecast for weather data; persona cards remain unavailable until their individual verified feeds are integrated.',
           });
         }
 
@@ -344,7 +317,7 @@ export default async function handler(req: any, res: any) {
           status: 'success',
           source: 'Open-Meteo',
           provider: 'OPEN_METEO',
-          dataStatus: 'OFFICIAL_LIVE',
+          dataStatus: 'MODELLED_LIVE',
           observedAt: normalizedCurrent.observedAt,
           data: normalizedCurrent,
         });
