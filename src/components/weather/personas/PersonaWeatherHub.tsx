@@ -308,7 +308,25 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             </div>
           )}
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5" role="status" aria-live="polite">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-amber-400 text-xl">cloud_off</span>
+            <div>
+              <h3 className="text-sm font-semibold text-white">Persona intelligence temporarily unavailable</h3>
+              <p className="mt-1 text-xs leading-5 text-[#AAB6C5]">
+                Verified source data for one or more persona metrics is not available from the configured feeds.
+                MAUSAM will not substitute invented AQI, pollen, marine, soil-moisture, road-safety or alert values.
+                Core weather observations and forecasts remain available in the Weather and Forecast sections.
+              </p>
+              <button type="button" onClick={() => loadPersonaData(true)} disabled={isRefreshing}
+                className="mt-3 rounded-lg border border-[#36516A] px-3 py-2 text-xs font-semibold text-[#55C8E8] disabled:opacity-50">
+                {isRefreshing ? 'Checking feeds…' : 'Retry verified feeds'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
