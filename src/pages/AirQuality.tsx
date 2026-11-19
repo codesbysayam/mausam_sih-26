@@ -11,6 +11,7 @@ import { DataTable, ColumnDef } from '../components/common/DataTable';
 import { StatusBadge } from '../components/common/StatusBadge';
 import DateCalendar from '../components/DateCalendar';
 import { formatDateShort, formatDateISO } from '../utils/dateUtils';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 import { useProvider } from '../store/providerStore';
 import {
   DataPanel,
@@ -216,8 +217,10 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
       selectedLocation.city ||
       selectedLocation.state ||
       'Odisha';
-    const lat = selectedLocation.lat || 20.2961;
-    const lon = selectedLocation.lng || 85.8245;
+    const rawLat = selectedLocation.lat;
+    const rawLon = selectedLocation.lng;
+    const lat = typeof rawLat === 'number' && Number.isFinite(rawLat) ? rawLat : 20.2961;
+    const lon = typeof rawLon === 'number' && Number.isFinite(rawLon) ? rawLon : 85.8245;
     const stationId =
       selectedLocation.stationId ||
       selectedLocation.id ||
@@ -493,7 +496,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         eyebrow="CPCB NAQI · OPEN-METEO ATMOSPHERIC CHEMISTRY"
         title={`Air Quality & Bio-Aerosol Telemetry — ${selectedLocation.city || 'Station'}`}
         description={`Real-time particulate matter, gaseous pollutants, and 7-day dispersion history for ${selectedLocation.city || 'Station'}, ${selectedLocation.state || 'India'}.`}
-        coordinates={`${(selectedLocation.lat ?? 20.2961).toFixed(2)}°N, ${(selectedLocation.lng ?? 85.8245).toFixed(2)}°E`}
+        coordinates={formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
         status={headerStatus}
         source={aqiState.source || 'Open-Meteo Air Quality'}
         updatedAt={current.observationTimeFormatted || current.lastUpdated || null}

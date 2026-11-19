@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as SunCalc from 'suncalc';
 import { Sun, Sunrise, Sunset, Clock, Compass, Moon } from 'lucide-react';
 import { LocationRecord } from '../../types';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface SunCycleProps {
   location?: LocationRecord;
@@ -29,8 +30,8 @@ export const SunCycle: React.FC<SunCycleProps> = ({
     return () => clearInterval(timer);
   }, [date]);
 
-  const lat = typeof location?.lat === 'number' ? location.lat : 20.2961;
-  const lng = typeof location?.lng === 'number' ? location.lng : 85.8245;
+  const lat = typeof location?.lat === 'number' && Number.isFinite(location.lat) ? location.lat : 20.2961;
+  const lng = typeof location?.lng === 'number' && Number.isFinite(location.lng) ? location.lng : 85.8245;
 
   const solarCalculations = useMemo(() => {
     // Calculate accurate solar ephemeris using SunCalc library
@@ -168,7 +169,7 @@ export const SunCycle: React.FC<SunCycleProps> = ({
               Sun Cycle &amp; Solar Ephemeris
             </h2>
             <p className="text-xs text-[#93A4B8]">
-              {location?.city ? `${location.city} (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)` : 'Real-time Astronomical Calculation'}
+              {location?.city ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})` : 'Real-time Astronomical Calculation'}
             </p>
           </div>
         </div>

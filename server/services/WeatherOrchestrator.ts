@@ -44,8 +44,8 @@ export class WeatherOrchestrator {
     country?: string;
     name?: string;
   }): GeoLocation {
-    const lat = typeof params.lat === 'number' && !isNaN(params.lat) ? params.lat : 20.2961;
-    const lon = typeof params.lon === 'number' && !isNaN(params.lon) ? params.lon : 85.8245;
+    const lat = typeof params.lat === 'number' && Number.isFinite(params.lat) ? params.lat : 20.2961;
+    const lon = typeof params.lon === 'number' && Number.isFinite(params.lon) ? params.lon : 85.8245;
     const country = params.country || 'India';
     const city = params.city || params.district || params.name || 'Bhubaneswar';
     const state = params.state || (country === 'India' ? 'Odisha' : undefined);

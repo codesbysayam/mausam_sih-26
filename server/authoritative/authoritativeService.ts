@@ -1,27 +1,26 @@
 /**
  * Authoritative Data Service for MAUSAM
- * Integrates official and global data feeds:
- * - CPCB (Central Pollution Control Board) via data.gov.in
- * - Open-Meteo Air Quality & Pollen
- * - WorldTides API
- * - Open-Meteo Marine API (Waves & Sea Surface Temperature)
- * - Azure Maps Severe Weather Alerts API & IMD Alerts
- * - Xweather / Road-weather modeling
- * - Astronomical ephemeris & comfort index algorithms
+ * Integrates live meteorological and environmental feeds:
+ * - CPCB (Central Pollution Control Board) via data.gov.in (when API key configured)
+ * - Open-Meteo Air Quality, Weather Forecast & Marine APIs (Model Data)
+ * - WorldTides API (when API key configured)
+ * - Azure Maps Severe Weather Alerts API (when API key configured)
+ * - NOAA Solar Ephemeris & Humidex comfort calculations
+ * Zero fabricated weather numbers: missing upstream fields remain null.
  */
 
 export interface AuthoritativeAQI {
   source: string;
   stationName: string;
-  aqi: number;
-  category: 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe';
+  aqi: number | null;
+  category: 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe' | 'Unavailable';
   dominantPollutant: string;
-  pm25: number;
-  pm10: number;
-  no2: number;
-  so2: number;
-  co: number;
-  o3: number;
+  pm25: number | null;
+  pm10: number | null;
+  no2: number | null;
+  so2: number | null;
+  co: number | null;
+  o3: number | null;
   healthAdvice: string;
   colorCode: string;
   lastUpdated: string;
@@ -30,14 +29,14 @@ export interface AuthoritativeAQI {
 
 export interface AuthoritativePollen {
   source: string;
-  overallIndex: number;
+  overallIndex: number | null;
   riskCategory: 'Low' | 'Moderate' | 'High' | 'Very High';
-  treePollen: number;
-  grassPollen: number;
-  weedPollen: number;
-  alderPollen?: number;
-  birchPollen?: number;
-  ragweedPollen?: number;
+  treePollen: number | null;
+  grassPollen: number | null;
+  weedPollen: number | null;
+  alderPollen?: number | null;
+  birchPollen?: number | null;
+  ragweedPollen?: number | null;
   allergyTip: string;
   lastUpdated: string;
 }
@@ -56,10 +55,10 @@ export interface AuthoritativeTide {
 export interface AuthoritativeMarine {
   source: string;
   isCoastal: boolean;
-  waveHeightMeters: number;
-  wavePeriodSeconds: number;
-  waveDirectionDegrees: number;
-  seaSurfaceTemperatureC: number;
+  waveHeightMeters: number | null;
+  wavePeriodSeconds: number | null;
+  waveDirectionDegrees: number | null;
+  seaSurfaceTemperatureC: number | null;
   surfCondition: 'Calm & Safe' | 'Moderate Swell' | 'Rough Waves' | 'Dangerous Surf';
   marineAdvisory: string;
   lastUpdated: string;
@@ -90,21 +89,21 @@ export interface PersonaDataBundle {
   health: {
     aqi: AuthoritativeAQI;
     pollen: AuthoritativePollen;
-    uvIndex: number;
+    uvIndex: number | null;
     uvRiskLabel: string;
     uvAdvice: string;
-    humidity: number;
+    humidity: number | null;
   };
   fitness: {
-    sunrise: string;
-    sunset: string;
+    sunrise: string | null;
+    sunset: string | null;
     bestRunningHours: string;
     workoutSuitability: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     heatAlertActive: boolean;
     heatAlertMessage: string | null;
-    windSpeedKmh: number;
+    windSpeedKmh: number | null;
     windDirection: string;
-    hydrationRateMlHour: number;
+    hydrationRateMlHour: number | null;
     thermalStressLevel: 'Low' | 'Moderate' | 'High' | 'Extreme';
   };
   beachAndSurf: {
@@ -128,9 +127,9 @@ export interface PersonaDataBundle {
     severeWarnings: AuthoritativeAlert[];
   };
   agriculture: {
-    soilMoisturePercent: number;
+    soilMoisturePercent: number | null;
     soilMoistureStatus: 'Dry' | 'Optimal' | 'Saturated';
-    threeDayRainfallTotalMm: number;
+    threeDayRainfallTotalMm: number | null;
     frostAlertActive: boolean;
     frostAlertMessage: string | null;
     currentCropSeason: 'Kharif' | 'Rabi' | 'Zaid';
@@ -141,7 +140,7 @@ export interface PersonaDataBundle {
     roadCondition: 'Dry' | 'Wet' | 'Waterlogged' | 'Icy' | 'Foggy';
     roadSafetyIndex: 'Green' | 'Yellow' | 'Red';
     roadSafetyLabel: string;
-    visibilityKm: number;
+    visibilityKm: number | null;
     visibilityStatus: 'Clear' | 'Moderate' | 'Poor (Fog)' | 'Dense Fog Danger';
     travelHazards: string[];
   };
@@ -149,49 +148,85 @@ export interface PersonaDataBundle {
     extendedForecast: Array<{
       date: string;
       dayOfWeek: string;
-      tempMax: number;
-      tempMin: number;
+      tempMax: number | null;
+      tempMin: number | null;
       condition: string;
       icon: string;
-      rainProbabilityPercent: number;
-      comfortIndexValue: number;
+      rainProbabilityPercent: number | null;
+      comfortIndexValue: number | null;
       comfortCategory: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
     }>;
-    comfortIndexToday: number;
+    comfortIndexToday: number | null;
     comfortCategoryToday: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
     eventRecommendation: string;
   };
   fetchedAt: string;
 }
 
-// In-memory caching with 10-minute TTL
 const memoryCache = new Map<string, { data: PersonaDataBundle; timestamp: number }>();
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
+function numOrNull(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
+function roundOrNull(v: unknown, decimals = 0): number | null {
+  const n = numOrNull(v);
+  if (n === null) return null;
+  if (decimals <= 0) return Math.round(n);
+  const f = Math.pow(10, decimals);
+  return Math.round(n * f) / f;
+}
+
+function degToCompass(deg: number | null): string {
+  if (deg === null || !Number.isFinite(deg)) return '—';
+  const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  return dirs[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
+}
+
+function wmoToCondition(code: number | null): { condition: string; icon: string } {
+  if (code === null) return { condition: 'Condition Unavailable', icon: 'cloud_off' };
+  if (code === 0) return { condition: 'Clear Sky', icon: 'wb_sunny' };
+  if (code === 1) return { condition: 'Mainly Clear', icon: 'wb_sunny' };
+  if (code === 2) return { condition: 'Partly Cloudy', icon: 'partly_cloudy_day' };
+  if (code === 3) return { condition: 'Overcast', icon: 'cloud' };
+  if (code === 45 || code === 48) return { condition: 'Fog', icon: 'foggy' };
+  if (code >= 51 && code <= 67) return { condition: 'Rain', icon: 'rainy' };
+  if (code >= 71 && code <= 77) return { condition: 'Snow', icon: 'ac_unit' };
+  if (code >= 80 && code <= 82) return { condition: 'Showers', icon: 'rainy' };
+  if (code >= 95) return { condition: 'Thunderstorm', icon: 'thunderstorm' };
+  return { condition: 'Condition Unavailable', icon: 'cloud_off' };
+}
+
 export class AuthoritativeService {
   /**
-   * Determine whether a location is along India's coastline
+   * Determine whether a location is along India's coastline (excludes inland cities like Bhubaneswar).
    */
   static isLocationCoastal(lat: number, lng: number, state = '', city = ''): boolean {
-    const coastalKeywords = [
-      'mumbai', 'chennai', 'visakhapatnam', 'puri', 'paradip', 'gopalpur', 'kochi',
-      'calicut', 'trivandrum', 'thiruvananthapuram', 'goa', 'panaji', 'mangalore', 'mangaluru',
-      'surat', 'porbandar', 'veraval', 'kandla', 'daman', 'diu', 'pondicherry', 'puducherry',
-      'kanyakumari', 'tuticorin', 'thoothukudi', 'machilipatnam', 'kakinada', 'bhubaneswar',
-      'digha', 'kolkata', 'haldia', 'ratnagiri', 'alibaug', 'karwar', 'udupi'
-    ];
     const target = `${city} ${state}`.toLowerCase();
+    const inlandExclusions = [
+      'bhubaneswar', 'cuttack', 'delhi', 'new delhi', 'bengaluru', 'bangalore',
+      'hyderabad', 'pune', 'jaipur', 'lucknow', 'patna', 'bhopal', 'indore',
+      'nagpur', 'ranchi', 'raipur', 'ahmedabad', 'chandigarh', 'guwahati',
+    ];
+    if (inlandExclusions.some((k) => target.includes(k))) return false;
+
+    const coastalKeywords = [
+      'mumbai', 'chennai', 'visakhapatnam', 'vizag', 'puri', 'paradip', 'gopalpur', 'kochi',
+      'cochin', 'calicut', 'kozhikode', 'trivandrum', 'thiruvananthapuram', 'goa', 'panaji',
+      'mangalore', 'mangaluru', 'surat', 'porbandar', 'veraval', 'kandla', 'daman', 'diu',
+      'pondicherry', 'puducherry', 'kanyakumari', 'tuticorin', 'thoothukudi', 'machilipatnam',
+      'kakinada', 'digha', 'kolkata', 'haldia', 'ratnagiri', 'alibaug', 'alibag', 'karwar',
+      'udupi', 'port blair', 'kavaratti',
+    ];
     if (coastalKeywords.some((k) => target.includes(k))) return true;
 
-    // Geographic boundary checks for Indian coastal boundaries
-    if (lat >= 8.0 && lat <= 23.0 && (lng <= 73.5 || lng >= 82.5)) {
-      return true;
-    }
+    if (Math.abs(lat) < 2 && Math.abs(lng) < 2) return true;
     return false;
   }
 
   /**
-   * Fetch CPCB AQI for station or fallback to Open-Meteo Air Quality
+   * Fetch CPCB AQI for station (when key configured) or Open-Meteo Air Quality Model.
    */
   static async fetchCPCBOrOpenMeteoAQI(
     lat: number,
@@ -201,115 +236,144 @@ export class AuthoritativeService {
   ): Promise<AuthoritativeAQI> {
     const cpcbKey = process.env.CPCB_API_KEY;
 
-    // 1. Try official CPCB API if key is available
     if (cpcbKey) {
       try {
         const cpcbUrl = `https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69?api-key=${cpcbKey}&format=json&filters[city]=${encodeURIComponent(city)}&limit=1`;
-        const res = await fetch(cpcbUrl, { signal: AbortSignal.timeout(6000) });
+        const res = await fetch(cpcbUrl, {
+          signal: AbortSignal.timeout(6000),
+          headers: { 'User-Agent': 'aistudio-build' },
+        });
         if (res.ok) {
           const json = await res.json();
           const record = json.records?.[0];
-          if (record && record.pollutant_avg) {
-            const rawAqi = parseFloat(record.pollutant_avg) || 75;
-            return this.buildAQIObject(rawAqi, record.pollutant_id || 'PM2.5', record.station || stationName, 'CPCB (Central Pollution Control Board)', true);
+          const rawAqi = record?.pollutant_avg ? Number(record.pollutant_avg) : NaN;
+          if (Number.isFinite(rawAqi)) {
+            return this.buildAQIObject(
+              Math.round(rawAqi),
+              record.pollutant_id || 'PM2.5',
+              record.station || stationName,
+              'CPCB (Central Pollution Control Board)',
+              true,
+              { pm25: null, pm10: null, no2: null, so2: null, co: null, o3: null }
+            );
           }
         }
       } catch (err) {
-        console.warn('[AuthoritativeService] CPCB API query failed, using calibrated telemetry:', err);
+        console.warn('[AuthoritativeService] CPCB API query failed:', err);
       }
     }
 
-    // 2. Query Open-Meteo Air Quality API
     try {
-      const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust`;
-      const res = await fetch(airUrl, { signal: AbortSignal.timeout(6000) });
+      const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust&timezone=auto`;
+      const res = await fetch(airUrl, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      });
       if (res.ok) {
         const json = await res.json();
         const cur = json.current || {};
-        const pm25 = cur.pm2_5 ?? 38.5;
-        const pm10 = cur.pm10 ?? 65.0;
-        const no2 = cur.nitrogen_dioxide ?? 22.0;
-        const so2 = cur.sulphur_dioxide ?? 9.5;
-        const co = cur.carbon_monoxide ?? 380;
-        const o3 = cur.ozone ?? 28.0;
+        const pm25 = roundOrNull(cur.pm2_5, 1);
+        const pm10 = roundOrNull(cur.pm10, 1);
+        const no2 = roundOrNull(cur.nitrogen_dioxide, 1);
+        const so2 = roundOrNull(cur.sulphur_dioxide, 1);
+        const co = roundOrNull(cur.carbon_monoxide, 0);
+        const o3 = roundOrNull(cur.ozone, 1);
 
-        // Compute CPCB AQI from PM2.5 (dominant Indian sub-index)
-        let aqiVal = 50;
-        if (pm25 <= 30) aqiVal = Math.round(pm25 * (50 / 30));
-        else if (pm25 <= 60) aqiVal = Math.round(50 + ((pm25 - 30) * 50) / 30);
-        else if (pm25 <= 90) aqiVal = Math.round(100 + ((pm25 - 60) * 100) / 30);
-        else if (pm25 <= 120) aqiVal = Math.round(200 + ((pm25 - 90) * 100) / 30);
-        else if (pm25 <= 250) aqiVal = Math.round(300 + ((pm25 - 120) * 100) / 130);
-        else aqiVal = Math.round(400 + ((pm25 - 250) * 100) / 130);
+        let aqiVal: number | null = null;
+        if (pm25 !== null) {
+          if (pm25 <= 30) aqiVal = Math.round(pm25 * (50 / 30));
+          else if (pm25 <= 60) aqiVal = Math.round(50 + ((pm25 - 30) * 50) / 30);
+          else if (pm25 <= 90) aqiVal = Math.round(100 + ((pm25 - 60) * 100) / 30);
+          else if (pm25 <= 120) aqiVal = Math.round(200 + ((pm25 - 90) * 100) / 30);
+          else if (pm25 <= 250) aqiVal = Math.round(300 + ((pm25 - 120) * 100) / 130);
+          else aqiVal = Math.round(400 + ((pm25 - 250) * 100) / 130);
+        } else {
+          const upstreamAqi = roundOrNull(cur.us_aqi, 0) ?? roundOrNull(cur.european_aqi, 0);
+          aqiVal = upstreamAqi;
+        }
 
-        const aqiObj = this.buildAQIObject(aqiVal, 'PM2.5', stationName, 'CPCB NAQI Standard (Open-Meteo Telemetry)', false);
-        aqiObj.pm25 = Math.round(pm25 * 10) / 10;
-        aqiObj.pm10 = Math.round(pm10 * 10) / 10;
-        aqiObj.no2 = Math.round(no2 * 10) / 10;
-        aqiObj.so2 = Math.round(so2 * 10) / 10;
-        aqiObj.co = Math.round(co);
-        aqiObj.o3 = Math.round(o3 * 10) / 10;
-        return aqiObj;
+        if (aqiVal !== null || pm25 !== null || pm10 !== null) {
+          const dominant = pm25 !== null ? 'PM2.5' : pm10 !== null ? 'PM10' : 'Unavailable';
+          return this.buildAQIObject(
+            aqiVal,
+            dominant,
+            stationName,
+            'Open-Meteo Air Quality Model (CPCB NAQI Breakpoints)',
+            false,
+            { pm25, pm10, no2, so2, co, o3 },
+            cur.time || new Date().toISOString()
+          );
+        }
       }
     } catch (err) {
       console.warn('[AuthoritativeService] Open-Meteo Air Quality fetch error:', err);
     }
 
-    // Default truthful unavailable representation
     return {
       stationName,
-      source: 'Telemetry Feed Unavailable',
-      aqi: 0,
-      category: 'Good',
+      source: 'Air Quality Feed Unavailable',
+      aqi: null,
+      category: 'Unavailable',
       dominantPollutant: 'Unavailable',
-      pm25: 0,
-      pm10: 0,
-      no2: 0,
-      so2: 0,
-      co: 0,
-      o3: 0,
-      healthAdvice: 'Air quality observation is currently unavailable for this station.',
-      colorCode: '#94A3B8',
+      pm25: null,
+      pm10: null,
+      no2: null,
+      so2: null,
+      co: null,
+      o3: null,
+      healthAdvice: 'Air quality observation is currently unavailable for this location.',
+      colorCode: '#8295A8',
       lastUpdated: new Date().toISOString(),
       isOfficialFeed: false,
     };
   }
 
   private static buildAQIObject(
-    aqi: number,
+    aqi: number | null,
     dominant: string,
     stationName: string,
     source: string,
-    isOfficial: boolean
+    isOfficial: boolean,
+    pollutants: {
+      pm25: number | null;
+      pm10: number | null;
+      no2: number | null;
+      so2: number | null;
+      co: number | null;
+      o3: number | null;
+    },
+    lastUpdated = new Date().toISOString()
   ): AuthoritativeAQI {
-    let category: AuthoritativeAQI['category'] = 'Good';
-    let healthAdvice = 'Air quality is satisfactory and air pollution poses little or no risk.';
-    let colorCode = '#2ECC71';
+    let category: AuthoritativeAQI['category'] = 'Unavailable';
+    let healthAdvice = 'Air quality readings are unavailable.';
+    let colorCode = '#8295A8';
 
-    if (aqi <= 50) {
-      category = 'Good';
-      healthAdvice = 'Air quality is satisfactory, minimal impact. Enjoy outdoor activities.';
-      colorCode = '#2ECC71';
-    } else if (aqi <= 100) {
-      category = 'Satisfactory';
-      healthAdvice = 'Minor breathing discomfort to sensitive people. Normal activities permitted.';
-      colorCode = '#27AE60';
-    } else if (aqi <= 200) {
-      category = 'Moderate';
-      healthAdvice = 'Breathing discomfort to people with asthma, lungs, and heart diseases.';
-      colorCode = '#F1C40F';
-    } else if (aqi <= 300) {
-      category = 'Poor';
-      healthAdvice = 'Breathing discomfort to most people on prolonged exposure. Limit intense workouts.';
-      colorCode = '#FF8C42';
-    } else if (aqi <= 400) {
-      category = 'Very Poor';
-      healthAdvice = 'Respiratory illness on prolonged exposure. Sensitive groups avoid outdoor exposure.';
-      colorCode = '#E74C3C';
-    } else {
-      category = 'Severe';
-      healthAdvice = 'Emergency air pollution levels. Affects healthy individuals and seriously impacts all.';
-      colorCode = '#8E44AD';
+    if (aqi !== null) {
+      if (aqi <= 50) {
+        category = 'Good';
+        healthAdvice = 'Air quality is satisfactory with minimal risk. Safe for outdoor activities.';
+        colorCode = '#22C7A0';
+      } else if (aqi <= 100) {
+        category = 'Satisfactory';
+        healthAdvice = 'Minor breathing discomfort possible for unusually sensitive people.';
+        colorCode = '#84CC16';
+      } else if (aqi <= 200) {
+        category = 'Moderate';
+        healthAdvice = 'Moderate air quality; sensitive groups should limit prolonged exertion.';
+        colorCode = '#F59E0B';
+      } else if (aqi <= 300) {
+        category = 'Poor';
+        healthAdvice = 'Poor air quality; reduce prolonged heavy outdoor exertion.';
+        colorCode = '#F97316';
+      } else if (aqi <= 400) {
+        category = 'Very Poor';
+        healthAdvice = 'Very poor air quality; sensitive individuals should stay indoors.';
+        colorCode = '#EF4444';
+      } else {
+        category = 'Severe';
+        healthAdvice = 'Severe air pollution; avoid outdoor physical activity.';
+        colorCode = '#A855F7';
+      }
     }
 
     return {
@@ -318,257 +382,249 @@ export class AuthoritativeService {
       aqi,
       category,
       dominantPollutant: dominant,
-      pm25: Math.round((aqi * 0.6) * 10) / 10,
-      pm10: Math.round((aqi * 1.1) * 10) / 10,
-      no2: 24.5,
-      so2: 11.2,
-      co: 410,
-      o3: 31.0,
+      pm25: pollutants.pm25,
+      pm10: pollutants.pm10,
+      no2: pollutants.no2,
+      so2: pollutants.so2,
+      co: pollutants.co,
+      o3: pollutants.o3,
       healthAdvice,
       colorCode,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated,
       isOfficialFeed: isOfficial,
     };
   }
 
   /**
-   * Fetch Pollen counts and allergy risks
+   * Fetch Pollen counts cleanly (returns null fields outside model pollen coverage)
    */
   static async fetchPollenData(lat: number, lng: number): Promise<AuthoritativePollen> {
     try {
-      const pollenUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen`;
-      const res = await fetch(pollenUrl, { signal: AbortSignal.timeout(6000) });
+      const pollenUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
+      const res = await fetch(pollenUrl, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      });
       if (res.ok) {
         const json = await res.json();
         const cur = json.current || {};
-        const alder = cur.alder_pollen ?? 0;
-        const birch = cur.birch_pollen ?? 0;
-        const grass = cur.grass_pollen ?? 0;
-        const mugwort = cur.mugwort_pollen ?? 0;
-        const olive = cur.olive_pollen ?? 0;
-        const ragweed = cur.ragweed_pollen ?? 0;
+        const alder = roundOrNull(cur.alder_pollen, 0);
+        const birch = roundOrNull(cur.birch_pollen, 0);
+        const grass = roundOrNull(cur.grass_pollen, 0);
+        const mugwort = roundOrNull(cur.mugwort_pollen, 0);
+        const olive = roundOrNull(cur.olive_pollen, 0);
+        const ragweed = roundOrNull(cur.ragweed_pollen, 0);
 
-        const total = alder + birch + grass + mugwort + olive + ragweed;
-        let riskCategory: AuthoritativePollen['riskCategory'] = 'Low';
-        let allergyTip = 'Aero-allergen levels are minimal. Safe for sensitive outdoor individuals.';
+        const hasAny = [alder, birch, grass, mugwort, olive, ragweed].some((v) => v !== null);
+        if (hasAny) {
+          const treePollen = (alder ?? 0) + (birch ?? 0) + (olive ?? 0);
+          const weedPollen = (mugwort ?? 0) + (ragweed ?? 0);
+          const total = treePollen + (grass ?? 0) + weedPollen;
 
-        if (total > 50) {
-          riskCategory = 'Very High';
-          allergyTip = 'High pollen exposure alert. Keep windows closed and take antihistamines if prescribed.';
-        } else if (total > 20) {
-          riskCategory = 'High';
-          allergyTip = 'Elevated grass and tree pollen. Shower and change clothes after outdoor activities.';
-        } else if (total > 8) {
-          riskCategory = 'Moderate';
-          allergyTip = 'Moderate allergen count. Mild sneezing or eye irritation possible in allergic people.';
+          let riskCategory: AuthoritativePollen['riskCategory'] = 'Low';
+          let allergyTip = 'Aero-allergen levels are low.';
+
+          if (total > 50) {
+            riskCategory = 'Very High';
+            allergyTip = 'Very high pollen count detected; keep windows closed during peak wind.';
+          } else if (total > 20) {
+            riskCategory = 'High';
+            allergyTip = 'Elevated pollen exposure; rinse off after extended outdoor activity.';
+          } else if (total > 8) {
+            riskCategory = 'Moderate';
+            allergyTip = 'Moderate allergen count in the ambient model grid.';
+          }
+
+          return {
+            source: 'Open-Meteo Pollen Model',
+            overallIndex: total,
+            riskCategory,
+            treePollen,
+            grassPollen: grass,
+            weedPollen,
+            alderPollen: alder,
+            birchPollen: birch,
+            ragweedPollen: ragweed,
+            allergyTip,
+            lastUpdated: cur.time || new Date().toISOString(),
+          };
         }
-
-        return {
-          source: 'Open-Meteo Bio-Atmospheric Pollen API',
-          overallIndex: total,
-          riskCategory,
-          treePollen: alder + birch + olive,
-          grassPollen: grass,
-          weedPollen: mugwort + ragweed,
-          alderPollen: alder,
-          birchPollen: birch,
-          ragweedPollen: ragweed,
-          allergyTip,
-          lastUpdated: new Date().toISOString(),
-        };
       }
     } catch (err) {
       console.warn('[AuthoritativeService] Pollen fetch error:', err);
     }
 
     return {
-      source: 'Bio-Climatic Pollen Telemetry',
-      overallIndex: 0,
+      source: 'Open-Meteo Pollen Model (Unavailable for region)',
+      overallIndex: null,
       riskCategory: 'Low',
-      treePollen: 0,
-      grassPollen: 0,
-      weedPollen: 0,
-      allergyTip: 'Botanical pollen observations are currently unavailable for this region.',
+      treePollen: null,
+      grassPollen: null,
+      weedPollen: null,
+      allergyTip: 'Gridded botanical pollen counts are unavailable outside active pollen model domains.',
       lastUpdated: new Date().toISOString(),
     };
   }
 
   /**
-   * Fetch Marine Data (Waves, Sea Surface Temperature, Swell)
+   * Fetch Marine Data (Waves, Sea Surface Temperature, Swell) — no synthetic wave fallbacks
    */
   static async fetchMarineData(lat: number, lng: number, isCoastal: boolean): Promise<AuthoritativeMarine | null> {
     if (!isCoastal) return null;
 
     try {
-      const marineUrl = `https://api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature`;
-      const res = await fetch(marineUrl, { signal: AbortSignal.timeout(6000) });
+      const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&current=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=auto`;
+      const res = await fetch(marineUrl, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      });
       if (res.ok) {
         const json = await res.json();
-        const hourly = json.hourly || {};
-        const waveHeights: number[] = hourly.wave_height || [];
-        const sstList: number[] = hourly.sea_surface_temperature || [];
-        const wavePeriods: number[] = hourly.wave_period || [];
-        const waveDirs: number[] = hourly.wave_direction || [];
+        const cur = json.current || {};
+        const curWaveHeight = roundOrNull(cur.wave_height, 2);
+        const curSst = roundOrNull(cur.sea_surface_temperature, 1);
+        const curPeriod = roundOrNull(cur.wave_period, 1);
+        const curDir = roundOrNull(cur.wave_direction, 0);
 
-        const curWaveHeight = waveHeights[0] !== undefined ? Math.round(waveHeights[0] * 10) / 10 : 1.2;
-        const curSst = sstList[0] !== undefined ? Math.round(sstList[0] * 10) / 10 : 28.5;
-        const curPeriod = wavePeriods[0] !== undefined ? Math.round(wavePeriods[0] * 10) / 10 : 7.2;
-        const curDir = waveDirs[0] !== undefined ? Math.round(waveDirs[0]) : 210;
+        if (curWaveHeight !== null || curSst !== null) {
+          let surfCondition: AuthoritativeMarine['surfCondition'] = 'Moderate Swell';
+          let marineAdvisory = 'Normal coastal sea state in Open-Meteo marine guidance.';
 
-        let surfCondition: AuthoritativeMarine['surfCondition'] = 'Moderate Swell';
-        let marineAdvisory = 'Normal coastal conditions. Standard beach safety precautions apply.';
+          if (curWaveHeight !== null) {
+            if (curWaveHeight > 3.0) {
+              surfCondition = 'Dangerous Surf';
+              marineAdvisory = 'High wave warning (>3m): dangerous swells and rip currents.';
+            } else if (curWaveHeight > 2.0) {
+              surfCondition = 'Rough Waves';
+              marineAdvisory = 'Rough seas with elevated swell (>2m); exercise coastal caution.';
+            } else if (curWaveHeight < 0.8) {
+              surfCondition = 'Calm & Safe';
+              marineAdvisory = 'Calm sea state indicated by marine wave guidance.';
+            }
+          }
 
-        if (curWaveHeight > 3.0) {
-          surfCondition = 'Dangerous Surf';
-          marineAdvisory = 'High wave warning: Dangerous rip currents. Fishermen and swimmers advised not to venture into sea.';
-        } else if (curWaveHeight > 2.0) {
-          surfCondition = 'Rough Waves';
-          marineAdvisory = 'Rough seas with high swell. Novice swimmers should stay close to shore.';
-        } else if (curWaveHeight < 0.8) {
-          surfCondition = 'Calm & Safe';
-          marineAdvisory = 'Calm sea state, warm water. Ideal conditions for swimming, boating, and coastal leisure.';
+          return {
+            source: 'Open-Meteo Marine Model',
+            isCoastal: true,
+            waveHeightMeters: curWaveHeight,
+            wavePeriodSeconds: curPeriod,
+            waveDirectionDegrees: curDir,
+            seaSurfaceTemperatureC: curSst,
+            surfCondition,
+            marineAdvisory,
+            lastUpdated: cur.time || new Date().toISOString(),
+          };
         }
-
-        return {
-          source: 'Open-Meteo Global Marine & Wave Forecast Model',
-          isCoastal: true,
-          waveHeightMeters: curWaveHeight,
-          wavePeriodSeconds: curPeriod,
-          waveDirectionDegrees: curDir,
-          seaSurfaceTemperatureC: curSst,
-          surfCondition,
-          marineAdvisory,
-          lastUpdated: new Date().toISOString(),
-        };
       }
     } catch (err) {
       console.warn('[AuthoritativeService] Marine fetch error:', err);
     }
 
-    // Coastal synthetic fallback
-    return {
-      source: 'IMD Coastal & Ocean Weather Observation',
-      isCoastal: true,
-      waveHeightMeters: 1.4,
-      wavePeriodSeconds: 6.8,
-      waveDirectionDegrees: 195,
-      seaSurfaceTemperatureC: 29.0,
-      surfCondition: 'Moderate Swell',
-      marineAdvisory: 'Moderate sea state. Stay vigilant for coastal high-tide surges.',
-      lastUpdated: new Date().toISOString(),
-    };
+    return null;
   }
 
   /**
-   * Fetch Tide data via WorldTides or astronomical tidal harmonic model
+   * Fetch Tide data strictly via WorldTides when configured (no fabricated IMD tidal forecasts)
    */
   static async fetchTideData(lat: number, lng: number, stationName: string, isCoastal: boolean): Promise<AuthoritativeTide | null> {
     if (!isCoastal) return null;
 
     const worldTidesKey = process.env.WORLDTIDES_KEY;
+    if (!worldTidesKey) return null;
+
     const today = new Date().toISOString().slice(0, 10);
+    try {
+      const tideUrl = `https://www.worldtides.info/api/v3?heights&extremes&date=${today}&days=2&lat=${lat}&lon=${lng}&key=${worldTidesKey}`;
+      const res = await fetch(tideUrl, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const extremes = json.extremes || [];
+        const highTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('high'));
+        const lowTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('low'));
+        const nextHigh = highTides[0];
+        const nextLow = lowTides[0];
+        if (!nextHigh || !nextLow) return null;
 
-    if (worldTidesKey) {
-      try {
-        const tideUrl = `https://www.worldtides.info/api/v3?heights&extremes&date=${today}&days=2&lat=${lat}&lon=${lng}&key=${worldTidesKey}`;
-        const res = await fetch(tideUrl, { signal: AbortSignal.timeout(6000) });
-        if (res.ok) {
-          const json = await res.json();
-          const extremes = json.extremes || [];
-          const highTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('high'));
-          const lowTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('low'));
+        const formatTideTime = (epochSeconds: number) =>
+          new Intl.DateTimeFormat('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          }).format(new Date(epochSeconds * 1000));
 
-          const nextHigh = highTides[0] || { dt: Math.floor(Date.now() / 1000) + 14400, height: 3.1 };
-          const nextLow = lowTides[0] || { dt: Math.floor(Date.now() / 1000) + 36000, height: 0.5 };
+        const curHeight = numOrNull(json.heights?.[0]?.height) ?? Number(nextHigh.height) ?? 0;
 
-          const formatTideTime = (epochSeconds: number) => {
-            return new Intl.DateTimeFormat('en-IN', {
-              timeZone: 'Asia/Kolkata',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            }).format(new Date(epochSeconds * 1000));
-          };
-
-          return {
-            source: 'WorldTides Global Tidal Ephemeris',
-            isCoastal: true,
-            stationName,
-            nextHighTide: {
-              time: formatTideTime(nextHigh.dt),
-              heightMeters: Math.round((nextHigh.height || 3.2) * 10) / 10,
-            },
-            nextLowTide: {
-              time: formatTideTime(nextLow.dt),
-              heightMeters: Math.round((nextLow.height || 0.6) * 10) / 10,
-            },
-            upcomingExtremes: extremes.slice(0, 4).map((e: any) => ({
-              time: formatTideTime(e.dt),
-              type: (e.type || '').toLowerCase().includes('high') ? 'High' : 'Low',
-              heightMeters: Math.round((e.height || 1.8) * 10) / 10,
-            })),
-            currentWaterLevelMeters: 2.1,
-            lastUpdated: new Date().toISOString(),
-          };
-        }
-      } catch (err) {
-        console.warn('[AuthoritativeService] WorldTides API query failed:', err);
+        return {
+          source: 'WorldTides Global Tidal Ephemeris',
+          isCoastal: true,
+          stationName,
+          nextHighTide: {
+            time: formatTideTime(nextHigh.dt),
+            heightMeters: Math.round(Number(nextHigh.height) * 10) / 10,
+          },
+          nextLowTide: {
+            time: formatTideTime(nextLow.dt),
+            heightMeters: Math.round(Number(nextLow.height) * 10) / 10,
+          },
+          upcomingExtremes: extremes.slice(0, 4).map((e: any) => ({
+            time: formatTideTime(e.dt),
+            type: (e.type || '').toLowerCase().includes('high') ? 'High' : 'Low',
+            heightMeters: Math.round(Number(e.height) * 10) / 10,
+          })),
+          currentWaterLevelMeters: Math.round(curHeight * 10) / 10,
+          lastUpdated: new Date().toISOString(),
+        };
       }
+    } catch (err) {
+      console.warn('[AuthoritativeService] WorldTides API query failed:', err);
     }
 
-    // Astronomical Harmonic Fallback for Indian Coastal Points
-    const now = new Date();
-    const curHour = now.getHours();
-    const highHour1 = (curHour + 3) % 24;
-    const lowHour1 = (curHour + 9) % 24;
-
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const highTimeStr = `${pad(highHour1 > 12 ? highHour1 - 12 : (highHour1 === 0 ? 12 : highHour1))}:${pad(15)} ${highHour1 >= 12 ? 'PM' : 'AM'}`;
-    const lowTimeStr = `${pad(lowHour1 > 12 ? lowHour1 - 12 : (lowHour1 === 0 ? 12 : lowHour1))}:${pad(45)} ${lowHour1 >= 12 ? 'PM' : 'AM'}`;
-
-    return {
-      source: 'IMD Hydrographic & Ocean Tidal Service',
-      isCoastal: true,
-      stationName,
-      nextHighTide: { time: highTimeStr, heightMeters: 3.2 },
-      nextLowTide: { time: lowTimeStr, heightMeters: 0.6 },
-      upcomingExtremes: [
-        { time: highTimeStr, type: 'High', heightMeters: 3.2 },
-        { time: lowTimeStr, type: 'Low', heightMeters: 0.6 },
-        { time: `${pad((highHour1 + 12) % 12 || 12)}:40 ${highHour1 + 12 >= 12 ? 'PM' : 'AM'}`, type: 'High', heightMeters: 2.9 },
-      ],
-      currentWaterLevelMeters: 1.9,
-      lastUpdated: new Date().toISOString(),
-    };
+    return null;
   }
 
   /**
-   * Fetch Severe Weather Alerts via Azure Maps or IMD Multi-hazard Warnings
+   * Fetch Severe Weather Alerts via Azure Maps when configured (never emit fake IMD warnings)
    */
-  static async fetchSevereAlerts(lat: number, lng: number, district: string, state: string, curTemp = 30, isRaining = false): Promise<AuthoritativeAlert[]> {
+  static async fetchSevereAlerts(
+    lat: number,
+    lng: number,
+    district: string,
+    state: string
+  ): Promise<AuthoritativeAlert[]> {
     const azureKey = process.env.AZURE_MAPS_KEY;
     const alerts: AuthoritativeAlert[] = [];
 
     if (azureKey) {
       try {
         const azureUrl = `https://atlas.microsoft.com/weather/severe/alerts/json?api-version=1.1&query=${lat},${lng}&subscription-key=${azureKey}`;
-        const res = await fetch(azureUrl, { signal: AbortSignal.timeout(6000) });
+        const res = await fetch(azureUrl, {
+          signal: AbortSignal.timeout(6000),
+          headers: { 'User-Agent': 'aistudio-build' },
+        });
         if (res.ok) {
           const json = await res.json();
           const results = json.results || [];
           for (const item of results) {
             alerts.push({
               id: item.id || `az-${Date.now()}`,
-              source: 'Azure Maps Severe Weather Service (Official Met Authority)',
+              source: 'Azure Maps Severe Weather Service',
               title: item.alertText || 'Severe Weather Warning',
               severity: (item.severity || '').toLowerCase().includes('severe') ? 'Severe' : 'Warning',
-              category: (item.category || '').toLowerCase().includes('heat') ? 'Heatwave' : (item.category || '').toLowerCase().includes('rain') ? 'Heavy Rain' : 'General',
+              category: (item.category || '').toLowerCase().includes('heat')
+                ? 'Heatwave'
+                : (item.category || '').toLowerCase().includes('rain')
+                ? 'Heavy Rain'
+                : 'General',
               description: item.description?.text || item.summary || 'Official meteorological advisory in effect.',
               affectedArea: item.areaDescription || `${district}, ${state}`,
               effectiveFrom: item.startTime || new Date().toISOString(),
               expiresAt: item.endTime || new Date(Date.now() + 86400000).toISOString(),
-              actionItem: item.instruction || 'Monitor local weather broadcasts and avoid vulnerable areas.',
-              color: '#E74C3C',
+              actionItem: item.instruction || 'Monitor local official bulletins.',
+              color: '#EF4444',
             });
           }
         }
@@ -577,55 +633,23 @@ export class AuthoritativeService {
       }
     }
 
-    // If no active external alert or key not configured, generate realistic IMD warnings based on telemetry
-    if (alerts.length === 0) {
-      if (curTemp >= 38) {
-        alerts.push({
-          id: `imd-heat-${Date.now()}`,
-          source: 'IMD National Weather Forecasting Centre (NWFC)',
-          title: `Heatwave Advisory for ${district}`,
-          severity: 'Warning',
-          category: 'Heatwave',
-          description: `Maximum daytime temperature approaching ${curTemp}°C with elevated Humidex. High heat stress expected between 12:00 PM and 04:00 PM.`,
-          affectedArea: `${district}, ${state}`,
-          effectiveFrom: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 18 * 3600000).toISOString(),
-          actionItem: 'Avoid prolonged sun exposure during peak noon hours. Stay well hydrated with water and oral electrolytes.',
-          color: '#FF8C42',
-        });
-      }
-
-      if (isRaining) {
-        alerts.push({
-          id: `imd-rain-${Date.now()}`,
-          source: 'IMD Doppler Radar & Nowcasting Network',
-          title: `Thunderstorm & Rain Alert for ${district}`,
-          severity: 'Advisory',
-          category: 'Thunderstorm',
-          description: `Active convective cloud cluster moving over ${district} sector with moderate rain and gusty winds.`,
-          affectedArea: `${district}, ${state}`,
-          effectiveFrom: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(),
-          actionItem: 'Carry rain protection gear. Drivers should watch for slippery road surfaces and reduced visibility.',
-          color: '#0B72B9',
-        });
-      }
-    }
-
     return alerts;
   }
 
   /**
-   * Compute Steadman / NOAA Heat Index (Comfort Index)
+   * Compute Humidex comfort index from real temp & humidity
    */
-  static computeComfortIndex(tempC: number, humidityPercent: number): { value: number; category: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling' } {
-    const T = tempC;
-    const R = humidityPercent;
-
-    // Simple Humidex / Heat Index approximation
-    // e = vapor pressure in mbar
-    const e = (6.112 * Math.pow(10, (7.5 * T) / (237.7 + T)) * R) / 100;
-    const humidex = T + (5 / 9) * (e - 10);
+  static computeComfortIndex(
+    tempC: number | null,
+    humidityPercent: number | null
+  ): {
+    value: number | null;
+    category: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
+  } {
+    if (tempC === null) return { value: null, category: 'Comfortable' };
+    const R = humidityPercent ?? 55;
+    const e = (6.112 * Math.pow(10, (7.5 * tempC) / (237.7 + tempC)) * R) / 100;
+    const humidex = tempC + (5 / 9) * (e - 10);
     const comfortScore = Math.round(humidex);
 
     let category: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling' = 'Comfortable';
@@ -639,7 +663,7 @@ export class AuthoritativeService {
   }
 
   /**
-   * Compute complete multi-persona bundle for a station
+   * Compute complete multi-persona bundle from real upstream Open-Meteo + AQI + Marine telemetry
    */
   static async getPersonaBundle(
     lat: number,
@@ -667,149 +691,213 @@ export class AuthoritativeService {
     }
 
     const isCoastal = this.isLocationCoastal(lat, lng, state, city);
-    const temp = currentTelemetry?.temp ?? 30;
-    const humidity = currentTelemetry?.humidity ?? 68;
-    const windSpeed = currentTelemetry?.windSpeed ?? 12;
-    const windDir = currentTelemetry?.windDir ?? 'WSW';
-    const uv = currentTelemetry?.uvIndex ?? 6;
-    const isRaining = currentTelemetry?.isRaining ?? false;
-    const visibilityKm = currentTelemetry?.visibilityKm ?? 6.5;
 
-    // Fetch parallel authoritative streams
-    const [aqi, pollen, tides, marine, alerts] = await Promise.all([
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility&hourly=soil_moisture_0_to_1cm,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=7`;
+
+    const [weatherResult, aqi, pollen, tides, marine, alerts] = await Promise.all([
+      fetch(weatherUrl, {
+        signal: AbortSignal.timeout(7000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
       this.fetchCPCBOrOpenMeteoAQI(lat, lng, stationName, city),
       this.fetchPollenData(lat, lng),
       this.fetchTideData(lat, lng, stationName, isCoastal),
       this.fetchMarineData(lat, lng, isCoastal),
-      this.fetchSevereAlerts(lat, lng, city, state, temp, isRaining),
+      this.fetchSevereAlerts(lat, lng, city, state),
     ]);
 
+    const omCur = weatherResult?.current || {};
+    const omDaily = weatherResult?.daily || {};
+    const omHourly = weatherResult?.hourly || {};
+
+    const temp = currentTelemetry?.temp ?? roundOrNull(omCur.temperature_2m, 1);
+    const humidity = currentTelemetry?.humidity ?? roundOrNull(omCur.relative_humidity_2m, 0);
+    const windSpeed = currentTelemetry?.windSpeed ?? roundOrNull(omCur.wind_speed_10m, 1);
+    const windDir =
+      currentTelemetry?.windDir ||
+      degToCompass(numOrNull(omCur.wind_direction_10m));
+    const uv =
+      currentTelemetry?.uvIndex ??
+      roundOrNull(omDaily.uv_index_max?.[0] ?? omHourly.uv_index?.[0], 1);
+    const precipNow = currentTelemetry?.rainMm ?? roundOrNull(omCur.precipitation, 1);
+    const isRaining = currentTelemetry?.isRaining ?? (precipNow !== null && precipNow > 0.1);
+    const omVisM = numOrNull(omCur.visibility);
+    const visibilityKm =
+      currentTelemetry?.visibilityKm ??
+      (omVisM !== null ? Math.round((omVisM / 1000) * 10) / 10 : null);
+
+    const fmtIst = (iso: string | undefined): string | null => {
+      if (!iso) return null;
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata',
+      });
+    };
+
+    const sunrise = currentTelemetry?.sunrise || fmtIst(omDaily.sunrise?.[0]);
+    const sunset = currentTelemetry?.sunset || fmtIst(omDaily.sunset?.[0]);
+
     // 1. Fitness Analytics
-    const heatAlertActive = temp >= 38 || alerts.some((a) => a.category === 'Heatwave');
+    const heatAlertActive = (temp !== null && temp >= 38) || alerts.some((a) => a.category === 'Heatwave');
     const heatAlertMessage = heatAlertActive
-      ? 'Extreme heat alert in effect. Avoid midday outdoor workouts (11:00 AM – 04:00 PM) to prevent heat exhaustion.'
+      ? `High thermal load (${temp}°C). Avoid strenuous midday outdoor activity.`
       : null;
 
     let bestRunningHours = '05:30 AM – 08:00 AM & 06:00 PM – 07:30 PM';
-    if (temp > 34) {
-      bestRunningHours = '05:00 AM – 06:30 AM (Coolest window with lowest UV)';
-    } else if (temp < 18) {
+    if (temp !== null && temp > 34) {
+      bestRunningHours = '05:00 AM – 06:30 AM (Lowest UV & thermal strain)';
+    } else if (temp !== null && temp < 18) {
       bestRunningHours = '07:00 AM – 09:30 AM & 04:30 PM – 06:00 PM';
     }
 
     const workoutSuitability: 'Excellent' | 'Good' | 'Fair' | 'Poor' =
-      heatAlertActive ? 'Poor' : aqi.aqi > 200 ? 'Fair' : temp > 34 ? 'Fair' : 'Excellent';
+      heatAlertActive || (aqi.aqi !== null && aqi.aqi > 200)
+        ? 'Poor'
+        : temp !== null && temp > 34
+        ? 'Fair'
+        : temp !== null
+        ? 'Excellent'
+        : 'Fair';
 
     // 2. Travel & Packing Suggestions
     const packingSuggestions: string[] = [];
     if (isRaining || alerts.some((a) => a.category === 'Heavy Rain' || a.category === 'Thunderstorm')) {
-      packingSuggestions.push('Carry a compact umbrella or raincoat (precipitation expected).');
+      packingSuggestions.push('Carry waterproof rain gear or a compact umbrella.');
     }
-    if (temp < 19) {
-      packingSuggestions.push('Pack lightweight warm layers, thermal sweater or light jacket.');
-    } else if (temp > 33) {
-      packingSuggestions.push('Pack breathable loose cottons, polarized sunglasses, and a wide-brim hat.');
+    if (temp !== null && temp < 19) {
+      packingSuggestions.push('Pack lightweight warm layers or a windbreaker.');
+    } else if (temp !== null && temp > 33) {
+      packingSuggestions.push('Pack breathable cottons, sunglasses, and hydration supplies.');
     }
-    if (uv >= 6) {
-      packingSuggestions.push('Carry broad-spectrum SPF 50+ sunscreen and UV-blocking eyewear.');
+    if (uv !== null && uv >= 6) {
+      packingSuggestions.push('Carry SPF 30+ sunscreen and UV-protective eyewear.');
     }
-    if (aqi.aqi > 150) {
-      packingSuggestions.push('Pack N95 particulate respirator mask for high particulate days.');
+    if (aqi.aqi !== null && aqi.aqi > 150) {
+      packingSuggestions.push('Pack N95 respiratory protection for elevated particulate levels.');
     }
     if (packingSuggestions.length === 0) {
-      packingSuggestions.push('Standard comfortable travel attire and reusable water bottle.');
+      packingSuggestions.push('Standard seasonal travel attire.');
     }
 
-    // 3. Parents & Family School Commute
-    const morningWindow = '07:00 AM – 09:00 AM';
-    const eveningWindow = '02:30 PM – 05:30 PM';
+    // 3. Family School Commute
     const commuteRain = isRaining;
     const morningCommuteStatus: 'Safe' | 'Caution' | 'Hazardous' =
       alerts.some((a) => a.severity === 'Severe')
         ? 'Hazardous'
-        : commuteRain || visibilityKm < 2 || aqi.aqi > 250
+        : commuteRain || (visibilityKm !== null && visibilityKm < 2) || (aqi.aqi !== null && aqi.aqi > 250)
         ? 'Caution'
         : 'Safe';
     const eveningCommuteStatus: 'Safe' | 'Caution' | 'Hazardous' =
-      heatAlertActive ? 'Caution' : commuteRain ? 'Caution' : 'Safe';
+      heatAlertActive || commuteRain ? 'Caution' : 'Safe';
 
-    const schoolBusSafetyNote =
-      commuteRain
-        ? 'Wet roads & slower bus speeds expected. Ensure children carry raincoats and waterproof bag covers.'
-        : visibilityKm < 2
-        ? 'Dense mist / fog hazard: Expect minor school transit delays due to low visibility.'
-        : 'Normal commute conditions. Weather is clear and favorable for student transit.';
+    const schoolBusSafetyNote = commuteRain
+      ? 'Wet road surfaces expected; allow extra travel time.'
+      : visibilityKm !== null && visibilityKm < 2
+      ? `Low visibility (${visibilityKm} km); monitor route conditions.`
+      : 'Normal visibility and road weather conditions.';
 
-    // 4. Agriculture & Gardening
-    const soilMoisturePercent = humidity > 80 ? 68 : humidity > 60 ? 45 : 22;
+    // 4. Agriculture & Soil (strictly from Open-Meteo hourly soil moisture & daily rain sum)
+    const smRaw = numOrNull(omHourly.soil_moisture_0_to_1cm?.[0]);
+    const soilMoisturePercent = smRaw !== null ? Math.round(smRaw * 100) : null;
     const soilMoistureStatus: 'Dry' | 'Optimal' | 'Saturated' =
-      soilMoisturePercent > 55 ? 'Saturated' : soilMoisturePercent >= 30 ? 'Optimal' : 'Dry';
+      soilMoisturePercent === null
+        ? 'Optimal'
+        : soilMoisturePercent > 35
+        ? 'Saturated'
+        : soilMoisturePercent >= 15
+        ? 'Optimal'
+        : 'Dry';
 
-    const curMonth = new Date().getMonth(); // 0-11
+    const threeDaySum = [0, 1, 2].reduce<number | null>((acc, idx) => {
+      const val = numOrNull(omDaily.precipitation_sum?.[idx]);
+      if (val === null) return acc;
+      return (acc ?? 0) + val;
+    }, null);
+    const threeDayRainfallTotalMm = threeDaySum !== null ? Math.round(threeDaySum * 10) / 10 : null;
+
+    const curMonth = new Date().getMonth();
     let currentCropSeason: 'Kharif' | 'Rabi' | 'Zaid' = 'Kharif';
-    let seasonalPlantingTip = 'Monsoon Kharif Season: Optimal window for paddy transplantation, maize, pulses, and groundnut sowing.';
+    let seasonalPlantingTip = 'Monsoon Kharif Season: align sowing and drainage with rainfall forecasts.';
     if (curMonth >= 9 || curMonth <= 2) {
       currentCropSeason = 'Rabi';
-      seasonalPlantingTip = 'Winter Rabi Season: Ideal time for wheat, mustard, chickpea, potato, and winter vegetable planting.';
+      seasonalPlantingTip = 'Winter Rabi Season: plan irrigation cycles for wheat, pulses, and vegetables.';
     } else if (curMonth >= 2 && curMonth <= 5) {
       currentCropSeason = 'Zaid';
-      seasonalPlantingTip = 'Summer Zaid Season: Favorable for watermelon, cucumber, fodder crops, and irrigated sunflower.';
+      seasonalPlantingTip = 'Summer Zaid Season: schedule early morning or evening irrigation to cut evaporation.';
     }
 
-    const frostAlertActive = temp <= 4;
+    const frostAlertActive = temp !== null && temp <= 4;
     const frostAlertMessage = frostAlertActive
-      ? 'Frost Alert: Ground temperature projected near freezing tonight. Protect nursery beds and tender horticultural crops with straw thatch.'
+      ? 'Near-freezing temperature risk detected; protect sensitive nursery crops.'
       : null;
 
-    const threeDayRainfallTotalMm = isRaining ? 24.5 : humidity > 75 ? 8.2 : 0.0;
     const irrigationRecommendation =
-      threeDayRainfallTotalMm > 15
-        ? 'Withhold irrigation for next 48–72 hours to prevent waterlogging and root rot.'
-        : soilMoisturePercent < 30
-        ? 'Provide light evening irrigation to standing crops to maintain root zone moisture.'
-        : 'Soil moisture is optimal; maintain standard field drainage channels.';
+      threeDayRainfallTotalMm === null && soilMoisturePercent === null
+        ? 'Soil moisture and 3-day precipitation telemetry unavailable; verify field conditions manually.'
+        : (threeDayRainfallTotalMm ?? 0) > 15 || (soilMoisturePercent ?? 0) > 35
+        ? 'Withhold irrigation for 48 hours to avoid root-zone waterlogging.'
+        : soilMoisturePercent !== null && soilMoisturePercent < 15
+        ? 'Schedule light supplemental irrigation in cooler hours.'
+        : 'Soil moisture is within normal balance; maintain standard schedule.';
 
     // 5. Commuters & Drivers
     const roadCondition: 'Dry' | 'Wet' | 'Waterlogged' | 'Icy' | 'Foggy' =
-      visibilityKm < 1.5 ? 'Foggy' : isRaining ? 'Wet' : 'Dry';
+      visibilityKm !== null && visibilityKm < 1.5
+        ? 'Foggy'
+        : precipNow !== null && precipNow >= 10
+        ? 'Waterlogged'
+        : isRaining
+        ? 'Wet'
+        : temp !== null && temp <= 0
+        ? 'Icy'
+        : 'Dry';
     const roadSafetyIndex: 'Green' | 'Yellow' | 'Red' =
-      roadCondition === 'Wet' || roadCondition === 'Foggy' ? 'Yellow' : 'Green';
+      roadCondition === 'Waterlogged' ? 'Red' : roadCondition === 'Wet' || roadCondition === 'Foggy' ? 'Yellow' : 'Green';
     const roadSafetyLabel =
       roadCondition === 'Wet'
-        ? 'Roads: Wet (Risk of hydroplaning & increased braking distance)'
+        ? 'Roads: Wet (Increased braking distance)'
         : roadCondition === 'Foggy'
-        ? 'Roads: Foggy (Reduced visibility, use low-beam fog lights)'
-        : 'Roads: Dry (Normal braking and traction conditions)';
+        ? 'Roads: Foggy (Reduced visibility, use fog lamps)'
+        : roadCondition === 'Waterlogged'
+        ? 'Roads: Heavy Rain / Waterlogging Risk'
+        : 'Roads: Dry (Normal driving conditions)';
 
     const travelHazards: string[] = [];
-    if (isRaining) travelHazards.push('Wet asphalt: Reduce driving speed by 15-20% and maintain safe following gap.');
-    if (visibilityKm < 3) travelHazards.push(`Visibility reduced to ${visibilityKm} km due to atmospheric haze/mist.`);
-    if (temp > 38) travelHazards.push('High road-surface heat: Check tire pressures before long highway trips.');
-    if (travelHazards.length === 0) travelHazards.push('Clear driving conditions across primary urban and highway arteries.');
+    if (isRaining) travelHazards.push('Wet asphalt: reduce highway speeds and widen following distance.');
+    if (visibilityKm !== null && visibilityKm < 3) travelHazards.push(`Visibility reduced to ${visibilityKm} km.`);
+    if (windSpeed !== null && windSpeed >= 35) travelHazards.push(`Strong crosswinds (${windSpeed} km/h).`);
+    if (travelHazards.length === 0) travelHazards.push('No major weather hazards indicated along surface routes.');
 
-    // 6. Event Planners & 7-Day Extended Comfort
+    // 6. Extended 7-Day Forecast strictly from Open-Meteo daily arrays
     const comfort = this.computeComfortIndex(temp, humidity);
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayIndex = new Date().getDay();
+    const dailyTimes: string[] = Array.isArray(omDaily.time) ? omDaily.time : [];
 
-    const extendedForecast = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
+    const extendedForecast = dailyTimes.slice(0, 7).map((dateIso, i) => {
+      const d = new Date(dateIso);
       const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayNames[d.getDay()];
       const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-      const tMax = Math.round(temp + (Math.sin(i * 1.2) * 2));
-      const tMin = Math.round(tMax - 6 - Math.cos(i) * 1.5);
-      const rainProb = isRaining ? Math.max(20, 85 - i * 12) : Math.round(15 + Math.sin(i * 0.9) * 20);
-      const c = this.computeComfortIndex(tMax, humidity - i * 2);
+      const tMax = roundOrNull(omDaily.temperature_2m_max?.[i], 0);
+      const tMin = roundOrNull(omDaily.temperature_2m_min?.[i], 0);
+      const rainProb = roundOrNull(omDaily.precipitation_probability_max?.[i], 0);
+      const wmo = numOrNull(omDaily.weather_code?.[i]);
+      const condInfo = wmoToCondition(wmo);
+      const c = this.computeComfortIndex(tMax, humidity);
 
       return {
         date: dateStr,
         dayOfWeek: dayName,
         tempMax: tMax,
         tempMin: tMin,
-        condition: rainProb > 50 ? 'Showers' : rainProb > 30 ? 'Partly Cloudy' : 'Clear Sky',
-        icon: rainProb > 50 ? 'rainy' : rainProb > 30 ? 'partly_cloudy_day' : 'wb_sunny',
-        rainProbabilityPercent: Math.max(5, Math.min(95, rainProb)),
+        condition: condInfo.condition,
+        icon: condInfo.icon,
+        rainProbabilityPercent: rainProb,
         comfortIndexValue: c.value,
         comfortCategory: c.category,
       };
@@ -817,10 +905,12 @@ export class AuthoritativeService {
 
     const eventRecommendation =
       comfort.category === 'Stifling' || comfort.category === 'Uncomfortable'
-        ? 'High thermal stress: Arrange misting fans, air-conditioned canopy lounges, and ample hydration stations.'
+        ? 'Elevated thermal stress: provide shaded seating and hydration stations.'
         : isRaining
-        ? 'Precipitation probable: Waterproof covered marquis and elevated staging recommended.'
-        : 'Pleasant atmospheric parameters: Ideal conditions for open-air cultural and sporting events.';
+        ? 'Active precipitation: covered venue contingency advised.'
+        : temp === null
+        ? 'Weather model telemetry unavailable for automated venue guidance.'
+        : 'Atmospheric parameters are within comfortable bounds for outdoor events.';
 
     const bundle: PersonaDataBundle = {
       location: {
@@ -834,21 +924,44 @@ export class AuthoritativeService {
         aqi,
         pollen,
         uvIndex: uv,
-        uvRiskLabel: uv >= 8 ? 'Very High Risk' : uv >= 6 ? 'High Risk' : uv >= 3 ? 'Moderate Risk' : 'Low Risk',
-        uvAdvice: uv >= 6 ? 'Avoid direct sun between 11 AM - 3 PM; wear UV sunglasses & SPF 30+' : 'Low UV radiation',
+        uvRiskLabel:
+          uv === null
+            ? 'Unavailable'
+            : uv >= 8
+            ? 'Very High Risk'
+            : uv >= 6
+            ? 'High Risk'
+            : uv >= 3
+            ? 'Moderate Risk'
+            : 'Low Risk',
+        uvAdvice:
+          uv === null
+            ? 'UV radiation telemetry unavailable.'
+            : uv >= 6
+            ? 'Avoid direct sun between 11 AM - 3 PM; wear UV sunglasses & SPF 30+'
+            : 'Moderate/low UV exposure.',
         humidity,
       },
       fitness: {
-        sunrise: currentTelemetry?.sunrise || '05:32 AM',
-        sunset: currentTelemetry?.sunset || '06:18 PM',
+        sunrise,
+        sunset,
         bestRunningHours,
         workoutSuitability,
         heatAlertActive,
         heatAlertMessage,
         windSpeedKmh: windSpeed,
         windDirection: windDir,
-        hydrationRateMlHour: temp > 32 ? 750 : 500,
-        thermalStressLevel: temp >= 38 ? 'Extreme' : temp >= 33 ? 'High' : temp >= 28 ? 'Moderate' : 'Low',
+        hydrationRateMlHour: temp === null ? null : temp > 32 ? 750 : 500,
+        thermalStressLevel:
+          temp === null
+            ? 'Low'
+            : temp >= 38
+            ? 'Extreme'
+            : temp >= 33
+            ? 'High'
+            : temp >= 28
+            ? 'Moderate'
+            : 'Low',
       },
       beachAndSurf: {
         isCoastal,
@@ -858,15 +971,22 @@ export class AuthoritativeService {
       travel: {
         activeAlerts: alerts,
         packingSuggestions,
-        travelSafetyRating: alerts.length > 0 && alerts[0].severity === 'Severe' ? 'Hazardous' : alerts.length > 0 ? 'Caution Advised' : 'Favorable',
+        travelSafetyRating:
+          alerts.length > 0 && alerts[0].severity === 'Severe'
+            ? 'Hazardous'
+            : alerts.length > 0
+            ? 'Caution Advised'
+            : 'Favorable',
       },
       familyCommute: {
         morningCommuteStatus,
         eveningCommuteStatus,
-        morningWindow,
-        eveningWindow,
+        morningWindow: '07:00 AM – 09:00 AM',
+        eveningWindow: '02:30 PM – 05:30 PM',
         rainExpectedDuringCommute: commuteRain,
-        commuteRainSummary: commuteRain ? 'Rain showers forecast during morning school travel window.' : 'Dry roads during commute hours.',
+        commuteRainSummary: commuteRain
+          ? 'Rain showers indicated in current model guidance.'
+          : 'No active rainfall indicated in current surface check.',
         schoolBusSafetyNote,
         severeWarnings: alerts,
       },
@@ -885,7 +1005,16 @@ export class AuthoritativeService {
         roadSafetyIndex,
         roadSafetyLabel,
         visibilityKm,
-        visibilityStatus: visibilityKm < 1 ? 'Dense Fog Danger' : visibilityKm < 3 ? 'Poor (Fog)' : visibilityKm < 6 ? 'Moderate' : 'Clear',
+        visibilityStatus:
+          visibilityKm === null
+            ? 'Clear'
+            : visibilityKm < 1
+            ? 'Dense Fog Danger'
+            : visibilityKm < 3
+            ? 'Poor (Fog)'
+            : visibilityKm < 6
+            ? 'Moderate'
+            : 'Clear',
         travelHazards,
       },
       eventPlanner: {
@@ -897,8 +1026,8 @@ export class AuthoritativeService {
       fetchedAt: new Date().toISOString(),
     };
 
-    // Cache the bundle
     memoryCache.set(cacheKey, { data: bundle, timestamp: Date.now() });
     return bundle;
   }
 }
+

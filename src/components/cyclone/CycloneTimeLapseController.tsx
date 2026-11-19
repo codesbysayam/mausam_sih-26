@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Radio,
 } from 'lucide-react';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface CycloneTimeLapseFrame {
   id: string;
@@ -154,7 +155,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
             <div className="flex items-center gap-1.5 text-[#F3F6FA]">
               <Compass className="w-3.5 h-3.5 text-[#35C7E8]" />
               <span className="text-[11px] font-semibold">
-                {currentFrame.latitude.toFixed(2)}°N, {currentFrame.longitude.toFixed(2)}°E
+                {formatCoordinatePair(currentFrame.latitude, currentFrame.longitude, 2)}
               </span>
             </div>
 

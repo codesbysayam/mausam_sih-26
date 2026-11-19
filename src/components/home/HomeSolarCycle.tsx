@@ -3,6 +3,7 @@ import * as SunCalc from 'suncalc';
 import { Sun, Sunrise, Sunset, Clock, Sparkles, Compass } from 'lucide-react';
 import { LocationRecord, CurrentWeather } from '../../types';
 import { DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface HomeSolarCycleProps {
   location?: LocationRecord;
@@ -24,8 +25,8 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const lat = typeof location?.lat === 'number' ? location.lat : 20.2961;
-  const lng = typeof location?.lng === 'number' ? location.lng : 85.8245;
+  const lat = typeof location?.lat === 'number' && Number.isFinite(location.lat) ? location.lat : 20.2961;
+  const lng = typeof location?.lng === 'number' && Number.isFinite(location.lng) ? location.lng : 85.8245;
 
   const solarData = useMemo(() => {
     const times = SunCalc.getTimes(now, lat, lng);
@@ -105,7 +106,7 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
         title="Solar Trajectory & Day Length"
         subtitle={
           location?.city
-            ? `${location.city} (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)`
+            ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})`
             : 'Astronomical Solar Ephemeris'
         }
         icon={<Sun className="w-4 h-4 text-[#F59E0B]" />}

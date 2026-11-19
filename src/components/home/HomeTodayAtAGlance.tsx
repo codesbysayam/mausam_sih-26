@@ -24,27 +24,57 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
   weather,
   todayForecast,
 }) => {
-  const currentTemp = typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? Math.round(weather.temp) : 28;
-  const highTemp = todayForecast?.high || (typeof weather.high === 'number' ? Math.round(weather.high) : currentTemp + 4);
-  const lowTemp = todayForecast?.low || (typeof weather.low === 'number' ? Math.round(weather.low) : currentTemp - 3);
-  const humidity = typeof weather.humidity === 'number' ? Math.round(weather.humidity) : 72;
-  const windSpeed = typeof weather.windSpeed === 'number' ? Math.round(weather.windSpeed) : 14;
-  const rainProb = typeof weather.precipitationProbability === 'number' ? Math.round(weather.precipitationProbability) : 20;
+  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+  const currentTemp = isNum(weather.temp) ? Math.round(weather.temp) : null;
+  const highTemp = isNum(todayForecast?.high)
+    ? Math.round(todayForecast.high)
+    : isNum(weather.high)
+    ? Math.round(weather.high)
+    : null;
+  const lowTemp = isNum(todayForecast?.low)
+    ? Math.round(todayForecast.low)
+    : isNum(weather.low)
+    ? Math.round(weather.low)
+    : null;
+  const tempSpan = highTemp !== null && lowTemp !== null ? highTemp - lowTemp : null;
+
+  const humidity = isNum(weather.humidity) ? Math.round(weather.humidity) : null;
+  const windSpeed = isNum(weather.windSpeed) ? Math.round(weather.windSpeed) : null;
+  const rainProb = isNum(weather.precipitationProbability) ? Math.round(weather.precipitationProbability) : null;
+  const windDeg = isNum(weather.windDirectionDeg) ? Math.round(weather.windDirectionDeg) : null;
+  const gustSpeed = isNum(weather.windGusts) ? Math.round(weather.windGusts) : null;
+  const precipMm = isNum(weather.precipitationMm)
+    ? weather.precipitationMm
+    : isNum(weather.precipitation)
+    ? weather.precipitation
+    : null;
+
   const aqiVal: number | null =
-    typeof weather.aqi === 'number' && !Number.isNaN(weather.aqi) && weather.aqi > 0
+    isNum(weather.aqi) && weather.aqi > 0
       ? Math.round(weather.aqi)
       : null;
-  const uvVal = typeof weather.uvIndex === 'number' ? weather.uvIndex : null;
-  const pressure = typeof weather.pressure === 'number' ? weather.pressure : null;
-  const visibility = typeof weather.visibility === 'number' ? weather.visibility : null;
-  const dewPoint = Math.round(currentTemp - (100 - humidity) / 5);
+  const uvVal = isNum(weather.uvIndex) ? weather.uvIndex : null;
+  const pressure = isNum(weather.pressure) ? weather.pressure : null;
+  const visibility = isNum(weather.visibility) ? weather.visibility : null;
+  const dewPoint = isNum(weather.dewPoint)
+    ? Math.round(weather.dewPoint)
+    : currentTemp !== null && humidity !== null
+    ? Math.round(currentTemp - (100 - humidity) / 5)
+    : null;
 
   const aqiInfo = aqiVal !== null
     ? getAqiMeaning(aqiVal)
     : { category: 'Unavailable', severityColor: '#93A4B8' };
-  const humidityInfo = getHumidityMeaning(humidity);
-  const windInfo = getWindMeaning(windSpeed, weather.windDirection || 'NE');
-  const rainInfo = getRainProbabilityMeaning(rainProb);
+  const humidityInfo = humidity !== null
+    ? getHumidityMeaning(humidity)
+    : { headline: 'Unavailable' };
+  const windInfo = windSpeed !== null
+    ? getWindMeaning(windSpeed, weather.windDirection || '—')
+    : { headline: 'Unavailable' };
+  const rainInfo = rainProb !== null
+    ? getRainProbabilityMeaning(rainProb)
+    : { headline: 'Unavailable' };
 
   return (
     <section id="homepage-today-at-a-glance" className="flex flex-col gap-4">
@@ -75,25 +105,27 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
               </span>
             </div>
             <span className="text-[11px] font-mono text-[#93A4B8]">
-              Span {highTemp - lowTemp}°C
+              {tempSpan !== null ? `Span ${tempSpan}°C` : 'Span —'}
             </span>
           </div>
 
           <div className="flex items-baseline justify-between my-1">
             <div>
-              <span className="text-3xl font-light text-[#F4F7FA] tracking-tight">{currentTemp}°C</span>
+              <span className="text-3xl font-light text-[#F4F7FA] tracking-tight">
+                {currentTemp !== null ? `${currentTemp}°C` : '—'}
+              </span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">Current surface temp</span>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <div className="flex items-center gap-1 bg-[#071018] px-2.5 py-1 rounded-lg border border-[#162331]">
                 <ArrowUp className="w-3.5 h-3.5 text-[#EF5350]" />
                 <span className="text-[#93A4B8]">High</span>
-                <strong className="text-[#F4F7FA]">{highTemp}°</strong>
+                <strong className="text-[#F4F7FA]">{highTemp !== null ? `${highTemp}°` : '—'}</strong>
               </div>
               <div className="flex items-center gap-1 bg-[#071018] px-2.5 py-1 rounded-lg border border-[#162331]">
                 <ArrowDown className="w-3.5 h-3.5 text-[#43C7F4]" />
                 <span className="text-[#93A4B8]">Low</span>
-                <strong className="text-[#F4F7FA]">{lowTemp}°</strong>
+                <strong className="text-[#F4F7FA]">{lowTemp !== null ? `${lowTemp}°` : '—'}</strong>
               </div>
             </div>
           </div>
@@ -103,13 +135,13 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
             <div className="w-full h-2 bg-[#162331] rounded-full overflow-hidden flex">
               <div
                 className="h-full bg-gradient-to-r from-[#43C7F4] via-[#FFC857] to-[#EF5350] rounded-full"
-                style={{ width: '100%' }}
+                style={{ width: currentTemp !== null ? '100%' : '0%' }}
               />
             </div>
             <div className="flex justify-between text-[10px] text-[#93A4B8] mt-1.5 font-mono">
-              <span>Min {lowTemp}°C</span>
-              <span className="text-[#D1DCE8]">Diurnal cycle normal</span>
-              <span>Max {highTemp}°C</span>
+              <span>Min {lowTemp !== null ? `${lowTemp}°C` : '—'}</span>
+              <span className="text-[#D1DCE8]">{currentTemp !== null ? 'Diurnal cycle' : 'Awaiting telemetry'}</span>
+              <span>Max {highTemp !== null ? `${highTemp}°C` : '—'}</span>
             </div>
           </div>
         </div>
@@ -132,15 +164,17 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
 
           <div className="flex items-baseline justify-between my-1">
             <div>
-              <span className="text-3xl font-light text-[#43C7F4] tracking-tight">{rainProb}%</span>
+              <span className="text-3xl font-light text-[#43C7F4] tracking-tight">
+                {rainProb !== null ? `${rainProb}%` : '—'}
+              </span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">Precipitation potential</span>
             </div>
             <div className="text-right">
               <span className="text-xs font-semibold text-[#F4F7FA] block">
-                {rainProb >= 50 ? 'Intermittent Showers' : 'Dry Intervals'}
+                {rainProb === null ? 'Unavailable' : rainProb >= 50 ? 'Intermittent Showers' : 'Dry Intervals'}
               </span>
               <span className="text-[11px] text-[#93A4B8]">
-                24h Accum: {rainProb > 40 ? '6.4 mm' : '0.0 mm'}
+                Observed: {precipMm !== null ? `${precipMm} mm` : '—'}
               </span>
             </div>
           </div>
@@ -150,7 +184,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
             <div className="w-full h-2 bg-[#162331] rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#1499E8] to-[#43C7F4] transition-all duration-500 rounded-full"
-                style={{ width: `${Math.max(5, rainProb)}%` }}
+                style={{ width: `${rainProb !== null ? Math.max(5, rainProb) : 0}%` }}
               />
             </div>
             <div className="flex justify-between text-[10px] text-[#93A4B8] mt-1.5 font-mono">
@@ -180,10 +214,15 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
           <div className="flex items-baseline justify-between my-1">
             <div>
               <span className="text-3xl font-light text-[#F4F7FA] tracking-tight">
-                {windSpeed} <span className="text-base font-normal text-[#93A4B8]">km/h</span>
+                {windSpeed !== null ? windSpeed : '—'}{' '}
+                {windSpeed !== null && <span className="text-base font-normal text-[#93A4B8]">km/h</span>}
               </span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">
-                Direction: <strong className="text-[#F4F7FA] font-medium">{weather.windDirection || 'NE'} ({weather.windDirectionDeg || 45}°)</strong>
+                Direction:{' '}
+                <strong className="text-[#F4F7FA] font-medium">
+                  {weather.windDirection || '—'}
+                  {windDeg !== null ? ` (${windDeg}°)` : ''}
+                </strong>
               </span>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#071018] border border-[#162331] flex items-center justify-center text-[#22C7A0]">
@@ -192,8 +231,8 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-[#93A4B8] pt-2 border-t border-[#162331]">
-            <span>Gusts: <strong className="text-[#F4F7FA] font-mono">{Math.round(windSpeed * 1.4)} km/h</strong></span>
-            <span>Beaufort Scale 3 (Gentle Breeze)</span>
+            <span>Gusts: <strong className="text-[#F4F7FA] font-mono">{gustSpeed !== null ? `${gustSpeed} km/h` : '—'}</strong></span>
+            <span>{windSpeed === null ? 'Telemetry unavailable' : windSpeed >= 20 ? 'Fresh Breeze' : windSpeed >= 12 ? 'Gentle Breeze' : 'Light Air'}</span>
           </div>
         </div>
 
@@ -228,8 +267,8 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
               <span className="text-xs text-[#93A4B8] block mt-0.5">PM2.5 Primary Pollutant</span>
             </div>
             <div className="text-right text-xs text-[#93A4B8]">
-              <div>PM2.5: <strong className="text-[#F4F7FA]">{typeof weather.aqiPm25 === 'number' ? `${Math.round(weather.aqiPm25)} µg/m³` : '—'}</strong></div>
-              <div>PM10: <strong className="text-[#F4F7FA]">{typeof weather.aqiPm10 === 'number' ? `${Math.round(weather.aqiPm10)} µg/m³` : '—'}</strong></div>
+              <div>PM2.5: <strong className="text-[#F4F7FA]">{isNum(weather.aqiPm25) ? `${Math.round(weather.aqiPm25)} µg/m³` : '—'}</strong></div>
+              <div>PM10: <strong className="text-[#F4F7FA]">{isNum(weather.aqiPm10) ? `${Math.round(weather.aqiPm10)} µg/m³` : '—'}</strong></div>
             </div>
           </div>
 
@@ -262,18 +301,25 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
 
           <div className="flex items-baseline justify-between my-1">
             <div>
-              <span className="text-3xl font-light text-[#F4F7FA] tracking-tight">{humidity}%</span>
+              <span className="text-3xl font-light text-[#F4F7FA] tracking-tight">
+                {humidity !== null ? `${humidity}%` : '—'}
+              </span>
               <span className="text-xs text-[#93A4B8] block mt-0.5">Relative moisture content</span>
             </div>
             <div className="text-right text-xs">
               <span className="text-[#93A4B8] block">Dew Point</span>
-              <strong className="text-[#43C7F4] text-base font-semibold">{dewPoint}°C</strong>
+              <strong className="text-[#43C7F4] text-base font-semibold">
+                {dewPoint !== null ? `${dewPoint}°C` : '—'}
+              </strong>
             </div>
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-[#93A4B8] pt-2 border-t border-[#162331]">
-            <span>Air Vapor Saturation: {humidity >= 80 ? 'Heavy' : humidity >= 60 ? 'Moderate' : 'Dry'}</span>
-            <span>Comfort: {humidity <= 65 ? 'Optimal' : 'Muggy'}</span>
+            <span>
+              Air Vapor Saturation:{' '}
+              {humidity === null ? '—' : humidity >= 80 ? 'Heavy' : humidity >= 60 ? 'Moderate' : 'Dry'}
+            </span>
+            <span>Comfort: {humidity === null ? '—' : humidity <= 65 ? 'Optimal' : 'Muggy'}</span>
           </div>
         </div>
 
@@ -312,7 +358,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
 
           <div className="flex items-center justify-between text-[11px] text-[#93A4B8] pt-2 border-t border-[#162331]">
             <span>Peak UV Window: 11:30 AM – 2:30 PM</span>
-            <span>Barometer: Steady</span>
+            <span>{pressure !== null ? 'Barometer Active' : 'Barometer Unavailable'}</span>
           </div>
         </div>
       </div>

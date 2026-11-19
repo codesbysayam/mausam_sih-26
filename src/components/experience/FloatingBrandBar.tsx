@@ -228,7 +228,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                         </div>
                       </div>
                       <span className="text-[10px] font-mono text-[#8295A8] shrink-0 tabular-nums">
-                        {loc.lat.toFixed(1)}°N
+                        {Math.abs(loc.lat).toFixed(1)}°{loc.lat >= 0 ? 'N' : 'S'}
                       </span>
                     </button>
                   ))
@@ -386,11 +386,34 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                 />
               </label>
 
+              {/* Editorial Surface Theme Switcher (Deep Ink vs Warm Paper) */}
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-[var(--m-border)]">
+                <span className="text-[11px] text-[var(--m-text-muted)] uppercase tracking-wider font-semibold">
+                  Editorial Surface Theme
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => document.documentElement.removeAttribute('data-theme')}
+                    className="min-h-[36px] px-2.5 rounded-lg font-medium border bg-[#101820] border-[#354653] text-[#F5F3ED] hover:border-[#2C7BE5] cursor-pointer spatial-focus-ring"
+                  >
+                    Deep Ink
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => document.documentElement.setAttribute('data-theme', 'paper')}
+                    className="min-h-[36px] px-2.5 rounded-lg font-medium border bg-[#F5F3ED] border-[#D8D4C9] text-[#101820] hover:border-[#2C7BE5] cursor-pointer spatial-focus-ring"
+                  >
+                    Warm Paper
+                  </button>
+                </div>
+              </div>
+
               {/* Language Switcher */}
-              <div className="flex flex-col gap-1 pt-2 border-t border-[#26394B]">
+              <div className="flex flex-col gap-1 pt-2 border-t border-[var(--m-border)]">
                 <label
                   htmlFor="spatial-lang-select"
-                  className="text-[11px] text-[#8295A8] uppercase tracking-wider font-semibold"
+                  className="text-[11px] text-[var(--m-text-muted)] uppercase tracking-wider font-semibold"
                 >
                   Language
                 </label>
@@ -398,7 +421,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                   id="spatial-lang-select"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
-                  className="bg-[#08131F] border border-[#26394B] rounded-lg px-2.5 min-h-[40px] sm:min-h-[36px] text-xs text-[#F3F6FA] focus:outline-none focus:border-[#35C7E8]"
+                  className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg px-2.5 min-h-[40px] sm:min-h-[36px] text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[#2C7BE5]"
                 >
                   {availableLanguages.map((lang) => (
                     <option key={lang.code} value={lang.code}>

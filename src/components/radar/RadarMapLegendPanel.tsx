@@ -239,9 +239,9 @@ export interface RadarMapLegendPanelProps {
 
 export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
   initialMetric = 'all',
-  initialCollapsed = false,
+  initialCollapsed = true,
   className = '',
-  positionClass = 'top-3 left-3',
+  positionClass = 'bottom-3 right-3',
   onMetricChange,
   activePrecipLevels,
   onPrecipLevelsChange,

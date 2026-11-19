@@ -8,6 +8,7 @@ import {
   GeolocationServiceError,
   NearestStationResult,
 } from '../services/geolocationService';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 export type GpsStatus =
   | 'GPS ACTIVE'
@@ -54,10 +55,7 @@ export interface LocationContextType {
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 function formatCoordinates(lat?: number, lng?: number): string {
-  if (typeof lat !== 'number' || typeof lng !== 'number') return '20.29°N, 85.82°E';
-  const latStr = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'}`;
-  const lngStr = `${Math.abs(lng).toFixed(2)}°${lng >= 0 ? 'E' : 'W'}`;
-  return `${latStr}, ${lngStr}`;
+  return formatCoordinatePair(lat, lng, 2);
 }
 
 export function formatNearestObservation(
@@ -143,8 +141,8 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
     userLocation.selectedLocation.city ||
     userLocation.selectedLocation.district ||
     userLocation.selectedLocation.name;
-  const state = userLocation.selectedLocation.state || 'India';
-  const country = 'India';
+  const state = userLocation.selectedLocation.state || '';
+  const country = userLocation.selectedLocation.country || 'India';
   const nearestObservationStation = formatNearestObservation(
     userLocation.selectedLocation,
     userLocation.nearestStationInfo
@@ -162,7 +160,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
     country,
     nearestObservationStation,
     gpsStatus,
-    lastUpdatedTime: userLocation.lastDetectedAt || new Date(),
+    lastUpdatedTime: userLocation.lastDetectedAt || null,
 
     location: userLocation.selectedLocation,
     coordinatesFormatted,

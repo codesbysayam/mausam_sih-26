@@ -23,6 +23,7 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface HomeHistoricalClimateTrendsProps {
   location: LocationRecord;
@@ -30,8 +31,8 @@ interface HomeHistoricalClimateTrendsProps {
 
 // Monthly climate baseline generator calibrated to Indian climate zones
 function generateHistoricalClimateData(location: LocationRecord) {
-  const lat = typeof location.lat === 'number' ? location.lat : 20.29;
-  const lng = typeof location.lng === 'number' ? location.lng : 85.82;
+  const lat = typeof location.lat === 'number' && Number.isFinite(location.lat) ? location.lat : 20.29;
+  const lng = typeof location.lng === 'number' && Number.isFinite(location.lng) ? location.lng : 85.82;
 
   // Regional baseline modifiers
   const isNorthern = lat > 24;
@@ -129,15 +130,14 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
     };
   }, [monthlyData]);
 
-  const coordLat = typeof location.lat === 'number' && !Number.isNaN(location.lat) ? `${location.lat.toFixed(2)}°N` : '—';
-  const coordLng = typeof location.lng === 'number' && !Number.isNaN(location.lng) ? `${location.lng.toFixed(2)}°E` : '—';
+  const coordsLabel = formatCoordinatePair(location.lat, location.lng, 2);
 
   return (
     <DataPanel id="historical-climate-trends-section" className="flex flex-col gap-5">
       <SectionHeading
         icon={<History className="w-4 h-4" />}
         title="Historical Climate Trends & IMD Normals"
-        subtitle={`1991–2020 climatological baseline calibrated for ${location.city || location.name} (${coordLat}, ${coordLng})`}
+        subtitle={`1991–2020 climatological baseline calibrated for ${location.city || location.name} (${coordsLabel})`}
         badge={<SourceStatus status="REFERENCE" labelOverride="CLIMATOLOGICAL REFERENCE" />}
         action={
           <div className="flex items-center gap-2 flex-wrap">

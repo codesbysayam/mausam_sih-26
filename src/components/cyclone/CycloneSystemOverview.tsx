@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { WeatherSystemEvent } from '../../types/cyclone';
 import { DataPanel, MetricValue, SectionHeading } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface CycloneSystemOverviewProps {
   activeSystem: WeatherSystemEvent;
@@ -112,7 +113,7 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
           </div>
           <MetricValue
             label="Estimated Center"
-            value={`${activeSystem.latitude.toFixed(1)}°N, ${activeSystem.longitude.toFixed(1)}°E`}
+            value={formatCoordinatePair(activeSystem.latitude, activeSystem.longitude, 1)}
             hint={activeSystem.currentLocation}
             valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
           />

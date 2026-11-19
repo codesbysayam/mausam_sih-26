@@ -318,8 +318,20 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
       };
     }
   } else {
-    // Fallback based on numerical parameters
-    if (currentPrecip > 2.0) {
+    const hasPrecip =
+      typeof input.precipitationMm === 'number' && Number.isFinite(input.precipitationMm);
+    const hasCloud =
+      typeof input.cloudCover === 'number' && Number.isFinite(input.cloudCover);
+
+    if (!hasPrecip && !hasCloud) {
+      baseResolved = {
+        normalizedCondition: 'UNKNOWN',
+        conditionLabel: 'Condition Unavailable',
+        weatherType: 'sunny',
+        icon: 'cloud_off',
+        isRainingNow: false,
+      };
+    } else if (currentPrecip > 2.0) {
       baseResolved = {
         normalizedCondition: 'RAIN',
         conditionLabel: 'Rain',
@@ -366,6 +378,7 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
   // If current measured precipitation is 0 and condition is not intrinsically active rain, enforce NO RAIN NOW.
   const isRainingNow =
     (baseResolved.isRainingNow || currentPrecip > 0.1) &&
+    baseResolved.normalizedCondition !== 'UNKNOWN' &&
     baseResolved.normalizedCondition !== 'CLEAR' &&
     baseResolved.normalizedCondition !== 'PARTLY_CLOUDY' &&
     baseResolved.normalizedCondition !== 'OVERCAST' &&
@@ -373,7 +386,10 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
     baseResolved.normalizedCondition !== 'DUST';
 
   // 3. Clear Forecast vs Current distinction
-  let rainExpectedSummary = 'No rain expected in immediate window';
+  let rainExpectedSummary =
+    baseResolved.normalizedCondition === 'UNKNOWN'
+      ? 'Precipitation forecast unavailable'
+      : 'No rain expected in immediate window';
   if (isRainingNow) {
     rainExpectedSummary = `Active precipitation (${currentPrecip.toFixed(1)} mm/hr)`;
   } else if (rainProb > 60) {
@@ -399,14 +415,21 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
   }
 
   // 5. Build atmospheric description
-  let atmosphericDescription = `${baseResolved.conditionLabel}. Wind ${input.windSpeedKmH || 12} km/h.`;
+  const windStr =
+    typeof input.windSpeedKmH === 'number' && Number.isFinite(input.windSpeedKmH)
+      ? ` Wind ${Math.round(input.windSpeedKmH)} km/h.`
+      : '';
+  let atmosphericDescription =
+    baseResolved.normalizedCondition === 'UNKNOWN'
+      ? 'Atmospheric condition telemetry unavailable.'
+      : `${baseResolved.conditionLabel}.${windStr}`;
   if (!isRainingNow && rainProb > 30) {
     atmosphericDescription += ` (${rainProb}% rain probability later today).`;
   }
 
   const conditionKey = getWeatherCondition({
     wmoCode: input.wmoCode,
-    precipitation: currentPrecip,
+    precipitation: input.precipitationMm,
     cloudCover: input.cloudCover,
     isDay: input.isDaytime ?? true,
     rawConditionText: input.rawConditionText,

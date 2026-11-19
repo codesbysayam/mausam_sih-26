@@ -4,6 +4,8 @@
  * Smart India Hackathon 2026
  */
 
+import { formatCoordinatePair } from '../../shared/weatherContract';
+
 export const MAUSAM_AI_MASTER_SYSTEM_PROMPT = `===============================================================
 MAUSAM AI — MASTER SYSTEM PROMPT
 Atmospheric Intelligence & Citizen Weather Platform
@@ -1468,31 +1470,27 @@ Established in **1875**, the **India Meteorological Department (IMD)** is the pr
 
   // 9. Bay of Bengal / Arabian Sea / Cyclone / Low Pressure inquiries
   if (q.includes('cyclone') || q.includes('low pressure') || q.includes('bay of bengal') || q.includes('bulletin') || q.includes('depression') || q.includes('arabian sea')) {
+    const coordStr = formatCoordinatePair(loc.latitude, loc.longitude, 2);
+    const fmtVal = (v: number | null | undefined, unit: string) =>
+      typeof v === 'number' && Number.isFinite(v) ? `${v}${unit}` : 'Unavailable';
     return {
       text: `INDIA METEOROLOGICAL DEPARTMENT
 CYCLONE WARNING DIVISION, NEW DELHI
 SPECIAL TROPICAL WEATHER OUTLOOK FOR NORTH INDIAN OCEAN
 
-Location Context: ${loc.city || 'Coastal India'}, ${loc.state || 'Odisha'} (Lat: ${loc.latitude || 20.30}°N, Lon: ${loc.longitude || 85.82}°E)
+Location Context: ${loc.city || 'Coastal India'}, ${loc.state || 'Region'} (${coordStr})
 
-1. Synoptic Situation over Bay of Bengal:
-• A cyclonic circulation persists over North & adjoining Central Bay of Bengal extending up to middle tropospheric levels.
-• Under its influence, a Low Pressure Area is marked with associated convective cloud clusters extending over North-west & West-central Bay of Bengal off Odisha–West Bengal coasts.
-• Estimated Central Pressure: ~1002 hPa with surface wind speeds of 35–45 km/h gusting to 55 km/h over open sea.
+1. Synoptic Guidance:
+• No locally fabricated storm parameters are generated here; consult the live Cyclone Tracker and RSMC New Delhi bulletins for verified depression/cyclone fixes.
 
 2. Station Telemetry (${loc.station || loc.city}):
-• Surface Pressure: ${obs.pressureHpa ?? 1003.7} hPa
-• Surface Wind: ${obs.windSpeedKmh ?? 8} km/h from ${obs.windDirection || 'WSW'}
-• Relative Humidity: ${obs.relativeHumidity ?? 97}%
-• Current Condition: ${obs.condition ?? 'Overcast with light breeze'}
+• Surface Pressure: ${fmtVal(obs.pressureHpa, ' hPa')}
+• Surface Wind: ${fmtVal(obs.windSpeedKmh, ' km/h')}${obs.windDirection && obs.windDirection !== '—' ? ` from ${obs.windDirection}` : ''}
+• Relative Humidity: ${fmtVal(obs.relativeHumidity, '%')}
+• Current Condition: ${obs.condition || 'Condition Unavailable'}
 
-3. Fishermen Warning & Sea Condition:
-• Sea condition is Rough to Very Rough over North and adjoining West-central Bay of Bengal.
-• Fishermen are advised NOT to venture into deep sea areas along and off Odisha, West Bengal, and North Andhra Pradesh coasts during the next 48 hours.
-
-4. 48-Hour Impact & Warning Status:
-• Squally weather with gusty winds expected in coastal belts.
-• Heavy to Very Heavy rainfall likely over isolated places in ${loc.state || 'coastal districts'}.
+3. Official Maritime & Coastal Monitoring:
+• Mariners and coastal residents should consult IMD / INCOIS advisories when high-wave or cyclonic warnings are active.
 
 Updated:
 ${timeStr} IST
@@ -1516,26 +1514,27 @@ India Meteorological Department (IMD) — Cyclone Warning Division`,
 
   // 10. Severe rain & thunderstorm / lightning warning
   if (q.includes('rain') || q.includes('thunderstorm') || q.includes('warning') || q.includes('lightning') || q.includes('squall') || q.includes('alert')) {
+    const fmtVal = (v: number | null | undefined, unit: string) =>
+      typeof v === 'number' && Number.isFinite(v) ? `${v}${unit}` : 'Unavailable';
     return {
       text: `INDIA METEOROLOGICAL DEPARTMENT
-DISTRICT SEVERE WEATHER WARNING & NOWCAST BULLETIN
+DISTRICT SEVERE WEATHER WARNING & NOWCAST GUIDANCE
 
 Target Area: ${loc.city}, District: ${loc.city || loc.state}, State: ${loc.state}
 
-1. Warning Status (Colour Code: YELLOW / WATCH):
-• Thunderstorm accompanied with lightning and surface wind gusts reaching 30–40 km/h likely at isolated places over ${loc.state}.
-• Precipitation Probability: ${obs.rainProbability ?? 20}% | 24-hr Rainfall recorded: ${obs.rainfall24hMm ?? 0} mm.
+1. Precipitation & Active Warning Feed:
+• Precipitation Probability: ${fmtVal(obs.rainProbability, '%')} | Recorded Rainfall: ${fmtVal(obs.rainfall24hMm, ' mm')}
 
 2. Current Atmospheric State:
-• Temperature: ${obs.temperatureC}°C (Feels like ${obs.feelsLikeC}°C)
-• Relative Humidity: ${obs.relativeHumidity}% (High moisture convergence)
-• Barometric Pressure: ${obs.pressureHpa} hPa (Trend: Steady)
-• Dew Point: ${obs.dewPointC ?? 26.4}°C
+• Temperature: ${fmtVal(obs.temperatureC, '°C')} (Feels like ${fmtVal(obs.feelsLikeC, '°C')})
+• Relative Humidity: ${fmtVal(obs.relativeHumidity, '%')}
+• Barometric Pressure: ${fmtVal(obs.pressureHpa, ' hPa')}
+• Dew Point: ${fmtVal(obs.dewPointC, '°C')}
 
 3. Citizen Safety Guidance (Damini Protocol):
 • Stay indoors during lightning activity; avoid taking shelter under isolated trees.
 • Unplug sensitive electronic equipment and avoid contact with wired conduits.
-• Farmers in open fields are advised to suspend agricultural operations and seek safe masonry shelter immediately when thunder is heard.
+• Farmers in open fields should suspend operations and seek safe masonry shelter when thunder is heard.
 
 Updated:
 ${timeStr} IST
@@ -1602,7 +1601,7 @@ CPCB / SAFAR / India Meteorological Department`,
       text: `IMD OBSERVATIONAL NETWORK & DOPPLER WEATHER RADARS
 
 Selected Station: ${loc.station || loc.city} (ID: ${loc.stationId || 'Observatory'}, ${loc.state})
-Coordinates: ${loc.latitude?.toFixed(4) || '20.3000'}°N, ${loc.longitude?.toFixed(4) || '85.8200'}°E
+Coordinates: ${formatCoordinatePair(loc.latitude, loc.longitude, 4)}
 
 1. Primary Doppler Weather Radar (DWR) Coverage:
 • Radar Stations: Operational coastal and inland DWR network (S-Band / X-Band)

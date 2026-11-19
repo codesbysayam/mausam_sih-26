@@ -230,8 +230,8 @@ export function getWeatherCondition(
     return isDay ? 'CLEAR_DAY' : 'CLEAR_NIGHT';
   }
 
-  // Default to day/night clear if nothing else indicates clouds or rain
-  return isDay ? 'CLEAR_DAY' : 'CLEAR_NIGHT';
+  // Without WMO code, textual description, or cloud cover data, condition is unknown
+  return 'UNKNOWN';
 }
 
 /**
@@ -267,7 +267,7 @@ export function getConditionLabel(condition: CentralWeatherCondition): string {
       return 'Freezing Rain';
     case 'UNKNOWN':
     default:
-      return 'Atmospheric Telemetry';
+      return 'Condition Unavailable';
   }
 }
 

@@ -3,6 +3,7 @@ import { Radar, Search, X } from 'lucide-react';
 import { RadarStation } from '../../types/radar';
 import { OFFICIAL_RADAR_STATIONS } from '../../services/radarService';
 import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface RadarStationNetworkProps {
   selectedStationId?: string;
@@ -128,7 +129,7 @@ export const RadarStationNetwork: React.FC<RadarStationNetworkProps> = ({
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[#8295A8]">Coordinates</span>
                       <span className="font-mono text-[#F3F6FA] tabular-nums">
-                        {station.latitude.toFixed(4)}°N, {station.longitude.toFixed(4)}°E
+                        {formatCoordinatePair(station.latitude, station.longitude, 4)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">

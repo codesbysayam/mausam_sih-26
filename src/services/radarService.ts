@@ -343,30 +343,26 @@ const CACHE_TTL_MS = 60 * 1000; // 1 minute cache
  */
 export function buildSixHourRadarTimeline(
   pastFrames: RadarFrame[],
-  intervalMinutes: number = 15
+  _intervalMinutes: number = 15
 ): { frames: RadarFrame[]; motionVector?: RadarMotionVector } {
   if (!pastFrames || pastFrames.length === 0) {
     return { frames: [], motionVector: undefined };
   }
 
-  const latestFrame = pastFrames[pastFrames.length - 1];
-  const latestTime = latestFrame.time;
-
-  // 6 hours = 360 minutes
-  const totalMinutes = 360;
-  const stepCount = Math.floor(totalMinutes / intervalMinutes); // 24 steps -> 25 frames
-  const timelineFrames: RadarFrame[] = [];
+  const nowSeconds = Math.floor(Date.now() / 1000);
 
   const formatTimestamp = (unixSeconds: number): string => {
     const d = new Date(unixSeconds * 1000);
     return (
       d.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
       }) +
       ' IST, ' +
       d.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -374,49 +370,35 @@ export function buildSixHourRadarTimeline(
     );
   };
 
-  for (let i = 0; i <= stepCount; i++) {
-    const ageMinutes = (stepCount - i) * intervalMinutes; // e.g. 360, 345, ..., 15, 0
-    const frameTime = latestTime - ageMinutes * 60;
+  // Preserve real RainViewer frames in chronological order with exact age relative to current time
+  const sorted = [...pastFrames].sort((a, b) => a.time - b.time);
+  const total = sorted.length;
+
+  const timelineFrames: RadarFrame[] = sorted.map((pf, idx) => {
+    const isLatest = idx === total - 1;
+    const ageMinutes = Math.max(0, Math.round((nowSeconds - pf.time) / 60));
     const hours = Math.floor(ageMinutes / 60);
     const mins = ageMinutes % 60;
-    const relativeLabel =
-      ageMinutes === 0
-        ? 'LATEST'
-        : `-${hours}h ${mins === 0 ? '00m' : (mins < 10 ? '0' + mins : mins) + 'm'}`;
 
-    // Select the best matching tile path from real pastFrames
-    let matchedPath = latestFrame.path;
-    let isInterpolated = false;
-
-    const earliestReal = pastFrames[0].time;
-    if (frameTime >= earliestReal) {
-      let closest = pastFrames[0];
-      let minDiff = Math.abs(pastFrames[0].time - frameTime);
-      for (const pf of pastFrames) {
-        const diff = Math.abs(pf.time - frameTime);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = pf;
-        }
-      }
-      matchedPath = closest.path;
-      isInterpolated = false;
-    } else {
-      // Historical buffer: cycle safely through available past tile paths so tiles load 200 OK
-      const cycleIdx = i % pastFrames.length;
-      matchedPath = pastFrames[cycleIdx].path;
-      isInterpolated = true;
+    let relativeLabel = 'LATEST SWEEP';
+    if (!isLatest) {
+      relativeLabel =
+        hours > 0
+          ? `-${hours}h ${mins === 0 ? '00m' : (mins < 10 ? '0' + mins : mins) + 'm'}`
+          : `-${mins}m`;
+    } else if (ageMinutes > 0) {
+      relativeLabel = `LATEST SWEEP (${ageMinutes}m ago)`;
     }
 
-    timelineFrames.push({
-      time: frameTime,
-      path: matchedPath,
-      formattedTime: formatTimestamp(frameTime),
+    return {
+      time: pf.time,
+      path: pf.path,
+      formattedTime: formatTimestamp(pf.time),
       ageMinutes,
       relativeLabel,
-      isInterpolated,
-    });
-  }
+      isInterpolated: false,
+    };
+  });
 
   return { frames: timelineFrames, motionVector: undefined };
 }
@@ -437,7 +419,7 @@ export async function fetchLiveRadarData(
   try {
     let data: any = null;
     try {
-      let serverRes = await fetch('/api/radar?mode=metadata');
+      const serverRes = await fetch('/api/radar?mode=metadata');
       if (serverRes.ok) {
         const json = await serverRes.json();
         if (json?.data?.host || json?.host) {
@@ -485,12 +467,14 @@ export async function fetchLiveRadarData(
       const d = new Date(unixSeconds * 1000);
       return (
         d.toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
           hour: '2-digit',
           minute: '2-digit',
           hour12: true,
         }) +
         ' IST, ' +
         d.toLocaleDateString('en-IN', {
+          timeZone: 'Asia/Kolkata',
           day: '2-digit',
           month: 'short',
           year: 'numeric',
@@ -500,14 +484,18 @@ export async function fetchLiveRadarData(
 
     const nowSeconds = Math.floor(now / 1000);
 
-    const pastFrames: RadarFrame[] = past.map((item: any) => {
+    const pastFrames: RadarFrame[] = past.map((item: any, idx: number) => {
+      const isLatest = idx === past.length - 1;
       const ageMinutes = Math.max(0, Math.round((nowSeconds - item.time) / 60));
       const hours = Math.floor(ageMinutes / 60);
       const mins = ageMinutes % 60;
-      const relativeLabel =
-        ageMinutes === 0
-          ? 'LIVE'
-          : `-${hours}h ${mins === 0 ? '00m' : (mins < 10 ? '0' + mins : mins) + 'm'}`;
+      const relativeLabel = isLatest
+        ? ageMinutes > 0
+          ? `LATEST SWEEP (${ageMinutes}m ago)`
+          : 'LATEST SWEEP'
+        : hours > 0
+        ? `-${hours}h ${mins === 0 ? '00m' : (mins < 10 ? '0' + mins : mins) + 'm'}`
+        : `-${mins}m`;
       return {
         time: item.time,
         path: item.path,

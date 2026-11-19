@@ -11,6 +11,7 @@ import { PollenProvider } from '../environment/pollenProvider';
 import cityStationMapData from '../imd/cityStationMap.json';
 import imdStationsData from '../../src/data/imdStations.json';
 import indiaLocationsData from '../../src/data/indiaLocations.json';
+import { parseCoordinates } from '../../shared/weatherContract';
 
 export const imdRouter = Router();
 
@@ -222,9 +223,11 @@ imdRouter.get('/subdivision-warning', async (_req: Request, res: Response) => {
 // Sun / Moon Ephemeris
 imdRouter.get('/sunmoon', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat(req.query.lat as string) || 20.2961;
-    const lon = parseFloat(req.query.lon as string) || 85.8245;
-    const result = await imdConnector.getSunMoon(lat, lon);
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const result = await imdConnector.getSunMoon(parsed.lat, parsed.lon);
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -353,10 +356,12 @@ imdRouter.get('/city-mapping', (_req: Request, res: Response) => {
 // Air Quality Provider (Rule 30: No fake values)
 imdRouter.get('/environment/aqi', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat(req.query.lat as string) || 20.2961;
-    const lng = parseFloat(req.query.lng as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
     const name = req.query.name as string;
-    const data = await AQIProvider.getAQIForLocation(lat, lng, name);
+    const data = await AQIProvider.getAQIForLocation(parsed.lat, parsed.lon, name);
     res.json({
       source: 'IMD / CPCB SAFAR Provider',
       status: data.status,
@@ -371,9 +376,11 @@ imdRouter.get('/environment/aqi', async (req: Request, res: Response) => {
 // Pollen Provider (Rule 30: No fake values)
 imdRouter.get('/environment/pollen', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat(req.query.lat as string) || 20.2961;
-    const lng = parseFloat(req.query.lng as string) || 85.8245;
-    const data = await PollenProvider.getPollenForLocation(lat, lng);
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const data = await PollenProvider.getPollenForLocation(parsed.lat, parsed.lon);
     res.json({
       source: 'IMD Botanical Telemetry',
       status: data.status,

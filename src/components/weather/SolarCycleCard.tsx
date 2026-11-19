@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { CurrentWeather, LocationRecord } from '../../types';
 import { Sunrise, Sunset, Sun, Clock, Sparkles, Timer, Compass } from 'lucide-react';
 import { calculateSolarEphemeris, SolarEphemeris } from '../../utils/solarCalculator';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface SolarCycleCardProps {
   weather: CurrentWeather;
@@ -19,8 +20,8 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
     return () => clearInterval(timer);
   }, []);
 
-  const lat = typeof location?.lat === 'number' ? location.lat : 20.2961;
-  const lng = typeof location?.lng === 'number' ? location.lng : 85.8245;
+  const lat = typeof location?.lat === 'number' && Number.isFinite(location.lat) ? location.lat : 20.2961;
+  const lng = typeof location?.lng === 'number' && Number.isFinite(location.lng) ? location.lng : 85.8245;
 
   const solarData: SolarEphemeris = useMemo(() => {
     return calculateSolarEphemeris(lat, lng, currentTime);
@@ -49,7 +50,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
               Solar &amp; Ephemeris Cycle
             </h3>
             <p className="text-[11px] text-[#8A94A6]">
-              {location?.city ? `${location.city} (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)` : 'Astronomical Daylight Ephemeris'}
+              {location?.city ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})` : 'Astronomical Daylight Ephemeris'}
             </p>
           </div>
         </div>

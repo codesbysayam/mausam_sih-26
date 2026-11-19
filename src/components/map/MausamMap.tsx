@@ -24,6 +24,7 @@ import {
   RadarTimeLapseController,
   RadarTimeSpan,
 } from '../radar/RadarTimeLapseController';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface MausamMapControls {
   zoomIn: () => void;
@@ -890,7 +891,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           >
             <Tooltip direction="top" offset={[0, -10]}>
               <span className="text-[11px] font-mono text-white">
-                {inspectedCoords.lat.toFixed(3)}°N, {inspectedCoords.lng.toFixed(3)}°E
+                {formatCoordinatePair(inspectedCoords.lat, inspectedCoords.lng, 3)}
               </span>
             </Tooltip>
           </Marker>

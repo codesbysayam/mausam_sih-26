@@ -3,6 +3,7 @@ import { CurrentWeather, LocationRecord } from '../../types';
 import { getWeatherVisualConfig } from '../../utils/weatherIcons';
 import { calculateSolarEphemeris, SolarEphemeris } from '../../utils/solarCalculator';
 import { DataPanel, SourceStatus, ProvenanceStatus } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 import {
   Sunrise,
   Sunset,
@@ -84,8 +85,24 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
   const rainInfo = rainProb !== null ? getRainProbabilityMeaning(rainProb) : null;
 
   const provenanceStatus: ProvenanceStatus =
-    weather.observationStatus ||
-    (weather.isLive ? 'LIVE' : currentTemp !== null ? 'RECENT' : 'UNAVAILABLE');
+    weather.observationStatus === 'LOADING'
+      ? 'LOADING'
+      : currentTemp === null
+      ? 'UNAVAILABLE'
+      : weather.dataSource === 'IMD'
+      ? 'OBSERVED'
+      : weather.observationStatus === 'STALE'
+      ? 'STALE'
+      : 'MODEL_DERIVED';
+
+  const verifiedCondition =
+    currentTemp === null
+      ? weather.observationStatus === 'LOADING'
+        ? 'Synchronizing atmospheric feed…'
+        : 'Current condition not available'
+      : weather.condition && weather.condition !== '—'
+      ? weather.condition
+      : 'Condition not available';
 
   return (
     <DataPanel
@@ -98,12 +115,12 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
           {/* Station Identity & Provenance */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F3F6FA] tracking-tight">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">
                 {location.city}, {location.state}
               </h2>
-              <p className="text-xs text-[#8295A8] mt-0.5 font-mono tabular-nums">
-                {location.imdStation || 'Point Coordinate Telemetry'} • {lat.toFixed(2)}°N, {lng.toFixed(2)}°E
-                {location.elevation ? ` • ${location.elevation}` : ''}
+              <p className="text-xs text-[var(--m-text-muted)] mt-0.5 font-mono tabular-nums">
+                {location.imdStation || 'Point Coordinate Telemetry'} · {formatCoordinatePair(location.lat, location.lng, 2)}
+                {location.elevation ? ` · ${location.elevation}` : ''}
               </p>
             </div>
 
@@ -117,27 +134,35 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
           {/* Primary Thermal & Condition Block */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 py-1">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#08131F] border border-[#26394B] flex items-center justify-center shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center shrink-0">
                 <ConditionIcon className={`w-10 h-10 sm:w-12 sm:h-12 ${visualConfig.iconColor}`} />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-baseline leading-none font-mono tabular-nums">
-                  <span className="text-5xl sm:text-6xl font-bold text-[#F3F6FA] tracking-tight">
-                    {currentTemp !== null ? `${currentTemp}°` : '—'}
-                  </span>
-                  {currentTemp !== null && (
-                    <span className="text-xl sm:text-2xl font-medium text-[#8295A8] ml-1">C</span>
+                  {currentTemp !== null ? (
+                    <>
+                      <span className="text-5xl sm:text-6xl font-bold text-[var(--m-text-primary)] tracking-tight">
+                        {currentTemp}°
+                      </span>
+                      <span className="text-xl sm:text-2xl font-medium text-[var(--m-text-muted)] ml-1">
+                        C
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-mono font-semibold text-[var(--m-text-muted)]">
+                      Not available
+                    </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#8295A8] mt-2 font-mono tabular-nums">
+                <div className="flex items-center gap-2 text-xs text-[var(--m-text-muted)] mt-2 font-mono tabular-nums">
                   <span>Feels like</span>
-                  <strong className="text-[#F3F6FA] font-semibold">
-                    {feelsLike !== null ? `${feelsLike}°C` : '—'}
+                  <strong className="text-[var(--m-text-primary)] font-semibold">
+                    {feelsLike !== null ? `${feelsLike}°C` : 'Not available'}
                   </strong>
                   {humidityInfo && (
                     <>
                       <span>·</span>
-                      <span className="font-sans text-[#B5C3D1]">{humidityInfo.headline}</span>
+                      <span className="font-sans text-[var(--m-text-secondary)]">{humidityInfo.headline}</span>
                     </>
                   )}
                 </div>
@@ -145,63 +170,65 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
             </div>
 
             {/* Condition Summary & Diurnal Range */}
-            <div className="flex flex-col gap-2 sm:border-l sm:border-[#26394B] sm:pl-6 min-w-0">
-              <div className="text-lg font-bold text-[#F3F6FA]">
-                {weather.condition || 'Observation Unavailable'}
+            <div className="flex flex-col gap-2 sm:border-l sm:border-[var(--m-border)] sm:pl-6 min-w-0">
+              <div className="text-lg font-bold text-[var(--m-text-primary)]">
+                {verifiedCondition}
               </div>
-              <p className="text-xs text-[#B5C3D1] leading-relaxed max-w-md">
-                {visualConfig.description || 'Surface station telemetry synchronized with regional atmospheric analysis.'}
+              <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed max-w-md">
+                {currentTemp !== null
+                  ? visualConfig.description || 'Surface station telemetry synchronized with regional atmospheric analysis.'
+                  : 'Upstream atmospheric measurements are being retrieved or are temporarily unavailable for this grid coordinate.'}
               </p>
 
               <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-mono tabular-nums">
-                <div className="flex items-center gap-1.5 bg-[#08131F] px-2.5 py-1 rounded-md border border-[#26394B]">
-                  <ArrowUp className="w-3.5 h-3.5 text-[#EF4444]" />
-                  <span className="text-[#8295A8]">High:</span>
-                  <strong className="text-[#F3F6FA]">{highTemp !== null ? `${highTemp}°C` : '—'}</strong>
+                <div className="flex items-center gap-1.5 bg-[var(--m-surface-inset)] px-2.5 py-1 rounded-md border border-[var(--m-border)]">
+                  <ArrowUp className="w-3.5 h-3.5 text-[#C65D21]" />
+                  <span className="text-[var(--m-text-muted)]">High:</span>
+                  <strong className="text-[var(--m-text-primary)]">{highTemp !== null ? `${highTemp}°C` : 'Not available'}</strong>
                 </div>
-                <div className="flex items-center gap-1.5 bg-[#08131F] px-2.5 py-1 rounded-md border border-[#26394B]">
-                  <ArrowDown className="w-3.5 h-3.5 text-[#35C7E8]" />
-                  <span className="text-[#8295A8]">Low:</span>
-                  <strong className="text-[#F3F6FA]">{lowTemp !== null ? `${lowTemp}°C` : '—'}</strong>
+                <div className="flex items-center gap-1.5 bg-[var(--m-surface-inset)] px-2.5 py-1 rounded-md border border-[var(--m-border)]">
+                  <ArrowDown className="w-3.5 h-3.5 text-[#2C7BE5]" />
+                  <span className="text-[var(--m-text-muted)]">Low:</span>
+                  <strong className="text-[var(--m-text-primary)]">{lowTemp !== null ? `${lowTemp}°C` : 'Not available'}</strong>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 4-Column Quick Surface Matrix */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#26394B]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[var(--m-border)]">
             <div className="m-panel-inset p-3">
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold tracking-wider block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold tracking-wider block">
                 Rain Risk
               </span>
-              <span className="text-base font-bold font-mono tabular-nums text-[#35C7E8] block mt-0.5">
-                {rainProb !== null ? `${rainProb}%` : '—'}
+              <span className="text-base font-bold font-mono tabular-nums text-[#2C7BE5] block mt-0.5">
+                {rainProb !== null ? `${rainProb}%` : 'Not available'}
               </span>
-              <span className="text-[11px] text-[#8295A8] block truncate">
-                {rainInfo ? rainInfo.headline : 'Unavailable'}
+              <span className="text-[11px] text-[var(--m-text-muted)] block truncate">
+                {rainInfo ? rainInfo.headline : 'Forecast probability'}
               </span>
             </div>
 
             <div className="m-panel-inset p-3">
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold tracking-wider block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold tracking-wider block">
                 Humidity
               </span>
-              <span className="text-base font-bold font-mono tabular-nums text-[#F3F6FA] block mt-0.5">
-                {humidity !== null ? `${humidity}%` : '—'}
+              <span className="text-base font-bold font-mono tabular-nums text-[var(--m-text-primary)] block mt-0.5">
+                {humidity !== null ? `${humidity}%` : 'Not available'}
               </span>
-              <span className="text-[11px] text-[#8295A8] font-mono tabular-nums block truncate">
-                {dewPoint !== null ? `Dew Pt ${dewPoint}°C` : 'Dew Pt —'}
+              <span className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums block truncate">
+                {dewPoint !== null ? `Dew Pt ${dewPoint}°C` : 'Dew Pt unavailable'}
               </span>
             </div>
 
             <div className="m-panel-inset p-3">
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold tracking-wider block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold tracking-wider block">
                 Wind Speed
               </span>
-              <span className="text-base font-bold font-mono tabular-nums text-[#22C7A0] block mt-0.5">
-                {windSpeed !== null ? `${windSpeed} km/h` : '—'}
+              <span className="text-base font-bold font-mono tabular-nums text-[#2E7D5B] block mt-0.5">
+                {windSpeed !== null ? `${windSpeed} km/h` : 'Not available'}
               </span>
-              <span className="text-[11px] text-[#8295A8] block truncate">
+              <span className="text-[11px] text-[var(--m-text-muted)] block truncate">
                 {weather.windDirection && weather.windDirection !== '—'
                   ? `${weather.windDirection} vector`
                   : 'Direction unavailable'}
@@ -209,16 +236,16 @@ export const LocationWeatherHero: React.FC<LocationWeatherHeroProps> = ({
             </div>
 
             <div className="m-panel-inset p-3">
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold tracking-wider block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold tracking-wider block">
                 Air Quality
               </span>
               <span
                 className="text-base font-bold font-mono tabular-nums block mt-0.5"
                 style={{ color: aqiInfo.severityColor }}
               >
-                {aqiVal !== null ? `${aqiVal} AQI` : '—'}
+                {aqiVal !== null ? `${aqiVal} AQI` : 'Not available'}
               </span>
-              <span className="text-[11px] text-[#8295A8] block truncate">{aqiInfo.category}</span>
+              <span className="text-[11px] text-[var(--m-text-muted)] block truncate">{aqiInfo.category}</span>
             </div>
           </div>
         </div>

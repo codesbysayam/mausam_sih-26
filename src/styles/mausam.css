@@ -1,25 +1,69 @@
 :root {
   /* ========================================================
-     MAUSAM OBSERVATORY DESIGN SYSTEM v3.0.0 TOKENS
+     MAUSAM — EDITORIAL ATMOSPHERIC INTELLIGENCE DESIGN SYSTEM
      ======================================================== */
-  --m-canvas: #07111D;
-  --m-surface-1: #0B1927;
-  --m-surface-2: #101F2E;
-  --m-surface-3: #172A3B;
-  --m-surface-inset: #08131F;
-  --m-border: #26394B;
-  --m-border-strong: #38536A;
-  --m-text-primary: #F3F6FA;
-  --m-text-secondary: #B5C3D1;
-  --m-text-muted: #8295A8;
-  --m-accent: #35C7E8;
-  --m-accent-strong: #0B72B9;
-  --m-focus: #7DD3FC;
+  /* Core Neutral Palette (Deep Ink & Warm Paper) */
+  --ink-950: #101820;
+  --ink-900: #17232d;
+  --ink-800: #243440;
+  --ink-700: #354653;
 
-  --primary: #0B72B9;
-  --primary-dark: #07538A;
-  --primary-light: #7DD3FC;
-  --secondary: #35C7E8;
+  --paper-50: #f5f3ed;
+  --paper-100: #ebe8df;
+  --paper-200: #d8d4c9;
+
+  --muted-600: #52616b;
+  --muted-500: #6f7c85;
+
+  /* Atmospheric Accent Tokens */
+  --sky-500: #2c7be5;
+  --rain-500: #1e90b8;
+  --sun-500: #d98a2b;
+  --storm-600: #c65d21;
+  --danger-600: #b83227;
+  --leaf-600: #2e7d5b;
+
+  /* Hairlines & Overlays */
+  --line-light: rgba(23, 35, 45, 0.14);
+  --line-dark: rgba(245, 243, 237, 0.16);
+  --overlay-dark: rgba(16, 24, 32, 0.72);
+  --overlay-soft: rgba(16, 24, 32, 0.42);
+
+  /* Editorial Typography & Fluid Display Scale */
+  --font-display: "DM Sans", "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "DM Sans", "Inter", "IBM Plex Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --display-xl: clamp(3.75rem, 8vw, 9rem);
+  --display-lg: clamp(3rem, 6vw, 6.25rem);
+  --display-md: clamp(2.25rem, 4vw, 4rem);
+  --display-sm: clamp(1.5rem, 2.4vw, 2.5rem);
+
+  /* Layout & Rhythm Tokens */
+  --page-gutter: clamp(1.25rem, 4vw, 4rem);
+  --section-space: clamp(3.5rem, 7vw, 7.5rem);
+  --block-space: clamp(1.5rem, 3vw, 3rem);
+  --content-max: 1440px;
+
+  /* Mapped Surface & Text Tokens (Atmospheric Dark Ink Default) */
+  --m-canvas: var(--ink-950);
+  --m-surface-1: var(--ink-900);
+  --m-surface-2: var(--ink-800);
+  --m-surface-3: var(--ink-700);
+  --m-surface-inset: #0c131a;
+  --m-border: rgba(245, 243, 237, 0.14);
+  --m-border-strong: rgba(245, 243, 237, 0.26);
+  --m-text-primary: var(--paper-50);
+  --m-text-secondary: var(--paper-200);
+  --m-text-muted: #93a1ab;
+  --m-accent: var(--sky-500);
+  --m-accent-strong: #1e63c2;
+  --m-focus: #5a9cf2;
+
+  --primary: var(--sky-500);
+  --primary-dark: #1e63c2;
+  --primary-light: #72aaf5;
+  --secondary: var(--rain-500);
 
   --background: var(--m-canvas);
   --background-alt: var(--m-surface-inset);
@@ -33,23 +77,23 @@
   --text-body: var(--m-text-secondary);
 
   --border: var(--m-border);
-  --border-light: rgba(130, 149, 168, 0.16);
+  --border-light: var(--line-dark);
 
   --accent: var(--m-accent);
-  --accent-teal: #22C7A0;
+  --accent-teal: var(--leaf-600);
 
-  /* Calibrated Weather Severity Tokens (WCAG-AA verified on #0B1927) */
-  --status-normal: #22C7A0;
-  --status-watch: #F59E0B;
-  --status-alert: #F97316;
-  --status-severe: #EF4444;
+  /* Calibrated Weather Severity Tokens */
+  --status-normal: var(--leaf-600);
+  --status-watch: var(--sun-500);
+  --status-alert: var(--storm-600);
+  --status-severe: var(--danger-600);
 
-  --success: #22C7A0;
-  --watch: #F59E0B;
-  --alert: #F97316;
-  --danger: #EF4444;
+  --success: var(--leaf-600);
+  --watch: var(--sun-500);
+  --alert: var(--storm-600);
+  --danger: var(--danger-600);
 
-  /* Unified Dark Observatory Aliases */
+  /* Unified Aliases */
   --bg: var(--m-canvas);
   --bg-alt: var(--m-surface-inset);
   --dark-background: var(--m-canvas);
@@ -59,10 +103,9 @@
   --dark-text: var(--m-text-primary);
   --dark-muted: var(--m-text-muted);
 
-  --font: "IBM Plex Sans", "Noto Sans", "Noto Sans Oriya", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Nastaliq Urdu", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --radius: 12px;
-  --radius-small: 8px;
+  --font: var(--font-body);
+  --radius: 10px;
+  --radius-small: 6px;
   --radius-pill: 9999px;
   --border-width: 1px;
 
@@ -70,27 +113,43 @@
   --indic-line-height: 1.62;
   --indic-letter-spacing: 0.01em;
 
-  /* Calibrated Observatory Surface Helpers */
-  --glass-bg: rgba(11, 25, 39, 0.92);
-  --glass-bg-subtle: rgba(16, 31, 46, 0.85);
-  --glass-bg-elevated: rgba(16, 31, 46, 0.97);
+  /* Editorial Surface Helpers */
+  --glass-bg: rgba(23, 35, 45, 0.94);
+  --glass-bg-subtle: rgba(36, 52, 64, 0.88);
+  --glass-bg-elevated: rgba(23, 35, 45, 0.98);
   --glass-bg-card: var(--m-surface-1);
   --glass-border: var(--m-border);
-  --glass-border-subtle: rgba(38, 57, 75, 0.7);
+  --glass-border-subtle: var(--line-dark);
   --glass-border-focus: var(--m-focus);
   --glass-blur: blur(12px);
   --glass-blur-lg: blur(16px);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
-  --glass-shadow: 0 8px 24px 0 rgba(2, 8, 16, 0.36);
-  --glass-shadow-sm: 0 4px 12px 0 rgba(2, 8, 16, 0.24);
-  --glass-radius: 12px;
-  --glass-radius-sm: 8px;
+  --glass-highlight: inset 0 1px 0 0 rgba(245, 243, 237, 0.05);
+  --glass-shadow: 0 12px 32px 0 rgba(10, 16, 22, 0.36);
+  --glass-shadow-sm: 0 4px 14px 0 rgba(10, 16, 22, 0.24);
+  --glass-radius: 10px;
+  --glass-radius-sm: 6px;
 
   /* iOS Safe Area Insets */
   --sat: env(safe-area-inset-top, 0px);
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
+}
+
+/* Warm Editorial Paper Theme Support */
+[data-theme="paper"] {
+  --m-canvas: var(--paper-50);
+  --m-surface-1: #fbfaf6;
+  --m-surface-2: var(--paper-100);
+  --m-surface-3: var(--paper-200);
+  --m-surface-inset: var(--paper-100);
+  --m-border: var(--line-light);
+  --m-border-strong: rgba(23, 35, 45, 0.28);
+  --m-text-primary: var(--ink-950);
+  --m-text-secondary: var(--ink-800);
+  --m-text-muted: var(--muted-600);
+  --glass-bg: rgba(245, 243, 237, 0.95);
+  --glass-bg-elevated: rgba(251, 250, 246, 0.98);
 }
 
 * {
@@ -107,7 +166,7 @@ body,
   padding: 0;
   background: var(--m-canvas);
   color: var(--m-text-primary);
-  font-family: var(--font);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;

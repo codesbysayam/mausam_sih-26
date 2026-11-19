@@ -8,6 +8,7 @@
 // ====================================================================
 
 import { gefsProvider } from '../../src/services/nwp/gefsProvider';
+import { parseCoordinates } from '../../shared/weatherContract';
 
 export default async function gefsHandler(req: any, res: any) {
   if (req.method === 'OPTIONS') {
@@ -21,17 +22,17 @@ export default async function gefsHandler(req: any, res: any) {
 
   try {
     const url = new URL(req.url || '', 'http://localhost');
-    const latParam = url.searchParams.get('lat') || req.query?.lat || '20.2961';
-    const lonParam = url.searchParams.get('lon') || req.query?.lon || '85.8245';
-
-    const lat = parseFloat(latParam);
-    const lon = parseFloat(lonParam);
-
-    if (isNaN(lat) || isNaN(lon)) {
-      const errPayload = JSON.stringify({ error: 'Invalid latitude or longitude parameters' });
+    const coordCheck = parseCoordinates({
+      lat: url.searchParams.get('lat') ?? req.query?.lat,
+      lon: url.searchParams.get('lon') ?? req.query?.lon ?? url.searchParams.get('lng') ?? req.query?.lng,
+    });
+    if (!coordCheck.ok) {
+      const errPayload = JSON.stringify({ error: coordCheck.error });
       res.writeHead?.(400, { 'Content-Type': 'application/json' }) || res.status?.(400);
       return res.end?.(errPayload) || res.send?.(errPayload);
     }
+
+    const { lat, lon } = coordCheck;
 
     const gefsRun = await gefsProvider.getLatestRun(lat, lon);
 

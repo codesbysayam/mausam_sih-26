@@ -21,6 +21,7 @@ import { locationService } from '../../services/locationService';
 import { UseMyLocationButton } from './UseMyLocationButton';
 import { LocatingPhase } from '../../hooks/useUserLocation';
 import { GeolocationServiceError, NearestStationResult } from '../../services/geolocationService';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 function formatWeatherCondition(code?: number): string {
   if (code === undefined || code === null) return '—';
@@ -187,7 +188,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
             return;
           }
 
-          const label = city || district || `${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
+          const label = city || district || formatCoordinatePair(lat, lng, 3);
           const formattedTime =
             new Intl.DateTimeFormat('en-IN', {
               timeZone: 'Asia/Kolkata',
@@ -385,8 +386,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
               {/* Coordinates & Accuracy */}
               <div className="text-right sm:self-start bg-[#08131F] p-2.5 rounded-lg border border-[#26394B] text-[11px] font-mono tabular-nums shrink-0">
                 <div className="text-[#35C7E8]">
-                  {typeof selectedLocation.lat === 'number' ? selectedLocation.lat.toFixed(4) : '—'}°N,{' '}
-                  {typeof selectedLocation.lng === 'number' ? selectedLocation.lng.toFixed(4) : '—'}°E
+                  {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 4)}
                 </div>
                 {accuracyMeters !== null && (
                   <div className="text-[#22C7A0] text-[10px] mt-0.5">
@@ -572,7 +572,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                           </span>
                         </div>
                         <div className="text-[10px] font-mono tabular-nums text-[#8295A8] mt-0.5">
-                          {pin.lat.toFixed(3)}°N, {pin.lng.toFixed(3)}°E
+                          {formatCoordinatePair(pin.lat, pin.lng, 3)}
                           {pin.accuracyMeters ? ` · ±${pin.accuracyMeters}m` : ''}
                         </div>
                       </button>

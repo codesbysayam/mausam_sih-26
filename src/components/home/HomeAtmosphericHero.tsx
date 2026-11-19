@@ -101,20 +101,27 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       ? `${Math.round(weather.precipitationProbability)}% prob`
       : precipVal !== null
       ? '0.0 mm'
-      : '—';
+      : 'Not available';
   const visKm =
     typeof weather.visibilityKm === 'number' && Number.isFinite(weather.visibilityKm)
       ? weather.visibilityKm
       : typeof weather.visibility === 'number' && Number.isFinite(weather.visibility)
       ? weather.visibility / 1000
       : null;
-  const visibility = visKm !== null ? `${visKm.toFixed(1)} km` : '—';
+  const visibility = visKm !== null ? `${visKm.toFixed(1)} km` : 'Not available';
 
   const obsTime = lastUpdated || weather.lastUpdated || null;
 
   const provenanceStatus: ProvenanceStatus =
-    weather.observationStatus ||
-    (weather.isLive ? 'LIVE' : hasTemp ? 'RECENT' : 'UNAVAILABLE');
+    weather.observationStatus === 'LOADING'
+      ? 'LOADING'
+      : !hasTemp
+      ? 'UNAVAILABLE'
+      : isOfficialImd
+      ? 'OBSERVED'
+      : weather.observationStatus === 'STALE'
+      ? 'STALE'
+      : 'MODEL_DERIVED';
 
   const nearestObs =
     location.weatherStation ||
@@ -123,14 +130,16 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       : `${location.city || location.name} Grid Point`);
 
   const dewPoint =
-    currentTemp !== null && humidity !== null
+    typeof weather.dewPoint === 'number' && Number.isFinite(weather.dewPoint)
+      ? `${Math.round(weather.dewPoint)}°C`
+      : currentTemp !== null && humidity !== null
       ? `${Math.round(currentTemp - (100 - humidity) / 5)}°C`
       : null;
 
   const metrics = [
     {
       label: 'FEELS LIKE',
-      value: feelsLike !== null ? `${feelsLike}°C` : '—',
+      value: feelsLike !== null ? `${feelsLike}°C` : 'Not available',
       sub:
         currentTemp !== null && feelsLike !== null
           ? currentTemp === feelsLike
@@ -138,25 +147,25 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : `${feelsLike > currentTemp ? '+' : ''}${feelsLike - currentTemp}°C apparent delta`
           : 'Apparent temperature',
       icon: Thermometer,
-      color: '#35C7E8',
+      color: '#2C7BE5',
     },
     {
       label: 'HUMIDITY',
-      value: humidity !== null ? `${humidity}%` : '—',
+      value: humidity !== null ? `${humidity}%` : 'Not available',
       sub: dewPoint ? `Dew point ~${dewPoint}` : 'Relative moisture',
       icon: Droplets,
-      color: '#35C7E8',
+      color: '#2C7BE5',
     },
     {
       label: 'WIND',
-      value: windSpeed !== null ? `${windSpeed} km/h` : '—',
-      sub: windDir ? `${windDir} surface flow` : 'Surface vector',
+      value: windSpeed !== null ? `${windSpeed} km/h` : 'Not available',
+      sub: windDir && windDir !== '—' ? `${windDir} surface flow` : 'Surface vector',
       icon: Wind,
-      color: '#22C7A0',
+      color: '#2E7D5B',
     },
     {
       label: 'PRESSURE',
-      value: pressure !== null ? `${pressure} hPa` : '—',
+      value: pressure !== null ? `${pressure} hPa` : 'Not available',
       sub:
         pressure !== null
           ? pressure >= 1013
@@ -164,37 +173,46 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : 'Barometric normal'
           : 'Mean sea level',
       icon: Gauge,
-      color: '#F59E0B',
+      color: '#D98A2B',
     },
     {
       label: 'RAINFALL',
       value: rainfall,
       sub:
-        typeof weather.precipitationProbability === 'number'
+        typeof weather.precipitationProbability === 'number' && Number.isFinite(weather.precipitationProbability)
           ? `${Math.round(weather.precipitationProbability)}% probability`
           : 'Hourly accumulation',
       icon: CloudRain,
-      color: '#35C7E8',
+      color: '#1E90B8',
     },
     {
       label: 'VISIBILITY',
       value: visibility,
       sub: 'Horizontal atmospheric range',
       icon: Eye,
-      color: '#22C7A0',
+      color: '#2E7D5B',
     },
   ];
+
+  const verifiedConditionLabel =
+    !hasTemp
+      ? weather.observationStatus === 'LOADING'
+        ? 'Synchronizing atmospheric feed…'
+        : 'Current condition not available'
+      : weather.condition && weather.condition !== '—'
+      ? weather.condition
+      : 'Condition not available';
 
   return (
     <DataPanel id="current-conditions-hero" className="p-4 sm:p-6">
       {/* Header bar with authentic provenance */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#26394B] pb-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[var(--m-border)] pb-3 mb-5">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#35C7E8]">
-            Current Conditions
+          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#2C7BE5]">
+            Today&apos;s Atmosphere
           </span>
-          <span className="text-[#38536A]">·</span>
-          <span className="text-xs text-[#B5C3D1]">{sourceBannerLabel}</span>
+          <span className="text-[var(--m-text-muted)]">·</span>
+          <span className="text-xs text-[var(--m-text-secondary)]">{sourceBannerLabel}</span>
         </div>
 
         <SourceStatus status={provenanceStatus} source={shortSourceLabel} updatedAt={obsTime} />
@@ -203,23 +221,31 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       {/* Main hero presentation */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         {/* Left 5 Cols: Primary Condition, Temp, Location & Actions */}
-        <div className="lg:col-span-5 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-[#26394B] pb-5 lg:pb-0 lg:pr-6">
+        <div className="lg:col-span-5 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-[var(--m-border)] pb-5 lg:pb-0 lg:pr-6">
           <div className="flex items-center gap-4 sm:gap-5">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[#08131F] border border-[#26394B] flex items-center justify-center shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center shrink-0">
               <ConditionIcon className={`w-12 h-12 sm:w-14 sm:h-14 ${visualConfig.iconColor}`} />
             </div>
 
             <div className="flex flex-col">
               <div className="flex items-baseline leading-none font-mono tabular-nums">
-                <span className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[#F3F6FA] tracking-tight">
-                  {currentTemp !== null ? `${currentTemp}°` : '—'}
-                </span>
-                {currentTemp !== null && (
-                  <span className="text-2xl sm:text-3xl font-light text-[#B5C3D1] ml-1">C</span>
+                {currentTemp !== null ? (
+                  <>
+                    <span className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[var(--m-text-primary)] tracking-tight">
+                      {currentTemp}°
+                    </span>
+                    <span className="text-2xl sm:text-3xl font-light text-[var(--m-text-secondary)] ml-1">
+                      C
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xl sm:text-2xl font-mono font-semibold text-[var(--m-text-muted)]">
+                    Not available
+                  </span>
                 )}
               </div>
-              <div className="text-base sm:text-lg font-semibold text-[#F3F6FA] mt-1.5">
-                {weather.condition || (provenanceStatus === 'LOADING' ? 'Syncing Conditions…' : 'Unavailable')}
+              <div className="text-base sm:text-lg font-semibold text-[var(--m-text-primary)] mt-1.5">
+                {verifiedConditionLabel}
               </div>
             </div>
           </div>

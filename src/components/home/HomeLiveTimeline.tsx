@@ -135,7 +135,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
 
                   {/* Temperature */}
                   <span className="text-base sm:text-lg font-bold font-mono text-white">
-                    {item?.temp !== undefined ? `${Math.round(item.temp)}°C` : 'N/A'}
+                    {typeof item?.temp === 'number' && Number.isFinite(item.temp) ? `${Math.round(item.temp)}°C` : '—'}
                   </span>
 
                   {/* Condition label */}
@@ -143,25 +143,25 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                     className="text-[10px] text-[#8A94A6] mt-0.5 truncate max-w-[90px]"
                     title={item?.condition || 'Conditions'}
                   >
-                    {item?.condition || 'N/A'}
+                    {item?.condition || 'Unavailable'}
                   </span>
 
                   {/* Metrics footer: Rain & Humidity */}
                   <div className="mt-2 pt-1.5 border-t border-[#334155]/60 w-full flex items-center justify-between text-[10px] font-mono">
                     <div
                       className="flex items-center gap-0.5 text-[#4FA8E0]"
-                      title={`Rain Probability: ${item?.rainProb ?? 0}%`}
+                      title={typeof item?.rainProb === 'number' && Number.isFinite(item.rainProb) ? `Rain Probability: ${item.rainProb}%` : 'Rain Probability unavailable'}
                     >
                       <CloudRain className="w-3 h-3 shrink-0" />
-                      <span>{item?.rainProb !== undefined ? `${item.rainProb}%` : '—'}</span>
+                      <span>{typeof item?.rainProb === 'number' && Number.isFinite(item.rainProb) ? `${item.rainProb}%` : '—'}</span>
                     </div>
 
                     <div
                       className="flex items-center gap-0.5 text-[#B8C7D9]"
-                      title={`Humidity: ${item?.humidity ?? 0}%`}
+                      title={typeof item?.humidity === 'number' && Number.isFinite(item.humidity) ? `Humidity: ${item.humidity}%` : 'Humidity unavailable'}
                     >
                       <Droplets className="w-3 h-3 shrink-0" />
-                      <span>{item?.humidity !== undefined ? `${item.humidity}%` : '—'}</span>
+                      <span>{typeof item?.humidity === 'number' && Number.isFinite(item.humidity) ? `${item.humidity}%` : '—'}</span>
                     </div>
                   </div>
                 </div>

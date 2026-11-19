@@ -52,35 +52,33 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     weather.isRainingNow
   );
 
-  // Calculate quick summary metrics from trends
-  const trendData: HistoricalTrendPoint[] =
-    trends.length > 0
-      ? trends
-      : [
-          { time: '00:00', hour: 0, temp: 24.2, humidity: 82, pressure: 1011.5, windSpeed: 10, rain: 0 },
-          { time: '04:00', hour: 4, temp: 23.0, humidity: 88, pressure: 1011.2, windSpeed: 8, rain: 0 },
-          { time: '08:00', hour: 8, temp: 27.5, humidity: 74, pressure: 1012.8, windSpeed: 12, rain: 0 },
-          { time: '12:00', hour: 12, temp: 33.1, humidity: 58, pressure: 1010.4, windSpeed: 16, rain: 0 },
-          { time: '16:00', hour: 16, temp: 31.8, humidity: 64, pressure: 1009.8, windSpeed: 14, rain: 0 },
-          { time: '20:00', hour: 20, temp: 28.0, humidity: 76, pressure: 1011.0, windSpeed: 11, rain: 0 },
-        ];
+  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  const hasTemp = isNum(weather.temp);
+  const hasHum = isNum(weather.humidity);
+  const hasWind = isNum(weather.windSpeed);
+  const hasPressure = isNum(weather.pressure);
+  const hasRainProb = isNum(weather.precipitationProbability);
+
+  const trendData: HistoricalTrendPoint[] = trends;
 
   const validTemps = trendData
     .map((d) => d.temp)
-    .filter((t): t is number => typeof t === 'number' && !Number.isNaN(t));
-  const maxTemp = validTemps.length > 0 ? Math.max(...validTemps) : (typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? Math.round(weather.temp + 3) : 33);
-  const minTemp = validTemps.length > 0 ? Math.min(...validTemps) : (typeof weather.temp === 'number' && !Number.isNaN(weather.temp) ? Math.round(weather.temp - 4) : 23);
+    .filter((t): t is number => isNum(t));
+  const maxTemp = validTemps.length > 0 ? Math.max(...validTemps) : (isNum(weather.high) ? Math.round(weather.high) : null);
+  const minTemp = validTemps.length > 0 ? Math.min(...validTemps) : (isNum(weather.low) ? Math.round(weather.low) : null);
 
   const validHumidities = trendData
     .map((d) => d.humidity)
-    .filter((h): h is number => typeof h === 'number' && !Number.isNaN(h));
+    .filter((h): h is number => isNum(h));
   const avgHumidity = validHumidities.length > 0
     ? Math.round(validHumidities.reduce((acc, d) => acc + d, 0) / validHumidities.length)
-    : (typeof weather.humidity === 'number' && !Number.isNaN(weather.humidity) ? weather.humidity : 68);
+    : (hasHum ? weather.humidity! : null);
 
-  const totalRain24h = trendData
-    .reduce<number>((acc, d) => acc + (typeof d.rain === 'number' && !Number.isNaN(d.rain) ? d.rain : 0), 0)
-    .toFixed(1);
+  const totalRain24h = trendData.length > 0
+    ? trendData
+        .reduce<number>((acc, d) => acc + (isNum(d.rain) ? d.rain : 0), 0)
+        .toFixed(1)
+    : null;
 
   // AQI color logic
   const getAqiColor = (val?: number) => {
@@ -195,11 +193,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div className="flex flex-wrap items-center gap-6 py-2">
               <div className="flex items-baseline gap-1">
                 <span className="font-temp-hero text-6xl sm:text-7xl font-bold text-[#FFFFFF] tracking-tight">
-                  {weather.temp}
+                  {hasTemp ? weather.temp : '—'}
                 </span>
-                <span className="text-3xl sm:text-4xl text-[#4FA8E0] font-light">
-                  °C
-                </span>
+                {hasTemp && (
+                  <span className="text-3xl sm:text-4xl text-[#4FA8E0] font-light">
+                    °C
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-col gap-1">
@@ -211,15 +211,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     {visualState.icon}
                   </span>
                   <span className="font-h3 text-xl font-bold text-[#FFFFFF]">
-                    {weather.condition}
+                    {weather.condition || 'Telemetry Pending'}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-[#8A94A6]">
-                  <span>Feels like <strong className="text-[#FFFFFF]">{Math.round(weather.temp + 1)}°C</strong></span>
+                  <span>
+                    Feels like{' '}
+                    <strong className="text-[#FFFFFF]">
+                      {isNum(weather.feelsLike) ? `${Math.round(weather.feelsLike)}°C` : hasTemp ? `${Math.round(weather.temp!)}°C` : '—'}
+                    </strong>
+                  </span>
                   <span>•</span>
-                  <span>High: <strong className="text-[#FFFFFF]">{weather.high}°C</strong></span>
+                  <span>High: <strong className="text-[#FFFFFF]">{isNum(weather.high) ? `${weather.high}°C` : '—'}</strong></span>
                   <span>•</span>
-                  <span>Low: <strong className="text-[#FFFFFF]">{weather.low}°C</strong></span>
+                  <span>Low: <strong className="text-[#FFFFFF]">{isNum(weather.low) ? `${weather.low}°C` : '—'}</strong></span>
                 </div>
               </div>
             </div>
@@ -243,14 +248,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 <div>
                   <span className="font-semibold block text-[#FFFFFF]">
                     {weather.isRainingNow
-                      ? `Active Rain: ${(typeof weather.precipitation === 'number' && !Number.isNaN(weather.precipitation) ? weather.precipitation : 0).toFixed(1)} mm/hr`
+                      ? `Active Rain: ${(isNum(weather.precipitation) ? weather.precipitation : 0).toFixed(1)} mm/hr`
                       : 'No Active Rain Currently'}
                   </span>
                   <span className="text-[11px] text-[#8A94A6]">
                     {weather.rainExpectedSummary ||
-                      (weather.precipitationProbability > 0
+                      (hasRainProb && weather.precipitationProbability! > 0
                         ? `${weather.precipitationProbability}% rain chance in forecast`
-                        : 'Dry conditions expected')}
+                        : hasRainProb
+                        ? 'Dry conditions expected'
+                        : 'Precipitation probability unavailable')}
                   </span>
                 </div>
               </div>
@@ -260,7 +267,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   Rain Probability
                 </span>
                 <span className="block text-sm font-bold text-[#4FA8E0]">
-                  {weather.precipitationProbability}%
+                  {hasRainProb ? `${weather.precipitationProbability}%` : '—'}
                 </span>
               </div>
             </div>
@@ -278,7 +285,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                       Sunrise
                     </span>
                     <span className="font-semibold text-[#FFFFFF] text-xs leading-tight">
-                      {weather.sunrise || '05:32 AM'} <span className="text-[10px] text-[#8A94A6]">IST</span>
+                      {weather.sunrise || '—'} {weather.sunrise && <span className="text-[10px] text-[#8A94A6]">IST</span>}
                     </span>
                   </div>
                 </div>
@@ -295,7 +302,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                       Solar Noon
                     </span>
                     <span className="font-semibold text-[#FFFFFF] text-xs leading-tight">
-                      {weather.solarNoon || '12:15 PM'} <span className="text-[10px] text-[#8A94A6]">(Zenith)</span>
+                      {weather.solarNoon || '—'} {weather.solarNoon && <span className="text-[10px] text-[#8A94A6]">(Zenith)</span>}
                     </span>
                   </div>
                 </div>
@@ -312,7 +319,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                       Sunset
                     </span>
                     <span className="font-semibold text-[#FFFFFF] text-xs leading-tight">
-                      {weather.sunset || '06:18 PM'} <span className="text-[10px] text-[#8A94A6]">IST</span>
+                      {weather.sunset || '—'} {weather.sunset && <span className="text-[10px] text-[#8A94A6]">IST</span>}
                     </span>
                   </div>
                 </div>
@@ -322,20 +329,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 {/* Daylight Duration */}
                 <div className="flex items-center gap-1.5 bg-[#1E2733] px-2.5 py-1.5 rounded-md border border-[rgba(225,230,235,0.12)] text-[11px]">
                   <span className="material-symbols-outlined text-[#4FA8E0] text-[15px]">schedule</span>
-                  <span>Daylight: <strong className="text-[#FFFFFF]">{weather.daylightDuration || '12h 46m'}</strong></span>
+                  <span>Daylight: <strong className="text-[#FFFFFF]">{weather.daylightDuration || '—'}</strong></span>
                 </div>
               </div>
 
               {/* Daylight Progress Trajectory Bar */}
               <div className="pt-1.5 border-t border-[rgba(225,230,235,0.08)] flex items-center justify-between text-[11px] text-[#8A94A6]">
                 <span className="flex items-center gap-1.5">
-                  <span>Dawn: <strong className="text-[#F4F7FA]">{weather.dawnTime || '05:10 AM'}</strong></span>
+                  <span>Dawn: <strong className="text-[#F4F7FA]">{weather.dawnTime || '—'}</strong></span>
                   <span>•</span>
-                  <span>Dusk: <strong className="text-[#FFB703]">{weather.duskTime || '06:40 PM'}</strong></span>
+                  <span>Dusk: <strong className="text-[#FFB703]">{weather.duskTime || '—'}</strong></span>
                 </span>
                 <span className="text-[#4FA8E0] font-medium flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">explore</span>
-                  Solar Elevation: {weather.solarElevationDeg !== undefined ? `${weather.solarElevationDeg > 0 ? `+${weather.solarElevationDeg}` : weather.solarElevationDeg}°` : '+48°'}
+                  Solar Elevation: {weather.solarElevationDeg !== undefined ? `${weather.solarElevationDeg > 0 ? `+${weather.solarElevationDeg}` : weather.solarElevationDeg}°` : '—'}
                 </span>
               </div>
             </div>
@@ -347,16 +354,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Temperature & Heat Index', `${weather.temp}°C`, '°C')
+                onOpenTelemetry('Temperature & Heat Index', hasTemp ? `${weather.temp}°C` : 'Unavailable', '°C')
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[#8A94A6] block font-medium">Temperature</span>
               <span className="text-base font-bold text-[#FFFFFF] my-0.5">
-                {weather.temp}°C
+                {hasTemp ? `${weather.temp}°C` : '—'}
               </span>
               <span className="text-[10px] text-[#4FA8E0] block truncate">
-                H: {weather.high}° | L: {weather.low}°
+                H: {isNum(weather.high) ? `${weather.high}°` : '—'} | L: {isNum(weather.low) ? `${weather.low}°` : '—'}
               </span>
             </div>
 
@@ -364,16 +371,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Relative Humidity', `${weather.humidity}%`, '%')
+                onOpenTelemetry('Relative Humidity', hasHum ? `${weather.humidity}%` : 'Unavailable', '%')
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[#8A94A6] block font-medium">Humidity</span>
               <span className="text-base font-bold text-[#FFFFFF] my-0.5">
-                {weather.humidity}%
+                {hasHum ? `${weather.humidity}%` : '—'}
               </span>
               <span className="text-[10px] text-[#2ECC71] block truncate">
-                Dew Pt: {weather.dewPoint}°C
+                Dew Pt: {isNum(weather.dewPoint) ? `${weather.dewPoint}°C` : '—'}
               </span>
             </div>
 
@@ -381,7 +388,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Air Quality PM2.5', weather.aqiPm25, 'µg/m³')
+                onOpenTelemetry('Air Quality PM2.5', isNum(weather.aqiPm25) ? weather.aqiPm25 : 'Unavailable', 'µg/m³')
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
@@ -390,10 +397,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 className="text-base font-bold my-0.5"
                 style={{ color: aqiColor }}
               >
-                {weather.aqiIndex ?? weather.aqiPm25} <span className="text-[10px] font-normal text-[#8A94A6]">AQI</span>
+                {weather.aqiIndex ?? weather.aqiPm25 ?? '—'}{' '}
+                {(weather.aqiIndex ?? weather.aqiPm25) !== undefined && (weather.aqiIndex ?? weather.aqiPm25) !== null && (
+                  <span className="text-[10px] font-normal text-[#8A94A6]">AQI</span>
+                )}
               </span>
               <span className="text-[10px] text-[#8A94A6] block truncate">
-                PM2.5: {weather.aqiPm25} µg/m³
+                PM2.5: {isNum(weather.aqiPm25) ? `${weather.aqiPm25} µg/m³` : '—'}
               </span>
             </div>
 
@@ -401,16 +411,23 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Pollen Count & Allergens', `${weather.pollenCount ?? 8} grains/m³`, 'grains/m³')
+                onOpenTelemetry(
+                  'Pollen Count & Allergens',
+                  isNum(weather.pollenCount) ? `${weather.pollenCount} grains/m³` : 'Unavailable',
+                  'grains/m³'
+                )
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[#8A94A6] block font-medium">Pollen Count</span>
               <span className="text-base font-bold text-[#FFB703] my-0.5">
-                {weather.pollenCount ?? 8} <span className="text-[10px] font-normal text-[#8A94A6]">grains/m³</span>
+                {isNum(weather.pollenCount) ? weather.pollenCount : '—'}{' '}
+                {isNum(weather.pollenCount) && (
+                  <span className="text-[10px] font-normal text-[#8A94A6]">grains/m³</span>
+                )}
               </span>
               <span className="text-[10px] text-[#2ECC71] block truncate">
-                Risk: {weather.pollen}
+                Risk: {weather.pollen || 'Unavailable'}
               </span>
             </div>
 
@@ -418,16 +435,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Wind Velocity', `${weather.windSpeed} km/h`, 'km/h')
+                onOpenTelemetry('Wind Velocity', hasWind ? `${weather.windSpeed} km/h` : 'Unavailable', 'km/h')
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[#8A94A6] block font-medium">Wind Velocity</span>
               <span className="text-base font-bold text-[#FFFFFF] my-0.5">
-                {weather.windSpeed} <span className="text-[10px] font-normal text-[#8A94A6]">km/h</span>
+                {hasWind ? weather.windSpeed : '—'}{' '}
+                {hasWind && <span className="text-[10px] font-normal text-[#8A94A6]">km/h</span>}
               </span>
               <span className="text-[10px] text-[#4FA8E0] block truncate">
-                {weather.windDirection}
+                {weather.windDirection || '—'}
               </span>
             </div>
 
@@ -435,13 +453,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div
               onClick={() =>
                 onOpenTelemetry &&
-                onOpenTelemetry('Barometric Pressure', `${weather.pressure} hPa`, 'hPa')
+                onOpenTelemetry('Barometric Pressure', hasPressure ? `${weather.pressure} hPa` : 'Unavailable', 'hPa')
               }
               className="bg-[#0F141A] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[#8A94A6] block font-medium">Air Pressure</span>
               <span className="text-base font-bold text-[#FFFFFF] my-0.5">
-                {weather.pressure} <span className="text-[10px] font-normal text-[#8A94A6]">hPa</span>
+                {hasPressure ? weather.pressure : '—'}{' '}
+                {hasPressure && <span className="text-[10px] font-normal text-[#8A94A6]">hPa</span>}
               </span>
               <span className="text-[10px] text-[#8A94A6] block truncate">
                 Mean Sea Level
@@ -492,12 +511,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-[#2ECC71] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                        Good Conditions for Outdoor Running
+                        {hasTemp ? 'Outdoor Activity Guidance' : 'Awaiting Telemetry'}
                       </span>
-                      <span className="text-[#8A94A6]">Best: 06:00 - 08:30 AM</span>
+                      <span className="text-[#8A94A6]">
+                        {isNum(weather.uvIndex) ? `UV Peak: ${weather.uvIndex}` : 'UV: —'}
+                      </span>
                     </div>
                     <p className="text-xs text-[#8A94A6] leading-relaxed">
-                      Morning temperatures around 24°C with gentle 12 km/h breeze. UV Index peaks around 12:30 PM (7.4 UV); stay hydrated if exercising outdoors past 10:00 AM.
+                      Surface temperature {hasTemp ? `${weather.temp}°C` : '—'} with wind {hasWind ? `${weather.windSpeed} km/h` : '—'}.{' '}
+                      {isNum(weather.uvIndex) && weather.uvIndex >= 7
+                        ? 'High UV exposure window; stay hydrated and use sun protection.'
+                        : 'Monitor local wind and UV updates before strenuous outdoor exercise.'}
                     </p>
                   </div>
                 )}
@@ -507,12 +531,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-[#4FA8E0] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">traffic</span>
-                        Dry Asphalt &amp; Clear Visibility
+                        {weather.isRainingNow ? 'Wet Surface Caution' : 'Dry Surface Guidance'}
                       </span>
-                      <span className="text-[#8A94A6]">Visibility: 10 km</span>
+                      <span className="text-[#8A94A6]">
+                        Visibility: {isNum(weather.visibilityKm) ? `${weather.visibilityKm} km` : '—'}
+                      </span>
                     </div>
                     <p className="text-xs text-[#8A94A6] leading-relaxed">
-                      No active precipitation or fog affecting urban roads or highways. Low risk of hydroplaning or squall delays for local travel across coastal Odisha corridors.
+                      {weather.isRainingNow
+                        ? `Active precipitation reported (${isNum(weather.precipitation) ? `${weather.precipitation} mm` : '—'}). Allow extra braking distance.`
+                        : `${weather.condition || 'Telemetry pending'}. ${weather.rainExpectedSummary || 'Check radar before departure.'}`}
                     </p>
                   </div>
                 )}
@@ -522,12 +550,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-[#FFB703] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">wb_sunny</span>
-                        Suitable for Evening Park Outings
+                        Outdoor Family Window
                       </span>
-                      <span className="text-[#8A94A6]">Sunset: 06:18 PM</span>
+                      <span className="text-[#8A94A6]">Sunset: {weather.sunset || '—'}</span>
                     </div>
                     <p className="text-xs text-[#8A94A6] leading-relaxed">
-                      Afternoon heat index feels like 34°C. Optimal window for family walks and playgrounds is after 04:30 PM as solar radiation tapers off.
+                      Apparent temperature feels like {isNum(weather.feelsLike) ? `${Math.round(weather.feelsLike)}°C` : hasTemp ? `${Math.round(weather.temp!)}°C` : '—'}.{' '}
+                      {weather.rainExpectedSummary || 'Verify hourly trend prior to evening plans.'}
                     </p>
                   </div>
                 )}
@@ -537,12 +566,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-[#2ECC71] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">agriculture</span>
-                        Favorable for Field Prep &amp; Sowing
+                        Field &amp; Crop Advisory
                       </span>
                       <span className="text-[#8A94A6]">Meghdoot Advisory</span>
                     </div>
                     <p className="text-xs text-[#8A94A6] leading-relaxed">
-                      Relative humidity at 68% with low immediate rainfall probability. Suitable for foliar spraying and top dressing in paddy and vegetable nurseries.
+                      Relative humidity at {hasHum ? `${weather.humidity}%` : '—'} with rain probability {hasRainProb ? `${weather.precipitationProbability}%` : '—'}.{' '}
+                      Adjust spraying and irrigation according to 24-hour precipitation accumulation.
                     </p>
                   </div>
                 )}
@@ -552,12 +582,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-[#2ECC71] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">air</span>
-                        Air Quality: {weather.aqiPm25} (Good)
+                        Air Quality: {isNum(weather.aqi) ? `AQI ${weather.aqi}` : isNum(weather.aqiPm25) ? `${weather.aqiPm25} µg/m³` : '—'} ({weather.aqiStatus || 'Unavailable'})
                       </span>
-                      <span className="text-[#8A94A6]">Pollen: Low</span>
+                      <span className="text-[#8A94A6]">Pollen: {weather.pollen || 'Unavailable'}</span>
                     </div>
                     <p className="text-xs text-[#8A94A6] leading-relaxed">
-                      Satisfactory air quality suitable for normal outdoor activities. No heightened risk for individuals with asthma or respiratory sensitivities today.
+                      {isNum(weather.aqiPm25)
+                        ? `Current PM2.5 particulate concentration is ${weather.aqiPm25} µg/m³ (${weather.aqiStatus || 'Observed'}).`
+                        : 'Air quality particulate sensor reading currently unavailable for this location.'}
                     </p>
                   </div>
                 )}
@@ -676,7 +708,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="bg-[#0F141A] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
             <span className="text-[11px] text-[#8A94A6] block">24h Max Temp</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-lg font-bold text-[#FFB703]">{maxTemp}°C</span>
+              <span className="text-lg font-bold text-[#FFB703]">{maxTemp !== null ? `${maxTemp}°C` : '—'}</span>
               <span className="text-[10px] text-[#8A94A6]">(Peak IST)</span>
             </div>
           </div>
@@ -684,7 +716,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="bg-[#0F141A] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
             <span className="text-[11px] text-[#8A94A6] block">24h Min Temp</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-lg font-bold text-[#4FA8E0]">{minTemp}°C</span>
+              <span className="text-lg font-bold text-[#4FA8E0]">{minTemp !== null ? `${minTemp}°C` : '—'}</span>
               <span className="text-[10px] text-[#8A94A6]">(Dawn IST)</span>
             </div>
           </div>
@@ -692,7 +724,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="bg-[#0F141A] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
             <span className="text-[11px] text-[#8A94A6] block">Mean Humidity</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-lg font-bold text-[#2ECC71]">{avgHumidity}%</span>
+              <span className="text-lg font-bold text-[#2ECC71]">{avgHumidity !== null ? `${avgHumidity}%` : '—'}</span>
               <span className="text-[10px] text-[#8A94A6]">(Relative avg)</span>
             </div>
           </div>
@@ -700,7 +732,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="bg-[#0F141A] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
             <span className="text-[11px] text-[#8A94A6] block">24h Cumulative Rain</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-lg font-bold text-[#9B59B6]">{totalRain24h} mm</span>
+              <span className="text-lg font-bold text-[#9B59B6]">{totalRain24h !== null ? `${totalRain24h} mm` : '—'}</span>
               <span className="text-[10px] text-[#8A94A6]">(Surface gauge)</span>
             </div>
           </div>

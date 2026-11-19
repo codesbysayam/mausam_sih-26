@@ -1086,35 +1086,35 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               <ZoomControl position="topright" />
             </MapContainer>
 
-            {/* Top-left floating indicator showing active frame timestamp (Clickable to inspect latest echo) */}
+            {/* Top-left floating indicator showing active frame timestamp & age (Clickable to inspect latest echo) */}
             <button
               type="button"
               id="badge-latest-echo-trigger"
               onClick={handleLatestEchoAction}
               title="Click to inspect latest echo telemetry & active storm cells"
-              className="absolute top-3 left-3 bg-[#0B1927]/95 border border-[#26394B] hover:border-[#35C7E8] px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[500] backdrop-blur-sm cursor-pointer transition-colors group"
+              className="absolute top-3 left-3 bg-[#101820]/95 border border-[#354653] hover:border-[#2C7BE5] px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[520] backdrop-blur-sm cursor-pointer transition-colors group shadow-lg"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
                   isPlaying
-                    ? 'bg-[#35C7E8]'
+                    ? 'bg-[#2C7BE5]'
                     : isLatestFrame
-                    ? 'bg-[#22C7A0]'
-                    : 'bg-[#F59E0B]'
+                    ? 'bg-[#2E7D5B]'
+                    : 'bg-[#D98A2B]'
                 }`}
               />
-              <span className="text-[#F3F6FA] font-mono text-[11px] font-bold">
-                {isLatestFrame ? 'LATEST SWEEP' : 'PAST FRAME'}
+              <span className="text-[#F5F3ED] font-mono text-[11px] font-bold tracking-wider">
+                {activeFrame?.relativeLabel || (isLatestFrame ? 'LATEST SWEEP' : 'PAST FRAME')}
               </span>
-              <span className="text-[#8295A8] text-[11px] font-mono tabular-nums">
+              <span className="text-[#D8D4C9] text-[11px] font-mono tabular-nums">
                 {activeFrame ? formatTimestamp(activeFrame.time) : 'Syncing…'}
               </span>
-              <Crosshair className="w-3.5 h-3.5 text-[#35C7E8] ml-0.5 opacity-80 group-hover:opacity-100" />
+              <Crosshair className="w-3.5 h-3.5 text-[#2C7BE5] ml-0.5 opacity-80 group-hover:opacity-100" />
             </button>
 
             {/* Temporary Feedback Banner when jumping or refreshing */}
             {echoFeedback && (
-              <div className="absolute top-12 left-3 bg-[#0B72B9] text-[#F3F6FA] px-3 py-1 rounded text-xs font-semibold z-[510] flex items-center gap-1.5 pointer-events-none">
+              <div className="absolute top-12 left-3 bg-[#2C7BE5] text-[#F5F3ED] px-3 py-1 rounded text-xs font-semibold z-[530] flex items-center gap-1.5 pointer-events-none shadow-md">
                 <Zap className="w-3.5 h-3.5" />
                 <span>{echoFeedback}</span>
               </div>
@@ -1124,7 +1124,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
             {showEchoInspector && (
               <div
                 id="panel-latest-echo-inspector"
-                className="absolute top-3 right-3 sm:right-auto sm:left-3 sm:top-14 w-80 max-w-[calc(100%-24px)] bg-[#08131F]/95 border border-[#35C7E8]/45 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5"
+                className="absolute top-14 left-3 w-80 max-w-[calc(100%-24px)] bg-[#101820]/96 border border-[#2C7BE5]/50 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5 shadow-2xl"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-[#26394B]">
@@ -1260,10 +1260,10 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               </div>
             )}
 
-            {/* Persistent Semi-Transparent Radar Legend Panel directly on the map surface */}
+            {/* Persistent Semi-Transparent Radar Legend Panel in bottom-right corner so it never overlaps top-left LATEST SWEEP */}
             <RadarMapLegendPanel
               initialMetric="all"
-              positionClass="bottom-3 left-3"
+              positionClass="bottom-3 right-3"
               activePrecipLevels={activePrecipLevels}
               onPrecipLevelsChange={setActivePrecipLevels}
               sectorName={currentStation ? `${currentStation.city} (${currentStation.state}) Sector` : 'National Doppler Radar Network'}

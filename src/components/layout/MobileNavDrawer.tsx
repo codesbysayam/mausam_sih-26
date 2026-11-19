@@ -21,6 +21,7 @@ import { LanguageSelector } from './LanguageSelector';
 import { UseMyLocationButton } from '../location/UseMyLocationButton';
 import { AudioAlertToggle } from '../common/AudioAlertToggle';
 import { triggerHaptic } from '../../utils/haptics';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -169,7 +170,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   )}
                 </div>
                 <span className="text-[11px] text-[#8EA3B8] block truncate">
-                  {selectedLocation.lat.toFixed(2)}°N, {selectedLocation.lng.toFixed(2)}°E
+                  {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
                 </span>
               </div>
             </div>

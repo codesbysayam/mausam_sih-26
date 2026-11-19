@@ -81,8 +81,8 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
   const [sowingDate, setSowingDate] = useState<Date>(() => new Date(Date.now() - 42 * 24 * 60 * 60 * 1000));
 
   const bulletin: ExtendedAgrometBulletin = useMemo(() => {
-    return getExtendedAgrometBulletin(selectedState, selectedDistrict);
-  }, [selectedState, selectedDistrict]);
+    return getExtendedAgrometBulletin(selectedState, selectedDistrict, weatherBundle);
+  }, [selectedState, selectedDistrict, weatherBundle]);
 
   const handleStateChange = (state: string) => {
     setSelectedState(state);

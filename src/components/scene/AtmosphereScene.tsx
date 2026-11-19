@@ -870,13 +870,17 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     let rafId = 0;
     let cooldownTimer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    if (typeof document !== 'undefined') {
+      timer.connect(document);
+    }
 
-    const animate = () => {
+    const animate = (timestamp?: number) => {
       if (disposed) return;
 
-      const delta = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.elapsedTime;
+      timer.update(timestamp);
+      const delta = Math.min(timer.getDelta(), 0.05);
+      const elapsed = timer.getElapsed();
       const { qualityTier: q, reducedMotion: rm } = latestRef.current;
 
       // Smooth damped camera fly-to
@@ -926,6 +930,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       disposed = true;
       cancelAnimationFrame(rafId);
       if (cooldownTimer) clearTimeout(cooldownTimer);
+      timer.dispose();
       resizeObserver.disconnect();
       window.removeEventListener('keydown', handleKeyDown);
       controls.removeEventListener('start', cancelFlyTo);

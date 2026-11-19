@@ -57,14 +57,14 @@ function parseQuery(req: any): Record<string, any> {
 }
 
 const IMD_RADAR_STATIONS = [
-  { id: 'PARADIP', name: 'Paradip DWR', state: 'Odisha', lat: 20.316, lon: 86.708, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'GOPALPUR', name: 'Gopalpur DWR', state: 'Odisha', lat: 19.31, lon: 84.97, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'KOLKATA', name: 'Kolkata DWR', state: 'West Bengal', lat: 22.57, lon: 88.36, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'VISAKHAPATNAM', name: 'Visakhapatnam DWR', state: 'Andhra Pradesh', lat: 17.68, lon: 83.21, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'CHENNAI', name: 'Chennai DWR', state: 'Tamil Nadu', lat: 13.08, lon: 80.27, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'MUMBAI', name: 'Mumbai DWR', state: 'Maharashtra', lat: 18.92, lon: 72.83, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'DELHI', name: 'Delhi Palam DWR', state: 'Delhi', lat: 28.58, lon: 77.11, band: 'S-band', status: 'OPERATIONAL' },
-  { id: 'BHUJ', name: 'Bhuj DWR', state: 'Gujarat', lat: 23.24, lon: 69.66, band: 'S-band', status: 'OPERATIONAL' },
+  { id: 'PARADIP', name: 'Paradip DWR', state: 'Odisha', lat: 20.316, lon: 86.708, band: 'S-band', status: 'CATALOGED' },
+  { id: 'GOPALPUR', name: 'Gopalpur DWR', state: 'Odisha', lat: 19.31, lon: 84.97, band: 'S-band', status: 'CATALOGED' },
+  { id: 'KOLKATA', name: 'Kolkata DWR', state: 'West Bengal', lat: 22.57, lon: 88.36, band: 'S-band', status: 'CATALOGED' },
+  { id: 'VISAKHAPATNAM', name: 'Visakhapatnam DWR', state: 'Andhra Pradesh', lat: 17.68, lon: 83.21, band: 'S-band', status: 'CATALOGED' },
+  { id: 'CHENNAI', name: 'Chennai DWR', state: 'Tamil Nadu', lat: 13.08, lon: 80.27, band: 'S-band', status: 'CATALOGED' },
+  { id: 'MUMBAI', name: 'Mumbai DWR', state: 'Maharashtra', lat: 18.92, lon: 72.83, band: 'S-band', status: 'CATALOGED' },
+  { id: 'DELHI', name: 'Delhi Palam DWR', state: 'Delhi', lat: 28.58, lon: 77.11, band: 'S-band', status: 'CATALOGED' },
+  { id: 'BHUJ', name: 'Bhuj DWR', state: 'Gujarat', lat: 23.24, lon: 69.66, band: 'S-band', status: 'CATALOGED' },
 ];
 
 export default async function handler(req: any, res: any) {
@@ -92,13 +92,20 @@ export default async function handler(req: any, res: any) {
           rgb: 'https://mausam.imd.gov.in/Satellite/Converted/RGB.gif',
         };
         const imageUrl = urls[channel] || urls.ir1;
+        const headRes = await fetch(imageUrl, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(4500),
+        }).catch(() => null);
+        const isImage = Boolean(headRes?.ok && (headRes.headers.get('content-type') || '').startsWith('image/'));
         return sendJson(res, 200, {
+          ok: isImage,
           channel,
           satellite: 'INSAT-3D / INSAT-3DR',
           source: 'India Meteorological Department (IMD)',
-          imageUrl,
-          status: 'LIVE',
-          observedAt: new Date().toISOString(),
+          imageUrl: isImage ? imageUrl : null,
+          status: isImage ? 'LIVE' : 'UNAVAILABLE',
+          observedAt: isImage ? new Date().toISOString() : null,
+          message: isImage ? null : 'Official INSAT satellite image is temporarily unreachable.',
         }, {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         });
@@ -106,8 +113,12 @@ export default async function handler(req: any, res: any) {
 
       case 'frames': {
         const response = await fetch('https://api.rainviewer.com/public/weather-maps.json', {
-          headers: { 'User-Agent': 'Mausam-Radar/1.0' },
+          headers: { 'User-Agent': 'aistudio-build' },
+          signal: AbortSignal.timeout(6500),
         });
+        if (!response.ok) {
+          throw new Error(`RainViewer HTTP ${response.status}`);
+        }
         const data = await response.json();
         const host = data?.host || 'https://tilecache.rainviewer.com';
         const past = (data?.radar?.past || []).map((f: any) => ({

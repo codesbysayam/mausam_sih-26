@@ -8,6 +8,7 @@ import { WeatherTelemetryGrid } from '../components/weather/WeatherTelemetryGrid
 import { WeatherWidgets } from '../components/weather/WeatherWidgets';
 import { HourlyWeatherTimeline } from '../components/weather/HourlyWeatherTimeline';
 import { SevenDaySynopticForecast } from '../components/weather/SevenDaySynopticForecast';
+import { AstronomicalEphemeris } from '../components/weather/AstronomicalEphemeris';
 import { SolarDynamics } from '../components/weather/SolarDynamics';
 import { PersonaWeatherHub } from '../components/weather/personas/PersonaWeatherHub';
 import { WeatherDecisionCenter } from '../components/weather/WeatherDecisionCenter';
@@ -18,6 +19,7 @@ import { buildHumanWeatherStory } from '../services/humanWeatherEngine';
 import { LocatingPhase, GeolocationServiceError, NearestStationResult } from '../services/geolocationService';
 import { PrintReportHeader } from '../components/common/PrintReportHeader';
 import { useProvider } from '../store/providerStore';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 import {
   PageHeader,
   DataPanel,
@@ -207,7 +209,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
         id="weather-page-header-banner"
         eyebrow={`ANALYZE MODE • ${locationSource === 'DEVICE_GPS' ? 'GPS LOCK' : 'SELECTED STATION'}`}
         title={`${selectedLocation.city}, ${selectedLocation.state}`}
-        coordinates={`${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E${selectedLocation.elevation ? ` • ${selectedLocation.elevation}` : ''}`}
+        coordinates={`${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}${selectedLocation.elevation ? ` • ${selectedLocation.elevation}` : ''}`}
         description={`Station ${selectedLocation.imdStation || 'Point Grid Telemetry'}${selectedLocation.district && selectedLocation.district !== selectedLocation.city ? ` • ${selectedLocation.district} District` : ''}`}
         status={obsStatus}
         source={current.dataSource || current.observationSource || current.source || 'Open-Meteo'}
@@ -433,6 +435,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
       </div>
 
       <WeatherWidgets weather={current} />
+      <AstronomicalEphemeris location={selectedLocation} weather={current} />
       <SolarDynamics location={selectedLocation} weather={current} />
       <CoastalMarineSection location={selectedLocation} />
 

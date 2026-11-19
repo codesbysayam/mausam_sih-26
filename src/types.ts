@@ -313,21 +313,21 @@ export interface HourlyForecastItem {
   condition: string;
   rainCondition?: string;
   icon: string;
-  aqi: number;
-  rainProb: number;
-  windSpeed: number;
-  windGusts?: number;
-  uv: number;
-  humidity: number;
+  aqi: number | null;
+  rainProb: number | null;
+  windSpeed: number | null;
+  windGusts?: number | null;
+  uv: number | null;
+  humidity: number | null;
   isNow?: boolean;
-  precipitationProbability?: number;
+  precipitationProbability?: number | null;
   windDirection?: string;
-  cloudCover?: number;
+  cloudCover?: number | null;
   qpf?: number;
-  pressure?: number;
-  precipitation?: number;
-  visibilityKm?: number;
-  solarRadiation?: number;
+  pressure?: number | null;
+  precipitation?: number | null;
+  visibilityKm?: number | null;
+  solarRadiation?: number | null;
 }
 
 export interface MarineObservation {
@@ -357,11 +357,11 @@ export interface DailyForecastItem {
   icon: string;
   high: number;
   low: number;
-  rainProb: number;
+  rainProb: number | null;
   precipMm?: number | null;
-  uv: number;
-  aqi: number;
-  humidity: number;
+  uv: number | null;
+  aqi: number | null;
+  humidity: number | null;
   wind: string;
   barProgress: {
     startPercent: number;
@@ -397,10 +397,10 @@ export interface HistoricalTrendPoint {
   time: string;
   hour: number;
   temp: number;
-  humidity: number;
-  pressure: number;
-  windSpeed: number;
-  rain: number;
+  humidity: number | null;
+  pressure: number | null;
+  windSpeed: number | null;
+  rain: number | null;
 }
 
 

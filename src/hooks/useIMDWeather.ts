@@ -51,8 +51,14 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
     id: targetLocation?.id || '42971',
     name: targetLocation?.name || 'Bhubaneswar',
     state: targetLocation?.state || 'Odisha',
-    latitude: targetLocation?.latitude || 20.2961,
-    longitude: targetLocation?.longitude || 85.8245,
+    latitude:
+      typeof targetLocation?.latitude === 'number' && Number.isFinite(targetLocation.latitude)
+        ? targetLocation.latitude
+        : 20.2961,
+    longitude:
+      typeof targetLocation?.longitude === 'number' && Number.isFinite(targetLocation.longitude)
+        ? targetLocation.longitude
+        : 85.8245,
     type: targetLocation?.type || 'city',
   };
 

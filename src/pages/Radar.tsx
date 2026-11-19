@@ -22,6 +22,7 @@ import { RadarTechnicalSpecs } from '../components/radar/RadarTechnicalSpecs';
 import { RadarTimeSpan } from '../components/radar/RadarTimeLapseController';
 import { useProvider } from '../store/providerStore';
 import { formatTimestampIST } from '../services/providers/providerStatus';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 import {
   PageHeader,
   ProvenanceStatus,
@@ -95,7 +96,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
 
   const currentSectorName = useMemo<string>(() => {
     if (inspectedCoords) {
-      return `Point (${inspectedCoords.lat.toFixed(2)}°N, ${inspectedCoords.lng.toFixed(2)}°E)`;
+      return `Point (${formatCoordinatePair(inspectedCoords.lat, inspectedCoords.lng, 2)})`;
     }
     if (viewMode === 'radar' && selectedStation) {
       return `${selectedStation.name} Radar Sector (${selectedStation.id})`;
@@ -252,15 +253,21 @@ export const RadarPage: React.FC<RadarPageProps> = ({
   const handleZoomIn = () => mapControls?.zoomIn();
   const handleZoomOut = () => mapControls?.zoomOut();
   const handleResetView = () => mapControls?.resetView();
+  const hasSelectedCoords =
+    typeof selectedLocation?.lat === 'number' &&
+    Number.isFinite(selectedLocation.lat) &&
+    typeof selectedLocation?.lng === 'number' &&
+    Number.isFinite(selectedLocation.lng);
+
   const handleMyLocation = () => {
-    if (selectedLocation?.lat && selectedLocation?.lng) {
+    if (hasSelectedCoords && selectedLocation) {
       mapControls?.flyTo(selectedLocation.lat, selectedLocation.lng, 8);
       setInspectedCoords({ lat: selectedLocation.lat, lng: selectedLocation.lng });
     }
   };
 
   const coordinateSummary = selectedLocation
-    ? `${selectedLocation.city}, ${selectedLocation.state} · ${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+    ? `${selectedLocation.city}, ${selectedLocation.state} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`
     : undefined;
 
   return (
@@ -365,7 +372,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               onZoomOut={handleZoomOut}
               onResetView={handleResetView}
               onMyLocation={handleMyLocation}
-              hasUserLocation={!!(selectedLocation?.lat && selectedLocation?.lng)}
+              hasUserLocation={hasSelectedCoords}
               isLocked={isMapLocked}
               onToggleLock={handleToggleLock}
               sectorName={currentSectorName}
@@ -388,7 +395,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
                 }}
                 radarTileUrl={currentTileUrl}
                 userCoords={
-                  selectedLocation?.lat && selectedLocation?.lng
+                  hasSelectedCoords && selectedLocation
                     ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
                     : null
                 }

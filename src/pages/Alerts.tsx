@@ -26,6 +26,7 @@ import { NationalClassificationMatrix } from '../components/warnings/NationalCla
 import { useProvider } from '../store/providerStore';
 import { getAlertFeedAvailability } from '../services/providers/providerStatus';
 import { formatIndianDateTime } from '../utils/dateUtils';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 import {
   ProvenanceStatus,
   SectionHeading,
@@ -184,7 +185,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
     : 'RECENT';
 
   const coordsText = selectedLocation?.coordinates
-    ? `${selectedLocation.name} (${selectedLocation.coordinates.lat.toFixed(2)}°N, ${selectedLocation.coordinates.lng.toFixed(2)}°E)`
+    ? `${selectedLocation.name} (${formatCoordinatePair(selectedLocation.coordinates.lat, selectedLocation.coordinates.lng, 2)})`
     : undefined;
 
   const updatedLabel = diagnostics?.lastSuccessfulFetchAt

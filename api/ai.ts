@@ -89,7 +89,14 @@ async function parseBody(req: any): Promise<any> {
 let aiClient: GoogleGenAI | null = null;
 function getAIClient(): GoogleGenAI | null {
   if (!aiClient && process.env.GEMINI_API_KEY) {
-    aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    aiClient = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   }
   return aiClient;
 }
@@ -219,15 +226,14 @@ RULES:
 5. Format key values with bold Markdown. Keep the tone authoritative, clear, and helpful.`;
 
     let aiResultText = '';
-    let usedModel = 'gemini-3.8-flash';
+    let usedModel = 'gemini-4-hydrogen';
 
     try {
       const response = await client.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-4-hydrogen',
         contents: prompt,
         config: {
           systemInstruction,
-          temperature: 0.2,
         },
       });
       aiResultText = response.text || '';
@@ -239,7 +245,6 @@ RULES:
         contents: prompt,
         config: {
           systemInstruction,
-          temperature: 0.2,
         },
       });
       aiResultText = response.text || '';

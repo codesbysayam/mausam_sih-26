@@ -8,14 +8,18 @@ import {
 } from '../../src/data/radarStations';
 import imdStationsData from '../../src/data/imdStations.json';
 import indiaLocationsData from '../../src/data/indiaLocations.json';
+import { parseCoordinates, formatCoordinatePair } from '../../shared/weatherContract';
 
 export const realMausamRouter = Router();
 
 // 1. Solar Trajectory & Day Length API
 realMausamRouter.get('/solar', (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
     const dateQuery = req.query.date ? new Date(req.query.date as string) : new Date();
     const validDate = isNaN(dateQuery.getTime()) ? new Date() : dateQuery;
 
@@ -51,202 +55,136 @@ realMausamRouter.get('/solar', (req: Request, res: Response) => {
 // 2. Air Quality & Environmental Exposure API
 realMausamRouter.get('/air-quality', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
 
-    const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen,uv_index&timezone=Asia%2FKolkata`;
-    
-    const response = await fetch(airUrl);
+    const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen,uv_index&timezone=auto`;
+
+    const response = await fetch(airUrl, {
+      signal: AbortSignal.timeout(7500),
+      headers: { 'User-Agent': 'aistudio-build' },
+    });
     if (!response.ok) {
-      throw new Error(`Air Quality provider returned status ${response.status}`);
+      return res.status(502).json({
+        status: 'error',
+        dataStatus: 'UNAVAILABLE',
+        message: `Air Quality provider returned status ${response.status}`,
+      });
     }
 
     const data = await response.json();
     const curr = data.current || {};
+    const numOrNull = (v: unknown): number | null =>
+      typeof v === 'number' && Number.isFinite(v) ? v : null;
 
-    const pm25 = curr.pm2_5 !== undefined && curr.pm2_5 !== null ? Math.round(curr.pm2_5 * 10) / 10 : 42.0;
-    const pm10 = curr.pm10 !== undefined && curr.pm10 !== null ? Math.round(curr.pm10 * 10) / 10 : 76.0;
-    const no2 = curr.nitrogen_dioxide !== undefined && curr.nitrogen_dioxide !== null ? Math.round(curr.nitrogen_dioxide * 10) / 10 : 22.4;
-    const so2 = curr.sulphur_dioxide !== undefined && curr.sulphur_dioxide !== null ? Math.round(curr.sulphur_dioxide * 10) / 10 : 11.2;
-    const co = curr.carbon_monoxide !== undefined && curr.carbon_monoxide !== null ? Math.round(curr.carbon_monoxide) : 410;
-    const o3 = curr.ozone !== undefined && curr.ozone !== null ? Math.round(curr.ozone * 10) / 10 : 34.0;
-    const uvIndex = curr.uv_index !== undefined && curr.uv_index !== null ? Math.round(curr.uv_index * 10) / 10 : 5.8;
+    const pm25Raw = numOrNull(curr.pm2_5);
+    const pm10Raw = numOrNull(curr.pm10);
+    const no2Raw = numOrNull(curr.nitrogen_dioxide);
+    const so2Raw = numOrNull(curr.sulphur_dioxide);
+    const coRaw = numOrNull(curr.carbon_monoxide);
+    const o3Raw = numOrNull(curr.ozone);
+    const uvRaw = numOrNull(curr.uv_index);
 
-    // Calculate CPCB AQI for PM2.5
-    let aqi = 50;
-    if (pm25 <= 30) aqi = Math.round(pm25 * (50 / 30));
-    else if (pm25 <= 60) aqi = Math.round(50 + ((pm25 - 30) * 50) / 30);
-    else if (pm25 <= 90) aqi = Math.round(100 + ((pm25 - 60) * 100) / 30);
-    else if (pm25 <= 120) aqi = Math.round(200 + ((pm25 - 90) * 100) / 30);
-    else if (pm25 <= 250) aqi = Math.round(300 + ((pm25 - 120) * 100) / 130);
-    else aqi = Math.round(400 + ((pm25 - 250) * 100) / 130);
+    const pm25 = pm25Raw !== null ? Math.round(pm25Raw * 10) / 10 : null;
+    const pm10 = pm10Raw !== null ? Math.round(pm10Raw * 10) / 10 : null;
+    const no2 = no2Raw !== null ? Math.round(no2Raw * 10) / 10 : null;
+    const so2 = so2Raw !== null ? Math.round(so2Raw * 10) / 10 : null;
+    const co = coRaw !== null ? Math.round(coRaw) : null;
+    const o3 = o3Raw !== null ? Math.round(o3Raw * 10) / 10 : null;
+    const uvIndex = uvRaw !== null ? Math.round(uvRaw * 10) / 10 : null;
+
+    // Calculate CPCB AQI for PM2.5 only when present
+    let aqi: number | null = null;
+    if (pm25 !== null) {
+      if (pm25 <= 30) aqi = Math.round(pm25 * (50 / 30));
+      else if (pm25 <= 60) aqi = Math.round(50 + ((pm25 - 30) * 50) / 30);
+      else if (pm25 <= 90) aqi = Math.round(100 + ((pm25 - 60) * 100) / 30);
+      else if (pm25 <= 120) aqi = Math.round(200 + ((pm25 - 90) * 100) / 30);
+      else if (pm25 <= 250) aqi = Math.round(300 + ((pm25 - 120) * 100) / 130);
+      else aqi = Math.round(400 + ((pm25 - 250) * 100) / 130);
+    } else {
+      const upstreamAqi = numOrNull(curr.us_aqi) ?? numOrNull(curr.european_aqi);
+      aqi = upstreamAqi !== null ? Math.round(upstreamAqi) : null;
+    }
 
     const aqiCategory =
+      aqi === null ? 'Unavailable' :
       aqi <= 50 ? 'Good' :
       aqi <= 100 ? 'Satisfactory' :
       aqi <= 200 ? 'Moderate' :
       aqi <= 300 ? 'Poor' :
       aqi <= 400 ? 'Very Poor' : 'Severe';
 
-    const grassPollen = curr.grass_pollen ?? null;
-    const treePollen = (curr.birch_pollen ?? 0) + (curr.alder_pollen ?? 0) + (curr.olive_pollen ?? 0);
-    const weedPollen = (curr.ragweed_pollen ?? 0) + (curr.mugwort_pollen ?? 0);
-    const hasPollenData = grassPollen !== null || treePollen > 0 || weedPollen > 0;
+    const grassPollen = numOrNull(curr.grass_pollen);
+    const hasTreePollen = numOrNull(curr.birch_pollen) !== null || numOrNull(curr.alder_pollen) !== null || numOrNull(curr.olive_pollen) !== null;
+    const hasWeedPollen = numOrNull(curr.ragweed_pollen) !== null || numOrNull(curr.mugwort_pollen) !== null;
+    const treePollen = hasTreePollen
+      ? (numOrNull(curr.birch_pollen) ?? 0) + (numOrNull(curr.alder_pollen) ?? 0) + (numOrNull(curr.olive_pollen) ?? 0)
+      : null;
+    const weedPollen = hasWeedPollen
+      ? (numOrNull(curr.ragweed_pollen) ?? 0) + (numOrNull(curr.mugwort_pollen) ?? 0)
+      : null;
+    const hasPollenData = grassPollen !== null || treePollen !== null || weedPollen !== null;
+    const totalPollen = (grassPollen ?? 0) + (treePollen ?? 0) + (weedPollen ?? 0);
 
     res.json({
-      status: 'success',
+      status: aqi !== null || pm25 !== null ? 'success' : 'error',
+      dataStatus: aqi !== null || pm25 !== null ? 'MODEL_LIVE' : 'UNAVAILABLE',
       latitude: lat,
       longitude: lon,
       aqi,
       aqiCategory,
-      primaryPollutant: 'PM2.5',
+      primaryPollutant: pm25 !== null ? 'PM2.5' : pm10 !== null ? 'PM10' : 'Unavailable',
       pm25,
       pm10,
       no2,
       so2,
       co,
       o3,
-      nh3: 14.2,
+      nh3: null,
       pollen: hasPollenData ? {
-        totalGrains: Math.round((grassPollen || 0) + treePollen + weedPollen),
-        grassPollen: grassPollen || 0,
+        totalGrains: Math.round(totalPollen),
+        grassPollen,
         treePollen,
         weedPollen,
-        risk: (grassPollen || 0) + treePollen > 30 ? 'High' : (grassPollen || 0) + treePollen > 10 ? 'Moderate' : 'Low',
+        risk: totalPollen > 30 ? 'High' : totalPollen > 10 ? 'Moderate' : 'Low',
       } : null,
       uvIndex,
-      exposureRecommendation: aqi <= 100 ? 'Air quality is acceptable. Safe for outdoor cardio and sports.' : 'Sensitive individuals should limit prolonged outdoor exertion.',
-      monitoringStation: 'Continuous Ambient Air Quality Monitoring Station (CAAQMS)',
-      observationTimestamp: new Date().toISOString(),
-      source: 'Central Pollution Control Board (CPCB) & Open-Meteo Air Quality Telemetry',
+      exposureRecommendation:
+        aqi === null
+          ? 'Air quality observations are unavailable for these coordinates.'
+          : aqi <= 100
+          ? 'Air quality is acceptable. Safe for outdoor activity.'
+          : 'Sensitive individuals should limit prolonged outdoor exertion.',
+      monitoringStation: `Open-Meteo Grid (${formatCoordinatePair(lat, lon)})`,
+      observationTimestamp: curr.time || new Date().toISOString(),
+      source: 'Open-Meteo Air Quality Model (CPCB NAQI Breakpoints)',
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(err?.name === 'AbortError' ? 504 : 502).json({
+      status: 'error',
+      dataStatus: 'UNAVAILABLE',
+      message: err.message,
+    });
   }
 });
-
-function generateModeledAirQualityHistory(
-  lat: number,
-  lon: number,
-  locationName: string,
-  stationId: string,
-  startDateStr: string,
-  endDateStr: string
-) {
-  const start = new Date(`${startDateStr}T00:00:00`);
-  const end = new Date(`${endDateStr}T00:00:00`);
-  const observations: any[] = [];
-
-  const isNorth = lat > 26;
-  const isCoastal = (lon > 80 && lat < 22) || (lon < 75 && lat < 20);
-  const basePm25 = isNorth ? 74 : isCoastal ? 38 : 52;
-
-  const cur = new Date(start);
-  while (cur <= end) {
-    const dStr = cur.toISOString().split('T')[0];
-    const dayOfWeek = cur.getDay();
-    const variation = Math.sin(cur.getDate() * 1.5) * 8 + (dayOfWeek === 0 || dayOfWeek === 6 ? -4 : 3);
-    const pm25 = Math.max(12, Math.round((basePm25 + variation) * 10) / 10);
-    const pm10 = Math.round(pm25 * 1.7 * 10) / 10;
-    const no2 = Math.round((20 + pm25 * 0.25) * 10) / 10;
-    const so2 = Math.round((10 + pm25 * 0.12) * 10) / 10;
-    const co = Math.round(350 + pm25 * 3);
-    const o3 = Math.round((28 + Math.cos(cur.getDate()) * 6) * 10) / 10;
-    const uvIndex = Math.round((6.2 + Math.sin(cur.getDate()) * 0.8) * 10) / 10;
-
-    const grassPollen = Math.max(0, Math.round(4 + Math.sin(cur.getDate() * 2) * 3));
-    const treePollen = Math.max(0, Math.round(6 + Math.cos(cur.getDate()) * 4));
-    const weedPollen = Math.max(0, Math.round(2 + Math.sin(cur.getDate()) * 2));
-    const totalPollen = grassPollen + treePollen + weedPollen;
-
-    let pollenLevel = 1;
-    if (totalPollen > 60) pollenLevel = 5;
-    else if (totalPollen > 35) pollenLevel = 4;
-    else if (totalPollen > 18) pollenLevel = 3;
-    else if (totalPollen > 5) pollenLevel = 2;
-
-    let aqi = 50;
-    if (pm25 <= 30) aqi = Math.round(pm25 * (50 / 30));
-    else if (pm25 <= 60) aqi = Math.round(50 + ((pm25 - 30) * 50) / 30);
-    else if (pm25 <= 90) aqi = Math.round(100 + ((pm25 - 60) * 100) / 30);
-    else if (pm25 <= 120) aqi = Math.round(200 + ((pm25 - 90) * 100) / 30);
-    else if (pm25 <= 250) aqi = Math.round(300 + ((pm25 - 120) * 100) / 130);
-    else aqi = Math.round(400 + ((pm25 - 250) * 100) / 130);
-
-    const aqiCategory =
-      aqi <= 50 ? 'Good' :
-      aqi <= 100 ? 'Satisfactory' :
-      aqi <= 200 ? 'Moderate' :
-      aqi <= 300 ? 'Poor' :
-      aqi <= 400 ? 'Very Poor' : 'Severe';
-
-    const dayLabel = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short' }).format(cur);
-
-    observations.push({
-      date: dStr,
-      day: dayLabel,
-      pm25,
-      pm10,
-      no2,
-      so2,
-      co,
-      o3,
-      uvIndex,
-      pollen: pollenLevel,
-      totalPollenGrains: totalPollen,
-      grassPollen,
-      treePollen,
-      weedPollen,
-      aqi,
-      aqiCategory,
-      safeStandardPm25: 60,
-      pollenModerateLimit: 3,
-      peakPm25: Math.round(pm25 * 1.3 * 10) / 10,
-      peakTime: '19:00 IST',
-      hasVerifiedData: true,
-    });
-
-    cur.setDate(cur.getDate() + 1);
-  }
-
-  const baselineObs = observations[observations.length - 1];
-  const totalPm25 = observations.reduce((s, o) => s + o.pm25, 0);
-  const sevenDayAvgPm25 = observations.length ? Math.round((totalPm25 / observations.length) * 10) / 10 : (baselineObs?.pm25 || 0);
-  const totalPollen = observations.reduce((s, o) => s + o.pollen, 0);
-  const sevenDayAvgPollen = observations.length ? Number((totalPollen / observations.length).toFixed(1)) : (baselineObs?.pollen || 0);
-  const peakObs = observations.reduce((max, o) => (o.peakPm25 > (max.peakPm25 || 0) ? o : max), observations[0]);
-
-  return {
-    status: 'success',
-    hasVerifiedData: true,
-    latitude: lat,
-    longitude: lon,
-    location: locationName,
-    stationId: stationId || `CAAQMS-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
-    selectedDate: endDateStr,
-    startDate: startDateStr,
-    endDate: endDateStr,
-    sevenDayAveragePm25: sevenDayAvgPm25,
-    sevenDayAveragePollen: sevenDayAvgPollen,
-    peakConcentration: peakObs?.peakPm25 || baselineObs?.pm25 || 0,
-    peakTime: peakObs?.peakTime || baselineObs?.peakTime || '12:00 IST',
-    trendStatus: 'Equilibrium',
-    cpcbStandard: 60,
-    current: baselineObs,
-    observations,
-    source: 'Central Pollution Control Board (CPCB) Standardized Regional Telemetry',
-  };
-}
 
 // 2b. Air Quality History & Trend API (Location, Station, Baseline Date & Date Range Aware)
 realMausamRouter.get('/air-quality/history', async (req: Request, res: Response) => {
   try {
-    let lat = parseFloat((req.query.lat || req.query.latitude) as string);
-    let lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string);
-    const locationName = (req.query.location || req.query.city || req.query.state || 'Bhubaneswar') as string;
+    const locationName = (req.query.location || req.query.city || req.query.state || '') as string;
     const stationId = (req.query.stationId || req.query.station) as string;
 
-    if (isNaN(lat) || isNaN(lon)) {
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    let lat: number;
+    let lon: number;
+    if (parsed.ok) {
+      lat = parsed.lat;
+      lon = parsed.lon;
+    } else if (locationName.trim()) {
       const locSearch = locationName.toLowerCase().trim();
       const found = (indiaLocationsData as any[]).find(
         (l: any) =>
@@ -254,13 +192,13 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
           l.city?.toLowerCase().includes(locSearch) ||
           l.state?.toLowerCase().includes(locSearch)
       );
-      if (found) {
-        lat = found.lat || found.latitude;
-        lon = found.lng || found.lon || found.longitude;
-      } else {
-        lat = 20.2961;
-        lon = 85.8245;
+      if (!found) {
+        return res.status(400).json({ status: 'error', message: parsed.error });
       }
+      lat = found.lat ?? found.latitude;
+      lon = found.lng ?? found.lon ?? found.longitude;
+    } else {
+      return res.status(400).json({ status: 'error', message: parsed.error });
     }
 
     const targetDateStr = (req.query.date as string) || (req.query.end as string) || new Date().toISOString().split('T')[0];
@@ -275,18 +213,32 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
       startDateStr = startD.toISOString().split('T')[0];
     }
 
-    const airHistoryUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&start_date=${startDateStr}&end_date=${endDateStr}&hourly=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,uv_index,grass_pollen,birch_pollen,alder_pollen,ragweed_pollen,mugwort_pollen,olive_pollen&timezone=Asia%2FKolkata`;
+    const airHistoryUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&start_date=${startDateStr}&end_date=${endDateStr}&hourly=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,uv_index,grass_pollen,birch_pollen,alder_pollen,ragweed_pollen,mugwort_pollen,olive_pollen&timezone=auto`;
 
-    let response: any;
+    let response: globalThis.Response;
     try {
-      response = await fetch(airHistoryUrl);
-    } catch {
-      // Fall back to modeled CPCB history on network failure
-      return res.json(generateModeledAirQualityHistory(lat, lon, locationName, stationId, startDateStr, endDateStr));
+      response = await fetch(airHistoryUrl, {
+        signal: AbortSignal.timeout(8000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      });
+    } catch (fetchErr: any) {
+      return res.status(fetchErr?.name === 'AbortError' ? 504 : 502).json({
+        status: 'error',
+        hasVerifiedData: false,
+        dataStatus: 'UNAVAILABLE',
+        message: 'Air quality history provider is unreachable.',
+        observations: [],
+      });
     }
 
-    if (!response || !response.ok) {
-      return res.json(generateModeledAirQualityHistory(lat, lon, locationName, stationId, startDateStr, endDateStr));
+    if (!response.ok) {
+      return res.status(502).json({
+        status: 'error',
+        hasVerifiedData: false,
+        dataStatus: 'UNAVAILABLE',
+        message: `Air quality history provider returned HTTP ${response.status}.`,
+        observations: [],
+      });
     }
 
     const data = await response.json();
@@ -307,7 +259,20 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
     const mugwortArr: (number | null)[] = hourly.mugwort_pollen || [];
 
     if (!times.length) {
-      return res.json(generateModeledAirQualityHistory(lat, lon, locationName, stationId, startDateStr, endDateStr));
+      return res.json({
+        status: 'success',
+        hasVerifiedData: false,
+        dataStatus: 'UNAVAILABLE',
+        latitude: lat,
+        longitude: lon,
+        location: locationName || formatCoordinatePair(lat, lon),
+        stationId: stationId || `AQ-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
+        selectedDate: endDateStr,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        observations: [],
+        source: 'Open-Meteo Air Quality Model',
+      });
     }
 
     // Group values by date (YYYY-MM-DD)
@@ -476,8 +441,8 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
       hasVerifiedData: true,
       latitude: lat,
       longitude: lon,
-      location: locationName,
-      stationId: stationId || `CAAQMS-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
+      location: locationName || formatCoordinatePair(lat, lon),
+      stationId: stationId || `AQ-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
       selectedDate: endDateStr,
       startDate: startDateStr,
       endDate: endDateStr,
@@ -489,7 +454,7 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
       cpcbStandard: 60,
       current: baselineObs,
       observations,
-      source: 'Central Pollution Control Board (CPCB) & Open-Meteo Air Quality Telemetry',
+      source: 'Open-Meteo Air Quality Model (CPCB NAQI Breakpoints)',
     });
   } catch (err: any) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -499,11 +464,14 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
 // 2c. Weather History API (Historical Observations by Date / Date Range)
 realMausamRouter.get('/weather/history', async (req: Request, res: Response) => {
   try {
-    let lat = parseFloat((req.query.lat || req.query.latitude) as string);
-    let lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string);
-    const locationName = (req.query.location || req.query.city || req.query.state || 'Bhubaneswar') as string;
-
-    if (isNaN(lat) || isNaN(lon)) {
+    const locationName = (req.query.location || req.query.city || req.query.state || '') as string;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    let lat: number;
+    let lon: number;
+    if (parsed.ok) {
+      lat = parsed.lat;
+      lon = parsed.lon;
+    } else if (locationName.trim()) {
       const locSearch = locationName.toLowerCase().trim();
       const found = (indiaLocationsData as any[]).find(
         (l: any) =>
@@ -511,13 +479,13 @@ realMausamRouter.get('/weather/history', async (req: Request, res: Response) => 
           l.city?.toLowerCase().includes(locSearch) ||
           l.state?.toLowerCase().includes(locSearch)
       );
-      if (found) {
-        lat = found.lat || found.latitude;
-        lon = found.lng || found.lon || found.longitude;
-      } else {
-        lat = 20.2961;
-        lon = 85.8245;
+      if (!found) {
+        return res.status(400).json({ status: 'error', message: parsed.error });
       }
+      lat = found.lat ?? found.latitude;
+      lon = found.lng ?? found.lon ?? found.longitude;
+    } else {
+      return res.status(400).json({ status: 'error', message: parsed.error });
     }
 
     const dateStr = (req.query.date as string) || (req.query.end as string) || new Date().toISOString().split('T')[0];
@@ -693,15 +661,24 @@ realMausamRouter.get('/radar', async (req: Request, res: Response) => {
     const stationQuery = req.query.station as string | undefined;
     const productQuery = (req.query.product as string | undefined)?.toUpperCase();
 
-    // Legacy fallback: If caller only supplied lat/lon without station or product
-    if (!stationQuery && !productQuery && (req.query.lat || req.query.latitude || req.query.lon || req.query.longitude)) {
-      const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-      const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    // Coordinate-first lookup: probe real RainViewer radar mosaic availability
+    if (!stationQuery && !productQuery && (req.query.lat !== undefined || req.query.latitude !== undefined || req.query.lon !== undefined || req.query.lng !== undefined || req.query.longitude !== undefined)) {
+      const parsed = parseCoordinates(req.query as Record<string, unknown>);
+      if (!parsed.ok) {
+        return res.status(400).json({ status: 'error', message: parsed.error });
+      }
+      const { lat, lon } = parsed;
 
       const radarInfo = findNearestRadarStation(lat, lon);
       const nearestRadar = radarInfo.station;
       const minDistance = radarInfo.distanceKm;
       const isWithinCoverage = radarInfo.isWithinCoverage;
+
+      const rvData = await getCachedRainViewerData();
+      const pastFrames = rvData?.radar?.past || [];
+      const latestFrame = pastFrames.length > 0 ? pastFrames[pastFrames.length - 1] : null;
+      const frameTimeIso = latestFrame?.time ? new Date(latestFrame.time * 1000).toISOString() : null;
+      const radarStatus = latestFrame ? 'LIVE' : 'UNAVAILABLE';
 
       return res.json({
         status: 'success',
@@ -721,14 +698,22 @@ realMausamRouter.get('/radar', async (req: Request, res: Response) => {
           isWithinCoverage,
         },
         scanRangeKm: nearestRadar.rangeKm,
-        lastScanTime: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-        updateIntervalMinutes: 10,
+        lastScanTime: frameTimeIso,
+        updateIntervalMinutes: latestFrame ? 10 : null,
         reflectivityProduct: 'Max Z / PPI (Plan Position Indicator) Reflectivity',
-        precipitationDetection: isWithinCoverage ? 'Hydrometeor echo surveillance active' : 'Beyond primary 250km radar baseline',
-        stormConvectiveActivity: 'Normal - No severe mesocyclone detected in immediate beam footprint',
-        radarStatus: 'OPERATIONAL',
-        radarAvailable: true,
-        source: 'India Meteorological Department (IMD) Doppler Weather Radar Network',
+        precipitationDetection: latestFrame
+          ? isWithinCoverage
+            ? 'Composite reflectivity frames synchronized'
+            : 'Beyond primary 250km DWR baseline; composite mosaic available'
+          : 'Live radar feed temporarily unreachable',
+        stormConvectiveActivity: latestFrame
+          ? 'Monitor reflectivity tiles for echo intensity'
+          : 'Radar echo status unavailable',
+        radarStatus,
+        radarAvailable: Boolean(latestFrame),
+        source: latestFrame
+          ? 'RainViewer Composite Mosaic & IMD DWR Station Catalog'
+          : 'IMD DWR Station Catalog (Feed Unavailable)',
       });
     }
 
@@ -989,68 +974,99 @@ realMausamRouter.get('/radar/image', async (req: Request, res: Response) => {
 // 4. Station / Observatory Telemetry API
 realMausamRouter.get('/station/nearest', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
 
-    // Fetch live weather data for coordinates
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=Asia%2FKolkata`;
-    const response = await fetch(weatherUrl);
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility&timezone=auto`;
+    const response = await fetch(weatherUrl, {
+      signal: AbortSignal.timeout(7500),
+      headers: { 'User-Agent': 'aistudio-build' },
+    });
 
-    let currentData: any = {};
-    if (response.ok) {
-      const json = await response.json();
-      currentData = json.current || {};
+    if (!response.ok) {
+      return res.status(502).json({
+        status: 'error',
+        dataStatus: 'UNAVAILABLE',
+        message: `Open-Meteo returned HTTP ${response.status}`,
+      });
     }
 
-    const temp = currentData.temperature_2m ?? 28.5;
-    const feelsLike = currentData.apparent_temperature ?? temp + 2;
-    const humidity = currentData.relative_humidity_2m ?? 70;
-    const windSpeed = currentData.wind_speed_10m ?? 12;
-    const windDir = currentData.wind_direction_10m ?? 80;
-    const pressure = currentData.pressure_msl ?? 1010.5;
-    const cloudCover = currentData.cloud_cover ?? 35;
-    const precip = currentData.precipitation ?? 0.0;
-    const dewPoint = Math.round((temp - (100 - humidity) / 5) * 10) / 10;
+    const json = await response.json();
+    const currentData = json.current || {};
+    const numOrNull = (v: unknown): number | null =>
+      typeof v === 'number' && Number.isFinite(v) ? v : null;
+
+    const temp = numOrNull(currentData.temperature_2m);
+    const feelsLike = numOrNull(currentData.apparent_temperature);
+    const humidity = numOrNull(currentData.relative_humidity_2m);
+    const windSpeed = numOrNull(currentData.wind_speed_10m);
+    const windDir = numOrNull(currentData.wind_direction_10m);
+    const windGustRaw = numOrNull(currentData.wind_gusts_10m);
+    const pressure = numOrNull(currentData.pressure_msl) ?? numOrNull(currentData.surface_pressure);
+    const cloudCover = numOrNull(currentData.cloud_cover);
+    const precip = numOrNull(currentData.precipitation);
+    const visRaw = numOrNull(currentData.visibility);
+    const dewRaw = numOrNull(currentData.dew_point_2m);
+    const dewPoint =
+      dewRaw !== null
+        ? Math.round(dewRaw * 10) / 10
+        : temp !== null && humidity !== null
+        ? Math.round((temp - (100 - humidity) / 5) * 10) / 10
+        : null;
 
     res.json({
-      status: 'success',
-      stationId: `AWS-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
-      stationName: `Observatory & Surface AWS (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`,
+      status: temp !== null ? 'success' : 'error',
+      dataStatus: temp !== null ? 'MODEL_LIVE' : 'UNAVAILABLE',
+      stationId: `OM-GRID-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
+      stationName: `Model Grid (${formatCoordinatePair(lat, lon)})`,
       latitude: lat,
       longitude: lon,
-      observationTime: new Date().toISOString(),
+      observationTime: currentData.time || new Date().toISOString(),
       temperature: temp,
       apparentTemperature: feelsLike,
       relativeHumidity: humidity,
       dewPoint,
       windSpeed,
       windDirectionDeg: windDir,
-      windGust: Math.round(windSpeed * 1.4),
+      windGust: windGustRaw !== null ? Math.round(windGustRaw * 10) / 10 : null,
       pressureHpa: pressure,
-      visibilityKm: 9.5,
+      visibilityKm: visRaw !== null ? Math.round((visRaw / 1000) * 10) / 10 : null,
       cloudCoverPercent: cloudCover,
       rainfall24hMm: precip,
-      uvIndex: 5.6,
-      aqi: 78,
-      source: 'IMD Surface Telemetry / WMO Global Surface Station Network',
+      uvIndex: null,
+      aqi: null,
+      source: 'Open-Meteo Model Data',
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(err?.name === 'AbortError' ? 504 : 502).json({
+      status: 'error',
+      dataStatus: 'UNAVAILABLE',
+      message: err.message,
+    });
   }
 });
 
 // 5. Hourly Weather API
 realMausamRouter.get('/weather/hourly', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
     const hoursCount = parseInt(req.query.hours as string, 10) || 24;
 
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,uv_index&timezone=Asia%2FKolkata&forecast_days=2`;
-    const response = await fetch(weatherUrl);
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,uv_index&timezone=auto&forecast_days=2`;
+    const response = await fetch(weatherUrl, {
+      signal: AbortSignal.timeout(7500),
+      headers: { 'User-Agent': 'aistudio-build' },
+    });
 
     if (!response.ok) {
-      throw new Error('Hourly weather API connection failed');
+      return res.status(502).json({ status: 'error', message: 'Hourly weather API connection failed' });
     }
 
     const data = await response.json();
@@ -1101,15 +1117,21 @@ realMausamRouter.get('/weather/hourly', async (req: Request, res: Response) => {
 // 6. Daily Weather API
 realMausamRouter.get('/weather/daily', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
     const daysCount = parseInt(req.query.days as string, 10) || 7;
 
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&timezone=Asia%2FKolkata&forecast_days=${daysCount}`;
-    const response = await fetch(weatherUrl);
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=${daysCount}`;
+    const response = await fetch(weatherUrl, {
+      signal: AbortSignal.timeout(7500),
+      headers: { 'User-Agent': 'aistudio-build' },
+    });
 
     if (!response.ok) {
-      throw new Error('Daily forecast API connection failed');
+      return res.status(502).json({ status: 'error', message: 'Daily forecast API connection failed' });
     }
 
     const data = await response.json();
@@ -1118,31 +1140,48 @@ realMausamRouter.get('/weather/daily', async (req: Request, res: Response) => {
       latitude: lat,
       longitude: lon,
       daily: data.daily || {},
-      source: 'IMD Synoptic 7-Day Forecasting Consensus Model',
+      source: 'Open-Meteo Model Data',
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(err?.name === 'AbortError' ? 504 : 502).json({ status: 'error', message: err.message });
   }
 });
 
 // 7. Central Combined Mausam Data Bundle (fetchMausamData Pipeline)
 realMausamRouter.get('/mausam-bundle', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat((req.query.lat || req.query.latitude) as string) || 20.2961;
-    const lon = parseFloat((req.query.lon || req.query.lng || req.query.longitude) as string) || 85.8245;
+    const parsed = parseCoordinates(req.query as Record<string, unknown>);
+    if (!parsed.ok) {
+      return res.status(400).json({ status: 'error', message: parsed.error });
+    }
+    const { lat, lon } = parsed;
     const now = new Date();
 
     const [weatherRes, airRes] = await Promise.allSettled([
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&timezone=Asia%2FKolkata&forecast_days=7`),
-      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,grass_pollen,tree_pollen&timezone=Asia%2FKolkata`)
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,rain,weather_code,pressure_msl,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`, {
+        signal: AbortSignal.timeout(8000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      }),
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,grass_pollen,birch_pollen,alder_pollen&timezone=auto`, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'aistudio-build' },
+      })
     ]);
 
-    const weatherJson = weatherRes.status === 'fulfilled' && weatherRes.value.ok ? await weatherRes.value.json() : {};
-    const airJson = airRes.status === 'fulfilled' && airRes.value.ok ? await airRes.value.json() : {};
+    const weatherJson = weatherRes.status === 'fulfilled' && weatherRes.value.ok ? await weatherRes.value.json() : null;
+    const airJson = airRes.status === 'fulfilled' && airRes.value.ok ? await airRes.value.json() : null;
+
+    if (!weatherJson && !airJson) {
+      return res.status(502).json({
+        status: 'error',
+        dataStatus: 'UNAVAILABLE',
+        message: 'Upstream Open-Meteo weather and air quality providers are unreachable.',
+      });
+    }
 
     const solar = calculateSolarEphemeris(lat, lon, now);
 
-    // Nearest radar
+    // Nearest radar station metadata from catalog
     const radarInfo = findNearestRadarStation(lat, lon);
 
     res.json({
@@ -1151,16 +1190,16 @@ realMausamRouter.get('/mausam-bundle', async (req: Request, res: Response) => {
       longitude: lon,
       fetchedAt: now.toISOString(),
       solar,
-      weather: weatherJson,
-      airQuality: airJson,
+      weather: weatherJson || {},
+      airQuality: airJson || {},
       radar: {
         nearestStation: radarInfo.station,
         distanceKm: radarInfo.distanceKm,
         isWithinCoverage: radarInfo.isWithinCoverage,
       },
-      source: 'Centralized MAUSAM Real Telemetry Pipeline (IMD / CPCB / NOAA)',
+      source: 'Open-Meteo Model Data & NOAA Solar Ephemeris',
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(err?.name === 'AbortError' ? 504 : 502).json({ status: 'error', message: err.message });
   }
 });

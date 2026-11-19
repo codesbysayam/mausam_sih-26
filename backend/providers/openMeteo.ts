@@ -40,21 +40,30 @@ export class OpenMeteoProvider {
       const cur = json.current;
       if (!cur) return null;
 
-      const dewPoint = json.hourly?.dew_point_2m?.[0] ?? null;
-      const uv = json.hourly?.uv_index?.[0] ?? null;
-      const visibilityMeters = json.hourly?.visibility?.[0] ?? null;
-      const visibilityKm = visibilityMeters !== null ? Math.round((visibilityMeters / 1000) * 10) / 10 : 10;
+      const numOrNull = (v: unknown): number | null =>
+        typeof v === 'number' && Number.isFinite(v) ? v : null;
 
-      const sunrise = json.daily?.sunrise?.[0]
+      const dewPoint = numOrNull(json.hourly?.dew_point_2m?.[0]);
+      const uv = numOrNull(json.hourly?.uv_index?.[0]);
+      const visibilityMeters = numOrNull(json.hourly?.visibility?.[0]);
+      const visibilityKm = visibilityMeters !== null ? Math.round((visibilityMeters / 1000) * 10) / 10 : null;
+
+      const sunrise = typeof json.daily?.sunrise?.[0] === 'number'
         ? new Date(json.daily.sunrise[0] * 1000).toISOString()
         : null;
-      const sunset = json.daily?.sunset?.[0]
+      const sunset = typeof json.daily?.sunset?.[0] === 'number'
         ? new Date(json.daily.sunset[0] * 1000).toISOString()
         : null;
 
       const observedEpochMs = typeof cur.time === 'number' ? cur.time * 1000 : Date.now();
       const observedAt = new Date(observedEpochMs).toISOString();
       const { status: dataStatus, ageSeconds } = WeatherNormalizer.computeDataStatus(observedAt);
+
+      const weatherCode = numOrNull(cur.weather_code);
+      const precipVal = numOrNull(cur.precipitation);
+      const rainVal = numOrNull(cur.rain);
+      const showersVal = numOrNull(cur.showers);
+      const snowfallVal = numOrNull(cur.snowfall);
 
       const normalized: NormalizedWeather = {
         location: loc,
@@ -65,26 +74,26 @@ export class OpenMeteoProvider {
         temperature: typeof cur.temperature_2m === 'number' ? Math.round(cur.temperature_2m * 10) / 10 : null,
         feelsLike: typeof cur.apparent_temperature === 'number' ? Math.round(cur.apparent_temperature * 10) / 10 : null,
         humidity: typeof cur.relative_humidity_2m === 'number' ? Math.round(cur.relative_humidity_2m) : null,
-        dewPoint: typeof dewPoint === 'number' ? Math.round(dewPoint * 10) / 10 : null,
+        dewPoint: dewPoint !== null ? Math.round(dewPoint * 10) / 10 : null,
         pressure: typeof cur.pressure_msl === 'number' ? Math.round(cur.pressure_msl * 10) / 10 : null,
         windSpeed: typeof cur.wind_speed_10m === 'number' ? Math.round(cur.wind_speed_10m * 10) / 10 : null,
         windDirection: WeatherNormalizer.degreesToCompass(cur.wind_direction_10m),
-        windDirectionDegrees: typeof cur.wind_direction_10m === 'number' ? cur.wind_direction_10m : null,
+        windDirectionDegrees: numOrNull(cur.wind_direction_10m),
         windGust: typeof cur.wind_gusts_10m === 'number' ? Math.round(cur.wind_gusts_10m * 10) / 10 : null,
         visibility: visibilityKm,
-        cloudCover: typeof cur.cloud_cover === 'number' ? cur.cloud_cover : null,
-        precipitation: typeof cur.precipitation === 'number' ? cur.precipitation : 0,
-        rain: typeof cur.rain === 'number' ? cur.rain : 0,
-        showers: typeof cur.showers === 'number' ? cur.showers : 0,
-        snowfall: typeof cur.snowfall === 'number' ? cur.snowfall : 0,
-        rainfall24h: typeof cur.rain === 'number' ? cur.rain : 0,
-        uvIndex: typeof uv === 'number' ? Math.round(uv * 10) / 10 : null,
-        weatherCode: cur.weather_code ?? 0,
-        condition: WeatherNormalizer.interpretWmoCode(cur.weather_code ?? 0),
+        cloudCover: numOrNull(cur.cloud_cover),
+        precipitation: precipVal,
+        rain: rainVal,
+        showers: showersVal,
+        snowfall: snowfallVal,
+        rainfall24h: rainVal,
+        uvIndex: uv !== null ? Math.round(uv * 10) / 10 : null,
+        weatherCode,
+        condition: WeatherNormalizer.interpretWmoCode(weatherCode),
         isDay: cur.is_day === 1,
         sunrise,
         sunset,
-        source: 'Open-Meteo',
+        source: 'Open-Meteo Model Data',
         sourcePriority: 4,
         isFallback: false,
         rawSourceAttribution: 'Weather data by Open-Meteo.com under CC BY 4.0',
@@ -115,30 +124,34 @@ export class OpenMeteoProvider {
       const hourly = json.hourly;
       const daily = json.daily;
 
+      const numOrNull = (v: unknown): number | null =>
+        typeof v === 'number' && Number.isFinite(v) ? v : null;
+
       const hourlyItems: NormalizedHourlyItem[] = [];
       if (hourly && Array.isArray(hourly.time)) {
         const count = Math.min(hourly.time.length, 48); // 48-hour forward projection
         for (let i = 0; i < count; i++) {
-          const visMeters = hourly.visibility?.[i] ?? null;
+          const visMeters = numOrNull(hourly.visibility?.[i]);
+          const wCode = numOrNull(hourly.weather_code?.[i]);
           hourlyItems.push({
             time: hourly.time[i],
             temperature: typeof hourly.temperature_2m?.[i] === 'number' ? Math.round(hourly.temperature_2m[i] * 10) / 10 : null,
             feelsLike: typeof hourly.apparent_temperature?.[i] === 'number' ? Math.round(hourly.apparent_temperature[i] * 10) / 10 : null,
             humidity: typeof hourly.relative_humidity_2m?.[i] === 'number' ? Math.round(hourly.relative_humidity_2m[i]) : null,
             dewPoint: typeof hourly.dew_point_2m?.[i] === 'number' ? Math.round(hourly.dew_point_2m[i] * 10) / 10 : null,
-            precipitationProbability: hourly.precipitation_probability?.[i] ?? 0,
-            precipitation: hourly.precipitation?.[i] ?? 0,
-            rain: hourly.rain?.[i] ?? 0,
-            showers: hourly.showers?.[i] ?? 0,
-            snowfall: hourly.snowfall?.[i] ?? 0,
-            weatherCode: hourly.weather_code?.[i] ?? 0,
-            condition: WeatherNormalizer.interpretWmoCode(hourly.weather_code?.[i] ?? 0),
+            precipitationProbability: numOrNull(hourly.precipitation_probability?.[i]),
+            precipitation: numOrNull(hourly.precipitation?.[i]),
+            rain: numOrNull(hourly.rain?.[i]),
+            showers: numOrNull(hourly.showers?.[i]),
+            snowfall: numOrNull(hourly.snowfall?.[i]),
+            weatherCode: wCode,
+            condition: WeatherNormalizer.interpretWmoCode(wCode),
             windSpeed: typeof hourly.wind_speed_10m?.[i] === 'number' ? Math.round(hourly.wind_speed_10m[i] * 10) / 10 : null,
             windDirection: WeatherNormalizer.degreesToCompass(hourly.wind_direction_10m?.[i]),
-            windDirectionDegrees: hourly.wind_direction_10m?.[i] ?? null,
+            windDirectionDegrees: numOrNull(hourly.wind_direction_10m?.[i]),
             windGust: typeof hourly.wind_gusts_10m?.[i] === 'number' ? Math.round(hourly.wind_gusts_10m[i] * 10) / 10 : null,
             pressure: typeof hourly.pressure_msl?.[i] === 'number' ? Math.round(hourly.pressure_msl[i]) : null,
-            cloudCover: hourly.cloud_cover?.[i] ?? null,
+            cloudCover: numOrNull(hourly.cloud_cover?.[i]),
             visibility: visMeters !== null ? Math.round((visMeters / 1000) * 10) / 10 : null,
             uvIndex: typeof hourly.uv_index?.[i] === 'number' ? Math.round(hourly.uv_index[i] * 10) / 10 : null,
             isDay: hourly.is_day?.[i] === 1,
@@ -149,23 +162,24 @@ export class OpenMeteoProvider {
       const dailyItems: NormalizedDailyItem[] = [];
       if (daily && Array.isArray(daily.time)) {
         for (let i = 0; i < daily.time.length; i++) {
+          const dCode = numOrNull(daily.weather_code?.[i]);
           dailyItems.push({
             date: daily.time[i],
-            weatherCode: daily.weather_code?.[i] ?? 0,
-            condition: WeatherNormalizer.interpretWmoCode(daily.weather_code?.[i] ?? 0),
+            weatherCode: dCode,
+            condition: WeatherNormalizer.interpretWmoCode(dCode),
             tempMax: typeof daily.temperature_2m_max?.[i] === 'number' ? Math.round(daily.temperature_2m_max[i] * 10) / 10 : null,
             tempMin: typeof daily.temperature_2m_min?.[i] === 'number' ? Math.round(daily.temperature_2m_min[i] * 10) / 10 : null,
             apparentTempMax: typeof daily.apparent_temperature_max?.[i] === 'number' ? Math.round(daily.apparent_temperature_max[i] * 10) / 10 : null,
             apparentTempMin: typeof daily.apparent_temperature_min?.[i] === 'number' ? Math.round(daily.apparent_temperature_min[i] * 10) / 10 : null,
-            precipitationSum: typeof daily.precipitation_sum?.[i] === 'number' ? Math.round(daily.precipitation_sum[i] * 10) / 10 : 0,
-            rainSum: daily.rain_sum?.[i] ?? 0,
-            showersSum: daily.showers_sum?.[i] ?? 0,
-            snowfallSum: daily.snowfall_sum?.[i] ?? 0,
-            precipitationHours: daily.precipitation_hours?.[i] ?? 0,
-            precipitationProbabilityMax: daily.precipitation_probability_max?.[i] ?? 0,
+            precipitationSum: typeof daily.precipitation_sum?.[i] === 'number' ? Math.round(daily.precipitation_sum[i] * 10) / 10 : null,
+            rainSum: numOrNull(daily.rain_sum?.[i]),
+            showersSum: numOrNull(daily.showers_sum?.[i]),
+            snowfallSum: numOrNull(daily.snowfall_sum?.[i]),
+            precipitationHours: numOrNull(daily.precipitation_hours?.[i]),
+            precipitationProbabilityMax: numOrNull(daily.precipitation_probability_max?.[i]),
             windSpeedMax: typeof daily.wind_speed_10m_max?.[i] === 'number' ? Math.round(daily.wind_speed_10m_max[i] * 10) / 10 : null,
             windGustMax: typeof daily.wind_gusts_10m_max?.[i] === 'number' ? Math.round(daily.wind_gusts_10m_max[i] * 10) / 10 : null,
-            windDirectionDominant: daily.wind_direction_10m_dominant?.[i] ?? null,
+            windDirectionDominant: numOrNull(daily.wind_direction_10m_dominant?.[i]),
             uvIndexMax: typeof daily.uv_index_max?.[i] === 'number' ? Math.round(daily.uv_index_max[i] * 10) / 10 : null,
             sunrise: daily.sunrise?.[i] || null,
             sunset: daily.sunset?.[i] || null,

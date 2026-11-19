@@ -46,8 +46,16 @@ export class WeatherService {
     const state = (query.state ?? 'Odisha').toString();
     const district = query.district ? query.district.toString() : undefined;
 
-    const lat = typeof latRaw === 'number' ? latRaw : parseFloat(latRaw) || 20.2961;
-    const lon = typeof lonRaw === 'number' ? lonRaw : parseFloat(lonRaw) || 85.8245;
+    const parseFinite = (v: any): number | null => {
+      if (v === undefined || v === null || String(v).trim() === '') return null;
+      const n = typeof v === 'number' ? v : Number(String(v).trim());
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const parsedLat = parseFinite(latRaw);
+    const parsedLon = parseFinite(lonRaw);
+    const lat = parsedLat !== null && parsedLat >= -90 && parsedLat <= 90 ? parsedLat : 20.2961;
+    const lon = parsedLon !== null && parsedLon >= -180 && parsedLon <= 180 ? parsedLon : 85.8245;
 
     return {
       name: city,
@@ -213,19 +221,35 @@ export class WeatherService {
   }
 
   public async getPersonaBundle(query: Record<string, any>) {
-    const lat = parseFloat(query.lat) || 20.2961;
-    const lng = parseFloat(query.lng || query.lon) || 85.8245;
-    const city = (query.city as string) || 'Bhubaneswar';
-    const state = (query.state as string) || 'Odisha';
+    const rawLat = query.lat;
+    const rawLng = query.lng ?? query.lon;
+    const latNum = rawLat !== undefined && rawLat !== null && String(rawLat).trim() !== '' ? Number(rawLat) : NaN;
+    const lngNum = rawLng !== undefined && rawLng !== null && String(rawLng).trim() !== '' ? Number(rawLng) : NaN;
+    if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
+      return {
+        status: 'error',
+        message: 'Valid finite lat and lng/lon coordinates are required for persona bundle.',
+      };
+    }
+    const lat = latNum;
+    const lng = lngNum;
+    const city = (query.city as string) || 'Selected Location';
+    const state = (query.state as string) || 'Region';
     const stationName = (query.stationName as string) || `${city} Observatory`;
 
-    const temp = query.temp ? parseFloat(query.temp) : undefined;
-    const humidity = query.humidity ? parseFloat(query.humidity) : undefined;
-    const windSpeed = query.windSpeed ? parseFloat(query.windSpeed) : undefined;
+    const parseOptNum = (v: unknown): number | undefined => {
+      if (v === undefined || v === null || String(v).trim() === '') return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : undefined;
+    };
+
+    const temp = parseOptNum(query.temp);
+    const humidity = parseOptNum(query.humidity);
+    const windSpeed = parseOptNum(query.windSpeed);
     const windDir = query.windDir as string | undefined;
-    const uvIndex = query.uvIndex ? parseFloat(query.uvIndex) : undefined;
+    const uvIndex = parseOptNum(query.uvIndex);
     const isRaining = query.isRaining === 'true';
-    const visibilityKm = query.visibilityKm ? parseFloat(query.visibilityKm) : undefined;
+    const visibilityKm = parseOptNum(query.visibilityKm);
     const sunrise = query.sunrise as string | undefined;
     const sunset = query.sunset as string | undefined;
 
@@ -287,8 +311,11 @@ export class WeatherService {
         return imdConnector.getAWSData(stationId, stateId);
       }
       case 'sunmoon': {
-        const lat = parseFloat(query.lat) || 20.2961;
-        const lng = parseFloat(query.lng) || 85.8245;
+        const lat = Number(query.lat);
+        const lng = Number(query.lng ?? query.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return { source: 'IMD', status: 'error', fetchedAt: new Date().toISOString(), stale: false, data: null, error: { code: 'INVALID_COORDS', message: 'Valid lat and lng/lon are required.' } };
+        }
         return imdConnector.getSunMoon(lat, lng);
       }
       case 'cyclone-bundle': {
@@ -328,9 +355,12 @@ export class WeatherService {
         };
       }
       case 'environment/aqi': {
-        const lat = parseFloat(query.lat) || 20.2961;
-        const lng = parseFloat(query.lng) || 85.8245;
-        const name = query.name || 'Bhubaneswar';
+        const lat = Number(query.lat);
+        const lng = Number(query.lng ?? query.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return { source: 'IMD / CPCB SAFAR Provider', status: 'error', fetchedAt: new Date().toISOString(), data: null, error: { code: 'INVALID_COORDS', message: 'Valid lat and lng/lon are required.' } };
+        }
+        const name = query.name || 'Selected Station';
         const data = await AQIProvider.getAQIForLocation(lat, lng, name);
         return {
           source: 'IMD / CPCB SAFAR Provider',
@@ -340,8 +370,11 @@ export class WeatherService {
         };
       }
       case 'environment/pollen': {
-        const lat = parseFloat(query.lat) || 20.2961;
-        const lng = parseFloat(query.lng) || 85.8245;
+        const lat = Number(query.lat);
+        const lng = Number(query.lng ?? query.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return { source: 'IMD Botanical Telemetry', status: 'error', fetchedAt: new Date().toISOString(), data: null, error: { code: 'INVALID_COORDS', message: 'Valid lat and lng/lon are required.' } };
+        }
         const data = await PollenProvider.getPollenForLocation(lat, lng);
         return {
           source: 'IMD Botanical Telemetry',

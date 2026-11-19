@@ -7,6 +7,7 @@
 
 import { AskMausamContext, DataSourceContext, DailyForecastContext } from '../../types/askMausam';
 import { KnowledgeEntry } from './mausamKnowledge';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface FastPathResult {
   markdown: string;
@@ -170,7 +171,7 @@ Current atmospheric observations are temporarily unavailable from the station ne
 | **Surface Wind** | **${wind}** |
 | **Precipitation** | **${precip}** |
 
-- **Observation Station**: ${ctx.location.district || locName} Meteorological Station (${ctx.location.latitude?.toFixed(2)}°N, ${ctx.location.longitude?.toFixed(2)}°E)
+- **Observation Station**: ${ctx.location.district || locName} Meteorological Station (${formatCoordinatePair(ctx.location.latitude, ctx.location.longitude, 2)})
 - **Data Grounding**: Verified synoptic telemetry via Open-Meteo & IMD Numerical Weather Prediction model.`,
       summary: `Current temperature in ${locName} is ${temp} with ${condition}. Humidity is ${humidity}, wind ${wind}.`,
       keyFacts: [

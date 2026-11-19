@@ -1,4 +1,5 @@
 import { CropAdvisory, AgrometDistrictBulletin } from '../types';
+import type { WeatherDataBundle } from './weatherService';
 
 export interface CropCategory {
   id: string;
@@ -440,22 +441,83 @@ export const AGROMET_BULLETINS: Record<string, AgrometDistrictBulletin> = {
   },
 };
 
+function formatDynamicBulletinDates() {
+  const now = new Date();
+  const end = new Date(now.getTime() + 4 * 86400000);
+  const year = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric' }).format(now);
+  const weekday = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long' }).format(now);
+  const issueDay: 'Tuesday' | 'Friday' = weekday === 'Friday' ? 'Friday' : 'Tuesday';
+  const issueDate = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(now);
+  const fmtShort = (d: Date) =>
+    new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+    }).format(d);
+  const validPeriod = `${fmtShort(now)} - ${fmtShort(end)} ${year}`;
+  return { now, year, issueDay, issueDate, validPeriod };
+}
+
 /**
- * Generate a high-fidelity synthetic/deterministic bulletin for any state and district
+ * Generate an Agromet bulletin grounded in live WeatherDataBundle telemetry and regional crop advisories
  */
-export function getAgrometBulletin(state: string, district: string): ExtendedAgrometBulletin {
+export function getAgrometBulletin(
+  state: string,
+  district: string,
+  weatherBundle?: WeatherDataBundle
+): ExtendedAgrometBulletin {
   const key = `${state}-${district}`;
-  const baseBulletin: AgrometDistrictBulletin = AGROMET_BULLETINS[key] || {
+  const dyn = formatDynamicBulletinDates();
+  const storedTemplate = AGROMET_BULLETINS[key];
+
+  const liveCurr = weatherBundle?.current;
+  const liveDaily = weatherBundle?.daily || [];
+  const hasLiveWeather = typeof liveCurr?.temp === 'number' && Number.isFinite(liveCurr.temp);
+
+  let weatherSummary =
+    storedTemplate?.weatherSummary ||
+    `Monitoring synoptic surface conditions over ${district}, ${state}. Refer to live Open-Meteo / IMD guidance below.`;
+  let rainfallForecast5Days =
+    storedTemplate?.rainfallForecast5Days ||
+    'Day 1: 0mm | Day 2: 0mm | Day 3: 0mm | Day 4: 0mm | Day 5: 0mm';
+
+  if (hasLiveWeather && liveCurr) {
+    const tStr = `${Math.round(liveCurr.temp!)}°C`;
+    const hiStr = typeof liveCurr.high === 'number' ? `${Math.round(liveCurr.high)}°C` : '—';
+    const loStr = typeof liveCurr.low === 'number' ? `${Math.round(liveCurr.low)}°C` : '—';
+    const rhStr = typeof liveCurr.humidity === 'number' ? `${Math.round(liveCurr.humidity)}%` : '—';
+    const windStr = typeof liveCurr.windSpeed === 'number' ? `${Math.round(liveCurr.windSpeed)} km/h ${liveCurr.windDirection || ''}`.trim() : '—';
+    weatherSummary = `${liveCurr.condition} over ${district}. Current: ${tStr} (Max ${hiStr} / Min ${loStr}), RH: ${rhStr}, Wind: ${windStr}. ${liveCurr.rainExpectedSummary || ''}`.trim();
+
+    if (liveDaily.length > 0) {
+      rainfallForecast5Days = Array.from({ length: 5 }, (_, idx) => {
+        const d = liveDaily[idx];
+        const mm = typeof d?.precipMm === 'number' ? Math.round(d.precipMm) : 0;
+        return `Day ${idx + 1}: ${mm > 0 ? `${mm}mm` : 'Nil'}`;
+      }).join(' | ');
+    }
+  }
+
+  const baseBulletin: AgrometDistrictBulletin = {
     state,
     district,
-    amfuUnit: `AMFU ${district} • State Agricultural University & IMD Agromet Node`,
-    bulletinNo: `IMD/AMFU/${district.toUpperCase().slice(0, 4)}/2026/104`,
-    issueDay: 'Tuesday',
-    issueDate: 'August 24, 2026',
-    validPeriod: '24 Aug - 28 Aug 2026',
-    weatherSummary: `Partly cloudy sky with light convective rainfall spells over ${district}. Relative humidity ranging between 65-82%. Wind velocity 12-18 km/h from South-West. Max temp: 32°C, Min temp: 24°C.`,
-    rainfallForecast5Days: 'Day 1: 14mm | Day 2: 8mm | Day 3: Nil | Day 4: 2mm | Day 5: 6mm',
-    crops: [
+    amfuUnit:
+      storedTemplate?.amfuUnit ||
+      `AMFU ${district} • State Agricultural University & IMD Agromet Node`,
+    bulletinNo:
+      storedTemplate?.bulletinNo?.replace(/2026/g, dyn.year) ||
+      `IMD/AMFU/${district.toUpperCase().slice(0, 4)}/${dyn.year}/LIVE`,
+    issueDay: dyn.issueDay,
+    issueDate: dyn.issueDate,
+    validPeriod: dyn.validPeriod,
+    weatherSummary,
+    rainfallForecast5Days,
+    crops: storedTemplate?.crops || [
       {
         cropName: 'Rice (Paddy)',
         stage: 'Vegetative to Tillering',
@@ -503,12 +565,12 @@ export function getAgrometBulletin(state: string, district: string): ExtendedAgr
     ],
   };
 
-  // Derive 5-day quantitative rainfall list
-  const rainfall5DaysList = parse5DayRainfall(baseBulletin.rainfallForecast5Days);
+  // Derive 5-day quantitative rainfall list from live daily telemetry when available
+  const rainfall5DaysList = parse5DayRainfall(baseBulletin.rainfallForecast5Days, weatherBundle);
   const cumulativeRainfallMm = rainfall5DaysList.reduce((acc, curr) => acc + curr.amountMm, 0);
 
   // Derive Soil Moisture Model
-  const soilMoisture = deriveSoilMoisture(cumulativeRainfallMm, rainfall5DaysList[0]?.amountMm || 0);
+  const soilMoisture = deriveSoilMoisture(cumulativeRainfallMm, rainfall5DaysList[0]?.amountMm || 0, weatherBundle);
 
   // Derive Action Plan
   const actionPlan = deriveActionPlan(baseBulletin, rainfall5DaysList, soilMoisture);
@@ -517,16 +579,16 @@ export function getAgrometBulletin(state: string, district: string): ExtendedAgr
   const impactTimeline = deriveImpactTimeline(rainfall5DaysList[0]?.amountMm || 0, soilMoisture);
 
   // Derive Operations Timeline
-  const operationsTimeline = deriveOperationsTimeline(rainfall5DaysList[0]?.amountMm || 0);
+  const operationsTimeline = deriveOperationsTimeline(rainfall5DaysList[0]?.amountMm || 0, weatherBundle);
 
   // Derive Farm Risk Analysis
-  const riskAnalysis = deriveRiskAnalysis(baseBulletin, cumulativeRainfallMm, soilMoisture);
+  const riskAnalysis = deriveRiskAnalysis(baseBulletin, cumulativeRainfallMm, soilMoisture, weatherBundle);
 
   // Derive Pest & Disease Watch
-  const pestDiseaseWatch = derivePestDiseaseWatch(baseBulletin.crops[0], baseBulletin);
+  const pestDiseaseWatch = derivePestDiseaseWatch(baseBulletin.crops[0], baseBulletin, weatherBundle);
 
   // Derive 7-Day Farm Calendar
-  const sevenDayCalendar = deriveSevenDayCalendar(rainfall5DaysList, baseBulletin);
+  const sevenDayCalendar = deriveSevenDayCalendar(rainfall5DaysList, baseBulletin, weatherBundle);
 
   return {
     ...baseBulletin,
@@ -544,50 +606,74 @@ export function getAgrometBulletin(state: string, district: string): ExtendedAgr
 
 export const getExtendedAgrometBulletin = getAgrometBulletin;
 
-function parse5DayRainfall(rawString: string): RainfallDay[] {
-  // e.g. "Day 1: 15mm | Day 2: 10mm | Day 3: Nil | Day 4: Nil | Day 5: 5mm"
-  const dayNames = ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5'];
-  const dates = ['30 Aug', '31 Aug', '01 Sep', '02 Sep', '03 Sep'];
+function parse5DayRainfall(rawString: string, weatherBundle?: WeatherDataBundle): RainfallDay[] {
+  const now = new Date();
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const liveDaily = weatherBundle?.daily || [];
 
   const parts = rawString.split('|').map((s) => s.trim());
-  return dayNames.map((dName, idx) => {
-    const rawPart = parts[idx] || '';
-    let amount = 0;
-    const match = rawPart.match(/(\d+)\s*mm/i);
-    if (match) {
-      amount = parseInt(match[1], 10);
-    } else if (rawPart.toLowerCase().includes('nil')) {
-      amount = 0;
-    } else {
-      amount = idx === 0 ? 12 : idx === 1 ? 8 : 0;
-    }
+  return Array.from({ length: 5 }, (_, idx) => {
+    const dt = new Date(now.getTime() + idx * 86400000);
+    const dName = idx === 0 ? 'Today' : idx === 1 ? 'Tomorrow' : weekdays[dt.getDay()];
+    const dateStr = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+    }).format(dt);
 
-    const probPercent = amount >= 20 ? 88 : amount >= 10 ? 72 : amount > 0 ? 45 : 15;
-    const condition = amount >= 25 ? 'Heavy Showers' : amount >= 10 ? 'Moderate Rain' : amount > 0 ? 'Light Drizzle' : 'Partly Cloudy';
-    const isWet = amount > 2;
+    const liveDay = liveDaily[idx];
+    let amount = 0;
+    let probPercent = 0;
+    let condition = 'Telemetry Pending';
+
+    if (liveDay) {
+      amount = typeof liveDay.precipMm === 'number' ? Math.round(liveDay.precipMm * 10) / 10 : 0;
+      probPercent = typeof liveDay.rainProb === 'number' ? Math.round(liveDay.rainProb) : 0;
+      condition = liveDay.condition || 'Forecast';
+    } else {
+      const rawPart = parts[idx] || '';
+      const match = rawPart.match(/(\d+)\s*mm/i);
+      if (match) {
+        amount = parseInt(match[1], 10);
+      } else {
+        amount = 0;
+      }
+      probPercent = amount >= 20 ? 85 : amount >= 10 ? 65 : amount > 0 ? 40 : 10;
+      condition = amount >= 25 ? 'Heavy Showers' : amount >= 10 ? 'Moderate Rain' : amount > 0 ? 'Light Drizzle' : 'Partly Cloudy';
+    }
 
     return {
       dayName: dName,
-      dateStr: dates[idx] || `Day ${idx + 1}`,
+      dateStr: liveDay?.date || dateStr,
       amountMm: amount,
       probPercent,
       condition,
-      isWet,
+      isWet: amount > 2 || probPercent >= 60,
     };
   });
 }
 
-function deriveSoilMoisture(cumulativeRain: number, todayRain: number): SoilMoistureData {
-  let overall = 62;
-  if (cumulativeRain > 50) overall = 85;
-  else if (cumulativeRain > 25) overall = 74;
-  else if (cumulativeRain > 10) overall = 66;
-  else if (cumulativeRain > 0) overall = 58;
-  else overall = 48;
+function deriveSoilMoisture(
+  cumulativeRain: number,
+  todayRain: number,
+  weatherBundle?: WeatherDataBundle
+): SoilMoistureData {
+  const rawSm = weatherBundle?.current?.soilMoisture;
+  let overall = typeof rawSm === 'number' && Number.isFinite(rawSm)
+    ? Math.max(15, Math.min(95, Math.round(rawSm * 100 * 2.1)))
+    : cumulativeRain > 50
+    ? 82
+    : cumulativeRain > 25
+    ? 72
+    : cumulativeRain > 10
+    ? 62
+    : cumulativeRain > 0
+    ? 54
+    : 45;
 
-  const topsoilPct = Math.min(95, Math.round(overall * (todayRain > 5 ? 1.15 : 0.95)));
+  const topsoilPct = Math.min(95, Math.round(overall * (todayRain > 5 ? 1.12 : 0.95)));
   const rootZonePct = Math.round(overall);
-  const subsoilPct = Math.max(40, Math.round(overall * 0.92));
+  const subsoilPct = Math.max(35, Math.round(overall * 0.92));
 
   let status: SoilMoistureData['status'] = 'Optimal';
   if (overall > 82) status = 'Saturated';
@@ -628,7 +714,7 @@ function deriveActionPlan(
       category: 'irrigation',
       title: 'IRRIGATION MANAGEMENT',
       action: 'POSTPONE / WAIT',
-      reason: `Anticipated rainfall (${rainToday + rainTomorrow} mm in 48h) and current soil moisture (${soil.overallPct}%) fulfill crop water requirements. Avoid electrical pumping.`,
+      reason: `Anticipated rainfall (${Math.round((rainToday + rainTomorrow) * 10) / 10} mm in 48h) and current soil moisture (${soil.overallPct}%) fulfill crop water requirements. Avoid electrical pumping.`,
       when: 'Next 24–48 Hours',
       priority: 'High Priority',
       icon: 'water_drop',
@@ -667,7 +753,7 @@ function deriveActionPlan(
       category: 'nutrients',
       title: 'NUTRIENT & FERTILIZER',
       action: 'SUITABLE FOR FOLIAR SPRAY',
-      reason: 'Optimal canopy absorption with moderate temperature and calm morning breeze. Apply micronutrient/potash spray.',
+      reason: 'Optimal canopy absorption under stable surface conditions. Apply micronutrient/potash spray.',
       when: '08:00 AM – 11:00 AM',
       priority: 'Favorable',
       icon: 'eco',
@@ -681,7 +767,7 @@ function deriveActionPlan(
     category: 'pest',
     title: 'PEST & DISEASE SURVEILLANCE',
     action: 'INSPECT LOWER CANOPY',
-    reason: 'Elevated morning relative humidity (75–90%) creates favorable microclimate for sheath blight, blast, and sucking pests.',
+    reason: 'Morning dew & boundary-layer humidity require routine canopy scouting for fungal lesions and sucking pests.',
     when: 'Morning Scout (07:30 – 10:00 AM)',
     priority: 'High Priority',
     icon: 'pest_control',
@@ -706,8 +792,8 @@ function deriveActionPlan(
       id: 'act-ops',
       category: 'operations',
       title: 'FIELD OPERATIONS & SPRAYING',
-      action: 'FAVORABLE MORNING WINDOW',
-      reason: 'Low surface wind (<12 km/h) before noon provides safe drift conditions for manual weeding and preventive bio-spraying.',
+      action: 'CHECK WIND BEFORE SPRAYING',
+      reason: 'Confirm surface wind remains below 15 km/h during morning window before chemical or bio-pesticide spraying.',
       when: '08:00 AM – 11:30 AM',
       priority: 'Actionable',
       icon: 'precision_manufacturing',
@@ -723,9 +809,9 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
     {
       step: 1,
       label: 'RAINFALL OUTLOOK',
-      value: todayRain > 0 ? `${todayRain} mm Expected` : 'Dry / Sunny',
+      value: todayRain > 0 ? `${todayRain} mm Expected` : 'Dry / Low Rain',
       status: todayRain > 15 ? 'caution' : 'favorable',
-      description: todayRain > 0 ? 'Convective showers replenishing soil profile' : 'Adequate solar insolation for photosynthesis',
+      description: todayRain > 0 ? 'Showers replenishing topsoil profile' : 'Favorable solar insolation for photosynthesis',
       icon: 'cloud',
     },
     {
@@ -733,7 +819,7 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
       label: 'SOIL MOISTURE',
       value: `${soil.overallPct}% (${soil.status})`,
       status: soil.overallPct > 80 ? 'caution' : 'favorable',
-      description: 'Root zone moisture buffer adequate for crop transpiration',
+      description: 'Root zone moisture estimate for crop transpiration',
       icon: 'grass',
     },
     {
@@ -741,7 +827,7 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
       label: 'DISEASE RISK',
       value: soil.overallPct > 70 ? 'Elevated Fungal Risk' : 'Low Pathogen Threat',
       status: soil.overallPct > 70 ? 'caution' : 'favorable',
-      description: 'High relative humidity encourages spore germination',
+      description: 'Surface leaf wetness & humidity determine spore germination rate',
       icon: 'bug_report',
     },
     {
@@ -749,7 +835,7 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
       label: 'IRRIGATION NEED',
       value: todayRain > 5 || soil.overallPct > 65 ? 'POSTPONE 24-48H' : 'NORMAL SCHEDULE',
       status: 'favorable',
-      description: 'Conserve farm power & groundwater reserves',
+      description: 'Align farm pumping with real forecast precipitation',
       icon: 'water_drop',
     },
     {
@@ -763,107 +849,72 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
   ];
 }
 
-function deriveOperationsTimeline(todayRain: number): HourlyOperationSlot[] {
-  const slots: HourlyOperationSlot[] = [
-    {
-      timeLabel: '06:00 AM',
-      rating: 'GOOD',
-      spraying: true,
-      sowing: true,
-      irrigation: false,
-      harvesting: true,
-      machinery: true,
-      tempC: 24,
-      rhPct: 88,
-      windKmh: 6,
-      rainMm: 0,
-    },
-    {
-      timeLabel: '09:00 AM',
-      rating: 'EXCELLENT',
-      spraying: true,
-      sowing: true,
-      irrigation: false,
-      harvesting: true,
-      machinery: true,
-      tempC: 27,
-      rhPct: 78,
-      windKmh: 9,
-      rainMm: 0,
-    },
-    {
-      timeLabel: '12:00 PM',
-      rating: todayRain > 10 ? 'MODERATE' : 'GOOD',
-      spraying: todayRain <= 10,
-      sowing: true,
-      irrigation: false,
-      harvesting: true,
-      machinery: true,
-      tempC: 31,
-      rhPct: 68,
-      windKmh: 14,
-      rainMm: 1,
-    },
-    {
-      timeLabel: '03:00 PM',
-      rating: todayRain > 5 ? 'POOR' : 'MODERATE',
-      spraying: false,
-      sowing: false,
-      irrigation: false,
-      harvesting: false,
-      machinery: false,
-      tempC: 32,
-      rhPct: 74,
-      windKmh: 18,
-      rainMm: todayRain > 0 ? 8 : 0,
-    },
-    {
-      timeLabel: '06:00 PM',
-      rating: 'GOOD',
-      spraying: true,
-      sowing: true,
-      irrigation: false,
-      harvesting: true,
-      machinery: true,
-      tempC: 28,
-      rhPct: 82,
-      windKmh: 10,
-      rainMm: 2,
-    },
-    {
-      timeLabel: '09:00 PM',
-      rating: 'MODERATE',
-      spraying: false,
-      sowing: false,
-      irrigation: false,
-      harvesting: false,
-      machinery: false,
-      tempC: 26,
-      rhPct: 86,
-      windKmh: 8,
-      rainMm: 0,
-    },
-  ];
-  return slots;
+function deriveOperationsTimeline(
+  todayRain: number,
+  weatherBundle?: WeatherDataBundle
+): HourlyOperationSlot[] {
+  const hourly = weatherBundle?.hourly || [];
+  if (hourly.length >= 6) {
+    return hourly.slice(0, 6).map((h) => {
+      const w = typeof h.windSpeed === 'number' ? Math.round(h.windSpeed) : 0;
+      const rh = typeof h.humidity === 'number' ? Math.round(h.humidity) : 0;
+      const rainMm = typeof h.precipitation === 'number' ? Math.round(h.precipitation * 10) / 10 : 0;
+      const prob = typeof h.rainProb === 'number' ? h.rainProb : 0;
+      const isWetSlot = rainMm > 1 || prob > 55;
+      const isWindySlot = w > 18;
+      const rating: HourlyOperationSlot['rating'] = isWetSlot
+        ? 'AVOID'
+        : isWindySlot
+        ? 'POOR'
+        : w <= 12 && prob < 30
+        ? 'EXCELLENT'
+        : 'GOOD';
+
+      return {
+        timeLabel: h.time,
+        rating,
+        spraying: !isWetSlot && !isWindySlot && h.temp <= 35,
+        sowing: !isWetSlot,
+        irrigation: !isWetSlot && w <= 20,
+        harvesting: !isWetSlot,
+        machinery: rainMm <= 4,
+        tempC: Math.round(h.temp),
+        rhPct: rh,
+        windKmh: w,
+        rainMm,
+      };
+    });
+  }
+
+  // Fallback empty-safe structure when live hourly series has not arrived yet
+  return [];
 }
 
 function deriveRiskAnalysis(
   bulletin: AgrometDistrictBulletin,
   cumulativeRain: number,
-  soil: SoilMoistureData
+  soil: SoilMoistureData,
+  weatherBundle?: WeatherDataBundle
 ): FarmRiskAnalysis {
-  const rainScore = Math.min(100, Math.round(cumulativeRain * 1.8 + 15));
-  const thermalScore = 28; // mild monsoon temps
-  const windScore = 32;
-  const pestScore = soil.overallPct > 70 ? 72 : 45;
-  const waterloggingScore = soil.overallPct > 80 ? 68 : 34;
+  const curr = weatherBundle?.current;
+  const temp = typeof curr?.temp === 'number' ? curr.temp : null;
+  const wind = typeof curr?.windSpeed === 'number' ? curr.windSpeed : null;
+  const hum = typeof curr?.humidity === 'number' ? curr.humidity : null;
+
+  const rainScore = Math.min(100, Math.round(cumulativeRain * 1.8 + 10));
+  const thermalScore =
+    temp === null ? 25 : temp >= 40 ? 85 : temp >= 36 ? 62 : temp <= 8 ? 55 : 26;
+  const windScore =
+    wind === null ? 25 : wind >= 35 ? 80 : wind >= 22 ? 55 : Math.max(15, Math.round(wind * 1.8));
+  const pestScore = hum !== null ? (hum > 78 ? 72 : hum > 60 ? 48 : 28) : soil.overallPct > 70 ? 68 : 42;
+  const waterloggingScore = soil.overallPct > 80 ? 68 : 30;
 
   const overallScore = Math.round(
     rainScore * 0.25 +
-    thermalScore * 0.15 +
-    windScore * 0.15 +
-    pestScore * 0.25 +
-    waterloggingScore * 0.2
+      thermalScore * 0.15 +
+      windScore * 0.15 +
+      pestScore * 0.25 +
+      waterloggingScore * 0.2
   );
 
   let riskLevel: FarmRiskAnalysis['riskLevel'] = 'Moderate Risk';
@@ -883,11 +934,18 @@ function deriveRiskAnalysis(
     color = 'emerald';
   }
 
+  const hiLowNote =
+    typeof curr?.high === 'number' && typeof curr?.low === 'number'
+      ? `Thermal bounds (Max ${Math.round(curr.high)}°C / Min ${Math.round(curr.low)}°C) factored into stress scoring.`
+      : temp !== null
+      ? `Ambient temperature (${Math.round(temp)}°C) factored into crop heat stress.`
+      : `Awaiting live station thermal readings.`;
+
   const whyExplanation = [
-    `Convective rainfall projection contributes ${rainScore}/100 to precipitation stress.`,
-    `Persistent ambient humidity above 75% raises fungal pathogen conduciveness to ${pestScore}/100.`,
-    `Root-zone soil saturation index stands at ${soil.overallPct}%, posing moderate waterlogging risk (${waterloggingScore}/100).`,
-    `Thermal parameters (Max 31°C / Min 24°C) remain well within physiological thresholds.`,
+    `5-day precipitation total (${Math.round(cumulativeRain * 10) / 10} mm) contributes ${rainScore}/100 to rainfall risk.`,
+    `${hum !== null ? `Measured humidity (${Math.round(hum)}%)` : 'Moisture conditions'} yields fungal pressure score ${pestScore}/100.`,
+    `Estimated root-zone saturation stands at ${soil.overallPct}% (waterlogging score ${waterloggingScore}/100).`,
+    hiLowNote,
   ];
 
   return {
@@ -897,53 +955,62 @@ function deriveRiskAnalysis(
     factors: {
       rainfallRisk: {
         score: rainScore,
-        label: rainScore > 50 ? 'Moderate Rain Influx' : 'Normal Precipitation',
-        explanation: `${cumulativeRain} mm expected over 5 days.`,
+        label: rainScore > 50 ? 'Elevated Rain Influx' : 'Normal Precipitation',
+        explanation: `${Math.round(cumulativeRain * 10) / 10} mm expected over 5 days.`,
       },
       thermalStress: {
         score: thermalScore,
-        label: 'Optimal Growing Degree',
-        explanation: 'Temperatures between 24°C and 32°C favorable for vegetative growth.',
+        label: thermalScore > 55 ? 'Elevated Thermal Load' : 'Within Optimal Bounds',
+        explanation: temp !== null ? `Current surface temperature ${Math.round(temp)}°C.` : 'Awaiting thermal feed.',
       },
       windGustRisk: {
         score: windScore,
-        label: 'Gentle to Moderate Breeze',
-        explanation: 'Wind speeds 12-18 km/h safe for propped tall stands.',
+        label: windScore > 55 ? 'Brisk Surface Winds' : 'Safe Spraying Breeze',
+        explanation: wind !== null ? `Current wind ${Math.round(wind)} km/h.` : 'Awaiting wind speed feed.',
       },
       pestFungalRisk: {
         score: pestScore,
         label: pestScore > 60 ? 'Elevated Spore Microclimate' : 'Manageable Pest Pressure',
-        explanation: 'Foliar wetness & warm air favor sheath blight and foliar pathogens.',
+        explanation: 'Driven by ambient relative humidity and leaf wetness persistence.',
       },
       soilWaterlogging: {
         score: waterloggingScore,
-        label: waterloggingScore > 50 ? 'Surface Drainage Caution' : 'Good Aeration',
-        explanation: 'Monitor low-lying furrows after heavy afternoon showers.',
+        label: waterloggingScore > 50 ? 'Surface Drainage Caution' : 'Adequate Soil Aeration',
+        explanation: 'Based on modelled topsoil moisture & cumulative rain.',
       },
     },
     whyExplanation,
   };
 }
 
-function derivePestDiseaseWatch(crop: CropAdvisory | undefined, bulletin: AgrometDistrictBulletin) {
+function derivePestDiseaseWatch(
+  crop: CropAdvisory | undefined,
+  bulletin: AgrometDistrictBulletin,
+  weatherBundle?: WeatherDataBundle
+) {
   const cropName = crop?.cropName || 'Rice (Paddy)';
-  
+  const curr = weatherBundle?.current;
+  const rhStr = typeof curr?.humidity === 'number' ? `${Math.round(curr.humidity)}%` : '—';
+  const tempStr = typeof curr?.temp === 'number' ? `${Math.round(curr.temp * 10) / 10}°C` : '—';
+  const windStr = typeof curr?.windSpeed === 'number' ? `${Math.round(curr.windSpeed)} km/h` : '—';
+  const cloudStr = typeof curr?.cloudCover === 'number' ? `${Math.round(curr.cloudCover)}%` : '—';
+  const highHumidity = typeof curr?.humidity === 'number' && curr.humidity >= 75;
+
   if (cropName.includes('Rice')) {
     return {
-      overallRisk: 'Moderate' as const,
+      overallRisk: (highHumidity ? 'High' : 'Moderate') as 'High' | 'Moderate',
       primaryConcern: 'Bacterial Leaf Blight & Sheath Blight',
       scientificName: 'Xanthomonas oryzae / Rhizoctonia solani',
-      etiology: 'Persistent morning humidity >80% with intermittent showers accelerates bacterial exudate spread.',
+      etiology: 'Persistent high humidity with wet canopy accelerates bacterial exudate spread.',
       symptoms: 'Water-soaked lesions turning straw-colored on leaf margins; snake-skin lesions on sheath near waterline.',
       etlThreshold: '1-2 lesions per hill on 5% sampled hills across diagonal transect.',
-      immediateAction: 'Drain standing water for 48 hours to aerate crop base; avoid nitrogen top-dressing.',
-      organicRemedy: 'Spray Pseudomonas fluorescens @ 10g/L or Cow-dung slurry supernatant (20%) at 10-day intervals.',
+      immediateAction: 'Drain standing water for 48 hours to aerate crop base; avoid excess nitrogen top-dressing.',
+      organicRemedy: 'Spray Pseudomonas fluorescens @ 10g/L at 10-day intervals.',
       chemicalControl: 'Streptocycline (30g) + Copper Oxychloride (500g) in 200L water per acre under calm skies.',
       riskDrivers: [
-        { name: 'Morning Relative Humidity', value: '84%', impact: 'high' as const },
-        { name: 'Canopy Leaf Wetness', value: '7.5 hours/day', impact: 'high' as const },
-        { name: 'Mean Temperature', value: '28.4°C', impact: 'medium' as const },
-        { name: 'Wind Velocity', value: '14 km/h', impact: 'low' as const },
+        { name: 'Relative Humidity', value: rhStr, impact: (highHumidity ? 'high' : 'medium') as 'high' | 'medium' },
+        { name: 'Air Temperature', value: tempStr, impact: 'medium' as const },
+        { name: 'Wind Velocity', value: windStr, impact: 'low' as const },
       ],
     };
   }
@@ -953,16 +1020,16 @@ function derivePestDiseaseWatch(crop: CropAdvisory | undefined, bulletin: Agrome
       overallRisk: 'High' as const,
       primaryConcern: 'Whitefly & Pink Bollworm Infestation',
       scientificName: 'Bemisia tabaci / Pectinophora gossypiella',
-      etiology: 'Intermittent sunny breaks during cloudy spells trigger rapid whitefly nymph multiplication on leaf undersides.',
+      etiology: 'Warm intermittent cloud cover triggers whitefly nymph multiplication on leaf undersides.',
       symptoms: 'Yellowing and upward curling of leaves, sooty mold on honey-dew secretions, rosette flowers.',
       etlThreshold: 'Whitefly: 6-8 adults per leaf; Pink Bollworm: 1 larva per 20 green bolls.',
-      immediateAction: 'Install yellow sticky traps @ 10/acre and pheromone traps @ 5/acre for nocturnal mass trapping.',
+      immediateAction: 'Install yellow sticky traps @ 10/acre and pheromone traps @ 5/acre for monitoring.',
       organicRemedy: 'Neem seed kernel extract (NSKE 5%) or Neem oil 1500 ppm @ 3-5 ml/L.',
       chemicalControl: 'Diafenthiuron 50 WP @ 1.2 g/L or Pyriproxyfen 10 EC @ 2 ml/L on border rows.',
       riskDrivers: [
-        { name: 'Cloud Cover Overcast', value: '65%', impact: 'high' as const },
-        { name: 'Thermal Units', value: 'Favorable (31°C)', impact: 'high' as const },
-        { name: 'Spray Drift Window', value: '08:00 - 11:30 AM', impact: 'medium' as const },
+        { name: 'Cloud Cover Overcast', value: cloudStr, impact: 'medium' as const },
+        { name: 'Ambient Temperature', value: tempStr, impact: 'high' as const },
+        { name: 'Surface Wind', value: windStr, impact: 'low' as const },
       ],
     };
   }
@@ -974,50 +1041,63 @@ function derivePestDiseaseWatch(crop: CropAdvisory | undefined, bulletin: Agrome
     etiology: 'Conducive temperature-humidity profile encourages spore germination in dense lower canopies.',
     symptoms: 'Concentric ring target-spots on older leaves and curling of fresh shoots.',
     etlThreshold: '10% foliar coverage on lower branches.',
-    immediateAction: 'Remove and burn infected lower leaves; improve air circulation between rows.',
-    organicRemedy: 'Bio-fungicide Trichoderma harzianum @ 5g/L + Panchagavya 3% foliar spray.',
-    chemicalControl: 'Mancozeb 75 WP @ 2.5 g/L or Azoxystrobin 23 SC @ 1 ml/L during clear morning hours.',
+    immediateAction: 'Remove infected lower leaves; improve air circulation between rows.',
+    organicRemedy: 'Bio-fungicide Trichoderma harzianum @ 5g/L foliar spray.',
+    chemicalControl: 'Mancozeb 75 WP @ 2.5 g/L or Azoxystrobin 23 SC @ 1 ml/L during calm morning hours.',
     riskDrivers: [
-      { name: 'Relative Humidity', value: '78%', impact: 'high' as const },
-      { name: 'Soil Surface Wetness', value: 'Moderate', impact: 'medium' as const },
-      { name: 'Air Temperature', value: '29°C', impact: 'medium' as const },
+      { name: 'Relative Humidity', value: rhStr, impact: (highHumidity ? 'high' : 'medium') as 'high' | 'medium' },
+      { name: 'Air Temperature', value: tempStr, impact: 'medium' as const },
+      { name: 'Wind Velocity', value: windStr, impact: 'low' as const },
     ],
   };
 }
 
-function deriveSevenDayCalendar(rainfallList: RainfallDay[], bulletin: AgrometDistrictBulletin) {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const dates = ['30 Aug', '31 Aug', '01 Sep', '02 Sep', '03 Sep', '04 Sep', '05 Sep'];
-  
-  return dates.map((dateStr, idx) => {
-    const rain = rainfallList[idx]?.amountMm ?? (idx === 5 ? 0 : idx === 6 ? 4 : 2);
-    const rainProb = rain > 15 ? 85 : rain > 5 ? 65 : rain > 0 ? 35 : 10;
-    const isHeavyRain = rain > 15;
-    const isModerateRain = rain > 4;
+function deriveSevenDayCalendar(
+  rainfallList: RainfallDay[],
+  bulletin: AgrometDistrictBulletin,
+  weatherBundle?: WeatherDataBundle
+) {
+  const now = new Date();
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const liveDaily = weatherBundle?.daily || [];
 
-    const condition = isHeavyRain ? 'Heavy Showers' : isModerateRain ? 'Scattered Rain' : rain > 0 ? 'Light Drizzle' : 'Partly Sunny';
-    const icon = isHeavyRain ? 'rain_heavy' : isModerateRain ? 'rain' : rain > 0 ? 'cloudy' : 'sunny';
+  return Array.from({ length: 7 }, (_, idx) => {
+    const dt = new Date(now.getTime() + idx * 86400000);
+    const liveDay = liveDaily[idx];
+    const rain = liveDay?.precipMm ?? rainfallList[idx]?.amountMm ?? 0;
+    const rainProb = liveDay?.rainProb ?? rainfallList[idx]?.probPercent ?? 0;
+    const isHeavyRain = rain > 15 || rainProb >= 80;
+    const isModerateRain = rain > 4 || rainProb >= 50;
 
-    const tempMax = 31 + (idx % 2 === 0 ? 1 : -1);
-    const tempMin = 24 + (idx % 3 === 0 ? 1 : 0);
+    const condition = liveDay?.condition || (isHeavyRain ? 'Heavy Showers' : isModerateRain ? 'Scattered Rain' : rain > 0 ? 'Light Drizzle' : 'Clear / Dry');
+    const icon = liveDay?.icon || (isHeavyRain ? 'rain_heavy' : isModerateRain ? 'rain' : rain > 0 ? 'cloudy' : 'sunny');
 
-    let soilCondition = 'Optimal Moisture';
+    const tempMax = typeof liveDay?.high === 'number' ? liveDay.high : 0;
+    const tempMin = typeof liveDay?.low === 'number' ? liveDay.low : 0;
+
+    let soilCondition = 'Normal Moisture';
     let farmSuitability: 'EXCELLENT' | 'GOOD' | 'LIMITED' | 'RESTRICTED' = 'GOOD';
 
-    if (rain > 15) {
+    if (rain > 15 || rainProb >= 80) {
       soilCondition = 'Saturated / Wet';
       farmSuitability = 'RESTRICTED';
-    } else if (rain > 5) {
+    } else if (rain > 5 || rainProb >= 50) {
       soilCondition = 'Adequate Moisture';
       farmSuitability = 'LIMITED';
-    } else if (rain === 0 && idx > 2) {
-      soilCondition = 'Drying Topsoil';
+    } else if (rain === 0 && idx > 1) {
+      soilCondition = 'Dry / Workable Topsoil';
       farmSuitability = 'EXCELLENT';
     }
 
     return {
-      day: days[idx] || 'Day',
-      date: dateStr,
+      day: idx === 0 ? 'Today' : idx === 1 ? 'Tomorrow' : weekdays[dt.getDay()],
+      date:
+        liveDay?.date ||
+        new Intl.DateTimeFormat('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: '2-digit',
+          month: 'short',
+        }).format(dt),
       icon,
       condition,
       tempMax,

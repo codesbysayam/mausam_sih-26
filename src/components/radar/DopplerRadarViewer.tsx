@@ -38,6 +38,7 @@ import {
   RadarProductMetadata,
   RadarDataStatus,
 } from '../../types/radar';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 import {
   OFFICIAL_RADAR_STATIONS,
   fetchLiveRadarData,
@@ -587,7 +588,7 @@ function TacticalOverlaysController({
       <div style="font-family:sans-serif; color:#0B141E; padding:4px;">
         <h4 style="margin:0; font-weight:bold; font-size:13px;">${station.name}</h4>
         <div style="font-size:11px; color:#475569; margin-top:2px;">Station Code: <strong>${station.code}</strong> • Band: ${station.band}</div>
-        <div style="font-size:10px; color:#64748B; margin-top:4px;">Coordinates: ${station.lat.toFixed(4)}°N, ${station.lng.toFixed(4)}°E</div>
+        <div style="font-size:10px; color:#64748B; margin-top:4px;">Coordinates: ${formatCoordinatePair(station.lat, station.lng, 4)}</div>
         <div style="font-size:10px; color:#1499E8; margin-top:2px;">Surveillance Baseline: ${station.range}</div>
       </div>
     `);
@@ -873,7 +874,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
               <span>Elevation: {station.elevationMeters}m ASL</span>
               <span>•</span>
               <span className="font-mono">
-                {station.lat.toFixed(4)}°N, {station.lng.toFixed(4)}°E
+                {formatCoordinatePair(station.lat, station.lng, 4)}
               </span>
             </div>
           </div>

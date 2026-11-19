@@ -10,6 +10,7 @@ import { RadarStation } from '../../types/radar';
 import { StateWeatherData } from './IndiaWeatherMap';
 import { formatTimestampIST } from '../../services/providers/providerStatus';
 import { SourceStatus, ProvenanceStatus } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface MapLocationInspectorProps {
   inspectedCoords: { lat: number; lng: number } | null;
@@ -115,7 +116,7 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
           <h3 className="text-sm font-bold text-[#F3F6FA] mt-0.5 truncate">{heading}</h3>
           {typeof targetLat === 'number' && typeof targetLng === 'number' && (
             <div className="text-[11px] font-mono tabular-nums text-[#8295A8] mt-0.5">
-              {targetLat.toFixed(3)}°N, {targetLng.toFixed(3)}°E
+              {formatCoordinatePair(targetLat, targetLng, 3)}
             </div>
           )}
         </div>

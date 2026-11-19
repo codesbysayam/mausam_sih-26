@@ -20,6 +20,8 @@ import type { WeatherDataBundle } from '../../services/weatherService';
 import { MainNavTab } from '../layout/MainNavigation';
 import { useExperience } from '../../context/ExperienceContext';
 import { locationService } from '../../services/locationService';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
+import { calculateSolarAstronomicalData } from '../../utils/astronomyCalculator';
 
 interface WeatherHUDProps {
   selectedLocation: LocationRecord;
@@ -50,35 +52,68 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
   const current = weatherBundle.current;
   const activeHour = weatherBundle.hourly?.[timelineIndex];
   const displayTemp =
-    timelineIndex > 0 && typeof activeHour?.temp === 'number' ? activeHour.temp : current.temp;
-  const displayCond =
+    timelineIndex > 0 && typeof activeHour?.temp === 'number' && Number.isFinite(activeHour.temp)
+      ? activeHour.temp
+      : typeof current.temp === 'number' && Number.isFinite(current.temp)
+      ? current.temp
+      : null;
+
+  const hasValidTemp = displayTemp !== null;
+
+  const rawCond =
     timelineIndex > 0 && activeHour?.condition ? activeHour.condition : current.condition;
+  const displayCond =
+    hasValidTemp && rawCond && rawCond !== '—'
+      ? rawCond
+      : current.observationStatus === 'LOADING'
+      ? 'Syncing feed…'
+      : 'Not available';
+
   const displayWind =
-    timelineIndex > 0 && typeof activeHour?.windSpeed === 'number'
+    timelineIndex > 0 && typeof activeHour?.windSpeed === 'number' && Number.isFinite(activeHour.windSpeed)
       ? activeHour.windSpeed
-      : current.windSpeed;
+      : typeof current.windSpeed === 'number' && Number.isFinite(current.windSpeed)
+      ? current.windSpeed
+      : null;
   const displayWindDir =
     timelineIndex > 0 && activeHour?.windDirection ? activeHour.windDirection : current.windDirection;
   const displayHumidity =
-    timelineIndex > 0 && typeof activeHour?.humidity === 'number'
+    timelineIndex > 0 && typeof activeHour?.humidity === 'number' && Number.isFinite(activeHour.humidity)
       ? activeHour.humidity
-      : current.humidity;
+      : typeof current.humidity === 'number' && Number.isFinite(current.humidity)
+      ? current.humidity
+      : null;
   const displayRainProb =
-    timelineIndex > 0 && typeof activeHour?.rainProb === 'number'
+    timelineIndex > 0 && typeof activeHour?.rainProb === 'number' && Number.isFinite(activeHour.rainProb)
       ? activeHour.rainProb
-      : current.precipitationProbability;
+      : typeof current.precipitationProbability === 'number' && Number.isFinite(current.precipitationProbability)
+      ? current.precipitationProbability
+      : null;
 
   const obsStatus =
-    current.observationStatus ||
-    (current.isLive ? 'LIVE' : typeof current.temp === 'number' ? 'RECENT' : 'UNAVAILABLE');
+    current.observationStatus === 'LOADING'
+      ? 'LOADING'
+      : !hasValidTemp
+      ? 'NOT AVAILABLE'
+      : current.dataSource === 'IMD'
+      ? 'OBSERVED'
+      : current.observationStatus === 'STALE'
+      ? 'STALE'
+      : 'MODEL-DERIVED';
+
   const statusColorClass =
-    obsStatus === 'LIVE'
-      ? 'text-[#22C7A0]'
-      : obsStatus === 'RECENT'
-      ? 'text-[#35C7E8]'
+    obsStatus === 'OBSERVED'
+      ? 'text-[#75D4A6]'
+      : obsStatus === 'MODEL-DERIVED'
+      ? 'text-[#8AB8F7]'
       : obsStatus === 'LOADING' || obsStatus === 'STALE'
-      ? 'text-[#F59E0B]'
-      : 'text-[#EF4444]';
+      ? 'text-[#F4B96B]'
+      : 'text-[#F59B93]';
+
+  const solarEphemeris = calculateSolarAstronomicalData(
+    selectedLocation.lat,
+    selectedLocation.lng
+  );
 
   const targetAnalyzeTab: MainNavTab =
     activeLayer === 'radar'
@@ -115,57 +150,57 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
           <button
             type="button"
             onClick={() => setIsCollapsed(false)}
-            className="pointer-events-auto spatial-hud-surface rounded-xl px-3 min-h-[40px] flex items-center gap-2 text-xs text-[#F3F6FA] hover:border-[#38536A] cursor-pointer spatial-focus-ring"
+            className="pointer-events-auto spatial-hud-surface rounded-xl px-3 min-h-[40px] flex items-center gap-2 text-xs text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] cursor-pointer spatial-focus-ring"
           >
-            <ChevronLeft className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <ChevronLeft className="w-3.5 h-3.5 text-[#2C7BE5]" />
             <span className="font-mono font-semibold tabular-nums">
-              {typeof displayTemp === 'number' && Number.isFinite(displayTemp) ? `${Math.round(displayTemp)}°C` : '—'}
+              {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : 'Not available'}
             </span>
-            <span className="text-[#8295A8] truncate max-w-[110px]">
+            <span className="text-[var(--m-text-muted)] truncate max-w-[110px]">
               {selectedLocation.city || selectedLocation.displayName}
             </span>
           </button>
         ) : (
-          <div className="pointer-events-auto w-[280px] spatial-hud-surface rounded-xl p-3.5 flex flex-col gap-3">
+          <div className="pointer-events-auto w-[290px] spatial-hud-surface rounded-xl p-3.5 flex flex-col gap-3">
             {/* Header Row */}
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 text-[11px] text-[#35C7E8] font-medium">
+                <div className="flex items-center gap-1.5 text-[11px] text-[#2C7BE5] font-medium">
                   <MapPin className="w-3 h-3 shrink-0" />
                   <span className="truncate">{selectedLocation.state}</span>
                 </div>
-                <h2 className="text-sm font-bold text-[#F3F6FA] truncate mt-0.5">
+                <h2 className="text-base font-bold text-[var(--m-text-primary)] truncate mt-0.5">
                   {selectedLocation.city || selectedLocation.displayName}
                 </h2>
-                <div className="text-[10px] font-mono text-[#8295A8] tabular-nums">
-                  {selectedLocation.lat.toFixed(2)}°N · {selectedLocation.lng.toFixed(2)}°E
+                <div className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums">
+                  {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCollapsed(true)}
                 aria-label="Collapse weather HUD"
-                className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer shrink-0 spatial-focus-ring"
+                className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer shrink-0 spatial-focus-ring"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* Primary Temperature & Condition */}
-            <div className="flex items-baseline justify-between gap-2 pb-2.5 border-b border-[#26394B]">
-              <div className="text-3xl font-bold font-mono text-[#F3F6FA] tabular-nums tracking-tight">
-                {typeof displayTemp === 'number' && Number.isFinite(displayTemp) ? `${Math.round(displayTemp)}°C` : '—'}
+            <div className="flex items-baseline justify-between gap-2 pb-2.5 border-b border-[var(--m-border)]">
+              <div className="text-3xl font-bold font-mono text-[var(--m-text-primary)] tabular-nums tracking-tight">
+                {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : 'Not available'}
               </div>
               <div className="text-right min-w-0">
-                <div className="text-xs font-medium text-[#B5C3D1] truncate">
-                  {displayCond || (obsStatus === 'LOADING' ? 'Syncing…' : 'Unavailable')}
+                <div className="text-xs font-medium text-[var(--m-text-secondary)] truncate">
+                  {displayCond}
                 </div>
-                <div className="text-[10px] text-[#8295A8] tabular-nums">
+                <div className="text-[10px] text-[var(--m-text-muted)] tabular-nums">
                   {timelineIndex > 0 && activeHour
                     ? `Forecast ${activeHour.time}`
-                    : current.lastUpdated
-                    ? `Observed ${current.lastUpdated}`
-                    : 'Awaiting observation'}
+                    : hasValidTemp && current.lastUpdated
+                    ? `Valid ${current.lastUpdated}`
+                    : 'Awaiting verified feed'}
                 </div>
               </div>
             </div>
@@ -173,44 +208,60 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             {/* Compact 4-Metric Matrix */}
             <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
               <div>
-                <div className="text-[10px] text-[#8295A8] uppercase tracking-wider">Wind</div>
-                <div className="font-mono font-semibold text-[#F3F6FA] tabular-nums">
-                  {typeof displayWind === 'number' && Number.isFinite(displayWind)
-                    ? `${Math.round(displayWind)} km/h ${displayWindDir || ''}`.trim()
-                    : '—'}
+                <div className="text-[10px] text-[var(--m-text-muted)] uppercase tracking-wider">Wind</div>
+                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                  {displayWind !== null
+                    ? `${Math.round(displayWind)} km/h ${displayWindDir && displayWindDir !== '—' ? displayWindDir : ''}`.trim()
+                    : 'Not available'}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-[#8295A8] uppercase tracking-wider">Rain Prob</div>
-                <div className="font-mono font-semibold text-[#F3F6FA] tabular-nums">
-                  {typeof displayRainProb === 'number' && Number.isFinite(displayRainProb)
+                <div className="text-[10px] text-[var(--m-text-muted)] uppercase tracking-wider">Rain Prob</div>
+                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                  {displayRainProb !== null
                     ? `${Math.round(displayRainProb)}%`
-                    : '—'}
+                    : 'Not available'}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-[#8295A8] uppercase tracking-wider">Humidity</div>
-                <div className="font-mono font-semibold text-[#F3F6FA] tabular-nums">
-                  {typeof displayHumidity === 'number' && Number.isFinite(displayHumidity)
+                <div className="text-[10px] text-[var(--m-text-muted)] uppercase tracking-wider">Humidity</div>
+                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                  {displayHumidity !== null
                     ? `${Math.round(displayHumidity)}%`
-                    : '—'}
+                    : 'Not available'}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-[#8295A8] uppercase tracking-wider">AQI (US/NAQI)</div>
-                <div className="font-mono font-semibold text-[#F3F6FA] tabular-nums">
-                  {typeof current.aqiIndex === 'number'
+                <div className="text-[10px] text-[var(--m-text-muted)] uppercase tracking-wider">AQI (NAQI)</div>
+                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                  {typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex)
                     ? current.aqiIndex
-                    : typeof current.aqi === 'number'
+                    : typeof current.aqi === 'number' && Number.isFinite(current.aqi)
                     ? current.aqi
-                    : '—'}
+                    : 'Not available'}
                 </div>
               </div>
             </div>
 
+            {/* Compact Astronomical Ephemeris Row: Sunrise · Zenith · Sunset */}
+            <div className="pt-2 border-t border-[var(--m-border)] grid grid-cols-3 gap-1 text-[10px] font-mono tabular-nums">
+              <div>
+                <span className="text-[var(--m-text-muted)] block uppercase">Sunrise</span>
+                <strong className="text-[var(--m-text-primary)]">{solarEphemeris.sunriseStr}</strong>
+              </div>
+              <div className="text-center">
+                <span className="text-[#D98A2B] block uppercase">Zenith</span>
+                <strong className="text-[var(--m-text-primary)]">{solarEphemeris.solarNoonStr}</strong>
+              </div>
+              <div className="text-right">
+                <span className="text-[var(--m-text-muted)] block uppercase">Sunset</span>
+                <strong className="text-[var(--m-text-primary)]">{solarEphemeris.sunsetStr}</strong>
+              </div>
+            </div>
+
             {/* Provenance line */}
-            <div className="text-[10px] text-[#8295A8] leading-snug pt-2 border-t border-[#26394B] flex items-center justify-between gap-2">
-              <span className="truncate">{current.dataSource || current.source || 'Open-Meteo / IMD'}</span>
+            <div className="text-[10px] text-[var(--m-text-muted)] leading-snug pt-2 border-t border-[var(--m-border)] flex items-center justify-between gap-2">
+              <span className="truncate">{current.dataSource || current.source || 'Open-Meteo Grid'}</span>
               <span className={`font-mono shrink-0 ${statusColorClass}`}>{obsStatus}</span>
             </div>
 

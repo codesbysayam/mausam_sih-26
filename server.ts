@@ -40,7 +40,7 @@ function getAIClient(): GoogleGenAI | null {
       apiKey: process.env.GEMINI_API_KEY,
       httpOptions: {
         headers: {
-          'User-Agent': 'mausam-atmospheric-platform',
+          'User-Agent': 'aistudio-build',
         },
       },
     });
@@ -117,7 +117,12 @@ async function startServer() {
   // Consolidated Vercel Serverless Gateways (5-function architecture)
   app.all('/api/weather', (req, res) => weatherHandler(req, res));
   app.all('/api/warnings', (req, res) => warningsHandler(req, res));
-  app.all('/api/radar', (req, res) => radarHandler(req, res));
+  app.all('/api/radar', (req, res, next) => {
+    if (req.query?.station || (req.query?.lat !== undefined && !req.query?.mode)) {
+      return next();
+    }
+    return radarHandler(req, res);
+  });
   app.all('/api/system', (req, res) => systemHandler(req, res));
   app.all('/api/system/health', (req, res) => {
     req.query = { ...(req.query || {}), mode: 'health' };
@@ -178,48 +183,50 @@ async function startServer() {
       } = req.body;
       const client = getAIClient();
 
-      const latitude = typeof lat === 'number' ? lat : (location?.latitude || station?.lat || 20.2961);
-      const longitude = typeof lng === 'number' ? lng : (location?.longitude || station?.lng || 85.8245);
+      const rawLat = typeof lat === 'number' && Number.isFinite(lat) ? lat : (location?.latitude ?? station?.lat ?? null);
+      const rawLon = typeof lng === 'number' && Number.isFinite(lng) ? lng : (location?.longitude ?? station?.lng ?? null);
+      const latitude = typeof rawLat === 'number' && Number.isFinite(rawLat) ? rawLat : 20.2961;
+      const longitude = typeof rawLon === 'number' && Number.isFinite(rawLon) ? rawLon : 85.8245;
 
-      // Build structured context payload strictly adhering to Master System Prompt
+      // Build structured context payload strictly adhering to Master System Prompt (nulls preserved when unavailable)
       const telemetryContext: MausamAIContextPayload = {
         location: {
           country: location?.country || 'India',
-          state: location?.state || station?.state || 'Odisha',
-          city: location?.city || station?.district || station?.name || 'Bhubaneswar',
-          station: location?.station || station?.name || 'Bhubaneswar Observatory',
-          stationId: location?.stationId || station?.code || '42971',
+          state: location?.state || station?.state || 'Unavailable',
+          city: location?.city || station?.district || station?.name || 'Selected Location',
+          station: location?.station || station?.name || 'Synoptic Grid Point',
+          stationId: location?.stationId || station?.code || 'N/A',
           latitude,
           longitude,
         },
         observation: {
-          temperatureC: observation?.temperatureC ?? weatherContext?.temp ?? 27,
-          feelsLikeC: observation?.feelsLikeC ?? weatherContext?.feelsLike ?? 28,
-          condition: observation?.condition || weatherContext?.condition || 'Clear',
-          relativeHumidity: observation?.relativeHumidity ?? weatherContext?.humidity ?? 97,
-          windSpeedKmh: observation?.windSpeedKmh ?? weatherContext?.windSpeed ?? 8,
-          windDirection: observation?.windDirection || weatherContext?.windDirection || 'WSW',
-          windDirectionDegrees: observation?.windDirectionDegrees ?? weatherContext?.windDirectionDeg ?? 247,
-          pressureHpa: observation?.pressureHpa ?? weatherContext?.pressure ?? 1003.7,
-          visibilityKm: observation?.visibilityKm ?? weatherContext?.visibilityKm ?? 7,
-          dewPointC: observation?.dewPointC ?? weatherContext?.dewPoint ?? 26.4,
-          rainfall24hMm: observation?.rainfall24hMm ?? weatherContext?.precipitation ?? 0,
-          rainProbability: observation?.rainProbability ?? weatherContext?.precipitationProbability ?? 10,
-          uvIndex: observation?.uvIndex ?? weatherContext?.uv ?? 7,
+          temperatureC: observation?.temperatureC ?? weatherContext?.temp ?? null,
+          feelsLikeC: observation?.feelsLikeC ?? weatherContext?.feelsLike ?? null,
+          condition: observation?.condition || weatherContext?.condition || 'Condition Unavailable',
+          relativeHumidity: observation?.relativeHumidity ?? weatherContext?.humidity ?? null,
+          windSpeedKmh: observation?.windSpeedKmh ?? weatherContext?.windSpeed ?? null,
+          windDirection: observation?.windDirection || weatherContext?.windDirection || '—',
+          windDirectionDegrees: observation?.windDirectionDegrees ?? weatherContext?.windDirectionDeg ?? null,
+          pressureHpa: observation?.pressureHpa ?? weatherContext?.pressure ?? null,
+          visibilityKm: observation?.visibilityKm ?? weatherContext?.visibilityKm ?? null,
+          dewPointC: observation?.dewPointC ?? weatherContext?.dewPoint ?? null,
+          rainfall24hMm: observation?.rainfall24hMm ?? weatherContext?.precipitation ?? null,
+          rainProbability: observation?.rainProbability ?? weatherContext?.precipitationProbability ?? null,
+          uvIndex: observation?.uvIndex ?? weatherContext?.uv ?? null,
         },
         airQuality: {
-          aqi: airQuality?.aqi ?? weatherContext?.aqi ?? 63,
-          pm25: airQuality?.pm25 ?? weatherContext?.aqiPm25 ?? 42,
-          pm10: airQuality?.pm10 ?? weatherContext?.aqiPm10 ?? 58,
-          category: airQuality?.category ?? weatherContext?.aqiStatus ?? 'Satisfactory',
+          aqi: airQuality?.aqi ?? weatherContext?.aqi ?? null,
+          pm25: airQuality?.pm25 ?? weatherContext?.aqiPm25 ?? null,
+          pm10: airQuality?.pm10 ?? weatherContext?.aqiPm10 ?? null,
+          category: airQuality?.category ?? weatherContext?.aqiStatus ?? 'Unavailable',
         },
         pollen: {
-          index: pollen?.index ?? weatherContext?.pollenCount ?? 8,
-          category: pollen?.category ?? weatherContext?.pollen ?? 'High Risk',
+          index: pollen?.index ?? weatherContext?.pollenCount ?? null,
+          category: pollen?.category ?? weatherContext?.pollen ?? 'Unavailable',
         },
         astronomy: {
-          sunrise: astronomy?.sunrise ?? weatherContext?.sunrise ?? '05:29',
-          sunset: astronomy?.sunset ?? weatherContext?.sunset ?? '18:07',
+          sunrise: astronomy?.sunrise ?? weatherContext?.sunrise ?? null,
+          sunset: astronomy?.sunset ?? weatherContext?.sunset ?? null,
         },
         metadata: {
           observedAt: metadata?.observedAt || new Date().toISOString(),
@@ -276,18 +283,24 @@ async function startServer() {
         const obs = telemetryContext.observation;
         const aq = telemetryContext.airQuality;
         const pol = telemetryContext.pollen;
+        const fmtVal = (v: number | null | undefined, unit: string) =>
+          typeof v === 'number' && Number.isFinite(v) ? `${v}${unit}` : 'Unavailable';
+        const windDegStr =
+          typeof obs?.windDirectionDegrees === 'number' && Number.isFinite(obs.windDirectionDegrees)
+            ? ` (${obs.windDirectionDegrees}°)`
+            : '';
         return res.json({
           response: `${loc?.city}, ${loc?.state}
 
 • Weather Source: ${resolvedSource}
 • IMD Direct Access: ${imdStatusStr}
-• Current Observation: ${obs?.temperatureC}°C — ${obs?.condition}
-• Feels like: ${obs?.feelsLikeC}°C
-• Relative Humidity: ${obs?.relativeHumidity}%
-• Wind: ${obs?.windSpeedKmh} km/h ${obs?.windDirection}${obs?.windDirectionDegrees ? ` (${obs?.windDirectionDegrees}°)` : ''}
-• Pressure: ${obs?.pressureHpa} hPa
-• AQI: ${aq?.aqi} (${aq?.category})
-• Pollen: ${pol?.category}
+• Current Observation: ${fmtVal(obs?.temperatureC, '°C')} — ${obs?.condition || 'Condition Unavailable'}
+• Feels like: ${fmtVal(obs?.feelsLikeC, '°C')}
+• Relative Humidity: ${fmtVal(obs?.relativeHumidity, '%')}
+• Wind: ${fmtVal(obs?.windSpeedKmh, ' km/h')} ${obs?.windDirection || '—'}${windDegStr}
+• Pressure: ${fmtVal(obs?.pressureHpa, ' hPa')}
+• AQI: ${fmtVal(aq?.aqi, '')} (${aq?.category || 'Unavailable'})
+• Pollen: ${pol?.category || 'Unavailable'}
 
 Updated: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST
 Source: ${resolvedSource}`,
@@ -325,7 +338,7 @@ Source: ${resolvedSource}`,
           if (targetMode === 'maps') {
             try {
               response = await client.models.generateContent({
-                model: 'gemini-3.8-flash',
+                model: 'gemini-4-hydrogen',
                 contents: prompt,
                 config: {
                   systemInstruction,
@@ -349,11 +362,10 @@ Source: ${resolvedSource}`,
                 try {
                   usedMode = 'standard';
                   response = await client.models.generateContent({
-                    model: 'gemini-3.8-flash',
+                    model: 'gemini-4-hydrogen',
                     contents: prompt,
                     config: {
                       systemInstruction,
-                      temperature: 0.3,
                     },
                   });
                 } catch (stdErr: any) {
@@ -365,7 +377,7 @@ Source: ${resolvedSource}`,
           } else if (targetMode === 'search') {
             try {
               response = await client.models.generateContent({
-                model: 'gemini-3.8-flash',
+                model: 'gemini-4-hydrogen',
                 contents: prompt,
                 config: {
                   systemInstruction,
@@ -382,7 +394,6 @@ Source: ${resolvedSource}`,
                     contents: prompt,
                     config: {
                       systemInstruction,
-                      temperature: 0.3,
                     },
                   });
                 } catch (liteErr: any) {
@@ -398,7 +409,6 @@ Source: ${resolvedSource}`,
                     contents: prompt,
                     config: {
                       systemInstruction,
-                      temperature: 0.3,
                     },
                   });
                 } catch (stdErr: any) {
@@ -410,11 +420,10 @@ Source: ${resolvedSource}`,
           } else {
             try {
               response = await client.models.generateContent({
-                model: 'gemini-3.8-flash',
+                model: 'gemini-4-hydrogen',
                 contents: prompt,
                 config: {
                   systemInstruction,
-                  temperature: 0.3,
                 },
               });
             } catch (genErr: any) {
@@ -427,7 +436,6 @@ Source: ${resolvedSource}`,
                     contents: prompt,
                     config: {
                       systemInstruction,
-                      temperature: 0.3,
                     },
                   });
                 } catch {
@@ -469,15 +477,14 @@ Source: ${resolvedSource}`,
     } catch (error: any) {
       console.error('Error in /api/ask-mausam:', error);
       const errSource = (req.body.metadata?.source) || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
-      // Emergency deterministic safeguard
       const fallbackText = `MAUSAM Atmospheric Intelligence
 
 Location: ${req.body.station?.district || req.body.station?.name || 'India'} (${req.body.station?.state || 'National'})
-Observation: ${req.body.weatherContext?.temp ?? 27}°C — ${req.body.weatherContext?.condition ?? 'Observed'}
-Humidity: ${req.body.weatherContext?.humidity ?? 85}% | Wind: ${req.body.weatherContext?.windSpeed ?? 10} km/h
-Air Quality Index: ${req.body.weatherContext?.aqi ?? 63} (${req.body.weatherContext?.aqiStatus ?? 'Satisfactory'})
+Observation: ${req.body.weatherContext?.temp ?? '—'}°C — ${req.body.weatherContext?.condition ?? 'Condition Unavailable'}
+Humidity: ${req.body.weatherContext?.humidity ?? '—'}% | Wind: ${req.body.weatherContext?.windSpeed ?? '—'} km/h
+Air Quality Index: ${req.body.weatherContext?.aqi ?? '—'} (${req.body.weatherContext?.aqiStatus ?? 'Unavailable'})
 
-Advisory: Synoptic atmospheric circulation is normal. Monitor local operational feeds and district agromet bulletins.
+Advisory: Monitor live operational feeds when telemetry recovers.
 
 Updated: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST
 Source: ${errSource}`;
@@ -514,7 +521,7 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
       let response: any = null;
       try {
         response = await client.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-4-hydrogen',
           contents: prompt,
           config: {
             systemInstruction: 'You are an IMD Meteorological Bulletin generator. Provide precise, up-to-date weather summaries with rainfall alerts and actionable advice.',
@@ -554,7 +561,22 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
 
   // Dedicated Google Maps Grounding endpoint for nearby radar / observatory finding
   app.post('/api/ai/maps-grounded-places', async (req, res) => {
-    const { query, lat = 20.2961, lng = 85.8245, locationName } = req.body;
+    const { query, lat, lng, locationName } = req.body;
+    const numLat = typeof lat === 'number' ? lat : Number(lat);
+    const numLng = typeof lng === 'number' ? lng : Number(lng);
+    const hasValidCoords =
+      lat !== undefined &&
+      lat !== null &&
+      String(lat).trim() !== '' &&
+      lng !== undefined &&
+      lng !== null &&
+      String(lng).trim() !== '' &&
+      Number.isFinite(numLat) &&
+      Number.isFinite(numLng) &&
+      numLat >= -90 &&
+      numLat <= 90 &&
+      numLng >= -180 &&
+      numLng <= 180;
     const fallbackPlaces = [
       { title: `IMD Meteorological Centre ${locationName || 'Regional'}`, url: 'https://mausam.imd.gov.in' },
       { title: `District Emergency Operations Center (${locationName || 'Local'})`, url: 'https://ndma.gov.in' },
@@ -575,19 +597,23 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
       let response: any = null;
       try {
         response = await client.models.generateContent({
-          model: 'gemini-3.7-flash',
+          model: 'gemini-4-hydrogen',
           contents: prompt,
           config: {
             systemInstruction: 'You are an IMD Geographic and Spatial Meteorology assistant. Identify key nearby radar towers, weather stations, coastal observatories, and emergency facilities with exact locations.',
             tools: [{ googleMaps: {} }],
-            toolConfig: {
-              retrievalConfig: {
-                latLng: {
-                  latitude: Number(lat),
-                  longitude: Number(lng),
-                },
-              },
-            },
+            ...(hasValidCoords
+              ? {
+                  toolConfig: {
+                    retrievalConfig: {
+                      latLng: {
+                        latitude: numLat,
+                        longitude: numLng,
+                      },
+                    },
+                  },
+                }
+              : {}),
           },
         });
       } catch (err: any) {
@@ -746,7 +772,7 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
     return null;
   };
 
-  const radarHandler = async (req: express.Request, res: express.Response) => {
+  const radarProxyHandler = async (req: express.Request, res: express.Response) => {
     const station = req.query.station as string | undefined;
     const product = (req.query.product as string | undefined) || 'MAXZ';
 
@@ -821,8 +847,7 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
     });
   };
 
-  app.get('/api/radar', radarHandler);
-  app.get('/api/proxy/rainviewer', radarHandler);
+  app.get('/api/proxy/rainviewer', radarProxyHandler);
 
   app.get('/api/satellite/latest', async (req, res) => {
     try {
@@ -897,10 +922,17 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
   }));
   app.use(express.static(path.join(process.cwd(), 'public')));
 
-  // Vite middleware for development
+  // Vite middleware for development (disable HMR automatically in Cloud Run preview / DISABLE_HMR)
   if (process.env.NODE_ENV !== 'production') {
+    const isHmrDisabled =
+      process.env.DISABLE_HMR === 'true' ||
+      Boolean(process.env.K_SERVICE || process.env.K_REVISION);
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: !isHmrDisabled,
+        allowedHosts: true,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -914,11 +946,23 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mausam Server running on http://localhost:${PORT}`);
+    console.log(`  ➜  Local:   http://localhost:${PORT}/`);
+    console.log(`  ➜  Network: http://0.0.0.0:${PORT}/`);
   });
 
   // Cloud Run / Reverse Proxy Keep-Alive alignment (prevents premature connection drops)
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 66000;
+
+  const shutdown = () => {
+    server.close(() => {
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(0), 1500).unref();
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 startServer();

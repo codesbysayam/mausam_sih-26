@@ -82,7 +82,7 @@ export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lo
  * Normalizes Indian state and UT names into standard canonical formats
  */
 export function normalizeIndianState(rawState: string): string {
-  if (!rawState) return 'Odisha';
+  if (!rawState) return '';
   const clean = rawState.trim().toLowerCase();
 
   if (clean.includes('odisha') || clean.includes('orissa')) return 'Odisha';
@@ -245,16 +245,16 @@ class GeolocationService {
 
       if (res.ok) {
         const data = await res.json();
+        const countryCode = (data.countryCode || '').toUpperCase() || 'IN';
+        const country = data.countryName || (countryCode === 'IN' ? 'India' : 'Unknown');
         const rawState = data.principalSubdivision || data.region || '';
-        const state = normalizeIndianState(rawState);
+        const state = countryCode === 'IN' ? normalizeIndianState(rawState) : rawState;
         const district =
           data.localityInfo?.administrative?.[2]?.name?.replace(/\b(district|division)\b/gi, '').trim() ||
           data.locality ||
           data.city ||
           '';
         const city = data.city || data.locality || district || 'Local Station';
-        const country = data.countryName || 'India';
-        const countryCode = data.countryCode || 'IN';
         const pincode = data.postcode || '';
 
         const formattedAddress = [city, district !== city ? district : '', state, country]
@@ -293,12 +293,14 @@ class GeolocationService {
       if (res.ok) {
         const data = await res.json();
         const addr = data.address || {};
-        const state = normalizeIndianState(addr.state || addr.region || '');
+        const countryCode = (addr.country_code || '').toUpperCase() || 'IN';
+        const country = addr.country || (countryCode === 'IN' ? 'India' : 'Unknown');
+        const rawState = addr.state || addr.region || '';
+        const state = countryCode === 'IN' ? normalizeIndianState(rawState) : rawState;
         const district = (addr.state_district || addr.county || addr.district || addr.city || '')
           .replace(/\b(district|division)\b/gi, '')
           .trim();
         const city = addr.city || addr.town || addr.village || addr.suburb || district || 'Local Station';
-        const country = addr.country || 'India';
         const pincode = addr.postcode || '';
 
         const formattedAddress = [city, district !== city ? district : '', state, country]
@@ -307,7 +309,7 @@ class GeolocationService {
 
         return {
           country,
-          countryCode: addr.country_code?.toUpperCase() || 'IN',
+          countryCode,
           state,
           district: district || city,
           city,
@@ -320,8 +322,20 @@ class GeolocationService {
       console.warn('[GeolocationService] Nominatim geocoding failed, falling back to local station spatial database:', err);
     }
 
-    // 3. Fallback: Find nearest station in comprehensive allIndiaLocations database
+    // 3. Fallback: Find nearest station in local database only if within India domain (~250km)
     const nearest = this.findNearestStation(lat, lng);
+    if (nearest.distanceKm > 250) {
+      const coordName = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lng).toFixed(2)}°${lng >= 0 ? 'E' : 'W'}`;
+      return {
+        country: 'International',
+        countryCode: 'INTL',
+        state: 'International',
+        district: coordName,
+        city: coordName,
+        pincode: '',
+        formattedAddress: coordName,
+      };
+    }
     return {
       country: 'India',
       countryCode: 'IN',
@@ -390,12 +404,14 @@ class GeolocationService {
         const address = await this.reverseGeocode(coords.latitude, coords.longitude);
         const nearest = this.findNearestStation(coords.latitude, coords.longitude);
 
+        const isIndia = address.countryCode === 'IN';
         // Determine coastal status based on distance to nearest coastal station or state
         const isCoastal =
-          nearest.station.coastalStatus === 'coastal' ||
-          ['Odisha', 'Goa', 'Kerala', 'Tamil Nadu', 'Andhra Pradesh', 'Maharashtra', 'Gujarat', 'West Bengal'].includes(
-            address.state
-          );
+          isIndia &&
+          (nearest.station.coastalStatus === 'coastal' ||
+            ['Odisha', 'Goa', 'Kerala', 'Tamil Nadu', 'Andhra Pradesh', 'Maharashtra', 'Gujarat', 'West Bengal'].includes(
+              address.state
+            ));
 
         // Build exact location record
         const locationId = `gps-${coords.latitude.toFixed(3)}-${coords.longitude.toFixed(3)}`;
@@ -404,15 +420,18 @@ class GeolocationService {
           city: address.city,
           district: address.district,
           state: address.state,
+          country: address.country,
           lat: coords.latitude,
           lng: coords.longitude,
           pincode: address.pincode,
-          timezone: 'Asia/Kolkata',
-          displayName: `${address.city}, ${address.district} (${address.state})`,
-          elevation: nearest.station.elevation || '45m ASL',
-          weatherStation: nearest.name,
-          imdStation: nearest.code,
-          radarCoverage: nearest.station.radarCoverage,
+          timezone: isIndia ? 'Asia/Kolkata' : Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+          displayName: [address.city, address.district !== address.city ? address.district : '', address.state]
+            .filter(Boolean)
+            .join(', '),
+          elevation: nearest.distanceKm <= 250 ? (nearest.station.elevation || '45m ASL') : undefined,
+          weatherStation: nearest.distanceKm <= 250 ? nearest.name : `${address.city} Grid Point`,
+          imdStation: isIndia && nearest.distanceKm <= 250 ? nearest.code : null,
+          radarCoverage: isIndia && nearest.distanceKm <= 250 ? nearest.station.radarCoverage : null,
           coastalStatus: isCoastal ? 'coastal' : 'inland',
           isPrimary: true,
         };

@@ -12,6 +12,7 @@ import {
   SunMedium,
 } from 'lucide-react';
 import { calculateSolarEphemeris, SolarEphemeris } from '../../utils/solarCalculator';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface SolarDynamicsProps {
   location: LocationRecord;
@@ -154,7 +155,7 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
     <DataPanel id="solar-dynamics-component" className="flex flex-col gap-5">
       <SectionHeading
         title="Astronomical Solar Ephemeris & Twilight"
-        subtitle={`${location.city || location.name} • ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`}
+        subtitle={`${location.city || location.name} • ${formatCoordinatePair(lat, lng, 4)}`}
         icon={<Sun className="w-4 h-4 text-[#F59E0B]" />}
         badge={
           <SourceStatus

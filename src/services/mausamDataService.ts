@@ -46,9 +46,9 @@ export interface MausamRadarData {
     rangeKm: number;
     radarModel: string;
     isWithinCoverage: boolean;
-  };
-  scanRangeKm: number;
-  lastScanTime: string;
+  } | null;
+  scanRangeKm: number | null;
+  lastScanTime: string | null;
   updateIntervalMinutes: number;
   reflectivityProduct: string;
   precipitationDetection: string;
@@ -64,19 +64,19 @@ export interface MausamStationTelemetry {
   latitude: number;
   longitude: number;
   observationTime: string;
-  temperature: number;
-  apparentTemperature: number;
-  relativeHumidity: number;
-  dewPoint: number;
-  windSpeed: number;
-  windDirectionDeg: number;
-  windGust: number;
-  pressureHpa: number;
-  visibilityKm: number;
-  cloudCoverPercent: number;
-  rainfall24hMm: number;
-  uvIndex: number;
-  aqi: number;
+  temperature: number | null;
+  apparentTemperature: number | null;
+  relativeHumidity: number | null;
+  dewPoint: number | null;
+  windSpeed: number | null;
+  windDirectionDeg: number | null;
+  windGust: number | null;
+  pressureHpa: number | null;
+  visibilityKm: number | null;
+  cloudCoverPercent: number | null;
+  rainfall24hMm: number | null;
+  uvIndex: number | null;
+  aqi: number | null;
   source: string;
 }
 
@@ -90,6 +90,58 @@ export interface UnifiedMausamBundle {
   fetchedAt: Date;
   isLive: boolean;
   error?: string | null;
+}
+
+function buildUnavailableRadar(): MausamRadarData {
+  return {
+    nearestStation: null,
+    scanRangeKm: null,
+    lastScanTime: null,
+    updateIntervalMinutes: 10,
+    reflectivityProduct: 'Radar reflectivity unavailable',
+    precipitationDetection: 'Radar metadata endpoint unreachable',
+    stormConvectiveActivity: 'Unavailable',
+    radarStatus: 'UNAVAILABLE',
+    radarAvailable: false,
+    source: 'Radar Telemetry Unavailable',
+  };
+}
+
+function buildStationTelemetry(
+  location: LocationRecord,
+  curr: CurrentWeather
+): MausamStationTelemetry {
+  const computedDewPoint =
+    typeof curr.dewPoint === 'number' && Number.isFinite(curr.dewPoint)
+      ? curr.dewPoint
+      : typeof curr.temp === 'number' &&
+        Number.isFinite(curr.temp) &&
+        typeof curr.humidity === 'number' &&
+        Number.isFinite(curr.humidity)
+      ? Math.round((curr.temp - (100 - curr.humidity) / 5) * 10) / 10
+      : null;
+
+  return {
+    stationId: curr.stationCode || `AWS-${location.district.substring(0, 3).toUpperCase()}`,
+    stationName: curr.stationName || `${location.displayName} Synoptic Observatory`,
+    latitude: location.lat,
+    longitude: location.lng,
+    observationTime: new Date().toISOString(),
+    temperature: curr.temp,
+    apparentTemperature: curr.feelsLike ?? curr.temp ?? null,
+    relativeHumidity: curr.humidity,
+    dewPoint: computedDewPoint,
+    windSpeed: curr.windSpeed,
+    windDirectionDeg: curr.windDirectionDeg ?? null,
+    windGust: curr.windGusts ?? null,
+    pressureHpa: curr.pressure,
+    visibilityKm: curr.visibilityKm ?? curr.visibility ?? null,
+    cloudCoverPercent: curr.cloudCover ?? null,
+    rainfall24hMm: curr.rainfallLast24h ?? curr.precipitation ?? null,
+    uvIndex: curr.uvIndex ?? null,
+    aqi: curr.aqi ?? null,
+    source: curr.source || 'Meteorological Feed Unavailable',
+  };
 }
 
 class MausamDataService {
@@ -142,57 +194,11 @@ class MausamDataService {
         console.warn('[MausamDataService] Sub-service fetch error:', subErr);
       }
 
-      // If radar endpoint was unreachable via client fetch, build fallback from known stations
       if (!radar) {
-        radar = {
-          nearestStation: {
-            id: 'DWR_REGIONAL',
-            name: `DWR ${location.city || 'Regional'}`,
-            city: location.city || 'Regional',
-            state: location.state || 'India',
-            latitude: lat,
-            longitude: lng,
-            distanceKm: 25,
-            band: 'S-Band Dual-Polarization Doppler',
-            rangeKm: 250,
-            radarModel: 'ISRO S-Band DWR',
-            isWithinCoverage: true,
-          },
-          scanRangeKm: 250,
-          lastScanTime: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-          updateIntervalMinutes: 10,
-          reflectivityProduct: 'Max Z / PPI Reflectivity Nowcast',
-          precipitationDetection: 'Live Volumetric Scan Active',
-          stormConvectiveActivity: 'Normal - No severe mesocyclone detected',
-          radarStatus: 'OPERATIONAL',
-          radarAvailable: true,
-          source: 'IMD Doppler Weather Radar Network',
-        };
+        radar = buildUnavailableRadar();
       }
 
-      // Station Telemetry
-      const curr = weatherBundle.current;
-      const station: MausamStationTelemetry = {
-        stationId: curr.stationCode || `AWS-${location.district.substring(0, 3).toUpperCase()}`,
-        stationName: curr.stationName || `${location.displayName} Synoptic Observatory`,
-        latitude: lat,
-        longitude: lng,
-        observationTime: new Date().toISOString(),
-        temperature: curr.temp,
-        apparentTemperature: curr.feelsLike ?? curr.temp,
-        relativeHumidity: curr.humidity,
-        dewPoint: curr.dewPoint ?? Math.round((curr.temp - (100 - curr.humidity) / 5) * 10) / 10,
-        windSpeed: curr.windSpeed,
-        windDirectionDeg: curr.windDirectionDeg ?? 80,
-        windGust: curr.windGusts ?? Math.round(curr.windSpeed * 1.4),
-        pressureHpa: curr.pressure,
-        visibilityKm: curr.visibility ?? 9.5,
-        cloudCoverPercent: curr.cloudCover ?? 30,
-        rainfall24hMm: curr.precipitation ?? 0,
-        uvIndex: curr.uvIndex ?? 5.4,
-        aqi: curr.aqi ?? 75,
-        source: curr.source || 'IMD Surface Telemetry / WMO Global Surface Station Network',
-      };
+      const station = buildStationTelemetry(location, weatherBundle.current);
 
       const bundle: UnifiedMausamBundle = {
         location,
@@ -210,62 +216,21 @@ class MausamDataService {
       return bundle;
     } catch (err: any) {
       console.error('[MausamDataService] fetchMausamData critical error:', err);
-      // Generate safe fallback bundle
-      const fallbackWeather = await weatherService.getWeatherData(location, false);
+      const fallbackWeather = weatherService.createUnavailableBundle(
+        location,
+        err?.message || 'Meteorological telemetry unavailable'
+      );
       const solar = calculateSolarEphemeris(lat, lng, new Date());
       return {
         location,
         weatherBundle: fallbackWeather,
         solar,
         airQuality: null,
-        radar: {
-          nearestStation: {
-            id: 'DWR_REGIONAL',
-            name: `DWR ${location.city}`,
-            city: location.city,
-            state: location.state,
-            latitude: lat,
-            longitude: lng,
-            distanceKm: 30,
-            band: 'S-Band Dual-Polarization Doppler',
-            rangeKm: 250,
-            radarModel: 'ISRO DWR',
-            isWithinCoverage: true,
-          },
-          scanRangeKm: 250,
-          lastScanTime: new Date().toISOString(),
-          updateIntervalMinutes: 10,
-          reflectivityProduct: 'Max Z Reflectivity',
-          precipitationDetection: 'Live Volumetric Scan',
-          stormConvectiveActivity: 'Normal',
-          radarStatus: 'OPERATIONAL',
-          radarAvailable: true,
-          source: 'IMD Doppler Weather Radar Network',
-        },
-        station: {
-          stationId: `AWS-${location.district.substring(0, 3).toUpperCase()}`,
-          stationName: `${location.displayName} Observatory`,
-          latitude: lat,
-          longitude: lng,
-          observationTime: new Date().toISOString(),
-          temperature: fallbackWeather.current.temp,
-          apparentTemperature: fallbackWeather.current.feelsLike ?? fallbackWeather.current.temp,
-          relativeHumidity: fallbackWeather.current.humidity,
-          dewPoint: fallbackWeather.current.dewPoint ?? 22,
-          windSpeed: fallbackWeather.current.windSpeed,
-          windDirectionDeg: fallbackWeather.current.windDirectionDeg ?? 80,
-          windGust: 18,
-          pressureHpa: fallbackWeather.current.pressure,
-          visibilityKm: 10,
-          cloudCoverPercent: fallbackWeather.current.cloudCover ?? 25,
-          rainfall24hMm: fallbackWeather.current.precipitation ?? 0,
-          uvIndex: fallbackWeather.current.uvIndex ?? 5.5,
-          aqi: fallbackWeather.current.aqi ?? 70,
-          source: 'IMD Surface Telemetry / WMO Global Surface Station Network',
-        },
+        radar: buildUnavailableRadar(),
+        station: buildStationTelemetry(location, fallbackWeather.current),
         fetchedAt: new Date(),
         isLive: false,
-        error: err.message,
+        error: err?.message || 'Meteorological telemetry unavailable',
       };
     }
   }

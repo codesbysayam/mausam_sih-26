@@ -1,5 +1,6 @@
 import React from 'react';
 import { LocationRecord } from '../../types';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface PrintReportHeaderProps {
   reportTitle: string;
@@ -25,8 +26,7 @@ export const PrintReportHeader: React.FC<PrintReportHeaderProps> = ({
     hour12: true,
   }).format(lastUpdated instanceof Date ? lastUpdated : lastUpdated ? new Date(lastUpdated) : new Date());
 
-  const lat = typeof location.lat === 'number' ? location.lat.toFixed(4) : '20.2961';
-  const lng = typeof location.lng === 'number' ? location.lng.toFixed(4) : '85.8245';
+  const coordsLabel = formatCoordinatePair(location.lat, location.lng, 4);
 
   return (
     <div
@@ -54,7 +54,7 @@ export const PrintReportHeader: React.FC<PrintReportHeaderProps> = ({
             <strong className="text-[#0F172A]">Station:</strong> {location.city}, {location.state}
           </div>
           <div>
-            <strong className="text-[#0F172A]">Coords:</strong> {lat}°N, {lng}°E
+            <strong className="text-[#0F172A]">Coords:</strong> {coordsLabel}
           </div>
           <div>
             <strong className="text-[#0F172A]">Station ID:</strong> {location.id || location.imdStation || 'AWS-IND-01'}

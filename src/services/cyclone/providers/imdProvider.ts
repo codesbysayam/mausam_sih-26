@@ -12,6 +12,7 @@
 // ====================================================================
 
 import { CycloneProvider } from './CycloneProvider';
+import { formatCoordinatePair } from '../../../../shared/weatherContract';
 import {
   WeatherSystemEvent,
   RegionalWarningStatus,
@@ -264,7 +265,7 @@ export class ImdProvider implements CycloneProvider {
       movementDirection: raw.movement_dir || 'WNW',
       movementSpeed: raw.movement_speed_kmph ? `${raw.movement_speed_kmph} km/h` : '12 km/h',
 
-      currentLocation: raw.location_summary || `${lat.toFixed(1)}°N, ${lon.toFixed(1)}°E`,
+      currentLocation: raw.location_summary || formatCoordinatePair(lat, lon, 1),
       forecastTrack,
       expectedLandfall: 'Over land / Non-coastal',
       expectedLandfallWindow: 'Synoptic monitoring active',
@@ -289,12 +290,10 @@ export class ImdProvider implements CycloneProvider {
   }
 
   /**
-   * Fetches active systems with strict validation and normalization
+   * Fetches active systems without fabricating static HTML scrapes
    */
   public async fetchSystems(signal?: AbortSignal): Promise<WeatherSystemEvent[]> {
     try {
-      // In typical operation, requests the official gateway.
-      // Validates response status and enforces payload integrity.
       const res = await fetch(`${this.defaultBaseUrl}/responsive/cycloneinformation.php`, {
         method: 'GET',
         headers: {
@@ -305,38 +304,8 @@ export class ImdProvider implements CycloneProvider {
       });
 
       this.validateHttpStatus(res.status, res.statusText);
-
-      // Current verified synoptic truth (as of late September 2026):
-      // Marine Coasts: NO ACTIVE CYCLONE / NO STORM WARNING.
-      // Inland: Depression over northeast Madhya Pradesh & adjoining north Chhattisgarh.
-      // Past event: Deep Depression BOB-04 dissipated.
-      const rawInlandDepression: RawImdSystemPayload = {
-        system_id: 'SYS-INLAND-MP-2026',
-        name: 'Depression over northeast Madhya Pradesh & adjoining north Chhattisgarh',
-        classification: 'Depression',
-        basin: 'Inland Central India',
-        latitude: 24.2,
-        longitude: 81.5,
-        pressure_hpa: '1000 hPa',
-        wind_speed_kmph: '45',
-        wind_gust_kmph: '55',
-        movement_dir: 'WNW',
-        movement_speed_kmph: '12',
-        location_summary: 'Over northeast Madhya Pradesh near Sidhi/Rewa, ~80 km east of Satna',
-        issued_at: new Date().toISOString(),
-        affected_states: ['Madhya Pradesh', 'Chhattisgarh', 'Uttar Pradesh'],
-        affected_districts: ['Sidhi', 'Rewa', 'Satna', 'Singrauli', 'Mirzapur', 'Sonbhadra'],
-        rainfall_threat: 'ORANGE',
-        wind_threat: 'YELLOW',
-        storm_surge_threat: 'NO_WARNING',
-      };
-
-      const validation = this.validateSystemPayload(rawInlandDepression);
-      if (!validation.isValid) {
-        throw new Error(validation.error || 'System validation failed');
-      }
-
-      return [this.normalizeSystem(rawInlandDepression, validation)];
+      // No structured JSON disturbance feed returned on public HTML portal
+      return [];
     } catch (err: any) {
       if (err.name === 'AbortError') throw err;
       console.warn(`[ImdProvider] fetchSystems error:`, err.message);

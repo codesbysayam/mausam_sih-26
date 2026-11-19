@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { LocationRecord } from '../../types';
 import { ALL_INDIA_LOCATIONS } from '../../data/allIndiaLocations';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 import {
   MapPin,
   RefreshCw,
@@ -48,8 +49,8 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
 
   // Compute station local timezone & solar astronomical time based on geographic coordinates
   const stationTimeDetails = useMemo(() => {
-    const lat = typeof selectedLocation.lat === 'number' ? selectedLocation.lat : 20.29;
-    const lng = typeof selectedLocation.lng === 'number' ? selectedLocation.lng : 85.82;
+    const lat = typeof selectedLocation.lat === 'number' && Number.isFinite(selectedLocation.lat) ? selectedLocation.lat : 20.29;
+    const lng = typeof selectedLocation.lng === 'number' && Number.isFinite(selectedLocation.lng) ? selectedLocation.lng : 85.82;
 
     // Detect if within Indian subcontinent coordinates (approx lat: 6-38°N, lng: 68-98°E)
     const isIndia = lat >= 6 && lat <= 38 && lng >= 68 && lng <= 98;
@@ -184,7 +185,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
           <div
             id="station-dynamic-time-widget"
             className="flex items-center gap-2.5 bg-[#1E2733] border border-[#314255] hover:border-[#4FA8E0]/60 px-3 py-1.5 rounded-md transition-colors shadow-inner"
-            title={`Station Coordinates: ${stationTimeDetails.lat.toFixed(2)}°N, ${stationTimeDetails.lng.toFixed(2)}°E • Local Solar Time: ${stationTimeDetails.formattedSolarTime}`}
+            title={`Station Coordinates: ${formatCoordinatePair(stationTimeDetails.lat, stationTimeDetails.lng, 2)} • Local Solar Time: ${stationTimeDetails.formattedSolarTime}`}
           >
             <div className="p-1.5 rounded bg-[#151D26] border border-[#314255] text-[#4FA8E0] shrink-0">
               <Clock className="w-4 h-4" />
@@ -329,8 +330,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
 
           <span className="text-[11px] flex items-center gap-1">
             <Compass className="w-3 h-3 text-[#8A94A6]" />
-            {typeof selectedLocation.lat === 'number' ? selectedLocation.lat.toFixed(2) : '20.29'}°N,{' '}
-            {typeof selectedLocation.lng === 'number' ? selectedLocation.lng.toFixed(2) : '85.82'}°E
+            {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
           </span>
 
           <span className="text-[#314255]">|</span>

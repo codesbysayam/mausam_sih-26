@@ -4,6 +4,7 @@
  */
 
 import { CurrentWeather, WeatherStation } from '../types';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 export interface GroundingLink {
   title: string;
@@ -68,7 +69,7 @@ export const FAQ_ITEMS: FAQItem[] = [
         typeof val === 'number' && Number.isFinite(val) ? `${val}${unit}` : 'Unavailable';
       return {
         text: `### Surface Atmospheric Observation
-• **Station**: ${loc?.name || 'Observatory'}, ${loc?.state || 'India'} (${loc?.lat?.toFixed(2) || '—'}°N, ${loc?.lng?.toFixed(2) || '—'}°E)
+• **Station**: ${loc?.name || 'Observatory'}, ${loc?.state || 'India'} (${formatCoordinatePair(loc?.lat, loc?.lng, 2)})
 • **Observatory ID**: IMD ${loc?.code || loc?.id || 'STATION'} | Synced: ${timeStr} IST
 
 **Active Telemetry Parameters**:

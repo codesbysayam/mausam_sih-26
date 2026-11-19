@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Radio, ChevronDown, ChevronUp } from 'lucide-react';
 import { RadarStation } from '../../types/radar';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface RadarTechnicalSpecsProps {
   station: RadarStation | null;
@@ -51,7 +52,7 @@ export const RadarTechnicalSpecs: React.FC<RadarTechnicalSpecsProps> = ({
                   Station Coordinates
                 </span>
                 <span className="text-[#F3F6FA] font-bold text-sm font-mono tabular-nums block">
-                  {station.latitude.toFixed(4)}°N, {station.longitude.toFixed(4)}°E
+                  {formatCoordinatePair(station.latitude, station.longitude, 4)}
                 </span>
                 <span className="text-[10px] text-[#B5C3D1] mt-1 block">WGS84 Geodetic Datum</span>
               </div>

@@ -3,6 +3,7 @@ import { MapPin, RefreshCw, Search, Loader2 } from 'lucide-react';
 import { LocationRecord } from '../../types';
 import { NearestStationResult } from '../../services/geolocationService';
 import { useLocationSafe, GpsStatus, formatNearestObservation } from '../../context/LocationContext';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface LocationStatusBarProps {
   location?: LocationRecord;
@@ -57,10 +58,7 @@ function getBadgeConfig(status: GpsStatus) {
 }
 
 function formatCoords(lat?: number, lng?: number): string {
-  if (typeof lat !== 'number' || typeof lng !== 'number') return '20.29°N, 85.82°E';
-  const latStr = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'}`;
-  const lngStr = `${Math.abs(lng).toFixed(2)}°${lng >= 0 ? 'E' : 'W'}`;
-  return `${latStr}, ${lngStr}`;
+  return formatCoordinatePair(lat, lng, 2);
 }
 
 export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({

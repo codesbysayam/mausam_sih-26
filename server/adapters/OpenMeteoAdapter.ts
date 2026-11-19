@@ -10,7 +10,14 @@ import { dataHealthService } from '../services/DataHealthService';
 export class OpenMeteoAdapter {
   private static weatherEndpoint = process.env.OPEN_METEO_ENDPOINT || 'https://api.open-meteo.com/v1';
 
-  private static interpretWmoCode(code: number): string {
+  private static numOrNull(val: unknown): number | null {
+    return typeof val === 'number' && Number.isFinite(val) ? val : null;
+  }
+
+  private static interpretWmoCode(code: number | null | undefined): string {
+    if (code === null || code === undefined || !Number.isFinite(code)) {
+      return 'Condition Unavailable';
+    }
     switch (code) {
       case 0: return 'Clear Sky';
       case 1: return 'Mainly Clear';
@@ -33,14 +40,14 @@ export class OpenMeteoAdapter {
       case 95: return 'Thunderstorm';
       case 96: return 'Thunderstorm with Slight Hail';
       case 99: return 'Thunderstorm with Heavy Hail';
-      default: return 'Observed Conditions';
+      default: return 'Condition Unavailable';
     }
   }
 
   public static async fetchCurrentWeather(loc: GeoLocation): Promise<NormalizedWeather | null> {
     const startTime = Date.now();
     try {
-      const url = `${this.weatherEndpoint}/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=dew_point_2m,uv_index&timeformat=unixtime`;
+      const url = `${this.weatherEndpoint}/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility&hourly=dew_point_2m,uv_index&timeformat=unixtime`;
 
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
       const latency = Date.now() - startTime;
@@ -57,8 +64,14 @@ export class OpenMeteoAdapter {
         return null;
       }
 
-      const dewPoint = json.hourly?.dew_point_2m?.[0] ?? null;
-      const uv = json.hourly?.uv_index?.[0] ?? null;
+      const dewPoint = this.numOrNull(json.hourly?.dew_point_2m?.[0]);
+      const uv = this.numOrNull(json.hourly?.uv_index?.[0]);
+      const visMeters = this.numOrNull(current.visibility);
+      const wmoCode = this.numOrNull(current.weather_code);
+      const temp = this.numOrNull(current.temperature_2m);
+      const hum = this.numOrNull(current.relative_humidity_2m);
+      const wind = this.numOrNull(current.wind_speed_10m);
+      const hasPrimary = temp !== null && (hum !== null || wind !== null);
 
       const observedEpochMs = typeof current.time === 'number' ? current.time * 1000 : Date.now();
 
@@ -66,24 +79,24 @@ export class OpenMeteoAdapter {
         location: loc,
         observedAt: new Date(observedEpochMs).toISOString(),
         fetchedAt: new Date().toISOString(),
-        dataStatus: 'LIVE',
+        dataStatus: hasPrimary ? 'LIVE' : 'UNAVAILABLE',
         ageSeconds: 0,
-        temperature: typeof current.temperature_2m === 'number' ? Math.round(current.temperature_2m * 10) / 10 : null,
-        feelsLike: typeof current.apparent_temperature === 'number' ? Math.round(current.apparent_temperature * 10) / 10 : null,
-        humidity: typeof current.relative_humidity_2m === 'number' ? Math.round(current.relative_humidity_2m) : null,
-        dewPoint: typeof dewPoint === 'number' ? Math.round(dewPoint * 10) / 10 : null,
-        pressure: typeof current.pressure_msl === 'number' ? Math.round(current.pressure_msl * 10) / 10 : null,
-        windSpeed: typeof current.wind_speed_10m === 'number' ? Math.round(current.wind_speed_10m * 10) / 10 : null,
-        windDirection: current.wind_direction_10m !== undefined ? `${Math.round(current.wind_direction_10m)}°` : null,
-        windDirectionDegrees: typeof current.wind_direction_10m === 'number' ? current.wind_direction_10m : null,
-        windGust: typeof current.wind_gusts_10m === 'number' ? current.wind_gusts_10m : null,
-        visibility: 10,
-        cloudCover: typeof current.cloud_cover === 'number' ? current.cloud_cover : null,
-        precipitation: typeof current.precipitation === 'number' ? current.precipitation : 0,
-        rainfall24h: typeof current.rain === 'number' ? current.rain : 0,
-        uvIndex: typeof uv === 'number' ? uv : 0,
-        weatherCode: current.weather_code ?? 0,
-        condition: this.interpretWmoCode(current.weather_code ?? 0),
+        temperature: temp !== null ? Math.round(temp * 10) / 10 : null,
+        feelsLike: this.numOrNull(current.apparent_temperature) !== null ? Math.round(current.apparent_temperature * 10) / 10 : null,
+        humidity: hum !== null ? Math.round(hum) : null,
+        dewPoint: dewPoint !== null ? Math.round(dewPoint * 10) / 10 : null,
+        pressure: this.numOrNull(current.pressure_msl) !== null ? Math.round(current.pressure_msl * 10) / 10 : null,
+        windSpeed: wind !== null ? Math.round(wind * 10) / 10 : null,
+        windDirection: this.numOrNull(current.wind_direction_10m) !== null ? `${Math.round(current.wind_direction_10m)}°` : null,
+        windDirectionDegrees: this.numOrNull(current.wind_direction_10m),
+        windGust: this.numOrNull(current.wind_gusts_10m),
+        visibility: visMeters !== null ? Math.round((visMeters / 1000) * 10) / 10 : null,
+        cloudCover: this.numOrNull(current.cloud_cover),
+        precipitation: this.numOrNull(current.precipitation),
+        rainfall24h: this.numOrNull(current.rain),
+        uvIndex: uv,
+        weatherCode: wmoCode,
+        condition: this.interpretWmoCode(wmoCode),
         isDay: current.is_day === 1,
         source: 'Open-Meteo',
         sourcePriority: 4,
@@ -131,33 +144,52 @@ export class OpenMeteoAdapter {
       const hourly: NormalizedHourlyItem[] = [];
       const times = hourlyData.time || [];
       for (let i = 0; i < Math.min(times.length, 48); i++) {
+        const temp = this.numOrNull(hourlyData.temperature_2m?.[i]);
+        if (temp === null) continue;
+        const feels = this.numOrNull(hourlyData.apparent_temperature?.[i]);
+        const hum = this.numOrNull(hourlyData.relative_humidity_2m?.[i]);
+        const prob = this.numOrNull(hourlyData.precipitation_probability?.[i]);
+        const precip = this.numOrNull(hourlyData.precipitation?.[i]);
+        const code = this.numOrNull(hourlyData.weather_code?.[i]);
+        const wind = this.numOrNull(hourlyData.wind_speed_10m?.[i]);
+        const uv = this.numOrNull(hourlyData.uv_index?.[i]);
+
         hourly.push({
           time: new Date(times[i]).toISOString(),
-          temperature: Math.round(hourlyData.temperature_2m?.[i] ?? 0),
-          feelsLike: Math.round(hourlyData.apparent_temperature?.[i] ?? 0),
-          humidity: Math.round(hourlyData.relative_humidity_2m?.[i] ?? 0),
-          precipitationProbability: hourlyData.precipitation_probability?.[i] ?? 0,
-          precipitation: hourlyData.precipitation?.[i] ?? 0,
-          weatherCode: hourlyData.weather_code?.[i] ?? 0,
-          condition: this.interpretWmoCode(hourlyData.weather_code?.[i] ?? 0),
-          windSpeed: Math.round(hourlyData.wind_speed_10m?.[i] ?? 0),
-          uvIndex: hourlyData.uv_index?.[i] ?? 0,
+          temperature: Math.round(temp),
+          feelsLike: Math.round(feels ?? temp),
+          humidity: hum !== null ? Math.round(hum) : 0,
+          precipitationProbability: prob ?? 0,
+          precipitation: precip ?? 0,
+          weatherCode: code ?? -1,
+          condition: this.interpretWmoCode(code),
+          windSpeed: wind !== null ? Math.round(wind) : 0,
+          uvIndex: uv ?? undefined,
         });
       }
 
       const daily: NormalizedDailyItem[] = [];
       const dailyDates = dailyData.time || [];
       for (let i = 0; i < dailyDates.length; i++) {
+        const tMax = this.numOrNull(dailyData.temperature_2m_max?.[i]);
+        const tMin = this.numOrNull(dailyData.temperature_2m_min?.[i]);
+        if (tMax === null || tMin === null) continue;
+        const code = this.numOrNull(dailyData.weather_code?.[i]);
+        const precipSum = this.numOrNull(dailyData.precipitation_sum?.[i]);
+        const precipProbMax = this.numOrNull(dailyData.precipitation_probability_max?.[i]);
+        const windMax = this.numOrNull(dailyData.wind_speed_10m_max?.[i]);
+        const uvMax = this.numOrNull(dailyData.uv_index_max?.[i]);
+
         daily.push({
           date: dailyDates[i],
-          tempMax: Math.round(dailyData.temperature_2m_max?.[i] ?? 0),
-          tempMin: Math.round(dailyData.temperature_2m_min?.[i] ?? 0),
-          weatherCode: dailyData.weather_code?.[i] ?? 0,
-          condition: this.interpretWmoCode(dailyData.weather_code?.[i] ?? 0),
-          precipitationSum: dailyData.precipitation_sum?.[i] ?? 0,
-          precipitationProbabilityMax: dailyData.precipitation_probability_max?.[i] ?? 0,
-          windSpeedMax: Math.round(dailyData.wind_speed_10m_max?.[i] ?? 0),
-          uvIndexMax: dailyData.uv_index_max?.[i] ?? 0,
+          tempMax: Math.round(tMax),
+          tempMin: Math.round(tMin),
+          weatherCode: code ?? -1,
+          condition: this.interpretWmoCode(code),
+          precipitationSum: precipSum ?? 0,
+          precipitationProbabilityMax: precipProbMax ?? 0,
+          windSpeedMax: windMax !== null ? Math.round(windMax) : 0,
+          uvIndexMax: uvMax ?? 0,
           sunrise: dailyData.sunrise?.[i] ? new Date(dailyData.sunrise[i]).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : undefined,
           sunset: dailyData.sunset?.[i] ? new Date(dailyData.sunset[i]).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : undefined,
         });

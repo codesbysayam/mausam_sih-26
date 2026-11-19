@@ -121,44 +121,50 @@ export const HourlyView: React.FC = () => {
 
       {/* Hourly Detailed Cards Scroll Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3">
-        {HOURLY_FORECAST.slice(0, 7).map((item, idx) => (
-          <div
-            key={item.time}
-            className={`bg-[#0F141A] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[#0B72B9] transition-all cursor-pointer ${
-              idx === 2 ? 'ring-1 ring-[#0B72B9] bg-[#1E2733]' : ''
-            }`}
-          >
-            <span className="text-xs text-[#8A94A6]">
-              {item.time} {idx === 2 ? '(NOW)' : ''}
-            </span>
-            <span
-              className="material-symbols-outlined text-[28px] my-1 text-[#FFFFFF]"
+        {HOURLY_FORECAST.slice(0, 7).map((item, idx) => {
+          const hasTemp = typeof item.temp === 'number' && Number.isFinite(item.temp);
+          const hasAqi = typeof item.aqi === 'number' && Number.isFinite(item.aqi);
+          const hasRain = typeof item.rainProb === 'number' && Number.isFinite(item.rainProb);
+          const hasWind = typeof item.windSpeed === 'number' && Number.isFinite(item.windSpeed);
+          return (
+            <div
+              key={item.time}
+              className={`bg-[#0F141A] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[#0B72B9] transition-all cursor-pointer ${
+                idx === 2 ? 'ring-1 ring-[#0B72B9] bg-[#1E2733]' : ''
+              }`}
             >
-              {item.icon}
-            </span>
-            <span className="text-xl font-bold text-[#FFFFFF]">
-              {item.temp}°C
-            </span>
-            <div className="w-full h-px bg-[rgba(225,230,235,0.12)] my-0.5"></div>
-            <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
-              <span>AQI</span>
-              <span
-                className="font-bold"
-                style={{ color: item.aqi > 100 ? '#FFB703' : '#2ECC71' }}
-              >
-                {item.aqi}
+              <span className="text-xs text-[#8A94A6]">
+                {item.time} {idx === 2 ? '(NOW)' : ''}
               </span>
+              <span
+                className="material-symbols-outlined text-[28px] my-1 text-[#FFFFFF]"
+              >
+                {item.icon || 'cloud'}
+              </span>
+              <span className="text-xl font-bold text-[#FFFFFF]">
+                {hasTemp ? `${Math.round(item.temp)}°C` : '—'}
+              </span>
+              <div className="w-full h-px bg-[rgba(225,230,235,0.12)] my-0.5"></div>
+              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+                <span>AQI</span>
+                <span
+                  className="font-bold"
+                  style={{ color: hasAqi ? (item.aqi > 100 ? '#FFB703' : '#2ECC71') : '#8A94A6' }}
+                >
+                  {hasAqi ? item.aqi : '—'}
+                </span>
+              </div>
+              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+                <span>Rain</span>
+                <span className="text-[#4FA8E0]">{hasRain ? `${item.rainProb}%` : '—'}</span>
+              </div>
+              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+                <span>Wind</span>
+                <span>{hasWind ? `${item.windSpeed} km/h` : '—'}</span>
+              </div>
             </div>
-            <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
-              <span>Rain</span>
-              <span className="text-[#4FA8E0]">{item.rainProb}%</span>
-            </div>
-            <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
-              <span>Wind</span>
-              <span>{item.windSpeed}k</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

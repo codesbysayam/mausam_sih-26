@@ -27,6 +27,7 @@ import {
   translatePollenRiskToLang,
   SUPPORTED_MAUSAM_AI_LANGUAGES,
 } from '../data/mausamLanguages';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 export type { GroundingLink, MausamContext, FAQCategory, FAQItem, StateMeteorologicalProfile };
 export { FAQ_CATEGORIES, ALL_INDIA_STATES_MET_PROFILES, SUPPORTED_MAUSAM_AI_LANGUAGES };
@@ -98,7 +99,7 @@ export function matchMausamQuery(
     if (langKey === 'or') {
       localizedStateAnswer = `### ପାଣିପାଗ ପ୍ରୋଫାଇଲ୍ ଏବଂ ଟେଲିମେଟ୍ରି: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'କେନ୍ଦ୍ରଶାସିତ ଅଞ୍ଚଳ' : 'ରାଜ୍ୟ'})
 • **ଆଞ୍ଚଳିକ ପାଣିପାଗ କେନ୍ଦ୍ର (RMC/MC)**: ${matchedState.rmcMc}
-• **ପ୍ରମୁଖ ପାଣିପାଗ ବେଧଶାଳା**: ${matchedState.representativeStation} (${matchedState.lat.toFixed(2)}°N, ${matchedState.lng.toFixed(2)}°E | ID: ${matchedState.stationId})
+• **ପ୍ରମୁଖ ପାଣିପାଗ ବେଧଶାଳା**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **ଡପଲର ପାଣିପାଗ ରାଡାର୍ କଭରେଜ୍**: ${matchedState.primaryRadar}
 
 **ସକ୍ରିୟ ବାୟୁମଣ୍ଡଳୀୟ ପର୍ଯ୍ୟବେକ୍ଷଣ ଓ ତଥ୍ୟ**:
@@ -124,7 +125,7 @@ export function matchMausamQuery(
     } else if (langKey === 'hi') {
       localizedStateAnswer = `### मौसम विज्ञान प्रोफाइल एवं टेलीमेट्री: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'केंद्र शासित प्रदेश' : 'राज्य'})
 • **क्षेत्रीय मौसम केंद्र (RMC/MC)**: ${matchedState.rmcMc}
-• **प्रमुख वेधशाला**: ${matchedState.representativeStation} (${matchedState.lat.toFixed(2)}°N, ${matchedState.lng.toFixed(2)}°E | ID: ${matchedState.stationId})
+• **प्रमुख वेधशाला**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **डॉपलर रडार कवरेज**: ${matchedState.primaryRadar}
 
 **सक्रिय वायुमंडलीय अवलोकन एवं मानक**:
@@ -150,7 +151,7 @@ export function matchMausamQuery(
     } else if (langKey === 'bn') {
       localizedStateAnswer = `### আবহাওয়া প্রোফাইল এবং টেলিমেট্রি: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'কেন্দ্রশাসিত অঞ্চল' : 'রাজ্য'})
 • **আঞ্চলিক আবহাওয়া কেন্দ্র (RMC/MC)**: ${matchedState.rmcMc}
-• **প্রধান মানমন্দির**: ${matchedState.representativeStation} (${matchedState.lat.toFixed(2)}°N, ${matchedState.lng.toFixed(2)}°E | ID: ${matchedState.stationId})
+• **প্রধান মানমন্দির**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **ডপলার রাডার কভারেজ**: ${matchedState.primaryRadar}
 
 **সক্রিয় বায়ুমণ্ডলীয় পর্যবেক্ষণ**:
@@ -176,7 +177,7 @@ export function matchMausamQuery(
     } else {
       localizedStateAnswer = `### Meteorological Profile & Telemetry: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'Union Territory' : 'State'})
 • **Regional Met Centre**: ${matchedState.rmcMc}
-• **Representative Observatory**: ${matchedState.representativeStation} (${matchedState.lat.toFixed(2)}°N, ${matchedState.lng.toFixed(2)}°E | ID: ${matchedState.stationId})
+• **Representative Observatory**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **Doppler Radar Coverage**: ${matchedState.primaryRadar}
 
 **Active Atmospheric Telemetry & Baseline**:
@@ -292,9 +293,20 @@ export function matchMausamQuery(
   // 3. Fallback: Dynamic structured telemetry report tailored to user's question and language
   const loc = context.station;
   const w = context.weather;
-  const feelsLikeVal = w.feelsLike ?? w.temp;
-  const dewVal = w.dewPoint ?? 24.5;
-  const aqiVal = w.aqiIndex ?? w.aqiPm25 ?? 65;
+  const fmtVal = (v: number | null | undefined, unit: string) =>
+    typeof v === 'number' && Number.isFinite(v) ? `${v}${unit}` : 'Unavailable';
+  const coordStr = formatCoordinatePair(loc?.lat, loc?.lng, 2);
+  const tempVal = typeof w.temp === 'number' && Number.isFinite(w.temp) ? `${w.temp}°C` : 'Unavailable';
+  const feelsVal = w.feelsLike ?? w.temp;
+  const feelsStr = typeof feelsVal === 'number' && Number.isFinite(feelsVal) ? `${feelsVal}°C` : 'Unavailable';
+  const humStr = fmtVal(w.humidity, '%');
+  const dewStr = fmtVal(w.dewPoint, '°C');
+  const windValStr = typeof w.windSpeed === 'number' && Number.isFinite(w.windSpeed) ? String(w.windSpeed) : 'Unavailable';
+  const pressStr = fmtVal(w.pressure, ' hPa');
+  const aqiRaw = w.aqiIndex ?? w.aqiPm25 ?? null;
+  const aqiStr = typeof aqiRaw === 'number' && Number.isFinite(aqiRaw) ? String(aqiRaw) : 'Unavailable';
+  const rainProbStr = fmtVal(w.precipitationProbability, '%');
+  const rainMmStr = fmtVal(w.precipitation, ' mm');
 
   let fallbackAnswer = '';
   let fallbackFollowUps: string[] = [];
@@ -302,20 +314,20 @@ export function matchMausamQuery(
   if (langKey === 'or') {
     fallbackAnswer = `### ବାୟୁମଣ୍ଡଳୀୟ ଗୁଇନ୍ଦା ରିପୋର୍ଟ: ${loc?.name || 'ସ୍ଥାନୀୟ ପାଣିପାଗ କେନ୍ଦ୍ର'}, ${loc?.state || 'ଭାରତ'}
 • **ପ୍ରଶ୍ନ**: "${query}"
-• **କେନ୍ଦ୍ର ଆଇଡି (ID)**: ${loc?.code || loc?.id || '42971'} | ଭୌଗୋଳିକ ଅବସ୍ଥିତି: ${loc?.lat?.toFixed(2) || '20.30'}°N, ${loc?.lng?.toFixed(2) || '85.82'}°E
+• **କେନ୍ଦ୍ର ଆଇଡି (ID)**: ${loc?.code || loc?.id || 'STATION'} | ଭୌଗୋଳିକ ଅବସ୍ଥିତି: ${coordStr}
 
 **ସକ୍ରିୟ ପାଣିପାଗ ତଥ୍ୟ ଓ ମାପଦଣ୍ଡ**:
-• **ବାୟୁ ତାପମାତ୍ରା**: ${w.temp}°C (ଅନୁଭୂତ ତାପମାତ୍ରା: ${feelsLikeVal}°C)
+• **ବାୟୁ ତାପମାତ୍ରା**: ${tempVal} (ଅନୁଭୂତ ତାପମାତ୍ରା: ${feelsStr})
 • **ପାଣିପାଗ ସ୍ଥିତି**: ${condStr}
-• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${w.humidity}% | **କାକର ବିନ୍ଦୁ**: ${dewVal}°C
-• **ପବନର ଗତି ଓ ଦିଗ**: ${w.windSpeed} କି.ମି./ଘଣ୍ଟା (${w.windDirection || 'WSW'})
-• **ବାୟୁମଣ୍ଡଳୀୟ ଚାପ**: ${w.pressure} hPa (କେନ୍ଦ୍ର ସ୍ତରୀୟ)
-• **ଜାତୀୟ ବାୟୁ ଗୁଣବତ୍ତା ସୂଚକାଙ୍କ (NAQI)**: ${aqiVal} (${aqiStatusStr})
+• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${humStr} | **କାକର ବିନ୍ଦୁ**: ${dewStr}
+• **ପବନର ଗତି ଓ ଦିଗ**: ${windValStr} କି.ମି./ଘଣ୍ଟା (${w.windDirection || '—'})
+• **ବାୟୁମଣ୍ଡଳୀୟ ଚାପ**: ${pressStr}
+• **ଜାତୀୟ ବାୟୁ ଗୁଣବତ୍ତା ସୂଚକାଙ୍କ (NAQI)**: ${aqiStr} (${aqiStatusStr})
 • **ପରାଗରେଣୁ ଏବଂ ଆଲର୍ଜି ସ୍ଥିତି**: ${pollenRiskStr}
-• **ବର୍ଷା ସମ୍ଭାବନା**: ${w.precipitationProbability ?? 10}% (୨୪ ଘଣ୍ଟା ମୋଟ: ${w.precipitation ?? 0} ମି.ମି.)
+• **ବର୍ଷା ସମ୍ଭାବନା**: ${rainProbStr} (୨୪ ଘଣ୍ଟା ମୋଟ: ${rainMmStr})
 
 **ବାୟୁମଣ୍ଡଳୀୟ ସାରାଂଶ ଓ ନାଗରିକ ସୁରକ୍ଷା ପରାମର୍ଶ**:
-• ${loc?.district || loc?.state || 'ଏହି ଅଞ୍ଚଳରେ'} ବର୍ତ୍ତମାନ ପାଣିପାଗ ସ୍ଥିର ରହିଛି ଏବଂ କୌଣସି ଜରୁରୀ ବିପଦ ସଙ୍କେତ ନାହିଁ।
+• ${loc?.district || loc?.state || 'ଏହି ଅଞ୍ଚଳରେ'} ବର୍ତ୍ତମାନ ପାଣିପାଗ ତଥ୍ୟ ସଂଯୋଗ ହୋଇଛି।
 • କୃଷି, ମତ୍ସ୍ୟଚାଷ କିମ୍ବା ବାହ୍ୟ କାର୍ଯ୍ୟକଳାପ ପାଇଁ ଆମର ଆଞ୍ଚଳିକ ପାଠାଗାରରୁ GKMS କୃଷି ବୁଲେଟିନ୍ ଦେଖନ୍ତୁ।
 
 *ରିପୋର୍ଟ ସୃଷ୍ଟି: ${timeStr} IST | IMD ଏବଂ CPCB ସେନ୍ସର ମ୍ୟାଟ୍ରିକ୍ସ ଦ୍ୱାରା ଯାଞ୍ଚକୃତ*`;
@@ -328,20 +340,20 @@ export function matchMausamQuery(
   } else if (langKey === 'hi') {
     fallbackAnswer = `### वायुमंडलीय मौसम रिपोर्ट: ${loc?.name || 'स्थानीय वेधशाला'}, ${loc?.state || 'भारत'}
 • **प्रश्न**: "${query}"
-• **स्टेशन आईडी**: ${loc?.code || loc?.id || '42971'} | निर्देशांक: ${loc?.lat?.toFixed(2) || '20.30'}°N, ${loc?.lng?.toFixed(2) || '85.82'}°E
+• **स्टेशन आईडी**: ${loc?.code || loc?.id || 'STATION'} | निर्देशांक: ${coordStr}
 
 **सक्रिय मौसम टेलीमेट्री अवलोकन**:
-• **तापमान**: ${w.temp}°C (महसूस तापमान: ${feelsLikeVal}°C)
+• **तापमान**: ${tempVal} (महसूस तापमान: ${feelsStr})
 • **मौसम की स्थिति**: ${condStr}
-• **सापेक्ष आर्द्रता**: ${w.humidity}% | **ओसांक**: ${dewVal}°C
-• **हवा का वेग व दिशा**: ${w.windSpeed} किमी/घंटा (${w.windDirection || 'WSW'})
-• **वायुमंडलीय दबाव**: ${w.pressure} hPa (स्टेशन स्तर)
-• **राष्ट्रीय वायु गुणवत्ता सूचकांक (NAQI)**: ${aqiVal} (${aqiStatusStr})
+• **सापेक्ष आर्द्रता**: ${humStr} | **ओसांक**: ${dewStr}
+• **हवा का वेग व दिशा**: ${windValStr} किमी/घंटा (${w.windDirection || '—'})
+• **वायुमंडलीय दबाव**: ${pressStr}
+• **राष्ट्रीय वायु गुणवत्ता सूचकांक (NAQI)**: ${aqiStr} (${aqiStatusStr})
 • **परागकण / एलर्जी जोखिम**: ${pollenRiskStr}
-• **वर्षा की संभावना**: ${w.precipitationProbability ?? 10}% (24 घंटे कुल: ${w.precipitation ?? 0} मिमी)
+• **वर्षा की संभावना**: ${rainProbStr} (24 घंटे कुल: ${rainMmStr})
 
 **मौसम सारांश एवं नागरिक सुरक्षा सलाह**:
-• ${loc?.district || loc?.state || 'इस क्षेत्र'} में वर्तमान वायुमंडलीय परिसंचरण स्थिर है। कोई गंभीर प्रतिकूल मौसम चेतावनी लागू नहीं है।
+• ${loc?.district || loc?.state || 'इस क्षेत्र'} के लिए उपलब्ध वायुमंडलीय स्थिति।
 • कृषि या बाहरी यात्रा की योजना बनाते समय नियमित IMD बुलेटिन देखें।
 
 *रिपोर्ट समय: ${timeStr} IST | IMD एवं CPCB नेटवर्क द्वारा सत्यापित*`;
@@ -354,20 +366,20 @@ export function matchMausamQuery(
   } else if (langKey === 'bn') {
     fallbackAnswer = `### বায়ুমণ্ডলীয় আবহাওয়া রিপোর্ট: ${loc?.name || 'স্থানীয় আবহাওয়া কেন্দ্র'}, ${loc?.state || 'ভারত'}
 • **প্রশ্ন**: "${query}"
-• **স্টেশন আইডি**: ${loc?.code || loc?.id || '42971'} | স্থানাঙ্ক: ${loc?.lat?.toFixed(2) || '20.30'}°N, ${loc?.lng?.toFixed(2) || '85.82'}°E
+• **স্টেশন আইডি**: ${loc?.code || loc?.id || 'STATION'} | স্থানাঙ্ক: ${coordStr}
 
 **সক্রিয় আবহাওয়া পর্যবেক্ষণ**:
-• **বায়ুর তাপমাত্রা**: ${w.temp}°C (অনুভূত তাপমাত্রা: ${feelsLikeVal}°C)
+• **বায়ুর তাপমাত্রা**: ${tempVal} (অনুভূত তাপমাত্রা: ${feelsStr})
 • **আবহাওয়ার অবস্থা**: ${condStr}
-• **আপেক্ষিক আর্দ্রতা**: ${w.humidity}% | **শিশিরাঙ্ক**: ${dewVal}°C
-• **বাতাসের গতি ও দিক**: ${w.windSpeed} কিমি/ঘণ্টা (${w.windDirection || 'WSW'})
-• **বায়ুমণ্ডলীয় চাপ**: ${w.pressure} hPa
-• **জাতীয় বায়ুর মান সূচক (NAQI)**: ${aqiVal} (${aqiStatusStr})
+• **আপেক্ষিক আর্দ্রতা**: ${humStr} | **শিশিরাঙ্ক**: ${dewStr}
+• **বাতাসের গতি ও দিক**: ${windValStr} কিমি/ঘণ্টা (${w.windDirection || '—'})
+• **বায়ুমণ্ডলীয় চাপ**: ${pressStr}
+• **জাতীয় বায়ুর মান সূচক (NAQI)**: ${aqiStr} (${aqiStatusStr})
 • **পরাগরেণু ও অ্যালার্জি ঝুঁকি**: ${pollenRiskStr}
-• **বৃষ্টির সম্ভাবনা**: ${w.precipitationProbability ?? 10}% (২৪ ঘণ্টার বৃষ্টি: ${w.precipitation ?? 0} মিমি)
+• **বৃষ্টির সম্ভাবনা**: ${rainProbStr} (২৪ ঘণ্টার বৃষ্টি: ${rainMmStr})
 
 **আবহাওয়ার সারসংক্ষেপ ও নাগরিক নির্দেশিকা**:
-• ${loc?.district || loc?.state || 'এই অঞ্চলে'} বায়ুমণ্ডলীয় পরিস্থিতি স্থিতিশীল রয়েছে এবং কোনো জরুরি সতর্কবার্তা নেই।
+• ${loc?.district || loc?.state || 'এই অঞ্চলে'} সক্রিয় আবহাওয়া পর্যবেক্ষণ প্রদর্শিত হচ্ছে।
 
 *প্রতিবেদন প্রস্তুত: ${timeStr} IST | IMD এবং CPCB সেন্সর নেটওয়ার্ক দ্বারা যাচাইকৃত*`;
     fallbackFollowUps = [
@@ -379,17 +391,17 @@ export function matchMausamQuery(
   } else {
     fallbackAnswer = `### Atmospheric Intelligence Report for ${loc?.name || 'Local Observatory'}, ${loc?.state || 'India'}
 • **Query**: "${query}"
-• **Station ID**: ${loc?.code || loc?.id || '42971'} | Coordinates: ${loc?.lat?.toFixed(2) || '20.30'}°N, ${loc?.lng?.toFixed(2) || '85.82'}°E
+• **Station ID**: ${loc?.code || loc?.id || 'STATION'} | Coordinates: ${coordStr}
 
 **Active Meteorological Grounding**:
-• **Air Temperature**: ${w.temp}°C (Feels like ${feelsLikeVal}°C)
-• **Weather Condition**: ${w.condition}
-• **Relative Humidity**: ${w.humidity}% | **Dew Point**: ${dewVal}°C
-• **Wind Vector**: ${w.windSpeed} km/h from ${w.windDirection || 'WSW'}
-• **Barometric Pressure**: ${w.pressure} hPa (Station level)
-• **National Air Quality Index (NAQI)**: ${aqiVal} (${w.aqiStatus || 'Satisfactory'})
-• **Aero-Allergens (Pollen)**: Level ${w.pollenCount ?? 2}/5 (${w.pollen || 'Low Risk'})
-• **Precipitation Probability**: ${w.precipitationProbability ?? 10}% (24-hr cumulative: ${w.precipitation ?? 0} mm)
+• **Air Temperature**: ${tempVal} (Feels like ${feelsStr})
+• **Weather Condition**: ${w.condition || 'Condition Unavailable'}
+• **Relative Humidity**: ${humStr} | **Dew Point**: ${dewStr}
+• **Surface Wind**: ${fmtVal(w.windSpeed, ' km/h')} from ${w.windDirection || '—'}
+• **Barometric Pressure**: ${pressStr}
+• **National Air Quality Index (NAQI)**: ${aqiStr} (${w.aqiStatus || 'Unavailable'})
+• **Aero-Allergens (Pollen)**: ${typeof w.pollenCount === 'number' ? `Level ${w.pollenCount}/5 (${w.pollen || 'Monitored'})` : w.pollen || 'Unavailable'}
+• **Precipitation Probability**: ${rainProbStr} (Cumulative: ${rainMmStr})
 
 **Atmospheric Summary**:
 • Current observations across ${loc?.district || loc?.state || 'the region'} indicate stable atmospheric circulation without severe hazardous synoptic anomalies.

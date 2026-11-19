@@ -14,6 +14,7 @@ import {
   History,
 } from 'lucide-react';
 import { WeatherSystemEvent } from '../../types/cyclone';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface CycloneTrackMapProps {
   activeSystem: WeatherSystemEvent | null;
@@ -235,7 +236,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <strong style="color:${systemColor};">${activeSystem.classification}</strong><br/>
           <span style="font-size:11px;color:#475569;">${activeSystem.name}</span><br/>
           <hr style="margin:4px 0;border:0;border-top:1px solid #CBD5E1;"/>
-          <span>Coords: <strong>${activeSystem.latitude.toFixed(1)}°N, ${activeSystem.longitude.toFixed(1)}°E</strong></span><br/>
+          <span>Coords: <strong>${formatCoordinatePair(activeSystem.latitude, activeSystem.longitude, 1)}</strong></span><br/>
           <span>Wind: <strong>${activeSystem.maxSustainedWind || '—'}</strong></span><br/>
           <span>Pressure: <strong>${activeSystem.pressure || '—'}</strong></span><br/>
           <span>Status: <strong>${activeSystem.status}</strong></span>

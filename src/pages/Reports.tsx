@@ -22,6 +22,7 @@ import { useSavedReports } from '../hooks/useSavedReports';
 import { DataTable, ColumnDef } from '../components/common/DataTable';
 import { PageHeader, DataPanel, MetricValue } from '../components/ui/ObservatoryPrimitives';
 import { Search, Bookmark, ExternalLink, RotateCcw } from 'lucide-react';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 interface ReportsPageProps {
   weatherBundle: WeatherDataBundle;
@@ -377,7 +378,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         eyebrow="Official Meteorological Research & Bulletin Library"
         title="Reports & Research"
         description="Meteorological bulletins, climatological studies, agrometeorological advisories, and technical monographs curated across national earth-science institutes."
-        coordinates={`${selectedLocation.city}, ${selectedLocation.state} · ${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`}
+        coordinates={`${selectedLocation.city}, ${selectedLocation.state} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`}
         status={hasTemp ? 'LIVE' : 'REFERENCE'}
         statusLabel={hasTemp ? 'DISTRICT SYNTHESIS LIVE' : 'ARCHIVE + PENDING TELEMETRY'}
         source={cur?.dataSource ? `${cur.dataSource} · IMD / MoES Archive` : 'IMD / MoES Institutional Archive'}

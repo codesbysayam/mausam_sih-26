@@ -9,13 +9,14 @@ import { INDIA_WEATHER_DATA } from '../data/indiaWeatherData';
 import { useLanguage } from '../i18n/LanguageContext';
 import { MainNavTab } from '../components/layout/MainNavigation';
 import { PageHeader, ProvenanceStatus } from '../components/ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 import { HomeAtmosphericHero } from '../components/home/HomeAtmosphericHero';
 import { HomeHourlyTimeline } from '../components/home/HomeHourlyTimeline';
 import { HomeSevenDayForecast } from '../components/home/HomeSevenDayForecast';
 import { HomeWeatherInsight } from '../components/home/HomeWeatherInsight';
 import { HomePersonalizedHub } from '../components/home/HomePersonalizedHub';
-import { HomeSolarCycle } from '../components/home/HomeSolarCycle';
+import { AstronomicalEphemeris } from '../components/weather/AstronomicalEphemeris';
 import { HomeAirEnvironment } from '../components/home/HomeAirEnvironment';
 import { HomeRadarPreview } from '../components/home/HomeRadarPreview';
 import { HomeHistoricalClimateTrends } from '../components/home/HomeHistoricalClimateTrends';
@@ -72,7 +73,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onOpenLocationCenter,
 }) => {
   const { tCondition } = useLanguage();
-  const { current, hourly = [], daily = [], alerts = [] } = weatherBundle;
+  const { current, hourly = [], daily = [], alerts = [], lastFetchedAt } = weatherBundle;
   const { providers, systemStatus } = useProviderStore();
 
   const [mapMetric, setMapMetric] = useState<WeatherMapMetric>('temperature');
@@ -107,48 +108,65 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const systemBadgeTone =
     systemStatus === 'LIVE'
-      ? 'text-[#22C7A0] bg-[#22C7A0]/15 border-[#22C7A0]/35'
+      ? 'text-[#75D4A6] bg-[#2E7D5B]/15 border-[#2E7D5B]/45'
       : systemStatus === 'PARTIAL'
-      ? 'text-[#F59E0B] bg-[#F59E0B]/15 border-[#F59E0B]/35'
-      : 'text-[#EF4444] bg-[#EF4444]/15 border-[#EF4444]/35';
+      ? 'text-[#F4B96B] bg-[#D98A2B]/15 border-[#D98A2B]/45'
+      : 'text-[#F59B93] bg-[#B83227]/15 border-[#B83227]/45';
 
   const systemBadgeLabel =
     systemStatus === 'LIVE'
-      ? 'All Feeds Live'
+      ? 'All Feeds Operational'
       : systemStatus === 'PARTIAL'
       ? 'Partial Feed Availability'
       : 'Feeds Unavailable';
 
+  const hasValidCurrentTemp =
+    typeof current.temp === 'number' && Number.isFinite(current.temp);
+
   const headerProvenance: ProvenanceStatus =
     current.observationStatus === 'LOADING'
       ? 'LOADING'
-      : current.observationStatus === 'LIVE'
-      ? 'LIVE'
-      : current.observationStatus === 'RECENT'
-      ? 'RECENT'
+      : !hasValidCurrentTemp
+      ? 'UNAVAILABLE'
+      : current.dataSource === 'IMD'
+      ? 'OBSERVED'
       : current.observationStatus === 'STALE'
       ? 'STALE'
-      : 'UNAVAILABLE';
+      : 'MODEL_DERIVED';
 
   const coordDisplay =
-    typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number'
-      ? `${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+    typeof selectedLocation.lat === 'number' &&
+    Number.isFinite(selectedLocation.lat) &&
+    typeof selectedLocation.lng === 'number' &&
+    Number.isFinite(selectedLocation.lng)
+      ? formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)
       : undefined;
 
+  const retrievedAtFormatted = lastFetchedAt
+    ? new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(lastFetchedAt) + ' IST'
+    : null;
+
   return (
-    <div id="mausam-home-view" className="flex flex-col gap-5 w-full pb-14">
-      {/* 1. UNIFIED OBSERVATORY PAGE HEADER */}
+    <div id="mausam-home-view" className="flex flex-col gap-6 w-full pb-14">
+      {/* 1. EDITORIAL ATMOSPHERIC INTELLIGENCE HEADER */}
       <PageHeader
-        eyebrow={`CLASSIC OBSERVATORY BRIEF · ${locationSource === 'DEVICE_GPS' ? 'DEVICE GPS' : 'SELECTED STATION'}`}
+        eyebrow={`MAUSAM ATMOSPHERIC INTELLIGENCE · ${locationSource === 'DEVICE_GPS' ? 'DEVICE GPS' : 'SELECTED STATION'}`}
         title={
           selectedLocation.city
             ? `${selectedLocation.city}${selectedLocation.state ? `, ${selectedLocation.state}` : ''}`
             : selectedLocation.name
         }
+        description="Read the atmosphere. Surface analysis, Doppler radar sweeps, astronomical ephemeris, and regional warning bulletins."
         coordinates={coordDisplay}
         status={headerProvenance}
-        source={current.source || 'Open-Meteo Synoptic Feed'}
+        source={current.source || 'Open-Meteo Surface Analysis (Forecast Grid)'}
         updatedAt={current.lastUpdated || null}
+        retrievedAt={retrievedAtFormatted}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {onDetectLocation && (
@@ -156,9 +174,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                 type="button"
                 onClick={() => onDetectLocation(true)}
                 disabled={isLocating}
-                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-text-primary)] transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
               >
-                <Crosshair className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <Crosshair className={`w-3.5 h-3.5 text-[#2C7BE5] ${isLocating ? 'animate-spin' : ''}`} />
                 <span>{isLocating ? 'Locating…' : 'Use GPS'}</span>
               </button>
             )}
@@ -166,7 +184,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#0B72B9] hover:bg-[#0D82D1] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+                className="inline-flex items-center gap-1.5 px-4 py-2 min-h-[40px] rounded-lg bg-[#2C7BE5] hover:bg-[#1E63C2] text-xs font-semibold text-[#F5F3ED] transition-colors cursor-pointer m-focus-ring"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Change City</span>
@@ -231,17 +249,15 @@ export const HomePage: React.FC<HomePageProps> = ({
         />
       </div>
 
-      {/* 7. SOLAR CYCLE & LOCAL AIR QUALITY */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-5">
-          <HomeSolarCycle
+      {/* 7. ASTRONOMICAL EPHEMERIS (SUNRISE, SOLAR ZENITH, SUNSET) & LOCAL AIR QUALITY */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div className="lg:col-span-6">
+          <AstronomicalEphemeris
             location={selectedLocation}
             weather={current}
-            sunrise={current.sunrise}
-            sunset={current.sunset}
           />
         </div>
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <HomeAirEnvironment
             weather={current}
             location={selectedLocation}

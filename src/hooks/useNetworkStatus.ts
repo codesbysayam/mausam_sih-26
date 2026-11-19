@@ -30,15 +30,15 @@ export function useNetworkStatus() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
       
-      const response = await fetch('/api/weather?mode=current&city=Delhi&state=Delhi', {
-        method: 'HEAD',
+      const response = await fetch('/api/health', {
+        method: 'GET',
         signal: controller.signal,
         cache: 'no-store',
       }).catch(() => null);
 
       clearTimeout(timeoutId);
 
-      const reachable = response !== null ? response.ok || response.status < 500 : true;
+      const reachable = response !== null ? response.ok || response.status < 500 : false;
       setIsApiReachable(reachable);
       setIsOnline(true);
       setLastCheckedAt(new Date());

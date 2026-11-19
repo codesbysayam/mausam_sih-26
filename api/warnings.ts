@@ -8,9 +8,9 @@
 // 100% reliable execution in both AI Studio and Vercel serverless.
 // ====================================================================
 
-export const APP_BUILD_ID = process.env.APP_BUILD_ID || 'MAUSAM-V1.4.2-20260920';
-export const GIT_COMMIT_SHA = process.env.GIT_COMMIT_SHA || 'synoptic-2026-09-20';
-export const WARNING_SERVICE_VERSION = '2.4.0-sachet-canonical';
+export const APP_BUILD_ID = process.env.APP_BUILD_ID || 'MAUSAM-WORKSTATION-2026';
+export const GIT_COMMIT_SHA = process.env.GIT_COMMIT_SHA || 'audit/mausam-full-site-reconstruction';
+export const WARNING_SERVICE_VERSION = '2.5.0-sachet-canonical';
 
 export interface WeatherWarning {
   id: string;
@@ -1051,6 +1051,16 @@ export default async function handler(req: any, res: any) {
         if (matched) {
           return sendJson(res, 200, matched, {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          });
+        }
+
+        if (national.status === 'UNAVAILABLE') {
+          return sendJson(res, 200, {
+            region: { name: regionName, code: '', type: 'STATE', capital: '', lat: 0, lng: 0, aliases: [] },
+            status: 'DATA_UNAVAILABLE',
+            severity: 'UNKNOWN',
+            activeCount: 0,
+            warnings: [],
           });
         }
 

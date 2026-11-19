@@ -15,6 +15,7 @@ import { LocationRecord } from '../../types';
 import DateCalendar from '../DateCalendar';
 import { formatDateShort } from '../../utils/dateUtils';
 import { PageHeader, DataPanel, SectionHeading } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 interface AgrometCommandHeaderProps {
   selectedState: string;
@@ -77,7 +78,7 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
 
   const coords =
     selectedLocation && typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number'
-      ? `${selectedLocation.lat.toFixed(2)}°N, ${selectedLocation.lng.toFixed(2)}°E`
+      ? formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)
       : undefined;
 
   return (

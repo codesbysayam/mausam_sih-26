@@ -6,6 +6,7 @@
  */
 
 import { CurrentWeather, WeatherStation } from '../types';
+import { formatCoordinatePair } from '../../shared/weatherContract';
 
 export interface LanguageDef {
   key: string;
@@ -369,8 +370,7 @@ export function getLocalizedInitialGreeting(
   weather: CurrentWeather,
   langKey: string
 ): { content: string; suggestedFollowUps: string[] } {
-  const latStr = typeof station?.lat === 'number' ? station.lat.toFixed(2) : '20.29';
-  const lngStr = typeof station?.lng === 'number' ? station.lng.toFixed(2) : '85.82';
+  const coordStr = formatCoordinatePair(station?.lat, station?.lng, 2);
   const stnCode = station?.code || station?.id || 'STATION';
   const condStr = translateConditionToLang(weather.condition, langKey);
   const hasTemp = typeof weather.temp === 'number' && Number.isFinite(weather.temp);
@@ -392,7 +392,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ଭାରତୀୟ ପାଣିପାଗ ବିଭାଗ (IMD) ବାୟୁମଣ୍ଡଳୀୟ ଗୁଇନ୍ଦା ସୂଚନା
 **ପାଣିପାଗ କେନ୍ଦ୍ର**: ${stationDisplayName}
-**ଭୌଗୋଳିକ ଅବସ୍ଥିତି**: ${latStr}°N, ${lngStr}°E | କେନ୍ଦ୍ର କୋଡ୍ (ID): ${stnCode}
+**ଭୌଗୋଳିକ ଅବସ୍ଥିତି**: ${coordStr} | କେନ୍ଦ୍ର କୋଡ୍ (ID): ${stnCode}
 
 • **ତାପମାତ୍ରା**: ${tempStr} (ଅନୁଭୂତ ତାପମାତ୍ରା: ${feelsStr})
 • **ପାଣିପାଗ ସ୍ଥିତି**: ${condStr}
@@ -416,7 +416,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### भारतीय मौसम विज्ञान विभाग (IMD) वायुमंडलीय सूचना
 **मौसम केंद्र**: ${stationDisplayName}
-**निर्देशांक**: ${latStr}°N, ${lngStr}°E | स्टेशन आईडी: ${stnCode}
+**निर्देशांक**: ${coordStr} | स्टेशन आईडी: ${stnCode}
 
 • **तापमान**: ${tempStr} (महसूस तापमान: ${feelsStr})
 • **मौसम की स्थिति**: ${condStr}
@@ -440,7 +440,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ভারতীয় আবহাওয়া অধিদপ্তর (IMD) বায়ুমণ্ডলীয় তথ্য
 **আবহাওয়া কেন্দ্র**: ${stationDisplayName}
-**স্থানাঙ্ক**: ${latStr}°N, ${lngStr}°E | স্টেশন আইডি: ${stnCode}
+**স্থানাঙ্ক**: ${coordStr} | স্টেশন আইডি: ${stnCode}
 
 • **তাপমাত্রা**: ${tempStr} (অনুভূত তাপমাত্রা: ${feelsStr})
 • **আবহাওয়ার অবস্থা**: ${condStr}
@@ -464,7 +464,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### भारतीय हवामान विभाग (IMD) वातावरणीय माहिती
 **हवामान वेधशाळा**: ${stationDisplayName}
-**अक्षांश-रेखांश**: ${latStr}°N, ${lngStr}°E | वेधशाळा आयडी: ${stnCode}
+**अक्षांश-रेखांश**: ${coordStr} | वेधशाळा आयडी: ${stnCode}
 
 • **तापमान**: ${tempStr} (जाणवणारे तापमान: ${feelsStr})
 • **हवामानाची स्थिती**: ${condStr}
@@ -488,7 +488,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### இந்திய வானிலை ஆய்வு மையம் (IMD) வளிமண்டல நுண்ணறிவு
 **வானிலை நிலையம்**: ${stationDisplayName}
-**அமைவிடம்**: ${latStr}°N, ${lngStr}°E | நிலைய எண்: ${stnCode}
+**அமைவிடம்**: ${coordStr} | நிலைய எண்: ${stnCode}
 
 • **வெப்பநிலை**: ${tempStr} (உணரப்படும் வெப்பநிலை: ${feelsStr})
 • **வானிலை நிலை**: ${condStr}
@@ -512,7 +512,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### భారత వాతావరణ శాఖ (IMD) వాతావరణ సమాచారం
 **వాతావరణ కేంద్రం**: ${stationDisplayName}
-**కోఆర్డినేట్స్**: ${latStr}°N, ${lngStr}°E | కేంద్రం ఐడీ: ${stnCode}
+**కోఆర్డినేట్స్**: ${coordStr} | కేంద్రం ఐడీ: ${stnCode}
 
 • **ఉష్ణోగ్రత**: ${tempStr} (అనుభూతి చెందే ఉష్ణోగ్రత: ${feelsStr})
 • **వాతావరణ స్థితి**: ${condStr}
@@ -536,7 +536,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ಭಾರತೀಯ ಹವಾಮಾನ ಇಲಾಖೆ (IMD) ವಾತಾವರಣ ಮಾಹಿತಿ
 **ಹವಾಮಾನ ಕೇಂದ್ರ**: ${stationDisplayName}
-**ನಿರ್ದೇಶಾಂಕಗಳು**: ${latStr}°N, ${lngStr}°E | ಕೇಂದ್ರ ಐಡಿ: ${stnCode}
+**ನಿರ್ದೇಶಾಂಕಗಳು**: ${coordStr} | ಕೇಂದ್ರ ಐಡಿ: ${stnCode}
 
 • **ತಾಪಮಾನ**: ${tempStr} (ಅನಿಸುವ ತಾಪಮಾನ: ${feelsStr})
 • **ಹವಾಮಾನ ಸ್ಥಿತಿ**: ${condStr}
@@ -560,7 +560,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ഭാരതീയ കാലാവസ്ഥാ വകുപ്പ് (IMD) അന്തരീക്ഷ വിവരങ്ങൾ
 **കാലാവസ്ഥാ കേന്ദ്രം**: ${stationDisplayName}
-**കോർഡിനേറ്റുകൾ**: ${latStr}°N, ${lngStr}°E | സ്റ്റേഷൻ ഐഡി: ${stnCode}
+**കോർഡിനേറ്റുകൾ**: ${coordStr} | സ്റ്റേഷൻ ഐഡി: ${stnCode}
 
 • **താപനില**: ${tempStr} (അനുഭവപ്പെടുന്ന താപനില: ${feelsStr})
 • **കാലാവസ്ഥാ അവസ്ഥ**: ${condStr}
@@ -584,7 +584,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ભારતીય હવામાન વિભાગ (IMD) વાતાવરણીય માહિતી
 **હવામાન કેન્દ્ર**: ${stationDisplayName}
-**અક્ષાંશ-રેખાંશ**: ${latStr}°N, ${lngStr}°E | કેન્દ્ર આઈડી: ${stnCode}
+**અક્ષાંશ-રેખાંશ**: ${coordStr} | કેન્દ્ર આઈડી: ${stnCode}
 
 • **તાપમાન**: ${tempStr} (અનુભવાતું તાપમાન: ${feelsStr})
 • **હવામાન પરિસ્થિતિ**: ${condStr}
@@ -608,7 +608,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ਭਾਰਤੀ ਮੌਸਮ ਵਿਭਾਗ (IMD) ਵਾਯੂਮੰਡਲ ਜਾਣਕਾਰੀ
 **ਮੌਸਮ ਕੇਂਦਰ**: ${stationDisplayName}
-**ਕੋਆਰਡੀਨੇਟ**: ${latStr}°N, ${lngStr}°E | ਸਟੇਸ਼ਨ ਆਈਡੀ: ${stnCode}
+**ਕੋਆਰਡੀਨੇਟ**: ${coordStr} | ਸਟੇਸ਼ਨ ਆਈਡੀ: ${stnCode}
 
 • **ਤਾਪਮਾਨ**: ${tempStr} (ਮਹਿਸੂਸ ਹੁੰਦਾ ਤਾਪਮਾਨ: ${feelsStr})
 • **ਮੌਸਮ ਦੀ ਸਥਿਤੀ**: ${condStr}
@@ -632,7 +632,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### ভাৰতীয় বতৰ বিজ্ঞান বিভাগ (IMD) বায়ুমণ্ডলীয় তথ্য
 **বতৰ নিৰীক্ষণ কেন্দ্ৰ**: ${stationDisplayName}
-**স্থানাংক**: ${latStr}°N, ${lngStr}°E | ষ্টেচন আইডি: ${stnCode}
+**স্থানাংক**: ${coordStr} | ষ্টেচন আইডি: ${stnCode}
 
 • **তাপমাত্ৰা**: ${tempStr} (অনুভৱ হোৱা তাপমাত্ৰা: ${feelsStr})
 • **বতৰৰ অৱস্থা**: ${condStr}
@@ -656,7 +656,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### محکمہ موسمیات بھارت (IMD) ماحولیاتی معلومات
 **موسمی اسٹیشن**: ${stationDisplayName}
-**مقام**: ${latStr}°N, ${lngStr}°E | اسٹیشن کوڈ: ${stnCode}
+**مقام**: ${coordStr} | اسٹیشن کوڈ: ${stnCode}
 
 • **درجہ حرارت**: ${tempStr} (محسوس درجہ حرارت: ${feelsStr})
 • **موسم کی کیفیت**: ${condStr}
@@ -680,7 +680,7 @@ export function getLocalizedInitialGreeting(
       return {
         content: `### IMD Grounded Atmospheric Intelligence
 **Station**: ${stationDisplayName}
-**Coordinates**: ${latStr}°N, ${lngStr}°E | Station ID: ${stnCode}
+**Coordinates**: ${coordStr} | Station ID: ${stnCode}
 
 • **Temperature**: ${tempStr} (Feels like ${feelsStr})
 • **Condition**: ${weather.condition}

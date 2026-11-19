@@ -13,7 +13,10 @@ export class WeatherNormalizer {
    * STALE: > 3 hours
    * UNAVAILABLE: null or missing
    */
-  public static computeDataStatus(observedAtStr: string): { status: DataStatus; ageSeconds: number } {
+  public static computeDataStatus(observedAtStr: string | null | undefined): { status: DataStatus; ageSeconds: number } {
+    if (!observedAtStr) {
+      return { status: 'UNAVAILABLE', ageSeconds: 99999 };
+    }
     try {
       const observedEpoch = new Date(observedAtStr).getTime();
       if (isNaN(observedEpoch)) {
@@ -36,7 +39,10 @@ export class WeatherNormalizer {
   /**
    * Interpret WMO weather codes into standard descriptions
    */
-  public static interpretWmoCode(code: number): string {
+  public static interpretWmoCode(code: number | null | undefined): string {
+    if (code === null || code === undefined || !Number.isFinite(code)) {
+      return 'Condition Unavailable';
+    }
     switch (code) {
       case 0: return 'Clear Sky';
       case 1: return 'Mainly Clear';
@@ -66,17 +72,17 @@ export class WeatherNormalizer {
       case 95: return 'Thunderstorm';
       case 96: return 'Thunderstorm with Slight Hail';
       case 99: return 'Thunderstorm with Heavy Hail';
-      default: return 'Observed Conditions';
+      default: return 'Condition Unavailable';
     }
   }
 
   /**
    * Normalize wind direction degrees to compass heading
    */
-  public static degreesToCompass(deg: number | null): string {
-    if (deg === null || isNaN(deg)) return 'CALM';
+  public static degreesToCompass(deg: number | null | undefined): string | null {
+    if (deg === null || deg === undefined || !Number.isFinite(deg)) return null;
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const idx = Math.round(((deg % 360) / 22.5)) % 16;
+    const idx = Math.round((((deg % 360) + 360) % 360) / 22.5) % 16;
     return directions[idx];
   }
 }

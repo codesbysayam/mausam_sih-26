@@ -16,15 +16,17 @@ import {
   systemHealthService,
   GeoLocation,
 } from '../../backend';
+import { parseCoordinates } from '../../shared/weatherContract';
 
 export const unifiedApiRouter = Router();
 
 function extractLocation(req: Request): GeoLocation {
-  const latStr = (req.query.lat || req.query.latitude || '28.6139') as string;
-  const lonStr = (req.query.lon || req.query.lng || req.query.longitude || '77.2090') as string;
-
-  const latitude = parseFloat(latStr) || 28.6139;
-  const longitude = parseFloat(lonStr) || 77.2090;
+  const parsed = parseCoordinates(req.query as Record<string, unknown>);
+  if (!parsed.ok) {
+    const err: any = new Error(parsed.error);
+    err.statusCode = 400;
+    throw err;
+  }
 
   const name = (req.query.name as string) || (req.query.city as string) || 'Location';
   const city = (req.query.city as string) || (req.query.name as string);
@@ -37,8 +39,8 @@ function extractLocation(req: Request): GeoLocation {
     district,
     state,
     country: 'India',
-    latitude,
-    longitude,
+    latitude: parsed.lat,
+    longitude: parsed.lon,
   };
 }
 
@@ -101,7 +103,7 @@ unifiedApiRouter.get('/weather/current', async (req: Request, res: Response) => 
     const result = await weatherService.getCurrentWeather(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'Open-Meteo',
       provider: 'OPEN_METEO',
@@ -125,7 +127,7 @@ unifiedApiRouter.get('/weather/forecast', async (req: Request, res: Response) =>
     const result = await weatherService.getForecast(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'Open-Meteo',
       provider: 'OPEN_METEO',
@@ -149,7 +151,7 @@ unifiedApiRouter.get('/weather/hourly', async (req: Request, res: Response) => {
     const result = await weatherService.getHourly(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'Open-Meteo',
       provider: 'OPEN_METEO',
@@ -173,7 +175,7 @@ unifiedApiRouter.get('/weather/daily', async (req: Request, res: Response) => {
     const result = await weatherService.getDaily(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'Open-Meteo',
       provider: 'OPEN_METEO',
@@ -197,7 +199,7 @@ unifiedApiRouter.get('/air-quality', async (req: Request, res: Response) => {
     const result = await aqiService.getAirQuality(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'CPCB',
       provider: 'CPCB',
@@ -221,7 +223,7 @@ unifiedApiRouter.get('/warnings', async (req: Request, res: Response) => {
     const result = await warningService.getWarnings(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'NDMA / SACHET',
       provider: 'SACHET',
@@ -245,7 +247,7 @@ unifiedApiRouter.get('/marine', async (req: Request, res: Response) => {
     const result = await marineService.getMarine(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'INCOIS',
       provider: 'INCOIS',
@@ -269,7 +271,7 @@ unifiedApiRouter.get('/radar', async (req: Request, res: Response) => {
     const result = await radarService.getRadar(loc);
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({
+    res.status(err?.statusCode || 500).json({
       status: 'error',
       source: 'Radar Source: RainViewer (Open Weather Maps API)',
       provider: 'RADAR',
@@ -298,7 +300,7 @@ unifiedApiRouter.get('/stations', (req: Request, res: Response) => {
       stations: nearest,
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', error: err.message });
+    res.status(err?.statusCode || 500).json({ status: 'error', error: err.message });
   }
 });
 

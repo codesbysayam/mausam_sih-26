@@ -8,6 +8,7 @@ import { Router, Request, Response } from 'express';
 import { imdClient } from './imd/imdClient';
 import { imdConnector } from './imd/imdConnector';
 import { imdCache } from './imd/imdCache';
+import { parseCoordinates } from '../shared/weatherContract';
 
 export const imdProxyRouter = Router();
 
@@ -146,9 +147,11 @@ imdProxyRouter.get('/staterainfall', async (req: Request, res: Response) => {
 });
 
 imdProxyRouter.get('/sunmoon', async (req: Request, res: Response) => {
-  const lat = parseFloat(req.query.lat as string) || 20.2961;
-  const lon = parseFloat(req.query.lon as string) || 85.8245;
-  const result = await imdConnector.getSunMoon(lat, lon);
+  const parsed = parseCoordinates(req.query as Record<string, unknown>);
+  if (!parsed.ok) {
+    return res.status(400).json({ status: 'error', message: parsed.error });
+  }
+  const result = await imdConnector.getSunMoon(parsed.lat, parsed.lon);
   res.json(result);
 });
 

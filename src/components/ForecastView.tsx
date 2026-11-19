@@ -91,25 +91,33 @@ export const ForecastView: React.FC<ForecastViewProps> = ({
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-          {modelHourly.map((h, i) => (
-            <div
-              key={i}
-              className="bg-[#0F141A] p-3 rounded-lg card-border flex flex-col items-center gap-2 min-w-[95px] shrink-0 hover:border-[#0B72B9] transition-colors"
-            >
-              <span className="text-xs text-[#8A94A6] font-semibold">{h.time}</span>
-              <span className="material-symbols-outlined text-[#4FA8E0] text-[22px]">
-                {h.icon || 'cloud'}
-              </span>
-              <span className="text-base font-bold text-[#FFFFFF]">
-                {Math.round(h.temp)}°
-              </span>
-              <div className="flex items-center gap-1 text-[11px] text-[#4FA8E0] font-semibold">
-                <span className="material-symbols-outlined text-[12px]">water_drop</span>
-                <span>{h.precipitationProbability || h.rainProb || 0}%</span>
+          {modelHourly.map((h, i) => {
+            const precip = typeof h.precipitationProbability === 'number' && Number.isFinite(h.precipitationProbability)
+              ? h.precipitationProbability
+              : typeof h.rainProb === 'number' && Number.isFinite(h.rainProb)
+              ? h.rainProb
+              : null;
+            const wind = typeof h.windSpeed === 'number' && Number.isFinite(h.windSpeed) ? Math.round(h.windSpeed) : null;
+            return (
+              <div
+                key={i}
+                className="bg-[#0F141A] p-3 rounded-lg card-border flex flex-col items-center gap-2 min-w-[95px] shrink-0 hover:border-[#0B72B9] transition-colors"
+              >
+                <span className="text-xs text-[#8A94A6] font-semibold">{h.time}</span>
+                <span className="material-symbols-outlined text-[#4FA8E0] text-[22px]">
+                  {h.icon || 'cloud'}
+                </span>
+                <span className="text-base font-bold text-[#FFFFFF]">
+                  {typeof h.temp === 'number' && Number.isFinite(h.temp) ? `${Math.round(h.temp)}°` : '—'}
+                </span>
+                <div className="flex items-center gap-1 text-[11px] text-[#4FA8E0] font-semibold">
+                  <span className="material-symbols-outlined text-[12px]">water_drop</span>
+                  <span>{precip !== null ? `${Math.round(precip)}%` : '—'}</span>
+                </div>
+                <span className="text-[10px] text-[#8A94A6]">{wind !== null ? `${wind} km/h` : '—'}</span>
               </div>
-              <span className="text-[10px] text-[#8A94A6]">{h.windSpeed || 10} km/h</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -130,55 +138,66 @@ export const ForecastView: React.FC<ForecastViewProps> = ({
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {modelDaily.map((d, idx) => (
-            <div
-              key={idx}
-              className="bg-[#0F141A] p-4 rounded-lg card-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-[#0B72B9] transition-colors"
-            >
-              <div className="flex items-center gap-4 min-w-[160px]">
-                <div className="w-8 h-8 rounded-lg bg-[#1E2733] flex items-center justify-center text-[#4FA8E0]">
-                  <span className="material-symbols-outlined text-[20px]">
-                    {d.icon || 'wb_cloudy'}
+          {modelDaily.map((d, idx) => {
+            const hasLow = typeof d.low === 'number' && Number.isFinite(d.low);
+            const hasHigh = typeof d.high === 'number' && Number.isFinite(d.high);
+            const hasRain = typeof d.rainProb === 'number' && Number.isFinite(d.rainProb);
+            return (
+              <div
+                key={idx}
+                className="bg-[#0F141A] p-4 rounded-lg card-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-[#0B72B9] transition-colors"
+              >
+                <div className="flex items-center gap-4 min-w-[160px]">
+                  <div className="w-8 h-8 rounded-lg bg-[#1E2733] flex items-center justify-center text-[#4FA8E0]">
+                    <span className="material-symbols-outlined text-[20px]">
+                      {d.icon || 'wb_cloudy'}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#FFFFFF]">
+                      {d.day} <span className="text-xs text-[#8A94A6] font-normal">({d.date})</span>
+                    </h4>
+                    <span className="text-xs text-[#8A94A6]">
+                      {d.condition || 'Unavailable'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Rain prob and wind */}
+                <div className="flex items-center gap-4 text-xs text-[#8A94A6]">
+                  <div className="flex items-center gap-1 text-[#4FA8E0] font-semibold">
+                    <span className="material-symbols-outlined text-[14px]">water_drop</span>
+                    <span>{hasRain ? `${Math.round(d.rainProb!)}% Rain` : '—'}</span>
+                  </div>
+                  <div className="hidden md:flex items-center gap-1 text-[#8A94A6]">
+                    <span className="material-symbols-outlined text-[14px]">air</span>
+                    <span>{d.wind || '—'}</span>
+                  </div>
+                </div>
+
+                {/* Min - Max Temp bar */}
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <span className="text-xs text-[#8A94A6] font-semibold">
+                    {hasLow ? `${Math.round(d.low!)}°C` : '—'}
+                  </span>
+                  <div className="w-28 sm:w-36 h-2 rounded-full bg-[#1E2733] relative overflow-hidden">
+                    {hasLow && hasHigh && (
+                      <div
+                        className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-[#4FA8E0] via-[#FFB703] to-[#FF8C42]"
+                        style={{
+                          left: `${Math.max(0, Math.min(90, (d.low! - 15) * 3))}%`,
+                          right: `${Math.max(0, Math.min(90, 100 - (d.high! - 15) * 3))}%`,
+                        }}
+                      ></div>
+                    )}
+                  </div>
+                  <span className="text-xs text-[#FFFFFF] font-bold">
+                    {hasHigh ? `${Math.round(d.high!)}°C` : '—'}
                   </span>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-[#FFFFFF]">
-                    {d.day} <span className="text-xs text-[#8A94A6] font-normal">({d.date})</span>
-                  </h4>
-                  <span className="text-xs text-[#8A94A6]">
-                    {d.condition}
-                  </span>
-                </div>
               </div>
-
-              {/* Rain prob and wind */}
-              <div className="flex items-center gap-4 text-xs text-[#8A94A6]">
-                <div className="flex items-center gap-1 text-[#4FA8E0] font-semibold">
-                  <span className="material-symbols-outlined text-[14px]">water_drop</span>
-                  <span>{d.rainProb}% Rain</span>
-                </div>
-                <div className="hidden md:flex items-center gap-1 text-[#8A94A6]">
-                  <span className="material-symbols-outlined text-[14px]">air</span>
-                  <span>{d.wind || '12 km/h NE'}</span>
-                </div>
-              </div>
-
-              {/* Min - Max Temp bar */}
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <span className="text-xs text-[#8A94A6] font-semibold">{d.low}°C</span>
-                <div className="w-28 sm:w-36 h-2 rounded-full bg-[#1E2733] relative overflow-hidden">
-                  <div
-                    className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-[#4FA8E0] via-[#FFB703] to-[#FF8C42]"
-                    style={{
-                      left: `${Math.max(0, (d.low - 15) * 3)}%`,
-                      right: `${Math.max(0, 100 - (d.high - 15) * 3)}%`,
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-[#FFFFFF] font-bold">{d.high}°C</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

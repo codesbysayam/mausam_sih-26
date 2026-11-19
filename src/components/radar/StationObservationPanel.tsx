@@ -1,6 +1,7 @@
 import React from 'react';
 import { RadarStation } from '../../types/radar';
 import { StateWeatherData } from '../map/IndiaWeatherMap';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface StationObservationPanelProps {
   viewMode: 'synoptic' | 'radar';
@@ -33,7 +34,7 @@ export const StationObservationPanel: React.FC<StationObservationPanelProps> = (
     : stateData?.name || 'National Grid';
 
   const coords = isRadar && station
-    ? `${station.latitude.toFixed(4)}°N, ${station.longitude.toFixed(4)}°E`
+    ? formatCoordinatePair(station.latitude, station.longitude, 4)
     : stateData
     ? 'State Meteorological Reference'
     : 'N/A';

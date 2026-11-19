@@ -66,7 +66,14 @@ class WeatherService {
         const now = Date.now();
         // Keep entries newer than 2 hours
         Object.entries(parsed).forEach(([key, val]: [string, any]) => {
-          if (val && val.timestamp && now - val.timestamp < 2 * 3600 * 1000) {
+          if (
+            val &&
+            val.timestamp &&
+            now - val.timestamp < 2 * 3600 * 1000 &&
+            val.data?.current &&
+            typeof val.data.current.temp === 'number' &&
+            Number.isFinite(val.data.current.temp)
+          ) {
             val.data.lastFetchedAt = new Date(val.data.lastFetchedAt);
             this.cache.set(key, val);
           }
@@ -198,7 +205,15 @@ class WeatherService {
           console.warn('[WeatherService] Proxy fetch attempt failed, trying direct Open-Meteo:', proxyErr);
         }
 
-        // If proxy didn't succeed, try direct Open-Meteo
+        // Extract payload safely even if wrapped by /api/weather gateway
+        const hasWeatherBlock = (d: any) =>
+          Boolean(d && (d.raw?.current || d.current || d.raw?.hourly || d.hourly));
+
+        if (!hasWeatherBlock(weatherData)) {
+          weatherData = null;
+        }
+
+        // If proxy didn't succeed or lacked weather block, try direct Open-Meteo
         if (!weatherData) {
           const weatherUrl = `https://api.open-meteo.com/v1/forecast?${weatherQuery}`;
           const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${airQuery}`;
@@ -219,18 +234,20 @@ class WeatherService {
           }
         }
 
-        if (!weatherData) {
-          throw new Error(`Weather API connection failed`);
+        if (!hasWeatherBlock(weatherData)) {
+          throw new Error('Weather API returned incomplete atmospheric telemetry');
         }
 
         const bundle = this.transformOpenMeteoResponse(location, weatherData, airData);
 
-        // Cache successful response
-        this.cache.set(cacheKey, { data: bundle, timestamp: Date.now() });
-        this.persistToStorage(cacheKey, bundle, Date.now());
+        if (bundle.isLive || typeof bundle.current.temp === 'number') {
+          // Cache only validated telemetry responses
+          this.cache.set(cacheKey, { data: bundle, timestamp: Date.now() });
+          this.persistToStorage(cacheKey, bundle, Date.now());
 
-        // Broadcast to other open browser tabs
-        crossTabSync.broadcastWeather(cacheKey, bundle);
+          // Broadcast to other open browser tabs
+          crossTabSync.broadcastWeather(cacheKey, bundle);
+        }
 
         return bundle;
       } catch (err: any) {
@@ -407,10 +424,19 @@ class WeatherService {
     raw: any,
     airRawJson?: any
   ): WeatherDataBundle {
-    const currentRaw = raw.current || {};
-    const hourlyRaw = raw.hourly || {};
-    const dailyRaw = raw.daily || {};
-    const airCurrent = airRawJson?.current || {};
+    const omWeather =
+      raw?.raw && (raw.raw.current || raw.raw.hourly || raw.raw.daily) ? raw.raw : raw;
+    const omAir = airRawJson?.raw?.current
+      ? airRawJson.raw
+      : airRawJson?.current
+      ? airRawJson
+      : {};
+    const gatewayStale = raw?.dataStatus === 'STALE' || raw?.cached === true;
+
+    const currentRaw = omWeather?.current || {};
+    const hourlyRaw = omWeather?.hourly || {};
+    const dailyRaw = omWeather?.daily || {};
+    const airCurrent = omAir?.current || {};
 
     const numOrNull = (val: unknown): number | null =>
       typeof val === 'number' && Number.isFinite(val) ? val : null;
@@ -428,6 +454,8 @@ class WeatherService {
     const wmoCode = numOrNull(currentRaw.weather_code);
     const isDay = typeof currentRaw.is_day === 'number' ? currentRaw.is_day === 1 : true;
     const cloudCover = numOrNull(currentRaw.cloud_cover);
+    const hasPrimaryTelemetry =
+      temp !== null && (humidity !== null || windSpeed !== null || pressure !== null);
 
     // Get today's daily high/low and max rain probability
     const rawHigh = numOrNull(dailyRaw.temperature_2m_max?.[0]);
@@ -438,13 +466,13 @@ class WeatherService {
     const rawUvMax = numOrNull(dailyRaw.uv_index_max?.[0]);
     const uvIndexMax = rawUvMax !== null ? Math.round(rawUvMax * 10) / 10 : null;
 
-    // Resolve central weather condition
+    // Resolve central weather condition without coercing absent measurements to Clear Sky
     const resolved = resolveWeatherCondition({
       wmoCode: wmoCode ?? undefined,
-      precipitationMm: precip ?? 0,
-      precipitationProbability: maxRainProbToday ?? 0,
-      cloudCover: cloudCover ?? 0,
-      windSpeedKmH: windSpeed ?? 0,
+      precipitationMm: precip ?? undefined,
+      precipitationProbability: maxRainProbToday ?? undefined,
+      cloudCover: cloudCover ?? undefined,
+      windSpeedKmH: windSpeed ?? undefined,
       isDaytime: isDay,
     });
 
@@ -642,19 +670,32 @@ class WeatherService {
     const rawEt0 = numOrNull(hourlyRaw.et0_fao_evapotranspiration?.[startIdx]);
     const evapotranspiration = rawEt0 !== null ? Math.round(rawEt0 * 100) / 100 : null;
 
+    const observationStatus: CurrentWeather['observationStatus'] = !hasPrimaryTelemetry
+      ? 'UNAVAILABLE'
+      : gatewayStale
+      ? 'STALE'
+      : 'LIVE';
+    const isLive = hasPrimaryTelemetry && !gatewayStale;
+    const resolvedLastUpdated = hasPrimaryTelemetry
+      ? `${this.formatIstTime(now)} IST (${gatewayStale ? 'Cached Open-Meteo Grid' : 'Open-Meteo Analysis'})`
+      : `${this.formatIstTime(now)} IST (Feed Unavailable)`;
+
     const currentWeather: CurrentWeather = {
       temp,
       feelsLike,
       unit: 'C',
       high,
       low,
-      condition: resolved.conditionLabel,
+      condition:
+        !hasPrimaryTelemetry && resolved.normalizedCondition === 'UNKNOWN'
+          ? 'Telemetry Unavailable'
+          : resolved.conditionLabel,
       conditionKey: resolved.conditionKey,
       isDay,
       wmoCode,
       normalizedCondition: resolved.normalizedCondition,
       weatherType: resolved.weatherType,
-      icon: resolved.icon,
+      icon: !hasPrimaryTelemetry && resolved.normalizedCondition === 'UNKNOWN' ? 'cloud_off' : resolved.icon,
       windSpeed,
       windDirection: windDirDeg !== null ? `${windDirection} (${windDirDeg}°)` : '—',
       windDirectionDeg: windDirDeg,
@@ -711,12 +752,18 @@ class WeatherService {
       stationName: location.weatherStation || `${location.displayName} Synoptic Station`,
       stationCode: location.imdStation || `AWS-${location.district.substring(0, 3).toUpperCase()}`,
       locationId: location.id,
-      lastUpdated,
+      lastUpdated: resolvedLastUpdated,
       lastUpdatedTimestamp: now.getTime(),
-      source: 'Open-Meteo Surface Analysis (Forecast Grid)',
-      dataSource: 'Open-Meteo Surface Analysis (Forecast Grid)',
-      observationStatus: 'LIVE',
-      observationSource: 'Open-Meteo Surface Analysis (Forecast Grid)',
+      source: hasPrimaryTelemetry
+        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        : 'Meteorological Feed Unavailable',
+      dataSource: hasPrimaryTelemetry
+        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        : 'Unavailable',
+      observationStatus,
+      observationSource: hasPrimaryTelemetry
+        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        : 'Upstream telemetry incomplete',
       observationTimeFormatted: `${this.formatIstDate(now)} • ${this.formatIstTime(now)} IST`,
       previousHourTelemetry: startIdx > 0 ? {
         temp: hourlyRaw.temperature_2m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.temperature_2m[startIdx - 1] * 10) / 10 : undefined,
@@ -727,7 +774,8 @@ class WeatherService {
         timestamp: hourlyTimes[startIdx - 1] ? new Date(hourlyTimes[startIdx - 1]).getTime() : now.getTime() - 3600000,
         timeString: hourlyTimes[startIdx - 1] ? this.formatIstTime(new Date(hourlyTimes[startIdx - 1])) : 'Prior Cycle',
       } : undefined,
-      isLive: true,
+      isLive,
+      error: hasPrimaryTelemetry ? null : 'Primary atmospheric measurements unavailable from upstream feed.',
     };
 
     // Transform 24h Hourly Items (only genuine grid points)
@@ -752,11 +800,18 @@ class WeatherService {
       const dt = new Date(hourlyTimes[i]);
       const hour = dt.getHours();
       const isDayHour = hour >= 6 && hour <= 18;
-      const hCode = numOrNull(hourlyCodes[i]) ?? 0;
-      const hProb = numOrNull(hourlyPrecipProb[i]) ?? 0;
+      const hCodeRaw = numOrNull(hourlyCodes[i]);
+      const hProbRaw = numOrNull(hourlyPrecipProb[i]);
+      const hPrecipRaw = numOrNull(hourlyPrecip[i]);
+      const hCloudRaw = numOrNull(hourlyCloud[i]);
+      const hWindRaw = numOrNull(hourlyWinds[i]);
+      const hProb = hProbRaw ?? 0;
       const hRes = resolveWeatherCondition({
-        wmoCode: hCode,
-        precipitationProbability: hProb,
+        wmoCode: hCodeRaw ?? undefined,
+        precipitationMm: hPrecipRaw ?? undefined,
+        precipitationProbability: hProbRaw ?? undefined,
+        cloudCover: hCloudRaw ?? undefined,
+        windSpeedKmH: hWindRaw ?? undefined,
         isDaytime: isDayHour,
       });
 
@@ -769,12 +824,11 @@ class WeatherService {
       const hFeelsVal = numOrNull(hourlyApparentTemps[i]);
       const hFeelsLike = hFeelsVal !== null ? Math.round(hFeelsVal) : hTemp;
       const hVisRaw = numOrNull(hourlyVis[i]);
-      const hVisKm = hVisRaw !== null ? Math.round(hVisRaw / 100) / 10 : undefined;
+      const hVisKm = hVisRaw !== null ? Math.round(hVisRaw / 100) / 10 : null;
       const hGustRaw = numOrNull(hourlyGusts[i]);
-      const hWindRaw = numOrNull(hourlyWinds[i]);
-      const hPrecipRaw = numOrNull(hourlyPrecip[i]);
       const hSolarRaw = numOrNull(hourlyRad[i]);
       const hHumRaw = numOrNull(hourlyHumidity[i]);
+      const hUvRaw = numOrNull(hourlyUv[i]);
 
       hourly.push({
         time: timeLabel,
@@ -783,18 +837,18 @@ class WeatherService {
         feelsLike: hFeelsLike,
         condition: hRes.conditionLabel,
         icon: hRes.icon,
-        aqi: cpcbAqi ?? (aqiPm25 ?? 0),
-        rainProb: hProb,
-        windSpeed: hWindRaw !== null ? Math.round(hWindRaw) : (windSpeed ?? 0),
-        windGusts: hGustRaw !== null ? Math.round(hGustRaw) : undefined,
-        uv: Math.round((numOrNull(hourlyUv[i]) ?? 0) * 10) / 10,
-        humidity: hHumRaw !== null ? Math.round(hHumRaw) : (humidity ?? 0),
-        precipitation: hPrecipRaw !== null ? Math.round(hPrecipRaw * 10) / 10 : undefined,
-        precipitationProbability: hProb,
+        aqi: cpcbAqi ?? aqiPm25 ?? null,
+        rainProb: hProbRaw !== null ? Math.round(hProbRaw) : null,
+        windSpeed: hWindRaw !== null ? Math.round(hWindRaw) : windSpeed,
+        windGusts: hGustRaw !== null ? Math.round(hGustRaw) : null,
+        uv: hUvRaw !== null ? Math.round(hUvRaw * 10) / 10 : null,
+        humidity: hHumRaw !== null ? Math.round(hHumRaw) : humidity,
+        precipitation: hPrecipRaw !== null ? Math.round(hPrecipRaw * 10) / 10 : null,
+        precipitationProbability: hProbRaw !== null ? Math.round(hProbRaw) : null,
         visibilityKm: hVisKm,
-        solarRadiation: hSolarRaw !== null ? Math.round(hSolarRaw) : undefined,
-        cloudCover: numOrNull(hourlyCloud[i]) !== null ? Math.round(hourlyCloud[i]) : undefined,
-        pressure: numOrNull(hourlyPress[i]) !== null ? Math.round(hourlyPress[i] * 10) / 10 : undefined,
+        solarRadiation: hSolarRaw !== null ? Math.round(hSolarRaw) : null,
+        cloudCover: hCloudRaw !== null ? Math.round(hCloudRaw) : null,
+        pressure: numOrNull(hourlyPress[i]) !== null ? Math.round(hourlyPress[i] * 10) / 10 : null,
       });
     }
 
@@ -815,11 +869,11 @@ class WeatherService {
       if (dMaxRaw === null || dMinRaw === null) continue;
 
       const dt = new Date(dailyTimes[i]);
-      const dCode = numOrNull(dailyCodes[i]) ?? 0;
-      const dProb = numOrNull(dailyRainProb[i]) ?? 0;
+      const dCodeRaw = numOrNull(dailyCodes[i]);
+      const dProbRaw = numOrNull(dailyRainProb[i]);
       const dRes = resolveWeatherCondition({
-        wmoCode: dCode,
-        precipitationProbability: dProb,
+        wmoCode: dCodeRaw ?? undefined,
+        precipitationProbability: dProbRaw ?? undefined,
         isDaytime: true,
       });
 
@@ -832,6 +886,8 @@ class WeatherService {
       const dHigh = Math.round(dMaxRaw);
       const dLow = Math.round(dMinRaw);
       const dWindVal = numOrNull(dailyWinds[i]);
+      const dUvVal = numOrNull(dailyRaw.uv_index_max?.[i]);
+      const dPrecipVal = numOrNull(dailyRaw.precipitation_sum?.[i]);
 
       // Temperature bar relative positioning (scale 15°C to 42°C)
       const minScale = 15;
@@ -846,10 +902,11 @@ class WeatherService {
         icon: dRes.icon,
         high: dHigh,
         low: dLow,
-        rainProb: dProb,
-        uv: Math.round(numOrNull(dailyRaw.uv_index_max?.[i]) ?? 0),
-        aqi: cpcbAqi ?? (aqiPm25 ?? 0),
-        humidity: humidity ?? 0,
+        rainProb: dProbRaw !== null ? Math.round(dProbRaw) : null,
+        precipMm: dPrecipVal !== null ? Math.round(dPrecipVal * 10) / 10 : null,
+        uv: dUvVal !== null ? Math.round(dUvVal) : null,
+        aqi: cpcbAqi ?? aqiPm25 ?? null,
+        humidity: humidity,
         wind: dWindVal !== null ? `${Math.round(dWindVal)} km/h` : '—',
         barProgress: {
           startPercent,
@@ -875,10 +932,10 @@ class WeatherService {
         time: `${hr % 12 === 0 ? 12 : hr % 12}:00`,
         hour: hr,
         temp: Math.round(tVal * 10) / 10,
-        humidity: hVal !== null ? Math.round(hVal) : (humidity ?? 0),
-        pressure: pVal !== null ? Math.round(pVal * 10) / 10 : (pressure ?? 0),
-        windSpeed: wVal !== null ? Math.round(wVal) : (windSpeed ?? 0),
-        rain: rVal !== null ? Math.round(rVal * 10) / 10 : 0,
+        humidity: hVal !== null ? Math.round(hVal) : humidity,
+        pressure: pVal !== null ? Math.round(pVal * 10) / 10 : pressure,
+        windSpeed: wVal !== null ? Math.round(wVal) : windSpeed,
+        rain: rVal !== null ? Math.round(rVal * 10) / 10 : null,
       });
     }
 
@@ -888,7 +945,8 @@ class WeatherService {
       daily,
       trends,
       lastFetchedAt: now,
-      isLive: true,
+      isLive,
+      error: hasPrimaryTelemetry ? null : 'Primary atmospheric measurements unavailable from upstream feed.',
     };
   }
 

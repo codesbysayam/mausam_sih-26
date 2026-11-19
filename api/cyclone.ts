@@ -3,14 +3,7 @@
 // Consolidated Cyclone & Disturbance Gateway (/api/cyclone)
 // Multiplexed via mode query parameter: active | track | regions | health | bundle
 // Authoritative ingestion: IMD Cyclone Bulletins + RSMC New Delhi + IMD CAP + SACHET
-// Single canonical dataset powering Cyclone Tracker, Alert Center, and Warnings.
-//
-// Meteorological Grounding (September 28, 2026):
-// 1. Sea Area Bulletin: NO STORM WARNING for Indian coasts.
-// 2. Active Marine Cyclone: NONE.
-// 3. Monitored Disturbance (Inland): Depression over northeast Madhya Pradesh & adjoining north Chhattisgarh.
-// 4. Monitored Disturbance (Marine): Low Pressure Area over Myanmar and adjoining northeast Bay of Bengal.
-// 5. Past Historical Event: BOB-04 crossed near Kalingapatnam on 23-24 Sept and DISSIPATED.
+// Zero fabricated cyclones or hardcoded historical alerts.
 // ====================================================================
 
 import {
@@ -189,10 +182,15 @@ export class CycloneIngestionService {
     let imdWarningsHealth: CycloneProviderHealth;
     let sachetHealth: CycloneProviderHealth;
 
+    let liveSystems: WeatherSystemEvent[] = [];
+
     if (useAuthApi) {
       const startTime = Date.now();
       try {
-        await imdApiProvider.fetchSystems();
+        const fetched = await imdApiProvider.fetchSystems();
+        if (Array.isArray(fetched)) {
+          liveSystems = fetched as WeatherSystemEvent[];
+        }
         imdCycloneHealth = {
           status: 'LIVE',
           latencyMs: Math.max(1, Date.now() - startTime),
@@ -265,19 +263,47 @@ export class CycloneIngestionService {
       endpoint: this.sachetRssUrl,
     };
 
+    const anyLive = imdCycloneHealth.status === 'LIVE' || imdWarningsHealth.status === 'LIVE' || sachetHealth.status === 'LIVE';
+    if (!anyLive) {
+      return {
+        systems: [],
+        activeCount: 0,
+        selectedSystemId: null,
+        regionalWarnings: ALL_36_INDIA_REGIONS.map((region) => ({
+          regionCode: region.code,
+          regionName: region.name,
+          regionType: region.type,
+          warningLevel: 'UNKNOWN',
+          hazards: [],
+          affectedDistricts: [],
+          sourceWarnings: [],
+          validFrom: '',
+          validUntil: 'Upstream cyclone & bulletin feed unreachable',
+          lastUpdated: fetchTimestamp,
+          status: 'DATA_UNAVAILABLE',
+        })),
+        stateCount: ALL_36_INDIA_REGIONS.filter((r) => r.type === 'STATE').length,
+        utCount: ALL_36_INDIA_REGIONS.filter((r) => r.type === 'UNION_TERRITORY').length,
+        totalRegions: ALL_36_INDIA_REGIONS.length,
+        lastSync: fetchTimestamp,
+        providerHealth: {
+          imdCyclone: imdCycloneHealth,
+          imdWarnings: imdWarningsHealth,
+          sachet: sachetHealth,
+        },
+      };
+    }
+
     return this.buildTruthfulSynopticPayload(fetchTimestamp, {
       imdCyclone: imdCycloneHealth,
       imdWarnings: imdWarningsHealth,
       sachet: sachetHealth,
-    });
+    }, liveSystems);
   }
 
   /**
-   * Grounded synoptic payload accurately reflecting IMD's state on September 28, 2026:
-   * 1. No Active Cyclone in Indian Seas (Sea Area Bulletin: NO STORM WARNING).
-   * 2. Active Inland Depression over northeast Madhya Pradesh & adjoining north Chhattisgarh.
-   * 3. Active Low Pressure Area over Myanmar & adjoining northeast Bay of Bengal.
-   * 4. Deep Depression BOB-04 archived as DISSIPATED (historical).
+   * Truthful synoptic payload when live RSMC/CAP RSS endpoints confirm reachability.
+   * Never fabricates active cyclones, depressions, or regional warnings.
    */
   private buildTruthfulSynopticPayload(
     fetchTimestamp: string,
@@ -285,333 +311,40 @@ export class CycloneIngestionService {
       imdCyclone: CycloneProviderHealth;
       imdWarnings: CycloneProviderHealth;
       sachet: CycloneProviderHealth;
-    }
+    },
+    systems: WeatherSystemEvent[] = []
   ): CyclonePayload {
-    const verifiedSystems: WeatherSystemEvent[] = [
-      {
-        id: 'SYS-INLAND-MP-2026',
-        name: 'Depression over northeast Madhya Pradesh & adjoining north Chhattisgarh',
-        classification: 'Depression',
-        basin: 'Inland Central India',
-        source: 'IMD National Daily Weather Report',
-        sourceUrl: 'https://mausam.imd.gov.in',
-        latitude: 24.2,
-        longitude: 81.5,
-        pressure: '1000 hPa',
-        maxSustainedWind: '35-45 km/h gusting 55 km/h',
-        windGust: '55 km/h',
-        movementDirection: 'WNW',
-        movementSpeed: '12 km/h',
-        currentLocation: 'Over northeast Madhya Pradesh near Sidhi/Rewa, ~80 km east of Satna',
-        forecastTrack: [
-          {
-            time: '2026-09-28T05:30:00+05:30',
-            latitude: 24.2,
-            longitude: 81.5,
-            expectedClassification: 'Depression',
-            windSpeed: '35-45 km/h',
-            centralPressure: '1000 hPa',
-            locationName: 'Northeast Madhya Pradesh',
-          },
-          {
-            time: '2026-09-28T17:30:00+05:30',
-            latitude: 24.5,
-            longitude: 80.8,
-            expectedClassification: 'Well Marked Low Pressure Area',
-            windSpeed: '25-35 km/h',
-            centralPressure: '1002 hPa',
-            locationName: 'Central Madhya Pradesh and adjoining UP',
-          },
-        ],
-        historicalTrack: [
-          {
-            time: '2026-09-27T08:30:00+05:30',
-            latitude: 23.8,
-            longitude: 82.3,
-            expectedClassification: 'Depression',
-            windSpeed: '40-50 km/h',
-            centralPressure: '998 hPa',
-            locationName: 'North Chhattisgarh and adjoining East MP',
-          },
-          {
-            time: '2026-09-27T17:30:00+05:30',
-            latitude: 24.0,
-            longitude: 81.9,
-            expectedClassification: 'Depression',
-            windSpeed: '35-45 km/h',
-            centralPressure: '1000 hPa',
-            locationName: 'Northeast Madhya Pradesh',
-          },
-        ],
-        expectedLandfall: 'Inland system (No marine landfall)',
-        expectedLandfallWindow: 'N/A - System tracking across central landmass',
-        issuedAt: '2026-09-28T00:00:00+05:30',
-        updatedAt: fetchTimestamp,
-        nextBulletinAt: '2026-09-28T06:00:00+05:30',
-        status: 'ACTIVE',
-        affectedStates: ['Madhya Pradesh', 'Uttar Pradesh', 'Chhattisgarh'],
-        affectedDistricts: ['Rewa', 'Sidhi', 'Satna', 'Singrauli', 'Shahdol', 'Prayagraj', 'Mirzapur', 'Koriya'],
-        rainfallThreat: 'YELLOW',
-        windThreat: 'WATCH',
-        stormSurgeThreat: 'NO_WARNING',
-        thunderstormThreat: 'YELLOW',
-        sourceStatus: 'LIVE',
-        fetchedAt: fetchTimestamp,
-        bulletinNumber: 'National Weather Bulletin No. 4',
-        advisoryText:
-          'The Depression over northeast Madhya Pradesh and adjoining north Chhattisgarh moved slowly west-northwestwards. It is very likely to weaken gradually into a well-marked low pressure area during the next 24 hours. Isolated heavy to very heavy rainfall likely over East Madhya Pradesh.',
-        damagePotential: [
-          'Localized inundation in low-lying agricultural fields in East MP.',
-          'Slippery roads and water-logging in municipal underpasses in Rewa/Satna.',
-        ],
-        suggestedActions: [
-          'Farmers advised to drain excess water from standing soybean and paddy fields.',
-          'Avoid venturing near swollen seasonal nullahs and rivers.',
-        ],
-      },
-      {
-        id: 'SYS-MYANMAR-BOB-2026',
-        name: 'Low Pressure Area over Myanmar and adjoining northeast Bay of Bengal',
-        classification: 'Low Pressure Area',
-        basin: 'Bay of Bengal',
-        source: 'IMD / RSMC New Delhi Sea Area Bulletin',
-        sourceUrl: 'https://rsmcnewdelhi.imd.gov.in',
-        latitude: 19.5,
-        longitude: 93.0,
-        pressure: '1004 hPa',
-        maxSustainedWind: '25-35 km/h',
-        windGust: '45 km/h',
-        movementDirection: 'WNW',
-        movementSpeed: '10 km/h',
-        currentLocation: 'Over coastal Myanmar and adjoining northeast and eastcentral Bay of Bengal',
-        forecastTrack: [
-          {
-            time: '2026-09-28T11:30:00+05:30',
-            latitude: 19.8,
-            longitude: 92.2,
-            expectedClassification: 'Low Pressure Area',
-            windSpeed: '25-35 km/h',
-            centralPressure: '1004 hPa',
-            locationName: 'Northeast Bay of Bengal',
-          },
-        ],
-        historicalTrack: [],
-        expectedLandfall: 'Under continuous observation over northeast Bay of Bengal',
-        expectedLandfallWindow: 'No immediate coastal threat to Indian mainland',
-        issuedAt: '2026-09-28T00:30:00+05:30',
-        updatedAt: fetchTimestamp,
-        nextBulletinAt: '2026-09-28T08:30:00+05:30',
-        status: 'ACTIVE',
-        affectedStates: [],
-        affectedDistricts: [],
-        rainfallThreat: 'WATCH',
-        windThreat: 'WATCH',
-        stormSurgeThreat: 'NO_WARNING',
-        thunderstormThreat: 'WATCH',
-        sourceStatus: 'LIVE',
-        fetchedAt: fetchTimestamp,
-        bulletinNumber: 'Sea Area Bulletin 01',
-        advisoryText:
-          'A Low Pressure Area lies over Myanmar and adjoining northeast & eastcentral Bay of Bengal with associated cyclonic circulation extending up to mid-tropospheric levels. No Storm Warning for Indian coasts.',
-        damagePotential: ['Squally winds over northeast Bay of Bengal off Myanmar.'],
-        suggestedActions: [
-          'Fishermen advised caution in deep waters of extreme Northeast Bay of Bengal.',
-        ],
-      },
-      {
-        id: 'SYS-BOB04-ARCHIVE',
-        name: 'Deep Depression BOB-04 (Archived Event - Dissipated)',
-        classification: 'Deep Depression',
-        basin: 'Bay of Bengal',
-        source: 'IMD Preliminary Post-Event Summary',
-        sourceUrl: 'https://rsmcnewdelhi.imd.gov.in',
-        latitude: 18.3,
-        longitude: 84.4,
-        pressure: '995 hPa',
-        maxSustainedWind: '55-65 km/h',
-        windGust: '75 km/h',
-        movementDirection: 'WNW',
-        movementSpeed: '16 km/h',
-        currentLocation: 'Landfall completed near Kalingapatnam on 23-24 Sept 2026. System has completely dissipated.',
-        forecastTrack: [],
-        historicalTrack: [
-          {
-            time: '2026-09-23T14:30:00+05:30',
-            latitude: 18.0,
-            longitude: 85.0,
-            expectedClassification: 'Deep Depression',
-            windSpeed: '55-65 km/h',
-            centralPressure: '996 hPa',
-            locationName: 'Westcentral Bay of Bengal',
-          },
-          {
-            time: '2026-09-23T23:30:00+05:30',
-            latitude: 18.3,
-            longitude: 84.4,
-            expectedClassification: 'Deep Depression',
-            windSpeed: '55-65 km/h',
-            centralPressure: '994 hPa',
-            locationName: 'Landfall: Kalingapatnam coastal belt',
-          },
-          {
-            time: '2026-09-24T17:30:00+05:30',
-            latitude: 19.3,
-            longitude: 82.2,
-            expectedClassification: 'Dissipated Low',
-            windSpeed: '25-35 km/h',
-            centralPressure: '1002 hPa',
-            locationName: 'Weakened over interior Odisha/Chhattisgarh',
-          },
-        ],
-        expectedLandfall: 'Landfall completed on 23-24 September 2026',
-        expectedLandfallWindow: 'HISTORICAL ARCHIVE (Event Completed)',
-        issuedAt: '2026-09-24T18:00:00+05:30',
-        updatedAt: '2026-09-24T18:00:00+05:30',
-        nextBulletinAt: 'Final Summary Released',
-        status: 'DISSIPATED',
-        affectedStates: ['Andhra Pradesh', 'Odisha'],
-        affectedDistricts: ['Srikakulam', 'Ganjam', 'Vizianagaram'],
-        rainfallThreat: 'NO_WARNING',
-        windThreat: 'NO_WARNING',
-        stormSurgeThreat: 'NO_WARNING',
-        thunderstormThreat: 'NO_WARNING',
-        sourceStatus: 'LIVE',
-        fetchedAt: fetchTimestamp,
-        bulletinNumber: 'Final De-warning Summary',
-        advisoryText:
-          'Deep Depression BOB-04 crossed Andhra Pradesh and South Odisha coasts close to Kalingapatnam on 23rd September night, subsequently weakened into a depression and dissipated on 24th September 2026. All coastal warnings for this system were discontinued.',
-      },
-    ];
-
-    // Build regional warnings for all 36 states/UTs
-    const regionalWarnings: RegionalWarningStatus[] = ALL_36_INDIA_REGIONS.map((region) => {
-      // Madhya Pradesh: Yellow Alert for East MP due to inland depression
-      if (region.code === 'MP') {
-        return {
-          regionCode: 'MP',
-          regionName: 'Madhya Pradesh',
-          regionType: 'STATE',
-          warningLevel: 'YELLOW',
-          hazards: ['Heavy Rainfall', 'Thunderstorm with Lightning', 'Gusty Wind (30-40 km/h)'],
-          affectedDistricts: ['Rewa', 'Sidhi', 'Satna', 'Singrauli', 'Shahdol', 'Umaria'],
-          sourceWarnings: [
-            {
-              id: 'IMD-MP-RAIN-2026-09-28',
-              source: 'IMD',
-              event: 'Heavy Rainfall Warning (Inland Depression)',
-              severity: 'YELLOW',
-              headline: 'Heavy rainfall with thunderstorm likely over East Madhya Pradesh',
-              validUntil: '2026-09-29T08:30:00+05:30',
-            },
-          ],
-          validFrom: fetchTimestamp,
-          validUntil: '2026-09-29T08:30:00+05:30',
-          lastUpdated: fetchTimestamp,
-          status: 'ACTIVE_WARNING',
-        };
-      }
-
-      // Uttar Pradesh: Yellow Alert for Southern districts adjoining MP
-      if (region.code === 'UP') {
-        return {
-          regionCode: 'UP',
-          regionName: 'Uttar Pradesh',
-          regionType: 'STATE',
-          warningLevel: 'YELLOW',
-          hazards: ['Thunderstorm with Lightning', 'Isolated Heavy Rain'],
-          affectedDistricts: ['Prayagraj', 'Mirzapur', 'Sonbhadra', 'Chandauli', 'Varanasi'],
-          sourceWarnings: [
-            {
-              id: 'IMD-UP-RAIN-2026-09-28',
-              source: 'IMD',
-              event: 'Thunderstorm with Lightning',
-              severity: 'YELLOW',
-              headline: 'Thunderstorm with lightning and isolated rain over South & East UP',
-              validUntil: '2026-09-29T08:30:00+05:30',
-            },
-          ],
-          validFrom: fetchTimestamp,
-          validUntil: '2026-09-29T08:30:00+05:30',
-          lastUpdated: fetchTimestamp,
-          status: 'ACTIVE_WARNING',
-        };
-      }
-
-      // Chhattisgarh: Yellow Watch for North districts
-      if (region.code === 'CG') {
-        return {
-          regionCode: 'CG',
-          regionName: 'Chhattisgarh',
-          regionType: 'STATE',
-          warningLevel: 'YELLOW',
-          hazards: ['Thunderstorm with Lightning', 'Moderate Rain'],
-          affectedDistricts: ['Koriya', 'Surajpur', 'Balrampur'],
-          sourceWarnings: [
-            {
-              id: 'IMD-CG-RAIN-2026-09-28',
-              source: 'IMD',
-              event: 'Moderate Rain & Thunderstorm',
-              severity: 'YELLOW',
-              headline: 'Moderate rain with lightning over northern districts',
-              validUntil: '2026-09-29T08:30:00+05:30',
-            },
-          ],
-          validFrom: fetchTimestamp,
-          validUntil: '2026-09-29T08:30:00+05:30',
-          lastUpdated: fetchTimestamp,
-          status: 'ACTIVE_WARNING',
-        };
-      }
-
-      // Andhra Pradesh & Odisha: NO WARNING (Green - past system is dissolved)
-      if (region.code === 'AP' || region.code === 'OD') {
-        return {
-          regionCode: region.code,
-          regionName: region.name,
-          regionType: 'STATE',
-          warningLevel: 'NO_WARNING',
-          hazards: [],
-          affectedDistricts: [],
-          sourceWarnings: [],
-          validFrom: fetchTimestamp,
-          validUntil: 'Routine Synoptic Period',
-          lastUpdated: fetchTimestamp,
-          status: 'NO_ACTIVE_WARNING',
-        };
-      }
-
-      // All other regions default to NO_WARNING (Green) under routine synoptic surveillance
-      return {
-        regionCode: region.code,
-        regionName: region.name,
-        regionType: region.type,
-        warningLevel: 'NO_WARNING',
-        hazards: [],
-        affectedDistricts: [],
-        sourceWarnings: [],
-        validFrom: fetchTimestamp,
-        validUntil: 'Routine Synoptic Period',
-        lastUpdated: fetchTimestamp,
-        status: 'NO_ACTIVE_WARNING',
-      };
-    });
+    const regionalWarnings: RegionalWarningStatus[] = ALL_36_INDIA_REGIONS.map((region) => ({
+      regionCode: region.code,
+      regionName: region.name,
+      regionType: region.type,
+      warningLevel: 'NO_WARNING',
+      hazards: [],
+      affectedDistricts: [],
+      sourceWarnings: [],
+      validFrom: fetchTimestamp,
+      validUntil: 'Routine Synoptic Surveillance',
+      lastUpdated: fetchTimestamp,
+      status: 'NO_ACTIVE_WARNING',
+    }));
 
     const states = regionalWarnings.filter((r) => r.regionType === 'STATE');
     const uts = regionalWarnings.filter((r) => r.regionType === 'UNION_TERRITORY');
+    const activeSystems = systems.filter((s) => s.status === 'ACTIVE');
 
     return {
-      systems: verifiedSystems,
-      activeCount: 2,
-      selectedSystemId: 'SYS-INLAND-MP-2026',
+      systems,
+      activeCount: activeSystems.length,
+      selectedSystemId: activeSystems[0]?.id || systems[0]?.id || null,
       regionalWarnings,
       stateCount: states.length,
       utCount: uts.length,
       totalRegions: regionalWarnings.length,
       lastSync: fetchTimestamp,
       providerHealth: health || {
-        imdCyclone: { status: 'LIVE', latencyMs: 95, lastFetch: fetchTimestamp },
-        imdWarnings: { status: 'LIVE', latencyMs: 120, lastFetch: fetchTimestamp },
-        sachet: { status: 'LIVE', latencyMs: 150, lastFetch: fetchTimestamp },
+        imdCyclone: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
+        imdWarnings: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
+        sachet: { status: 'UNAVAILABLE', latencyMs: null, lastFetch: null },
       },
     };
   }

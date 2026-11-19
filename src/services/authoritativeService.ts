@@ -1,17 +1,18 @@
 import { LocationRecord } from '../types';
+import { PersonaDataBundleSchema } from '../../shared/weatherContract';
 
 export interface AuthoritativeAQI {
   source: string;
   stationName: string;
-  aqi: number;
-  category: 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe';
+  aqi: number | null;
+  category: 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe' | 'Unavailable';
   dominantPollutant: string;
-  pm25: number;
-  pm10: number;
-  no2: number;
-  so2: number;
-  co: number;
-  o3: number;
+  pm25: number | null;
+  pm10: number | null;
+  no2: number | null;
+  so2: number | null;
+  co: number | null;
+  o3: number | null;
   healthAdvice: string;
   colorCode: string;
   lastUpdated: string;
@@ -20,14 +21,14 @@ export interface AuthoritativeAQI {
 
 export interface AuthoritativePollen {
   source: string;
-  overallIndex: number;
+  overallIndex: number | null;
   riskCategory: 'Low' | 'Moderate' | 'High' | 'Very High';
-  treePollen: number;
-  grassPollen: number;
-  weedPollen: number;
-  alderPollen?: number;
-  birchPollen?: number;
-  ragweedPollen?: number;
+  treePollen: number | null;
+  grassPollen: number | null;
+  weedPollen: number | null;
+  alderPollen?: number | null;
+  birchPollen?: number | null;
+  ragweedPollen?: number | null;
   allergyTip: string;
   lastUpdated: string;
 }
@@ -46,10 +47,10 @@ export interface AuthoritativeTide {
 export interface AuthoritativeMarine {
   source: string;
   isCoastal: boolean;
-  waveHeightMeters: number;
-  wavePeriodSeconds: number;
-  waveDirectionDegrees: number;
-  seaSurfaceTemperatureC: number;
+  waveHeightMeters: number | null;
+  wavePeriodSeconds: number | null;
+  waveDirectionDegrees: number | null;
+  seaSurfaceTemperatureC: number | null;
   surfCondition: 'Calm & Safe' | 'Moderate Swell' | 'Rough Waves' | 'Dangerous Surf';
   marineAdvisory: string;
   lastUpdated: string;
@@ -94,21 +95,21 @@ export interface PersonaDataBundle {
   health: {
     aqi: AuthoritativeAQI;
     pollen: AuthoritativePollen;
-    uvIndex: number;
+    uvIndex: number | null;
     uvRiskLabel: string;
     uvAdvice: string;
-    humidity: number;
+    humidity: number | null;
   };
   fitness: {
-    sunrise: string;
-    sunset: string;
+    sunrise: string | null;
+    sunset: string | null;
     bestRunningHours: string;
     workoutSuitability: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     heatAlertActive: boolean;
     heatAlertMessage: string | null;
-    windSpeedKmh: number;
+    windSpeedKmh: number | null;
     windDirection: string;
-    hydrationRateMlHour: number;
+    hydrationRateMlHour: number | null;
     thermalStressLevel: 'Low' | 'Moderate' | 'High' | 'Extreme';
   };
   beachAndSurf: {
@@ -132,9 +133,9 @@ export interface PersonaDataBundle {
     severeWarnings: AuthoritativeAlert[];
   };
   agriculture: {
-    soilMoisturePercent: number;
+    soilMoisturePercent: number | null;
     soilMoistureStatus: 'Dry' | 'Optimal' | 'Saturated';
-    threeDayRainfallTotalMm: number;
+    threeDayRainfallTotalMm: number | null;
     frostAlertActive: boolean;
     frostAlertMessage: string | null;
     currentCropSeason: 'Kharif' | 'Rabi' | 'Zaid';
@@ -145,7 +146,7 @@ export interface PersonaDataBundle {
     roadCondition: 'Dry' | 'Wet' | 'Waterlogged' | 'Icy' | 'Foggy';
     roadSafetyIndex: 'Green' | 'Yellow' | 'Red';
     roadSafetyLabel: string;
-    visibilityKm: number;
+    visibilityKm: number | null;
     visibilityStatus: 'Clear' | 'Moderate' | 'Poor (Fog)' | 'Dense Fog Danger';
     travelHazards: string[];
   };
@@ -153,15 +154,15 @@ export interface PersonaDataBundle {
     extendedForecast: Array<{
       date: string;
       dayOfWeek: string;
-      tempMax: number;
-      tempMin: number;
+      tempMax: number | null;
+      tempMin: number | null;
       condition: string;
       icon: string;
-      rainProbabilityPercent: number;
-      comfortIndexValue: number;
+      rainProbabilityPercent: number | null;
+      comfortIndexValue: number | null;
       comfortCategory: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
     }>;
-    comfortIndexToday: number;
+    comfortIndexToday: number | null;
     comfortCategoryToday: 'Pleasant' | 'Comfortable' | 'Warm & Humid' | 'Uncomfortable' | 'Stifling';
     eventRecommendation: string;
   };
@@ -240,18 +241,57 @@ class ClientAuthoritativeService {
     }
 
     params.append('mode', 'bundle');
-    const res = await fetch(`/api/weather?${params.toString()}`);
-    if (!res.ok) {
-      throw new Error(`Authoritative persona telemetry endpoint responded with HTTP ${res.status}`);
+
+    let lastSchemaError = '';
+    const tryValidate = (payload: any): PersonaDataBundle | null => {
+      if (!payload || payload.status !== 'success' || !payload.data) return null;
+      const parsed = PersonaDataBundleSchema.safeParse(payload.data);
+      if (parsed.success) {
+        return parsed.data as unknown as PersonaDataBundle;
+      }
+      lastSchemaError = parsed.error.issues
+        .slice(0, 3)
+        .map((issue) => `${issue.path.join('.') || 'root'}: ${issue.message}`)
+        .join('; ');
+      console.warn('[ClientAuthoritativeService] Schema validation failed:', lastSchemaError);
+      return null;
+    };
+
+    let lastStatus = 0;
+    try {
+      const res = await fetch(`/api/weather?${params.toString()}`);
+      lastStatus = res.status;
+      if (res.ok) {
+        const json = await res.json();
+        const valid = tryValidate(json);
+        if (valid) {
+          this.cache.set(key, { bundle: valid, timestamp: now });
+          return valid;
+        }
+      }
+    } catch {
+      // Fall through to authoritative persona-bundle endpoint
     }
 
-    const json = await res.json();
-    if (json.status === 'success' && json.data) {
-      const bundle = json.data as PersonaDataBundle;
-      this.cache.set(key, { bundle, timestamp: now });
-      return bundle;
+    const fallbackRes = await fetch(`/api/authoritative/persona-bundle?${params.toString()}`);
+    if (!fallbackRes.ok) {
+      throw new Error(
+        `Authoritative persona telemetry endpoint responded with HTTP ${fallbackRes.status || lastStatus || 502}`
+      );
     }
-    throw new Error('Invalid response structure from authoritative persona telemetry endpoint');
+
+    const fallbackJson = await fallbackRes.json();
+    const fallbackValid = tryValidate(fallbackJson);
+    if (fallbackValid) {
+      this.cache.set(key, { bundle: fallbackValid, timestamp: now });
+      return fallbackValid;
+    }
+
+    throw new Error(
+      lastSchemaError
+        ? `Persona telemetry payload validation failed (${lastSchemaError})`
+        : 'Persona telemetry payload could not be verified against schema'
+    );
   }
 
   /**
