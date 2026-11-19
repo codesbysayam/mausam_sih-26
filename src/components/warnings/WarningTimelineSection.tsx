@@ -44,10 +44,10 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
     <section
       id="national-warning-timeline-section"
       aria-label="National Warning Timeline"
-      className="bg-[#081522] border border-[#16293D] rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-4"
+      className="bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-4"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#16293D] gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[var(--m-border)] gap-2">
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-[#FFB703]" />
           <div>
@@ -61,14 +61,14 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
         </div>
 
         {/* Temporal Mode Switch: PAST ← NOW → NEXT */}
-        <div className="flex items-center gap-1 bg-[#0B1E32] p-1 rounded-lg border border-[#1B3A5A]">
+        <div className="flex items-center gap-1 bg-[var(--m-surface-1)] p-1 rounded-lg border border-[#1B3A5A]">
           <button
             type="button"
             onClick={() => setTemporalMode('PAST')}
             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
               temporalMode === 'PAST'
                 ? 'bg-[#1565C0] text-white shadow'
-                : 'text-[#8A94A6] hover:text-white'
+                : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             ← PAST
@@ -79,7 +79,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
               temporalMode === 'NOW'
                 ? 'bg-[#E74C3C] text-white shadow'
-                : 'text-[#8A94A6] hover:text-white'
+                : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             ● NOW (ACTIVE)
@@ -90,7 +90,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
               temporalMode === 'NEXT'
                 ? 'bg-[#1565C0] text-white shadow'
-                : 'text-[#8A94A6] hover:text-white'
+                : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             NEXT (OUTLOOK) →
@@ -101,7 +101,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
       {/* Warnings Timeline Cards */}
       <div className="space-y-2.5">
         {displayedList.length === 0 ? (
-          <div className="p-6 rounded-xl bg-[#0B1E32] border border-[#1B3A5A] text-center text-xs text-[#8A94A6]">
+          <div className="p-6 rounded-xl bg-[var(--m-surface-1)] border border-[#1B3A5A] text-center text-xs text-[var(--m-text-secondary)]">
             No active severe weather warnings reported for this synoptic window. Atmospheric conditions are within seasonal routine limits.
           </div>
         ) : (
@@ -114,8 +114,8 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
               onClick={() => onSelectWarning && onSelectWarning(warn)}
               className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                 isSelected
-                  ? 'bg-[#0E2640] border-[#1499E8] shadow-md ring-1 ring-[#1499E8]'
-                  : 'bg-[#0B1E32] border-[#1B3A5A] hover:border-[#1499E8]'
+                  ? 'bg-[var(--m-surface-2)] border-[#1499E8] shadow-md ring-1 ring-[#1499E8]'
+                  : 'bg-[var(--m-surface-1)] border-[#1B3A5A] hover:border-[#1499E8]'
               }`}
             >
               {/* Left Column: Severity + Title + Region */}
@@ -139,7 +139,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
                   <div className="text-xs text-[#90CAF9] mt-0.5">
                     Region: <strong className="text-white">{warn.state}</strong> ({warn.subdivision || warn.affectedAreaText})
                   </div>
-                  <div className="text-[11px] text-[#8A94A6] line-clamp-1 mt-1">
+                  <div className="text-[11px] text-[var(--m-text-secondary)] line-clamp-1 mt-1">
                     {warn.description}
                   </div>
                 </div>

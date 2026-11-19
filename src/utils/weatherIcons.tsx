@@ -126,10 +126,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Moon,
-        iconColor: 'text-[#F4D03F]',
-        bgGradient: 'from-[#1B2A4A]/40 via-[#0B1528]/80 to-transparent',
-        badgeBg: 'bg-[#1E3A8A]/30 border-[#3B82F6]/40',
-        badgeText: 'text-[#93C5FD]',
+        iconColor: 'text-[#B47A00]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Clear Night & Unobstructed Celestial Visibility',
       };
 
@@ -137,10 +137,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Sun,
-        iconColor: 'text-[#F1C40F]',
-        bgGradient: 'from-[#F1C40F]/15 via-[#0B72B9]/10 to-transparent',
-        badgeBg: 'bg-[#F1C40F]/15 border-[#F1C40F]/40',
-        badgeText: 'text-[#F1C40F]',
+        iconColor: 'text-[#C28400]',
+        bgGradient: 'from-[var(--m-watch-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35',
+        badgeText: 'text-[var(--m-watch)]',
         description: 'Clear Skies & Optimal Solar Radiation',
       };
 
@@ -148,10 +148,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudMoon,
-        iconColor: 'text-[#85C1E9]',
-        bgGradient: 'from-[#1E293B]/60 via-[#0F172A]/70 to-transparent',
-        badgeBg: 'bg-[#1E293B]/40 border-[#38BDF8]/30',
-        badgeText: 'text-[#7DD3FC]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-surface-2)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)]',
+        badgeText: 'text-[var(--m-text-primary)]',
         description: 'Scattered Cloud Cover at Night',
       };
 
@@ -159,10 +159,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudSun,
-        iconColor: 'text-[#4FA8E0]',
-        bgGradient: 'from-[#4FA8E0]/15 via-[#0B1927]/50 to-transparent',
-        badgeBg: 'bg-[#4FA8E0]/15 border-[#4FA8E0]/40',
-        badgeText: 'text-[#4FA8E0]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Scattered Cloud Cover & Stable Boundary Layer',
       };
 
@@ -170,10 +170,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Cloud,
-        iconColor: 'text-[#94A3B8]',
-        bgGradient: 'from-[#334155]/30 via-[#1E293B]/50 to-transparent',
-        badgeBg: 'bg-[#334155]/30 border-[#94A3B8]/30',
-        badgeText: 'text-[#CBD5E1]',
+        iconColor: 'text-[var(--m-text-secondary)]',
+        bgGradient: 'from-[var(--m-surface-2)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)]',
+        badgeText: 'text-[var(--m-text-secondary)]',
         description: 'Broken Stratocumulus Deck',
       };
 
@@ -181,10 +181,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Cloud,
-        iconColor: 'text-[#8A94A6]',
-        bgGradient: 'from-[#314255]/40 via-[#0B1927]/60 to-transparent',
-        badgeBg: 'bg-[#314255]/40 border-[#4FA8E0]/40',
-        badgeText: 'text-[#D7DEE8]',
+        iconColor: 'text-[var(--m-text-secondary)]',
+        bgGradient: 'from-[var(--m-surface-2)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)]',
+        badgeText: 'text-[var(--m-text-primary)]',
         description: 'Overcast Stratus Deck',
       };
 
@@ -192,10 +192,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudDrizzle,
-        iconColor: 'text-[#5DADE2]',
-        bgGradient: 'from-[#0B72B9]/20 via-[#0B1927]/70 to-transparent',
-        badgeBg: 'bg-[#0B72B9]/20 border-[#4FA8E0]/40',
-        badgeText: 'text-[#4FA8E0]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Light Intermittent Drizzle',
       };
 
@@ -203,10 +203,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudRain,
-        iconColor: 'text-[#38BDF8]',
-        bgGradient: 'from-[#0369A1]/30 via-[#0B1528] to-transparent',
-        badgeBg: 'bg-[#0369A1]/25 border-[#38BDF8]/40',
-        badgeText: 'text-[#38BDF8]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/40',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Active Synoptic Precipitation',
       };
 
@@ -214,10 +214,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudRain,
-        iconColor: 'text-[#0284C7]',
-        bgGradient: 'from-[#075985]/40 via-[#032B43]/70 to-transparent',
-        badgeBg: 'bg-[#075985]/30 border-[#0284C7]/50',
-        badgeText: 'text-[#38BDF8]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-2)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Torrential Convective Downpour',
       };
 
@@ -225,10 +225,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudLightning,
-        iconColor: 'text-[#F59E0B]',
-        bgGradient: 'from-[#581C87]/35 via-[#F59E0B]/15 to-transparent',
-        badgeBg: 'bg-[#7E22CE]/25 border-[#F59E0B]/50',
-        badgeText: 'text-[#FCD34D]',
+        iconColor: 'text-[var(--m-warn)]',
+        bgGradient: 'from-[var(--m-warn-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-warn-soft)] border-[var(--m-warn)]/45',
+        badgeText: 'text-[var(--m-warn)]',
         description: 'Convective Mesoscale Thunderstorm Cells',
       };
 
@@ -236,10 +236,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudFog,
-        iconColor: 'text-[#94A3B8]',
-        bgGradient: 'from-[#334155]/30 via-[#1E293B]/60 to-transparent',
-        badgeBg: 'bg-[#334155]/20 border-[#94A3B8]/40',
-        badgeText: 'text-[#E2E8F0]',
+        iconColor: 'text-[var(--m-text-secondary)]',
+        bgGradient: 'from-[var(--m-surface-2)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)]',
+        badgeText: 'text-[var(--m-text-primary)]',
         description: 'Surface Inversion & Reduced Horizontal Visibility',
       };
 
@@ -247,10 +247,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Haze,
-        iconColor: 'text-[#8A94A6]',
-        bgGradient: 'from-[#8A94A6]/15 via-[#0B1927]/50 to-transparent',
-        badgeBg: 'bg-[#8A94A6]/15 border-[#8A94A6]/40',
-        badgeText: 'text-[#D7DEE8]',
+        iconColor: 'text-[var(--m-text-secondary)]',
+        bgGradient: 'from-[var(--m-surface-2)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)]',
+        badgeText: 'text-[var(--m-text-primary)]',
         description: 'Shallow Atmospheric Mist / Haze Layer',
       };
 
@@ -258,10 +258,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: CloudSnow,
-        iconColor: 'text-[#BAE6FD]',
-        bgGradient: 'from-[#0284C7]/20 via-[#1E293B]/60 to-transparent',
-        badgeBg: 'bg-[#0284C7]/20 border-[#BAE6FD]/40',
-        badgeText: 'text-[#E0F2FE]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Cryospheric Frozen Precipitation',
       };
 
@@ -269,10 +269,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Sun,
-        iconColor: 'text-[#EF4444]',
-        bgGradient: 'from-[#EF4444]/20 via-[#F97316]/10 to-transparent',
-        badgeBg: 'bg-[#EF4444]/20 border-[#EF4444]/50',
-        badgeText: 'text-[#FCA5A5]',
+        iconColor: 'text-[var(--m-danger)]',
+        bgGradient: 'from-[var(--m-danger-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/40',
+        badgeText: 'text-[var(--m-danger)]',
         description: 'High Thermal Heatwave Conditions',
       };
 
@@ -280,10 +280,10 @@ export function getWeatherVisualConfig(
       return {
         category,
         icon: Wind,
-        iconColor: 'text-[#D97706]',
-        bgGradient: 'from-[#D97706]/20 via-[#1E293B]/60 to-transparent',
-        badgeBg: 'bg-[#D97706]/20 border-[#D97706]/40',
-        badgeText: 'text-[#FCD34D]',
+        iconColor: 'text-[var(--m-warn)]',
+        bgGradient: 'from-[var(--m-warn-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-warn-soft)] border-[var(--m-warn)]/40',
+        badgeText: 'text-[var(--m-warn)]',
         description: 'Airborne Dust Suspension & Gusty Surface Winds',
       };
 
@@ -291,10 +291,10 @@ export function getWeatherVisualConfig(
       return {
         category: 'partly_cloudy_day',
         icon: CloudSun,
-        iconColor: 'text-[#4FA8E0]',
-        bgGradient: 'from-[#0B72B9]/15 via-[#0B1927]/50 to-transparent',
-        badgeBg: 'bg-[#0B72B9]/15 border-[#0B72B9]/40',
-        badgeText: 'text-[#4FA8E0]',
+        iconColor: 'text-[var(--m-accent)]',
+        bgGradient: 'from-[var(--m-accent-soft)] via-[var(--m-surface-1)] to-transparent',
+        badgeBg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35',
+        badgeText: 'text-[var(--m-accent)]',
         description: 'Normal Synoptic Conditions',
       };
   }

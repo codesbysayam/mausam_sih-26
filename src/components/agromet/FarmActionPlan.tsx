@@ -25,8 +25,8 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
     switch (category) {
       case 'irrigation':
         return {
-          icon: <Droplet className="w-6 h-6 text-[#38BDF8]" />,
-          statusColor: 'text-[#38BDF8] bg-[#38BDF8]/15 border-[#38BDF8]/40',
+          icon: <Droplet className="w-6 h-6 text-[var(--m-accent)]" />,
+          statusColor: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/40',
           accentBorder: 'border-l-4 border-l-[#38BDF8]',
           badgeText: 'WAIT / POSTPONE',
           categoryTitle: 'IRRIGATION DECISION',
@@ -41,8 +41,8 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
         };
       case 'pest':
         return {
-          icon: <Bug className="w-6 h-6 text-[#EF4444]" />,
-          statusColor: 'text-[#EF4444] bg-[#EF4444]/15 border-[#EF4444]/40',
+          icon: <Bug className="w-6 h-6 text-[var(--m-danger)]" />,
+          statusColor: 'text-[var(--m-danger)] bg-[var(--m-danger-soft)] border-[var(--m-danger)]/40',
           accentBorder: 'border-l-4 border-l-[#EF4444]',
           badgeText: 'WATCH & SCOUT',
           categoryTitle: 'CROP MONITORING & IPM',
@@ -50,8 +50,8 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
       case 'nutrients':
       default:
         return {
-          icon: <Sprout className="w-6 h-6 text-[#F59E0B]" />,
-          statusColor: 'text-[#F59E0B] bg-[#F59E0B]/15 border-[#F59E0B]/40',
+          icon: <Sprout className="w-6 h-6 text-[var(--m-watch)]" />,
+          statusColor: 'text-[var(--m-watch)] bg-[var(--m-watch-soft)] border-[var(--m-watch)]/40',
           accentBorder: 'border-l-4 border-l-[#F59E0B]',
           badgeText: 'DELAY NPK SPLIT',
           categoryTitle: 'FERTILIZER & SPRAYS',
@@ -60,13 +60,13 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
   };
 
   return (
-    <section className="rounded-3xl bg-gradient-to-b from-[#142130] via-[#0E1724] to-[#0A1017] border-2 border-[#2A405A] p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden">
+    <section className="rounded-3xl bg-gradient-to-b from-[var(--m-surface-1)] via-[var(--m-surface-1)] to-[var(--m-surface-inset)] border-2 border-[var(--m-border-strong)] p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden">
       {/* Glow Effect */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#2ECC71]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#38BDF8]/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-[#2A405A] gap-3 relative z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-[var(--m-border-strong)] gap-3 relative z-10">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#2ECC71] flex items-center justify-center text-[#0A1017] shadow-lg shadow-[#2ECC71]/25">
@@ -76,12 +76,12 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
               What Should I Do Today?
             </h2>
           </div>
-          <p className="text-sm text-[#94A3B8] mt-1 font-normal">
+          <p className="text-sm text-[var(--m-text-muted)] mt-1 font-normal">
             Direct, prioritized agricultural recommendations for <strong className="text-white font-semibold">{selectedCrop}</strong> in {bulletin.district}.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#182736] border border-[#2F4763] text-xs text-[#38BDF8] font-mono font-semibold self-start sm:self-auto shadow-sm">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-xs text-[var(--m-accent)] font-mono font-semibold self-start sm:self-auto shadow-sm">
           <Clock className="w-4 h-4" />
           <span>Execution Window: Next 24 Hours</span>
         </div>
@@ -95,16 +95,16 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
           return (
             <div
               key={item.id || idx}
-              className={`rounded-2xl bg-[#0F1722] border border-[#1E2E40] hover:border-[#38BDF8]/60 p-5 flex flex-col justify-between transition-all duration-200 shadow-xl group hover:scale-[1.01]`}
+              className={`rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/60 p-5 flex flex-col justify-between transition-all duration-200 shadow-xl group hover:scale-[1.01]`}
             >
               <div>
                 {/* Card Top Category & Icon */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-[#162434] border border-[#23384E]">
+                    <div className="p-2 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border-strong)]">
                       {theme.icon}
                     </div>
-                    <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider font-mono">
+                    <span className="text-[11px] font-bold text-[var(--m-text-muted)] uppercase tracking-wider font-mono">
                       {theme.categoryTitle}
                     </span>
                   </div>
@@ -112,7 +112,7 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
 
                 {/* Status Indicator Pill (Dominant) */}
                 <div className="my-3">
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block mb-1 font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)] block mb-1 font-semibold">
                     Status
                   </span>
                   <div className={`px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-black font-mono tracking-tight flex items-center justify-between ${theme.statusColor}`}>
@@ -123,7 +123,7 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
 
                 {/* Direct Action */}
                 <div className="my-3">
-                  <span className="text-[10px] uppercase font-mono text-[#64748B] block mb-1 font-semibold">
+                  <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)] block mb-1 font-semibold">
                     Action
                   </span>
                   <p className="text-sm font-bold text-white leading-snug">
@@ -132,23 +132,23 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
                 </div>
 
                 {/* Agronomic Reason */}
-                <div className="my-3 bg-[#131F2E] p-3 rounded-xl border border-[#1E2E40]/80">
-                  <span className="text-[10px] uppercase font-mono text-[#38BDF8] block mb-1 font-bold">
+                <div className="my-3 bg-[var(--m-surface-2)] p-3 rounded-xl border border-[var(--m-border)]">
+                  <span className="text-[10px] uppercase font-mono text-[var(--m-accent)] block mb-1 font-bold">
                     Agronomic Reason
                   </span>
-                  <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                  <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
                     {item.reason}
                   </p>
                 </div>
               </div>
 
               {/* Time Execution Window */}
-              <div className="pt-3 mt-2 border-t border-[#1E2E40] flex items-center justify-between text-xs">
-                <span className="text-[#64748B] flex items-center gap-1 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <div className="pt-3 mt-2 border-t border-[var(--m-border)] flex items-center justify-between text-xs">
+                <span className="text-[var(--m-text-muted)] flex items-center gap-1 font-medium">
+                  <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                   Best Window:
                 </span>
-                <span className="font-bold text-[#38BDF8] font-mono bg-[#162434] px-2 py-0.5 rounded-md border border-[#23384E]">
+                <span className="font-bold text-[var(--m-accent)] font-mono bg-[var(--m-surface-2)] px-2 py-0.5 rounded-md border border-[var(--m-border-strong)]">
                   {item.when}
                 </span>
               </div>

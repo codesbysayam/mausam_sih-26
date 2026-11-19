@@ -83,7 +83,7 @@ export const ApiDebugPage: React.FC = () => {
   ];
 
   return (
-    <div id="mausam-data-sources-page" className="max-w-7xl mx-auto space-y-5 pb-12 text-[#F3F6FA]">
+    <div id="mausam-data-sources-page" className="max-w-7xl mx-auto space-y-5 pb-12 text-[var(--m-text-primary)]">
       {/* Unified Observatory Header */}
       <PageHeader
         eyebrow="Provider Registry & Telemetry Diagnostics"
@@ -96,9 +96,9 @@ export const ApiDebugPage: React.FC = () => {
             type="button"
             onClick={fetchStats}
             disabled={loading}
-            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-[#F3F6FA] rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-[var(--m-text-primary)] rounded-lg font-mono text-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
           >
-            <RefreshCw className={`w-4 h-4 text-[#35C7E8] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-[var(--m-accent)] ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh Server Stats</span>
           </button>
         }
@@ -111,61 +111,61 @@ export const ApiDebugPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 tabular-nums">
         <DataPanel className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
               Cache Hits
             </span>
-            <Database className="w-4 h-4 text-[#22C7A0]" />
+            <Database className="w-4 h-4 text-[var(--m-ok)]" />
           </div>
           <MetricValue
             label="Memory Returns"
             value={typeof stats?.hits === 'number' ? stats.hits : null}
             hint="Served from server cache"
-            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
           />
         </DataPanel>
 
         <DataPanel className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
               Cache Misses
             </span>
-            <Server className="w-4 h-4 text-[#35C7E8]" />
+            <Server className="w-4 h-4 text-[var(--m-accent)]" />
           </div>
           <MetricValue
             label="Upstream Fetches"
             value={typeof stats?.misses === 'number' ? stats.misses : null}
             hint="Dispatched to providers"
-            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
           />
         </DataPanel>
 
         <DataPanel className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
               Deduplicated Calls
             </span>
-            <Clock className="w-4 h-4 text-[#35C7E8]" />
+            <Clock className="w-4 h-4 text-[var(--m-accent)]" />
           </div>
           <MetricValue
             label="In-Flight Reuse"
             value={typeof stats?.dedupes === 'number' ? stats.dedupes : null}
             hint="Coalesced concurrent queries"
-            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
           />
         </DataPanel>
 
         <DataPanel className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[#8295A8]">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
               Stale Serves
             </span>
-            <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
+            <AlertTriangle className="w-4 h-4 text-[var(--m-watch)]" />
           </div>
           <MetricValue
             label="Graceful Degrades"
             value={typeof stats?.staleServes === 'number' ? stats.staleServes : null}
             hint="Cached fallback on upstream delay"
-            unavailableLabel={loading ? 'Syncing…' : 'Unavailable'}
+            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
           />
         </DataPanel>
       </div>
@@ -173,24 +173,24 @@ export const ApiDebugPage: React.FC = () => {
       {/* Active Cache Entries */}
       {stats?.entries && stats.entries.length > 0 && (
         <DataPanel className="p-0 overflow-hidden tabular-nums">
-          <div className="p-4 bg-[#08131F] border-b border-[#26394B] font-mono text-sm font-semibold text-[#F3F6FA] flex justify-between items-center">
+          <div className="p-4 bg-[var(--m-surface-2)] border-b border-[var(--m-border)] font-mono text-sm font-semibold text-[var(--m-text-primary)] flex justify-between items-center">
             <span>In-Memory Cache Registry ({stats.entries.length} entries)</span>
-            <span className="text-xs text-[#8295A8] font-normal">TTL: 60s – 300s</span>
+            <span className="text-xs text-[var(--m-text-muted)] font-normal">TTL: 60s – 300s</span>
           </div>
-          <div className="divide-y divide-[#26394B] max-h-60 overflow-y-auto">
+          <div className="divide-y divide-[var(--m-border)] max-h-60 overflow-y-auto">
             {stats.entries.map((entry: any, i: number) => (
               <div
                 key={i}
-                className="p-3.5 text-xs font-mono flex items-center justify-between hover:bg-[#101F2E]/70 gap-3"
+                className="p-3.5 text-xs font-mono flex items-center justify-between hover:bg-[var(--m-surface-2)] gap-3"
               >
-                <span className="font-semibold text-[#B5C3D1] truncate">{entry.key}</span>
-                <div className="flex items-center gap-4 text-[#8295A8] shrink-0">
+                <span className="font-semibold text-[var(--m-text-secondary)] truncate">{entry.key}</span>
+                <div className="flex items-center gap-4 text-[var(--m-text-muted)] shrink-0">
                   <span>Hits: {entry.hitCount}</span>
                   <span
                     className={
                       entry.isExpired
-                        ? 'text-[#FCD34D] font-bold'
-                        : 'text-[#6EE7B7] font-bold'
+                        ? 'text-[var(--m-watch)] font-bold'
+                        : 'text-[var(--m-ok)] font-bold'
                     }
                   >
                     {entry.isExpired ? 'STALE' : `Expires in ${entry.expiresInSec}s`}
@@ -207,7 +207,7 @@ export const ApiDebugPage: React.FC = () => {
 
       {/* Interactive Endpoint Validation Runner */}
       <DataPanel className="p-0 overflow-hidden tabular-nums">
-        <div className="p-4 sm:p-5 bg-[#08131F] border-b border-[#26394B]">
+        <div className="p-4 sm:p-5 bg-[var(--m-surface-2)] border-b border-[var(--m-border)]">
           <SectionHeading
             title="Gateway & IMD Endpoint Validation Suite"
             subtitle="On-demand upstream latency probes and status inspection"
@@ -216,7 +216,7 @@ export const ApiDebugPage: React.FC = () => {
           />
         </div>
 
-        <div className="divide-y divide-[#26394B]">
+        <div className="divide-y divide-[var(--m-border)]">
           {testEndpoints.map((ep, idx) => {
             const result = testResults[ep.name];
             const isTesting = testingEndpoint === ep.name;
@@ -224,12 +224,12 @@ export const ApiDebugPage: React.FC = () => {
             return (
               <div
                 key={idx}
-                className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-[#101F2E]/60 transition-colors"
+                className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-[var(--m-surface-2)] transition-colors"
               >
                 <div className="space-y-1 min-w-0">
-                  <div className="font-semibold text-sm text-[#F3F6FA] flex flex-wrap items-center gap-2">
+                  <div className="font-semibold text-sm text-[var(--m-text-primary)] flex flex-wrap items-center gap-2">
                     <span>{ep.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-[#08131F] border border-[#26394B] text-[#35C7E8] rounded font-mono">
+                    <span className="text-xs px-2 py-0.5 bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-accent)] rounded font-mono">
                       {ep.path}
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export const ApiDebugPage: React.FC = () => {
                     <div className="text-xs font-mono flex flex-wrap items-center gap-3 mt-1">
                       <span
                         className={`inline-flex items-center gap-1 font-semibold ${
-                          result.ok ? 'text-[#6EE7B7]' : 'text-[#FCA5A5]'
+                          result.ok ? 'text-[var(--m-ok)]' : 'text-[var(--m-danger)]'
                         }`}
                       >
                         {result.ok ? (
@@ -247,9 +247,9 @@ export const ApiDebugPage: React.FC = () => {
                         )}
                         {result.status.toUpperCase()}
                       </span>
-                      <span className="text-[#8295A8]">Latency: {result.durationMs} ms</span>
+                      <span className="text-[var(--m-text-muted)]">Latency: {result.durationMs} ms</span>
                       {result.error && (
-                        <span className="text-[#FCA5A5] font-normal truncate max-w-md">
+                        <span className="text-[var(--m-danger)] font-normal truncate max-w-md">
                           ({result.error.code || 'ERR'}: {result.error.message})
                         </span>
                       )}
@@ -261,9 +261,9 @@ export const ApiDebugPage: React.FC = () => {
                   type="button"
                   onClick={() => runEndpointTest(ep.name, ep.fn)}
                   disabled={isTesting}
-                  className="min-h-[44px] sm:min-h-[40px] px-3.5 py-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-[#F3F6FA] rounded-lg text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0 cursor-pointer m-focus-ring"
+                  className="min-h-[44px] sm:min-h-[40px] px-3.5 py-2 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-[var(--m-text-primary)] rounded-lg text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0 cursor-pointer m-focus-ring"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 text-[#35C7E8] ${isTesting ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isTesting ? 'animate-spin' : ''}`} />
                   <span>{isTesting ? 'Testing…' : 'Execute Probe'}</span>
                 </button>
               </div>

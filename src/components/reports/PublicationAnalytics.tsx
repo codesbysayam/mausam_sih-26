@@ -97,7 +97,7 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
         subtitle="Dynamically indexed issuance counts across active meteorological cycles and disciplines"
         icon={<BarChart3 className="w-4 h-4" />}
         badge={
-          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B] text-[#35C7E8] tabular-nums">
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-accent)] tabular-nums">
             {publications.length} Indexed
           </span>
         }
@@ -107,10 +107,10 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
         {/* Left: Monthly Issuance Activity Bar Chart */}
         <div className="lg:col-span-2 m-panel-inset p-4">
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-            <span className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider">
+            <span className="text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
               Monthly Publication Volume
             </span>
-            <span className="text-[11px] font-mono tabular-nums text-[#35C7E8] bg-[#35C7E8]/12 px-2.5 py-0.5 rounded border border-[#35C7E8]/30">
+            <span className="text-[11px] font-mono tabular-nums text-[var(--m-accent)] bg-[var(--m-accent-soft)] px-2.5 py-0.5 rounded border border-[var(--m-accent)]/30">
               Peak: {peakMonth.full} ({peakMonth.count}{' '}
               {peakMonth.count === 1 ? 'Report' : 'Reports'})
             </span>
@@ -138,9 +138,9 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-[#0B1927] border border-[#35C7E8]/40 p-2.5 rounded-lg text-xs font-mono tabular-nums shadow-xl">
-                          <p className="text-[#F3F6FA] font-bold">{data.full}</p>
-                          <p className="text-[#35C7E8] mt-1">{data.count} Publications Issued</p>
+                        <div className="bg-[var(--m-surface-1)] border border-[var(--m-accent)]/40 p-2.5 rounded-lg text-xs font-mono tabular-nums shadow-xl">
+                          <p className="text-[var(--m-text-primary)] font-bold">{data.full}</p>
+                          <p className="text-[var(--m-accent)] mt-1">{data.count} Publications Issued</p>
                         </div>
                       );
                     }
@@ -169,7 +169,7 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
         {/* Right: Domain Breakdown Distribution */}
         <div className="m-panel-inset p-4 flex flex-col justify-between">
           <div>
-            <span className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider block mb-3.5">
+            <span className="text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider block mb-3.5">
               Domain Classification
             </span>
 
@@ -177,10 +177,10 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
               {categoryData.map((item) => (
                 <div key={item.name} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-mono tabular-nums">
-                    <span className="text-[#B5C3D1] truncate">{item.name}</span>
-                    <span className="text-[#F3F6FA] font-bold">{item.count}</span>
+                    <span className="text-[var(--m-text-secondary)] truncate">{item.name}</span>
+                    <span className="text-[var(--m-text-primary)] font-bold">{item.count}</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-[#172A3B] overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-[var(--m-surface-3)] overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-300"
                       style={{
@@ -194,9 +194,9 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#26394B] text-[11px] font-mono text-[#8295A8] flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
             <span>Primary Focus</span>
-            <span className="text-[#35C7E8] font-bold">Atmospheric &amp; Synoptic</span>
+            <span className="text-[var(--m-accent)] font-bold">Atmospheric &amp; Synoptic</span>
           </div>
         </div>
       </div>

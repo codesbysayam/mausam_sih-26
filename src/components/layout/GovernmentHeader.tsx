@@ -102,7 +102,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
 
   return (
     <>
-      <header className="w-full bg-[#0B1219]/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-40 select-none">
+      <header className="w-full bg-[var(--m-surface-inset)] backdrop-blur-md border-b border-[var(--m-border)] sticky top-0 z-40 select-none">
         <div className="max-w-[1560px] mx-auto px-3 sm:px-4 lg:px-6">
           <div className="h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
             {/* Left: Brand Identity */}
@@ -127,7 +127,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       handleSearchSubmit();
                     }
                   }}
-                  className="w-full h-10 bg-[#101B26] border border-white/12 hover:border-[#38BDF8]/40 focus:border-[#38BDF8] rounded-lg text-[#F4F7FA] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none transition-colors"
+                  className="w-full h-10 bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/40 focus:border-[var(--m-accent)] rounded-lg text-[var(--m-text-primary)] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none transition-colors"
                   aria-label={t('searchPlaceholder', 'Search city, state, or PIN code...')}
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
@@ -135,7 +135,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1 text-[#8EA3B8] hover:text-white rounded hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1 text-[#8EA3B8] hover:text-[var(--m-text-primary)] rounded hover:bg-white/10 transition-colors cursor-pointer"
                       aria-label="Clear search"
                     >
                       <span className="material-symbols-outlined text-[16px]">close</span>
@@ -148,7 +148,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       onClick={handleMyLocationClick}
                       disabled={isLocating}
                       title={locationSource === 'DEVICE_GPS' ? 'GPS Active — Refresh coordinates' : 'Detect My Location (GPS)'}
-                      className="p-1.5 rounded text-[#38BDF8] hover:text-white hover:bg-[#1499E8]/20 transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+                      className="p-1.5 rounded text-[var(--m-accent)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-accent-soft)] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
                       aria-label="Detect GPS Location"
                     >
                       <span className={`material-symbols-outlined text-[17px] ${isLocating ? 'animate-spin' : ''}`}>
@@ -165,9 +165,9 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       className="fixed inset-0 z-40"
                       onClick={() => setIsSearchOpen(false)}
                     />
-                    <div className="absolute top-11 left-0 right-0 bg-[#101B26] border border-white/15 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto scrollbar-thin">
+                    <div className="absolute top-11 left-0 right-0 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto scrollbar-thin">
                       {onDetectLocation && (
-                        <div className="p-2 border-b border-white/10 bg-[#0B1219]">
+                        <div className="p-2 border-b border-[var(--m-border)] bg-[var(--m-surface-inset)]">
                           <UseMyLocationButton
                             onDetect={handleMyLocationClick}
                             isLocating={isLocating}
@@ -178,9 +178,9 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                         </div>
                       )}
 
-                      <div className="px-3 py-2 border-b border-white/10 text-[11px] text-[#8EA3B8] font-medium flex justify-between">
+                      <div className="px-3 py-2 border-b border-[var(--m-border)] text-[11px] text-[#8EA3B8] font-medium flex justify-between">
                         <span>{t('selectStation', 'Select Location')}</span>
-                        <span className="text-[#B6C7D8] truncate max-w-[180px]">
+                        <span className="text-[var(--m-text-secondary)] truncate max-w-[180px]">
                           {selectedLocation.city}, {selectedLocation.state}
                         </span>
                       </div>
@@ -196,15 +196,15 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                               setIsSearchOpen(false);
                               setSearchQuery('');
                             }}
-                            className={`px-3 py-2.5 text-xs hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 transition-colors ${
-                              selectedLocation.id === res.location.id ? 'bg-[#1499E8]/15 text-[#F4F7FA] font-semibold' : 'text-[#F4F7FA]'
+                            className={`px-3 py-2.5 text-xs hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center border-b border-[var(--m-border)] transition-colors ${
+                              selectedLocation.id === res.location.id ? 'bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] font-semibold' : 'text-[var(--m-text-primary)]'
                             }`}
                           >
                             <div className="flex-1 pr-2 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-[#F4F7FA] truncate">{res.displayTitle}</span>
+                                <span className="font-semibold text-[var(--m-text-primary)] truncate">{res.displayTitle}</span>
                                 {res.matchedParameter && (
-                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1499E8]/20 text-[#38BDF8] font-semibold uppercase">
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-semibold uppercase">
                                     {res.matchedParameter}
                                   </span>
                                 )}
@@ -220,7 +220,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                         </div>
                       ) : (
                         <div>
-                          <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[#162331]/70">
+                          <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
                             Major Indian Cities
                           </div>
                           {[
@@ -244,7 +244,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                                 setIsSearchOpen(false);
                                 setSearchQuery('');
                               }}
-                              className="px-3 py-2 text-xs text-[#B6C7D8] hover:text-[#F4F7FA] hover:bg-[#162331] cursor-pointer flex justify-between items-center transition-colors"
+                              className="px-3 py-2 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center transition-colors"
                             >
                               <span className="font-medium">{hub.city}</span>
                               <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>
@@ -262,10 +262,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                 <button
                   type="button"
                   onClick={onOpenLocationCenter}
-                  className="hidden lg:flex items-center gap-1.5 h-10 px-3 rounded-lg bg-[#101B26] hover:bg-[#162331] border border-white/12 text-xs text-[#F4F7FA] transition-colors shrink-0 max-w-[200px] cursor-pointer"
+                  className="hidden lg:flex items-center gap-1.5 h-10 px-3 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs text-[var(--m-text-primary)] transition-colors shrink-0 max-w-[200px] cursor-pointer"
                   title="Switch active location or manage saved places"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                   <span className="truncate font-medium">{selectedLocation.city}</span>
                 </button>
               )}
@@ -273,8 +273,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono tabular-nums text-[#8EA3B8] pr-2.5 border-r border-white/10">
-                <span className="text-[#F4F7FA] font-medium">{istTimeString}</span>
+              <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono tabular-nums text-[#8EA3B8] pr-2.5 border-r border-[var(--m-border)]">
+                <span className="text-[var(--m-text-primary)] font-medium">{istTimeString}</span>
                 <span>IST</span>
               </div>
 
@@ -283,10 +283,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                   type="button"
                   id="header-ask-mausam-button"
                   onClick={onOpenAskMausam}
-                  className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-lg bg-[#101B26] hover:bg-[#162331] border border-white/14 hover:border-[#38BDF8]/40 text-[#F4F7FA] text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+                  className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-white/14 hover:border-[var(--m-accent)]/40 text-[var(--m-text-primary)] text-xs font-semibold transition-colors shrink-0 cursor-pointer"
                   title={t('askMausam', 'Ask MAUSAM')}
                 >
-                  <span className="material-symbols-outlined text-[16px] text-[#38BDF8]">
+                  <span className="material-symbols-outlined text-[16px] text-[var(--m-accent)]">
                     auto_awesome
                   </span>
                   <span className="hidden sm:inline whitespace-nowrap">Ask MAUSAM</span>
@@ -309,10 +309,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                 <button
                   type="button"
                   onClick={onOpenLocationCenter}
-                  className="md:hidden h-11 px-2.5 rounded-lg bg-[#101B26] border border-white/12 text-[#F4F7FA] flex items-center gap-1 text-xs font-medium max-w-[120px] cursor-pointer"
+                  className="md:hidden h-11 px-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] flex items-center gap-1 text-xs font-medium max-w-[120px] cursor-pointer"
                   aria-label="Change active city"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                   <span className="truncate">{selectedLocation.city}</span>
                 </button>
               )}
@@ -321,12 +321,12 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                 type="button"
                 id="mobile-menu-toggle-btn"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden w-11 h-11 rounded-lg bg-[#101B26] border border-white/12 text-[#F4F7FA] flex items-center justify-center cursor-pointer transition-colors relative shrink-0"
+                className="md:hidden w-11 h-11 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] flex items-center justify-center cursor-pointer transition-colors relative shrink-0"
                 aria-label="Open Navigation Menu"
               >
                 <span className="material-symbols-outlined text-[20px]">menu</span>
                 {activeAlertCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#EF4444] ring-2 ring-[#0B1219]" />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#EF4444] ring-2 ring-[var(--m-border)]" />
                 )}
               </button>
             </div>
@@ -351,7 +351,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     handleSearchSubmit();
                   }
                 }}
-                className="w-full h-11 bg-[#101B26] border border-white/12 rounded-lg text-[#F4F7FA] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none focus:border-[#38BDF8]"
+                className="w-full h-11 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg text-[var(--m-text-primary)] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none focus:border-[var(--m-accent)]"
                 aria-label={t('searchPlaceholder', 'Search city, district, or PIN...')}
               />
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
@@ -359,7 +359,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="w-9 h-9 flex items-center justify-center text-[#8EA3B8] hover:text-white rounded-lg"
+                    className="w-9 h-9 flex items-center justify-center text-[#8EA3B8] hover:text-[var(--m-text-primary)] rounded-lg"
                     aria-label="Clear search"
                   >
                     <span className="material-symbols-outlined text-[16px]">close</span>
@@ -371,7 +371,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     id="search-gps-locate-btn-mobile"
                     onClick={handleMyLocationClick}
                     disabled={isLocating}
-                    className="w-9 h-9 rounded-lg text-[#38BDF8] hover:bg-[#1499E8]/20 flex items-center justify-center cursor-pointer disabled:opacity-50"
+                    className="w-9 h-9 rounded-lg text-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] flex items-center justify-center cursor-pointer disabled:opacity-50"
                     aria-label="Detect GPS Location"
                   >
                     <span className={`material-symbols-outlined text-[18px] ${isLocating ? 'animate-spin' : ''}`}>
@@ -389,9 +389,9 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                   className="fixed inset-0 z-40"
                   onClick={() => setIsSearchOpen(false)}
                 />
-                <div className="absolute top-12 left-0 right-0 bg-[#101B26] border border-white/15 rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto">
+                <div className="absolute top-12 left-0 right-0 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl shadow-2xl z-50 max-h-[60vh] overflow-y-auto">
                   {onDetectLocation && (
-                    <div className="p-2 border-b border-white/10 bg-[#0B1219]">
+                    <div className="p-2 border-b border-[var(--m-border)] bg-[var(--m-surface-inset)]">
                       <UseMyLocationButton
                         onDetect={handleMyLocationClick}
                         isLocating={isLocating}
@@ -414,10 +414,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                           setIsSearchOpen(false);
                           setSearchQuery('');
                         }}
-                        className="px-3 py-2.5 text-xs hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 min-h-[44px]"
+                        className="px-3 py-2.5 text-xs hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center border-b border-[var(--m-border)] min-h-[44px]"
                       >
                         <div className="flex-1 pr-2 min-w-0">
-                          <div className="font-semibold text-[#F4F7FA] truncate">{res.displayTitle}</div>
+                          <div className="font-semibold text-[var(--m-text-primary)] truncate">{res.displayTitle}</div>
                           <div className="text-[11px] text-[#8EA3B8] truncate">{res.displaySubtitle}</div>
                         </div>
                         <div className="text-[11px] text-[#8EA3B8] shrink-0">{res.location.state}</div>
@@ -429,7 +429,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     </div>
                   ) : (
                     <div>
-                      <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[#162331]">
+                      <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
                         Major Cities
                       </div>
                       {[
@@ -453,7 +453,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                             setIsSearchOpen(false);
                             setSearchQuery('');
                           }}
-                          className="px-3 py-2.5 text-xs text-[#B6C7D8] hover:bg-[#162331] cursor-pointer flex justify-between items-center border-b border-white/5 min-h-[44px]"
+                          className="px-3 py-2.5 text-xs text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center border-b border-[var(--m-border)] min-h-[44px]"
                         >
                           <span className="font-medium">{hub.city}</span>
                           <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>

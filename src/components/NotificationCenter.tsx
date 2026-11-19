@@ -18,20 +18,20 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs select-none">
-      <div className="w-full max-w-sm bg-[#1E2733] border-l border-[rgba(225,230,235,0.12)] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+      <div className="w-full max-w-sm bg-[var(--m-surface-2)] border-l border-[rgba(225,230,235,0.12)] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
         {/* Header */}
-        <div className="p-4 card-header-divider flex justify-between items-center bg-[#0F141A]">
+        <div className="p-4 card-header-divider flex justify-between items-center bg-[var(--m-surface-1)]">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
               notifications
             </span>
-            <h3 className="font-h4 text-xs uppercase text-[#FFFFFF] tracking-wider font-bold">
+            <h3 className="font-h4 text-xs uppercase text-[var(--m-text-primary)] tracking-wider font-bold">
               Atmospheric Alerts &amp; Feeds
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-[#8A94A6] hover:text-[#FFFFFF] p-1.5 rounded hover:bg-[#242F3D] transition-colors cursor-pointer"
+            className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] p-1.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -46,7 +46,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 onClose();
                 onOpenAlertsView();
               }}
-              className="p-3.5 rounded-lg bg-[#0F141A] card-border hover:border-[#0B72B9] transition-all cursor-pointer group"
+              className="p-3.5 rounded-lg bg-[var(--m-surface-1)] card-border hover:border-[#0B72B9] transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span
@@ -55,35 +55,35 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 >
                   {alert.agency}
                 </span>
-                <span className="font-metadata text-[10px] text-[#8A94A6]">
+                <span className="font-metadata text-[10px] text-[var(--m-text-secondary)]">
                   {alert.validUntil}
                 </span>
               </div>
-              <h4 className="font-h4 text-sm font-bold text-[#FFFFFF] group-hover:text-[#4FA8E0] transition-colors">
+              <h4 className="font-h4 text-sm font-bold text-[var(--m-text-primary)] group-hover:text-[#4FA8E0] transition-colors">
                 {alert.title}
               </h4>
-              <p className="font-body-md text-xs text-[#8A94A6] mt-1 line-clamp-2 leading-relaxed">
+              <p className="font-body-md text-xs text-[var(--m-text-secondary)] mt-1 line-clamp-2 leading-relaxed">
                 {alert.description}
               </p>
             </div>
           ))}
 
           {/* System status notification */}
-          <div className="p-3.5 rounded-lg bg-[#0F141A] card-border">
+          <div className="p-3.5 rounded-lg bg-[var(--m-surface-1)] card-border">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#2ECC71]"></span>
-              <span className="font-metadata text-xs font-bold text-[#FFFFFF]">
+              <span className="font-metadata text-xs font-bold text-[var(--m-text-primary)]">
                 IMD Radar Station Network
               </span>
             </div>
-            <p className="font-metadata text-[11px] text-[#8A94A6] mt-1">
+            <p className="font-metadata text-[11px] text-[var(--m-text-secondary)] mt-1">
               Calibrated live across all telemetry sensors with continuous sub-kilometer synoptic precision.
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[#0F141A] flex justify-between items-center">
+        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-1)] flex justify-between items-center">
           <button
             onClick={() => {
               onClose();
@@ -95,7 +95,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded bg-[#0B72B9] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
+            className="px-3 py-1 rounded bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
           >
             Dismiss
           </button>

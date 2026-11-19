@@ -19,7 +19,6 @@ import { LayerDock } from './LayerDock';
 import { WeatherHUD } from './WeatherHUD';
 import { ForecastTimeline } from './ForecastTimeline';
 import { FirstVisitGuide } from './FirstVisitGuide';
-import { AlertCenterModal } from './AlertCenterModal';
 
 interface ExploreWorkspaceProps {
   selectedLocation: LocationRecord;
@@ -55,7 +54,7 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
   const { state: radarProvider } = useProvider<RadarApiResponse>('RADAR');
 
   return (
-    <div id="mausam-explore-workspace" className="mausam-explore-stage">
+    <div id="mausam-explore-workspace" data-theme="dark-workspace" className="mausam-explore-stage">
       {/* Primary Atmospheric Stage: Interactive 3D WebGL Globe or 2D Map Fallback */}
       {rendererMode === '3d' ? (
         <AtmosphereScene
@@ -99,13 +98,6 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
 
       {/* Dismissible First-Visit Spatial Controls Guide & Guided Tours */}
       <FirstVisitGuide />
-
-      {/* SACHET / IMD Hazard Alert Center Drawer */}
-      <AlertCenterModal
-        selectedLocation={selectedLocation}
-        alerts={weatherBundle.alerts || []}
-        onOpenFullWarningsPage={() => onOpenAnalyzeTab('warnings')}
-      />
     </div>
   );
 };

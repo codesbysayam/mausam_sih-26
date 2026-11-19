@@ -288,9 +288,9 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
     >
       <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative z-10 w-full max-w-4xl h-full bg-[#07111D] border-l border-[#26394B] shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative z-10 w-full max-w-4xl h-full bg-[var(--m-surface-inset)] border-l border-[var(--m-border)] shadow-2xl flex flex-col overflow-hidden">
         {/* Top Header */}
-        <div className="p-4 sm:p-5 bg-[#08131F] border-b border-[#26394B] flex items-start justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] flex items-start justify-between gap-4">
           <div className="space-y-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -298,15 +298,15 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
               >
                 {theme.label}
               </span>
-              <span className="text-xs font-mono text-[#8295A8] tabular-nums">
+              <span className="text-xs font-mono text-[var(--m-text-muted)] tabular-nums">
                 REF: {publication.documentNumber}
               </span>
-              <span className="text-xs font-mono text-[#B5C3D1] tabular-nums">
+              <span className="text-xs font-mono text-[var(--m-text-secondary)] tabular-nums">
                 · {readingTime}
               </span>
             </div>
 
-            <h2 className="text-base sm:text-xl font-bold text-[#F3F6FA] leading-snug">
+            <h2 className="text-base sm:text-xl font-bold text-[var(--m-text-primary)] leading-snug">
               {publication.title}
             </h2>
           </div>
@@ -314,7 +314,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[#0B1927] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] transition-colors cursor-pointer shrink-0 m-focus-ring"
+            className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer shrink-0 m-focus-ring"
             title="Close reader"
             aria-label="Close reader"
           >
@@ -323,7 +323,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
         </div>
 
         {/* Tab Selector & Quick Action Bar */}
-        <div className="px-4 sm:px-5 py-2.5 bg-[#0B1927] border-b border-[#26394B] flex flex-wrap items-center justify-between gap-3">
+        <div className="px-4 sm:px-5 py-2.5 bg-[var(--m-surface-1)] border-b border-[var(--m-border)] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {(
               [
@@ -340,7 +340,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                 className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer shrink-0 m-focus-ring ${
                   activeTab === tab.id
                     ? 'bg-[#35C7E8] text-[#07111D]'
-                    : 'text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E]'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
                 }`}
               >
                 {tab.label}
@@ -352,7 +352,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
               title="Print official report"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -362,20 +362,20 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
             <button
               type="button"
               onClick={handleDownloadHTML}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-xs font-mono text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-mono text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
               title="Download HTML"
             >
-              <Download className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <Download className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>Download</span>
             </button>
 
             <button
               type="button"
               onClick={handleCopyCitation}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-xs font-mono text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-mono text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
               title="Copy academic citation"
             >
-              <FileText className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <FileText className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>{copiedCitation ? 'Copied' : 'Cite'}</span>
             </button>
 
@@ -384,8 +384,8 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
               onClick={() => onBookmark(publication.id)}
               className={`min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer m-focus-ring ${
                 isSaved
-                  ? 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40'
-                  : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] border-[#26394B] hover:border-[#38536A]'
+                  ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/40'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
               title="Bookmark Report"
               aria-label="Bookmark Report"
@@ -396,33 +396,33 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
         </div>
 
         {notice && (
-          <div className="bg-[#22C7A0]/12 text-[#6EE7B7] px-5 py-2 text-xs font-mono border-b border-[#22C7A0]/30 flex items-center gap-2">
+          <div className="bg-[var(--m-ok-soft)] text-[var(--m-ok)] px-5 py-2 text-xs font-mono border-b border-[var(--m-ok)]/30 flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>{notice}</span>
           </div>
         )}
 
         {/* Scrollable Reader Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-sm text-[#B5C3D1]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-sm text-[var(--m-text-secondary)]">
           <div className="m-panel-inset p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
             <div>
-              <span className="text-[#35C7E8] uppercase font-bold text-[10px] tracking-wider block">
+              <span className="text-[var(--m-accent)] uppercase font-bold text-[10px] tracking-wider block">
                 Issuing Meteorological Authority
               </span>
-              <strong className="text-[#F3F6FA] text-sm block mt-0.5 font-sans">
+              <strong className="text-[var(--m-text-primary)] text-sm block mt-0.5 font-sans">
                 {publication.issuingAuthority}
               </strong>
-              <div className="text-[#8295A8] mt-0.5">
+              <div className="text-[var(--m-text-muted)] mt-0.5">
                 Lead Analyst / Directorate:{' '}
-                <span className="text-[#F3F6FA]">{publication.author}</span>
+                <span className="text-[var(--m-text-primary)]">{publication.author}</span>
               </div>
             </div>
 
             <div className="flex sm:flex-col sm:items-end gap-1.5 text-xs tabular-nums">
-              <span className="text-[#8295A8]">
-                Date: <strong className="text-[#F3F6FA]">{publication.date}</strong>
+              <span className="text-[var(--m-text-muted)]">
+                Date: <strong className="text-[var(--m-text-primary)]">{publication.date}</strong>
               </span>
-              <span className="text-[#35C7E8] font-mono text-[11px]">
+              <span className="text-[var(--m-accent)] font-mono text-[11px]">
                 {publication.documentNumber}
               </span>
             </div>
@@ -431,20 +431,20 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
           {activeTab === 'content' && (
             <div className="space-y-4">
               <div className="m-panel p-4">
-                <h4 className="text-xs font-mono font-bold uppercase text-[#35C7E8] tracking-wider mb-2">
+                <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-accent)] tracking-wider mb-2">
                   Executive Abstract
                 </h4>
-                <p className="text-xs sm:text-sm text-[#F3F6FA] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[var(--m-text-primary)] leading-relaxed">
                   {publication.abstract}
                 </p>
               </div>
 
               {publication.synopticSummary && (
                 <div className="m-panel p-4">
-                  <h4 className="text-xs font-mono font-bold uppercase text-[#22C7A0] tracking-wider mb-2">
+                  <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-ok)] tracking-wider mb-2">
                     Synoptic Atmospheric Boundary Synopsis
                   </h4>
-                  <p className="text-xs sm:text-sm text-[#F3F6FA] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[var(--m-text-primary)] leading-relaxed">
                     {publication.synopticSummary}
                   </p>
                 </div>
@@ -452,10 +452,10 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
 
               {publication.sections.map((sec, idx) => (
                 <div key={idx} className="m-panel p-4 sm:p-5 space-y-3">
-                  <h4 className="text-base font-bold text-[#F3F6FA] border-b border-[#26394B] pb-2">
+                  <h4 className="text-base font-bold text-[var(--m-text-primary)] border-b border-[var(--m-border)] pb-2">
                     {sec.title}
                   </h4>
-                  <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[var(--m-text-secondary)] leading-relaxed">
                     {sec.content}
                   </p>
 
@@ -464,7 +464,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs text-left border-collapse font-mono tabular-nums">
                           <thead>
-                            <tr className="bg-[#08131F] border-b border-[#26394B] text-[#8295A8]">
+                            <tr className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] text-[var(--m-text-muted)]">
                               {sec.tableData.headers.map((h, hi) => (
                                 <th key={hi} className="p-2.5 font-bold whitespace-nowrap">
                                   {h}
@@ -476,10 +476,10 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                             {sec.tableData.rows.map((row, ri) => (
                               <tr
                                 key={ri}
-                                className="border-b border-[#26394B]/70 hover:bg-[#101F2E]"
+                                className="border-b border-[var(--m-border)]/70 hover:bg-[var(--m-surface-2)]"
                               >
                                 {row.map((cell, ci) => (
-                                  <td key={ci} className="p-2.5 text-[#F3F6FA]">
+                                  <td key={ci} className="p-2.5 text-[var(--m-text-primary)]">
                                     {cell}
                                   </td>
                                 ))}
@@ -493,13 +493,13 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                         {sec.tableData.rows.map((row, ri) => (
                           <div
                             key={ri}
-                            className="p-3.5 rounded-lg bg-[#08131F] border border-[#26394B] flex flex-col gap-2 font-mono text-xs tabular-nums"
+                            className="p-3.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-2 font-mono text-xs tabular-nums"
                           >
-                            <div className="flex items-center justify-between border-b border-[#26394B] pb-1.5 gap-2">
-                              <span className="text-[10px] font-bold text-[#35C7E8] uppercase tracking-wide shrink-0">
+                            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-1.5 gap-2">
+                              <span className="text-[10px] font-bold text-[var(--m-accent)] uppercase tracking-wide shrink-0">
                                 {sec.tableData!.headers[0] || 'Metric'}
                               </span>
-                              <span className="font-bold text-[#F3F6FA] text-xs text-right">
+                              <span className="font-bold text-[var(--m-text-primary)] text-xs text-right">
                                 {row[0]}
                               </span>
                             </div>
@@ -508,8 +508,8 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                                 const header = sec.tableData!.headers[ci + 1] || `Metric ${ci + 1}`;
                                 return (
                                   <div key={ci} className="flex items-center justify-between gap-2 text-[11px]">
-                                    <span className="text-[#8295A8]">{header}:</span>
-                                    <span className="font-semibold text-[#F3F6FA] text-right">{cell}</span>
+                                    <span className="text-[var(--m-text-muted)]">{header}:</span>
+                                    <span className="font-semibold text-[var(--m-text-primary)] text-right">{cell}</span>
                                   </div>
                                 );
                               })}
@@ -527,34 +527,34 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
           {activeTab === 'abstract' && (
             <div className="space-y-4">
               <div className="m-panel p-5">
-                <h4 className="text-xs font-mono font-bold uppercase text-[#35C7E8] mb-2">
+                <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-accent)] mb-2">
                   Executive Scientific Summary
                 </h4>
-                <p className="text-sm leading-relaxed text-[#F3F6FA]">
+                <p className="text-sm leading-relaxed text-[var(--m-text-primary)]">
                   {publication.abstract}
                 </p>
               </div>
 
               {publication.synopticSummary && (
                 <div className="m-panel p-5">
-                  <h4 className="text-xs font-mono font-bold uppercase text-[#22C7A0] mb-2">
+                  <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-ok)] mb-2">
                     Atmospheric Flow Synopsis
                   </h4>
-                  <p className="text-sm leading-relaxed text-[#F3F6FA]">
+                  <p className="text-sm leading-relaxed text-[var(--m-text-primary)]">
                     {publication.synopticSummary}
                   </p>
                 </div>
               )}
 
               <div className="m-panel p-5">
-                <h4 className="text-xs font-mono font-bold uppercase text-[#8295A8] mb-3">
+                <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-text-muted)] mb-3">
                   Keywords &amp; Atmospheric Descriptors
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {publication.keywords.map((kw, i) => (
                     <span
                       key={i}
-                      className="px-2.5 py-1 rounded-md bg-[#08131F] text-[#35C7E8] border border-[#26394B] text-xs font-mono"
+                      className="px-2.5 py-1 rounded-md bg-[var(--m-surface-inset)] text-[var(--m-accent)] border border-[var(--m-border)] text-xs font-mono"
                     >
                       #{kw}
                     </span>
@@ -567,7 +567,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
           {activeTab === 'data' && (
             <div className="space-y-4">
               {publication.sections.filter((s) => s.tableData).length === 0 ? (
-                <div className="p-8 text-center text-[#8295A8] m-panel font-mono text-xs">
+                <div className="p-8 text-center text-[var(--m-text-muted)] m-panel font-mono text-xs">
                   No structured telemetry tables recorded in this monograph.
                 </div>
               ) : (
@@ -575,13 +575,13 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                   .filter((s) => s.tableData)
                   .map((sec, idx) => (
                     <div key={idx} className="m-panel p-5 space-y-3">
-                      <h4 className="text-sm font-bold text-[#F3F6FA] font-mono">
+                      <h4 className="text-sm font-bold text-[var(--m-text-primary)] font-mono">
                         {sec.title}
                       </h4>
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs text-left border-collapse font-mono tabular-nums">
                           <thead>
-                            <tr className="bg-[#08131F] border-b border-[#26394B] text-[#8295A8]">
+                            <tr className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] text-[var(--m-text-muted)]">
                               {sec.tableData!.headers.map((h, hi) => (
                                 <th key={hi} className="p-2.5 font-bold whitespace-nowrap">
                                   {h}
@@ -593,10 +593,10 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                             {sec.tableData!.rows.map((row, ri) => (
                               <tr
                                 key={ri}
-                                className="border-b border-[#26394B]/70 hover:bg-[#101F2E]"
+                                className="border-b border-[var(--m-border)]/70 hover:bg-[var(--m-surface-2)]"
                               >
                                 {row.map((cell, ci) => (
-                                  <td key={ci} className="p-2.5 text-[#F3F6FA]">
+                                  <td key={ci} className="p-2.5 text-[var(--m-text-primary)]">
                                     {cell}
                                   </td>
                                 ))}
@@ -610,13 +610,13 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                         {sec.tableData!.rows.map((row, ri) => (
                           <div
                             key={ri}
-                            className="p-3.5 rounded-lg bg-[#08131F] border border-[#26394B] flex flex-col gap-2 font-mono text-xs tabular-nums"
+                            className="p-3.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-2 font-mono text-xs tabular-nums"
                           >
-                            <div className="flex items-center justify-between border-b border-[#26394B] pb-1.5 gap-2">
-                              <span className="text-[10px] font-bold text-[#35C7E8] uppercase tracking-wide shrink-0">
+                            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-1.5 gap-2">
+                              <span className="text-[10px] font-bold text-[var(--m-accent)] uppercase tracking-wide shrink-0">
                                 {sec.tableData!.headers[0] || 'Metric'}
                               </span>
-                              <span className="font-bold text-[#F3F6FA] text-xs text-right">
+                              <span className="font-bold text-[var(--m-text-primary)] text-xs text-right">
                                 {row[0]}
                               </span>
                             </div>
@@ -625,8 +625,8 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                                 const header = sec.tableData!.headers[ci + 1] || `Metric ${ci + 1}`;
                                 return (
                                   <div key={ci} className="flex items-center justify-between gap-2 text-[11px]">
-                                    <span className="text-[#8295A8]">{header}:</span>
-                                    <span className="font-semibold text-[#F3F6FA] text-right">{cell}</span>
+                                    <span className="text-[var(--m-text-muted)]">{header}:</span>
+                                    <span className="font-semibold text-[var(--m-text-primary)] text-right">{cell}</span>
                                   </div>
                                 );
                               })}
@@ -644,20 +644,20 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
             <div className="space-y-4">
               {publication.recommendations && publication.recommendations.length > 0 ? (
                 <div className="m-panel p-5 space-y-3">
-                  <h4 className="text-xs font-mono font-bold uppercase text-[#F59E0B] tracking-wider">
+                  <h4 className="text-xs font-mono font-bold uppercase text-[var(--m-watch)] tracking-wider">
                     Operational Actions &amp; Public Directives
                   </h4>
                   <ul className="space-y-2.5">
                     {publication.recommendations.map((rec, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs text-[#F3F6FA]">
-                        <span className="text-[#35C7E8] font-mono font-bold tabular-nums">{i + 1}.</span>
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-[var(--m-text-primary)]">
+                        <span className="text-[var(--m-accent)] font-mono font-bold tabular-nums">{i + 1}.</span>
                         <span>{rec}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               ) : (
-                <div className="p-8 text-center text-[#8295A8] m-panel font-mono text-xs">
+                <div className="p-8 text-center text-[var(--m-text-muted)] m-panel font-mono text-xs">
                   No operational advisories attached to this research monograph.
                 </div>
               )}
@@ -666,7 +666,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
         </div>
 
         {/* Bottom Verification Footer */}
-        <div className="p-4 bg-[#08131F] border-t border-[#26394B] flex items-center justify-between text-xs font-mono text-[#8295A8]">
+        <div className="p-4 bg-[var(--m-surface-inset)] border-t border-[var(--m-border)] flex items-center justify-between text-xs font-mono text-[var(--m-text-muted)]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#22C7A0]" />
             <span>MAUSAM Verified Open Research Document</span>
@@ -675,7 +675,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[40px] px-4 py-2 rounded-lg bg-[#0B1927] hover:bg-[#101F2E] border border-[#26394B] text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+            className="min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring"
           >
             Close Reader
           </button>

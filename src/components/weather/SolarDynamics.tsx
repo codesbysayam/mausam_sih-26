@@ -156,7 +156,7 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
       <SectionHeading
         title="Astronomical Solar Ephemeris & Twilight"
         subtitle={`${location.city || location.name} • ${formatCoordinatePair(lat, lng, 4)}`}
-        icon={<Sun className="w-4 h-4 text-[#F59E0B]" />}
+        icon={<Sun className="w-4 h-4 text-[var(--m-watch)]" />}
         badge={
           <SourceStatus
             status={fetchedData?.source === 'API_REALTIME' ? 'LIVE' : 'REFERENCE'}
@@ -168,10 +168,10 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
             type="button"
             onClick={fetchRealtimeSolarData}
             disabled={isLoading}
-            className="px-3 py-1.5 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#B5C3D1] hover:text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Refresh astronomical solar ephemeris"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#35C7E8]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[var(--m-accent)]' : ''}`} />
             <span>Sync Ephemeris</span>
           </button>
         }
@@ -180,41 +180,41 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div className="m-panel-inset p-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#F59E0B] shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-watch)] shrink-0">
               <Sunrise className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
                 Sunrise
               </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-[#F3F6FA]">
+              <span className="text-xl font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
                 {sunriseTimeDisplay}
               </span>
             </div>
           </div>
-          <div className="text-right text-[10px] text-[#8295A8]">
+          <div className="text-right text-[10px] text-[var(--m-text-muted)]">
             <span>Civil Dawn</span>
-            <span className="block font-mono tabular-nums text-[#B5C3D1]">{civilDawnDisplay}</span>
+            <span className="block font-mono tabular-nums text-[var(--m-text-secondary)]">{civilDawnDisplay}</span>
           </div>
         </div>
 
-        <div className="m-panel-inset p-3.5 flex items-center justify-between gap-3 border-[#F59E0B]/30">
+        <div className="m-panel-inset p-3.5 flex items-center justify-between gap-3 border-[var(--m-watch)]/30">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#FCD34D] shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-watch)] shrink-0">
               <SunMedium className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-[#FCD34D] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--m-watch)] uppercase tracking-wider block">
                 Solar Noon (Zenith)
               </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-[#F3F6FA]">
+              <span className="text-xl font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
                 {solarNoonTimeDisplay}
               </span>
             </div>
           </div>
-          <div className="text-right text-[10px] text-[#8295A8]">
+          <div className="text-right text-[10px] text-[var(--m-text-muted)]">
             <span>Elevation</span>
-            <span className="block font-mono tabular-nums text-[#FCD34D] font-bold">
+            <span className="block font-mono tabular-nums text-[var(--m-watch)] font-bold">
               {noaaEphemeris.solarElevationDeg > 0
                 ? `+${noaaEphemeris.solarElevationDeg.toFixed(1)}°`
                 : `${noaaEphemeris.solarElevationDeg.toFixed(1)}°`}
@@ -224,21 +224,21 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
 
         <div className="m-panel-inset p-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#EF4444] shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-danger)] shrink-0">
               <Sunset className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
                 Sunset
               </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-[#F3F6FA]">
+              <span className="text-xl font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
                 {sunsetTimeDisplay}
               </span>
             </div>
           </div>
-          <div className="text-right text-[10px] text-[#8295A8]">
+          <div className="text-right text-[10px] text-[var(--m-text-muted)]">
             <span>Civil Dusk</span>
-            <span className="block font-mono tabular-nums text-[#B5C3D1]">{civilDuskDisplay}</span>
+            <span className="block font-mono tabular-nums text-[var(--m-text-secondary)]">{civilDuskDisplay}</span>
           </div>
         </div>
       </div>
@@ -246,29 +246,29 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
       <div className="m-panel-inset p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <Timer className="w-4 h-4 text-[#35C7E8]" />
-            <span className="text-xs font-bold text-[#B5C3D1] uppercase tracking-wider">
+            <Timer className="w-4 h-4 text-[var(--m-accent)]" />
+            <span className="text-xs font-bold text-[var(--m-text-secondary)] uppercase tracking-wider">
               {noaaEphemeris.nextEventName} Countdown
             </span>
-            <span className="text-xs font-mono tabular-nums font-bold text-[#35C7E8] bg-[#0B1927] px-2 py-0.5 rounded border border-[#26394B]">
+            <span className="text-xs font-mono tabular-nums font-bold text-[var(--m-accent)] bg-[var(--m-surface-1)] px-2 py-0.5 rounded border border-[var(--m-border)]">
               {noaaEphemeris.countdownFormatted}
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-[#8295A8]">
+          <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-[var(--m-text-muted)]">
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#F59E0B]" />
-              Daylight: <strong className="text-[#F3F6FA]">{dayLengthDisplay}</strong>
+              <Clock className="w-3.5 h-3.5 text-[var(--m-watch)]" />
+              Daylight: <strong className="text-[var(--m-text-primary)]">{dayLengthDisplay}</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5 text-[#35C7E8]" />
-              Azimuth: <strong className="text-[#F3F6FA]">{noaaEphemeris.solarAzimuthDeg.toFixed(1)}°</strong>
+              <Compass className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+              Azimuth: <strong className="text-[var(--m-text-primary)]">{noaaEphemeris.solarAzimuthDeg.toFixed(1)}°</strong>
             </span>
           </div>
         </div>
 
         <div className="space-y-2">
-          <div className="relative w-full h-2.5 bg-[#0B1927] rounded-full overflow-hidden border border-[#26394B]">
+          <div className="relative w-full h-2.5 bg-[var(--m-surface-1)] rounded-full overflow-hidden border border-[var(--m-border)]">
             <div
               className="h-full rounded-full transition-all duration-1000 ease-out"
               style={{
@@ -280,9 +280,9 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
             />
           </div>
 
-          <div className="flex justify-between text-[11px] font-mono tabular-nums text-[#8295A8] pt-1">
+          <div className="flex justify-between text-[11px] font-mono tabular-nums text-[var(--m-text-muted)] pt-1">
             <span>Sunrise: {sunriseTimeDisplay}</span>
-            <span className="text-[#FCD34D] font-semibold">Zenith: {solarNoonTimeDisplay}</span>
+            <span className="text-[var(--m-watch)] font-semibold">Zenith: {solarNoonTimeDisplay}</span>
             <span>Sunset: {sunsetTimeDisplay}</span>
           </div>
         </div>
@@ -290,21 +290,21 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
         <div className="m-panel-inset p-3">
-          <span className="text-[10px] text-[#8295A8] uppercase font-bold block">Solar Altitude</span>
-          <span className="text-sm font-bold font-mono tabular-nums text-[#F3F6FA]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-bold block">Solar Altitude</span>
+          <span className="text-sm font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
             {noaaEphemeris.solarElevationDeg.toFixed(2)}°
           </span>
-          <span className="text-[10px] text-[#8295A8] block mt-0.5">
+          <span className="text-[10px] text-[var(--m-text-muted)] block mt-0.5">
             {isDay ? 'Above Horizon' : 'Below Horizon'}
           </span>
         </div>
 
         <div className="m-panel-inset p-3">
-          <span className="text-[10px] text-[#8295A8] uppercase font-bold block">Solar Azimuth</span>
-          <span className="text-sm font-bold font-mono tabular-nums text-[#F3F6FA]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-bold block">Solar Azimuth</span>
+          <span className="text-sm font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
             {noaaEphemeris.solarAzimuthDeg.toFixed(1)}°
           </span>
-          <span className="text-[10px] text-[#8295A8] block mt-0.5">
+          <span className="text-[10px] text-[var(--m-text-muted)] block mt-0.5">
             {noaaEphemeris.solarAzimuthDeg < 90
               ? 'Northeast'
               : noaaEphemeris.solarAzimuthDeg < 180
@@ -316,19 +316,19 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
         </div>
 
         <div className="m-panel-inset p-3">
-          <span className="text-[10px] text-[#8295A8] uppercase font-bold block">Morning Twilight</span>
-          <span className="text-xs font-bold font-mono tabular-nums text-[#F59E0B] block mt-0.5">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-bold block">Morning Twilight</span>
+          <span className="text-xs font-bold font-mono tabular-nums text-[var(--m-watch)] block mt-0.5">
             {civilDawnDisplay} – {sunriseTimeDisplay}
           </span>
-          <span className="text-[10px] text-[#8295A8] block mt-0.5">Civil Dawn Window</span>
+          <span className="text-[10px] text-[var(--m-text-muted)] block mt-0.5">Civil Dawn Window</span>
         </div>
 
         <div className="m-panel-inset p-3">
-          <span className="text-[10px] text-[#8295A8] uppercase font-bold block">Evening Twilight</span>
-          <span className="text-xs font-bold font-mono tabular-nums text-[#FDBA74] block mt-0.5">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-bold block">Evening Twilight</span>
+          <span className="text-xs font-bold font-mono tabular-nums text-[var(--m-alert)] block mt-0.5">
             {sunsetTimeDisplay} – {civilDuskDisplay}
           </span>
-          <span className="text-[10px] text-[#8295A8] block mt-0.5">Civil Dusk Window</span>
+          <span className="text-[10px] text-[var(--m-text-muted)] block mt-0.5">Civil Dusk Window</span>
         </div>
       </div>
     </DataPanel>

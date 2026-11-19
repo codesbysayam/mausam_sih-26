@@ -24,18 +24,18 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-full border-r border-[rgba(225,230,235,0.12)] bg-[#1E2733] shrink-0 select-none font-sans">
+    <aside className="hidden md:flex flex-col w-64 h-full border-r border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-2)] shrink-0 select-none font-sans">
       {/* Brand Header */}
-      <div className="p-4 card-header-divider bg-[#0F141A]">
+      <div className="p-4 card-header-divider bg-[var(--m-surface-1)]">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-lg bg-[#0B72B9] flex items-center justify-center text-white font-bold text-sm shadow-md">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-accent)] flex items-center justify-center text-white font-bold text-sm shadow-md">
             M
           </div>
           <div className="overflow-hidden">
             <h2 className="font-h4 text-xs text-[#4FA8E0] uppercase tracking-wider font-bold leading-tight truncate">
               MAUSAM
             </h2>
-            <p className="text-[11px] text-[#8A94A6] flex items-center gap-1 mt-0.5">
+            <p className="text-[11px] text-[var(--m-text-secondary)] flex items-center gap-1 mt-0.5">
               Atmospheric Intelligence
             </p>
           </div>
@@ -53,8 +53,8 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
               onClick={() => onSelectTab(item.id)}
               className={`flex items-center gap-3 px-4 py-3 text-xs uppercase tracking-wider font-semibold transition-all text-left cursor-pointer w-full ${
                 isActive
-                  ? 'text-[#4FA8E0] bg-[#0B72B9]/15 border-r-2 border-[#0B72B9]'
-                  : 'text-[#8A94A6] hover:text-[#FFFFFF] hover:bg-[#242F3D]/50'
+                  ? 'text-[#4FA8E0] bg-[var(--m-accent-soft)] border-r-2 border-[#0B72B9]'
+                  : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
               <span
@@ -70,17 +70,17 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
       </nav>
 
       {/* Bottom Auxiliary Links */}
-      <div className="p-4 card-header-divider border-t border-[rgba(225,230,235,0.12)] flex flex-col gap-1 bg-[#0F141A]">
+      <div className="p-4 card-header-divider border-t border-[rgba(225,230,235,0.12)] flex flex-col gap-1 bg-[var(--m-surface-1)]">
         <button
           onClick={onOpenSettings}
-          className="flex items-center gap-3 px-4 py-2 text-xs uppercase tracking-wider text-[#8A94A6] hover:text-[#FFFFFF] hover:bg-[#242F3D] rounded transition-colors text-left cursor-pointer w-full"
+          className="flex items-center gap-3 px-4 py-2 text-xs uppercase tracking-wider text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] rounded transition-colors text-left cursor-pointer w-full"
         >
           <span className="material-symbols-outlined text-[20px]">settings</span>
           Settings
         </button>
         <button
           onClick={onOpenHelp}
-          className="flex items-center gap-3 px-4 py-2 text-xs uppercase tracking-wider text-[#8A94A6] hover:text-[#FFFFFF] hover:bg-[#242F3D] rounded transition-colors text-left cursor-pointer w-full"
+          className="flex items-center gap-3 px-4 py-2 text-xs uppercase tracking-wider text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] rounded transition-colors text-left cursor-pointer w-full"
         >
           <span className="material-symbols-outlined text-[20px]">help_outline</span>
           Help

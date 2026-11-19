@@ -91,27 +91,27 @@ export const FieldOperationsCalendarGrid: React.FC<FieldOperationsCalendarGridPr
   const renderCellBadge = (cell: { text: string; status: string }) => {
     if (cell.status === 'recommended') {
       return (
-        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[#22C7A0]/12 text-[#6EE7B7] font-mono text-[10px] font-semibold border border-[#22C7A0]/35 w-full">
+        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--m-ok-soft)] text-[var(--m-ok)] font-mono text-[10px] font-semibold border border-[var(--m-ok)]/35 w-full">
           {cell.text}
         </span>
       );
     }
     if (cell.status === 'caution') {
       return (
-        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[#F59E0B]/12 text-[#FCD34D] font-mono text-[10px] font-semibold border border-[#F59E0B]/35 w-full">
+        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--m-watch-soft)] text-[var(--m-watch)] font-mono text-[10px] font-semibold border border-[var(--m-watch)]/35 w-full">
           {cell.text}
         </span>
       );
     }
     if (cell.status === 'avoid') {
       return (
-        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[#EF4444]/12 text-[#FCA5A5] font-mono text-[10px] font-semibold border border-[#EF4444]/35 w-full">
+        <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--m-danger-soft)] text-[var(--m-danger)] font-mono text-[10px] font-semibold border border-[var(--m-danger)]/35 w-full">
           {cell.text}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[#101F2E] text-[#8295A8] font-mono text-[10px] w-full">
+      <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--m-surface-2)] text-[var(--m-text-muted)] font-mono text-[10px] w-full">
         {cell.text}
       </span>
     );
@@ -127,9 +127,9 @@ export const FieldOperationsCalendarGrid: React.FC<FieldOperationsCalendarGridPr
         action={
           forecast.length > 0 ? (
             <div className="flex items-center gap-3 text-[11px] font-mono">
-              <span className="text-[#6EE7B7]">Recommended</span>
-              <span className="text-[#FCD34D]">Caution</span>
-              <span className="text-[#FCA5A5]">Avoid</span>
+              <span className="text-[var(--m-ok)]">Recommended</span>
+              <span className="text-[var(--m-watch)]">Caution</span>
+              <span className="text-[var(--m-danger)]">Avoid</span>
             </div>
           ) : undefined
         }
@@ -145,26 +145,26 @@ export const FieldOperationsCalendarGrid: React.FC<FieldOperationsCalendarGridPr
         <div className="w-full max-w-full overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#26394B] bg-[#08131F]">
-                <th className="py-3 px-4 text-xs font-mono font-bold text-[#F3F6FA] uppercase w-[210px]">
+              <tr className="border-b border-[var(--m-border)] bg-[var(--m-surface-inset)]">
+                <th className="py-3 px-4 text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase w-[210px]">
                   Operation
                 </th>
                 {forecast.map((d, idx) => (
-                  <th key={idx} className="py-3 px-2 text-center text-xs font-mono font-bold text-[#B5C3D1]">
-                    <div className="text-[#F3F6FA]">{d.dayName}</div>
-                    <div className="text-[10px] text-[#8295A8] font-normal tabular-nums">{d.dateStr}</div>
+                  <th key={idx} className="py-3 px-2 text-center text-xs font-mono font-bold text-[var(--m-text-secondary)]">
+                    <div className="text-[var(--m-text-primary)]">{d.dayName}</div>
+                    <div className="text-[10px] text-[var(--m-text-muted)] font-normal tabular-nums">{d.dateStr}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#26394B]">
+            <tbody className="divide-y divide-[var(--m-border)]">
               {operations.map((op) => {
                 const Icon = op.icon;
 
                 return (
-                  <tr key={op.id} className="hover:bg-[#101F2E]/50 transition-colors">
-                    <td className="py-3 px-4 text-xs font-mono font-semibold text-[#F3F6FA] flex items-center gap-2">
-                      <Icon className="w-4 h-4 text-[#35C7E8] shrink-0" />
+                  <tr key={op.id} className="hover:bg-[var(--m-surface-2)]/50 transition-colors">
+                    <td className="py-3 px-4 text-xs font-mono font-semibold text-[var(--m-text-primary)] flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
                       <span>{op.name}</span>
                     </td>
                     {forecast.map((_, dayIdx) => {

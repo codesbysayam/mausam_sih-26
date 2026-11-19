@@ -1,128 +1,110 @@
 # MAUSAM — Design System & Visual Specification
 
-> **Document Version**: 2.4.0  
-> **Aesthetic Archetype**: Government Meteorological Operational Console  
+> **Document Version**: 3.0.0  
+> **Aesthetic Archetype**: Editorial Atmospheric Intelligence  
 > **Styling Framework**: Tailwind CSS v4 + `src/styles/mausam.css`  
-> **Last Updated**: September 2026  
+> **Last Updated**: November 2026  
 
 ---
 
-## 1. Design Philosophy: The Operational Console
+## 1. Design Philosophy: Editorial Atmospheric Intelligence
 
-MAUSAM's design language balances the authority of a national meteorological service with modern digital ergonomics. It intentionally rejects commercial "weather app fluff"—such as exaggerated animated clouds, cartoon icons, and arbitrary glowing gradients—in favor of a **calm, high-density, data-rich operational environment**.
+MAUSAM pairs the calm legibility of an archival scientific bulletin with calibrated meteorological instrumentation. Editorial reading surfaces default to **Warm Paper** (`#F7F6F1` canvas, `#FFFEFA` primary surfaces, `#14212B` deep ink typography), while full-screen spatial mapping, Doppler radar, and 3D atmospheric views enter an intentional **Dark Workspace** (`[data-theme="dark-workspace"]`) where dark cartography and radar reflectivity overlays require maximum luminance contrast.
 
 ### Core Visual Principles
-1. **High Contrast & Immediate Legibility**: Emergency warnings and meteorological data must be readable under direct sunlight on mobile screens or in low-light command centers.
-2. **Authority & Restraint**: Uses structured navy, slate, and steel tones. Color is reserved almost exclusively for semantic meteorological meaning (rain intensity, warning severity, temperature heatmaps).
-3. **Data Density without Clutter**: High information bandwidth delivered through clear typographic hierarchy, subtle 1px panel dividers, and tabular alignment.
-4. **Zero AI Slop**: No arbitrary purple-to-blue gradients, no heavy blurred drop-shadows, no ungrounded glowing cards, and no inconsistent border radii.
+1. **Paper-First Editorial Clarity**: Content-heavy modules (Overview, Local Weather, 7-Day Forecast, Warnings, Air Quality, Agromet, Cyclone Briefings, Reports, Open Data API, Documentation, Governance) default to Warm Paper for sunlight legibility and long-form reading comfort.
+2. **Scoped Dark Spatial Workspaces**: Full-viewport 3D globe, Leaflet Doppler radar canvases, and national cartographic layers opt explicitly into `[data-theme="dark-workspace"]` (`#0D161E` / `#13202C`) so precipitation echoes, wind streams, and severity pins remain crisp.
+3. **Truthful Meteorological States**: Every telemetry value must reflect its actual source state (`loading`, `available`, `stale`, `unavailable`, `error`, `not-applicable`) through `<MetricValue />`. Valid numeric `0` readings (`0°C`, `0 mm`, `0 AQI`) are always rendered with units and never converted into blanks or dashes.
+4. **Restrained Authority**: Semantic color is reserved strictly for meteorological meaning (IMD/NDMA warning tiers, CPCB NAQI categories, radar reflectivity, active focus). Decorative neon glows, ungrounded gradients, and pill clutter are prohibited.
 
 ---
 
 ## 2. Color Palette & Semantic Design Tokens
 
-### 2.1 Canvas & Surface Tokens
-The interface is anchored on a deep oceanic dark palette that prevents eye strain during extended operational monitoring:
+All tokens are defined in `src/styles/mausam.css`.
 
-| Token Name | Hex Code | Purpose / Application |
+### 2.1 Warm Paper Default (`:root`, `[data-theme="paper"]`)
+
+| Token | Value | Role |
 |---|---|---|
-| **Canvas Deep** | `#071A2D` | Primary window background canvas |
-| **Surface Card** | `#0B263D` | Primary card panels (`.mausam-card`, `.mausam-panel`) |
-| **Surface Elevated** | `#123652` | Dropdowns, hover states, floating drawers, active tabs |
-| **Border Subtle** | `#1D5278` | 1px clean architectural boundaries between modules |
-| **Border Active** | `#38BDF8` | Focus rings, active selection states, key indicators |
+| `--m-canvas` | `#F7F6F1` | Primary warm paper page canvas |
+| `--m-surface-1` | `#FFFEFA` | Elevated editorial cards & panels (`.m-panel`, `.mausam-surface`) |
+| `--m-surface-2` | `#EFECE3` | Secondary controls, subtle badges, hover fills |
+| `--m-surface-3` | `#E4E0D4` | Active pressed controls & hover states |
+| `--m-surface-inset` | `#F3F1EA` | Nested metric tiles & inset callouts (`.m-panel-inset`) |
+| `--m-text-primary` | `#14212B` | Deep ink headlines & primary readings |
+| `--m-text-secondary` | `#394B59` | Body prose & secondary labels |
+| `--m-text-muted` | `#5F707D` | Metadata, provenance captions, axis ticks |
+| `--m-border` | `rgba(20, 33, 43, 0.14)` | 1px structural hairlines |
+| `--m-border-strong` | `rgba(20, 33, 43, 0.28)` | Active borders & focused inputs |
+| `--m-accent` | `#1E6091` | Atmospheric blue primary interactive accent |
+| `--m-accent-hover` | `#164A72` | Accent button hover |
+| `--m-accent-soft` | `rgba(30, 96, 145, 0.10)` | Soft selection highlight |
 
-### 2.2 National Warning & Hazard Severity Tokens
-Strictly mapped to the India Meteorological Department (IMD) and National Disaster Management Authority (NDMA) color matrices:
+### 2.2 Scoped Dark Spatial Workspace (`[data-theme="dark-workspace"]`)
 
-| Severity Level | Hex Code | Border / Pill | Semantic Meaning |
+| Token | Value | Role |
+|---|---|---|
+| `--m-canvas` | `#0D161E` | Spatial globe / radar viewport backdrop |
+| `--m-surface-1` | `#13202C` | Floating HUD & map dock panels |
+| `--m-surface-2` | `#1A2B3B` | Secondary dock controls |
+| `--m-surface-inset` | `#0E1924` | Inset telemetry readouts inside HUD |
+| `--m-text-primary` | `#F2F5F8` | High-contrast spatial labels |
+| `--m-text-secondary` | `#B8C5D0` | Secondary spatial annotations |
+| `--m-text-muted` | `#8395A7` | Coordinate grids & subtle captions |
+| `--m-accent` | `#4CC9F0` | Active spatial layer & focus indicator |
+
+### 2.3 Semantic Status & IMD/NDMA Warning Tokens
+
+| Level | Paper Hex | Dark Hex | Meaning |
 |---|---|---|---|
-| **Green (Normal)** | `#00E676` | `border-[#00E676]/40` | Normal atmospheric conditions; no advisory required |
-| **Yellow (Watch)** | `#F1C40F` | `border-[#F1C40F]/40` | Be updated; moderate weather event developing |
-| **Orange (Alert)** | `#E67E22` | `border-[#E67E22]/40` | Be prepared; hazardous weather imminent; potential disruption |
-| **Red (Warning)** | `#E74C3C` | `border-[#E74C3C]/40` | Take action; severe/life-threatening emergency |
-
-### 2.3 CPCB National Air Quality Index (NAQI) Palette
-| NAQI Range | Category | Color Hex | Health Advisory |
-|---|---|---|---|
-| **0 – 50** | Good | `#00E676` | Minimal impact |
-| **51 – 100** | Satisfactory | `#76FF03` | Minor breathing discomfort to sensitive individuals |
-| **101 – 200**| Moderate | `#F1C40F` | Breathing discomfort to people with asthma and heart disease |
-| **201 – 300**| Poor | `#FF9800` | Breathing discomfort to most people on prolonged exposure |
-| **301 – 400**| Very Poor | `#E74C3C` | Respiratory illness on prolonged exposure |
-| **401 – 500**| Severe | `#880E4F` | Severe impacts on healthy people; serious risk to patients |
-
-### 2.4 Doppler Radar Reflectivity Scale (dBZ)
-- `10 - 20 dBZ`: Light drizzle / mist (Pale Blue `#38BDF8`)
-- `25 - 35 dBZ`: Moderate rain (Emerald Green `#00E676`)
-- `40 - 45 dBZ`: Heavy precipitation (Amber Yellow `#F1C40F`)
-- `50 - 55 dBZ`: Intense thunderstorm / small hail (Orange `#E67E22`)
-- `60+ dBZ`: Severe convective squall / damaging hail (Crimson / Magenta `#E74C3C` / `#D500F9`)
+| **Normal / OK (`--m-ok`)** | `#1F6F50` | `#2DD4BF` | Live / Normal atmospheric state |
+| **Watch (`--m-watch`)** | `#A46408` | `#FBBF24` | Yellow Watch / Stale observation caution |
+| **Alert (`--m-alert`)** | `#C2530A` | `#FB923C` | Orange Alert — Be Prepared |
+| **Danger (`--m-danger`)** | `#B92B27` | `#F87171` | Red Warning / Upstream Error |
 
 ---
 
 ## 3. Typography & Hierarchy
 
-The typography pairs a clean, readable sans-serif system font for UI elements with a calibrated monospace font for scientific telemetry:
-
 ### 3.1 Font Families
-- **Display & Interface**: `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Roboto`, `sans-serif`
-- **Telemetry & Science**: `ui-monospace`, `SFMono-Regular`, `Menlo`, `Monaco`, `Consolas`, `monospace`
+- **Editorial & Interface (`--font-sans`)**: `DM Sans`, `Inter`, system sans-serif
+- **Scientific Telemetry (`--font-mono`)**: `JetBrains Mono`, `ui-monospace`, monospace with `font-variant-numeric: tabular-nums`
 
-### 3.2 Typographic Hierarchy
-| Role | Size / Leading | Weight | Tracking | Usage |
-|---|---|---|---|---|
-| **Station Headline** | 28px – 34px / 1.2 | Bold (700) | `-0.02em` | Main Observatory name on Weather page |
-| **Hero Temperature** | 56px – 72px / 1.0 | ExtraBold (800) | `-0.03em` | Current dry-bulb reading (`31°C`) |
-| **Section Title** | 18px – 20px / 1.3 | SemiBold (600) | `-0.01em` | Card headers, table headings |
-| **Telemetry Metric** | 15px – 18px / 1.2 | Bold (700) font-mono | `0` | Wind speed, pressure (hPa), humidity (%) |
-| **Body Copy** | 14px – 15px / 1.5 | Regular (400) | `0` | Weather descriptions, synoptic reports |
-| **Caption / Meta** | 11px – 12px / 1.4 | Medium (500) font-mono | `+0.02em` | Observation timestamps, station coordinates |
+### 3.2 Fluid Scale & Reading Measure
+- **Display Title (`.mausam-display-title`)**: `clamp(1.75rem, 3.2vw, 2.75rem)`, tight tracking (`-0.025em`), line-height `1.08`
+- **Eyebrow Label (`.mausam-eyebrow`)**: `11px` uppercase monospace, letter-spacing `0.14em`
+- **Long-Form Legal & Documentation Prose**: Constrained to `max-w-[66ch]` (`15px`, line-height `1.65`)
+- **Tabular Telemetry**: Every temperature, wind speed, pressure, precipitation total, AQI index, and coordinate uses `font-mono tabular-nums`
 
 ---
 
-## 4. Components & Layout Specifications
+## 4. Truthful Data State Contract (`MetricValue`)
 
-### 4.1 Structural Layout & Grids
-- **Base Grid**: 8-pixel mathematical baseline (`gap-2`, `gap-3`, `gap-4`, `p-4`, `p-6`).
-- **Container Sizing**: Standard pages are centered within `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`.
-- **Card Padding Rule**: Container outer padding always equals or exceeds child spacing (`p-4` or `p-6`).
+Implemented in `src/components/common/MetricValue.tsx` and `src/types/dataProvenance.ts`.
 
-### 4.2 Cards & Panels (`.mausam-panel`, `.mausam-card`)
-- **Background**: Solid `#0B263D` with subtle 1px border `#1D5278`.
-- **Border Radius**: Calculated mathematically (`rounded-lg` 8px to `rounded-xl` 12px for outer cards; `rounded-md` 6px for internal nested chips).
-- **Depth**: Flattened hierarchy using high-contrast borders rather than blurry drop shadows.
-
-### 4.3 Navigation Architecture
-- **Government Header (`GovernmentHeader.tsx`)**:
-  - Official National Emblem / Brand mark.
-  - Live Indian Standard Time (IST) clock with live seconds ticker.
-  - Location Center trigger displaying current city, state, and GPS status.
-  - Quick action toolbar: Font scaler (`A-`, `A+`), Language picker, and Audio Alert status.
-- **Tabbed Main Navigation (`MainNavigation.tsx`)**:
-  - 8 core primary modules: Home, Weather, Forecast, Warnings, Radar, AQI, Agromet, Reports.
-  - Active tab indicated by bold white typography and active sky bottom accent line.
-- **Mobile Navigation Drawer (`MobileNavDrawer.tsx`)**:
-  - Slide-out high-contrast drawer with touch-friendly 48px height rows.
-
-### 4.4 Floating Action Button: "Ask MAUSAM" (`DraggableAskMausamButton.tsx`)
-- **Positioning**: Fixed overlay with coordinate boundary clamping to prevent off-screen loss.
-- **Interaction**: Pointer events enable fluid dragging across desktop and mobile screens.
-- **Snapping Dynamics**: On pointer release, calculates distance to all 4 screen edges and smoothly animates to the nearest border via `requestAnimationFrame` and CSS curve `cubic-bezier(0.16, 1, 0.3, 1)` over 420ms.
-- **Reset**: Double-click or double-tap resets the button to the default bottom-right coordinate.
-
-### 4.5 Liquid Glass Elements
-Liquid Glass effects are applied **strictly and selectively** only where contextually appropriate:
-- Sticky header bar during scroll: `backdrop-blur-md bg-[#071A2D]/90`.
-- Ask MAUSAM modal overlay backdrop: `backdrop-blur-sm bg-black/60`.
-
----
-
-## 5. Responsive Breakpoints & Viewport Adaptation
-
-| Breakpoint | Viewport Width | Layout Adaptations |
+| State | Visual Presentation | Provenance / Behavior |
 |---|---|---|
-| **Mobile (`< 640px`)** | 320px – 639px | Single column stacked layout. Main tabs convert to horizontally scrolling pill strip or mobile hamburger drawer. Draggable button collapses to compact badge. |
-| **Tablet (`640px – 1023px`)** | 640px – 1023px | 2-column bento grids for telemetry (temperature + conditions alongside wind & pressure). |
-| **Desktop (`>= 1024px`)** | 1024px – 1440px | Full 3-column / 4-column operational dashboard. Interactive Leaflet radar map side-by-side with 7-day synoptic forecast. |
-| **Ultra-Wide (`>= 1440px`)** | > 1440px | Content strictly constrained to `max-w-7xl` with balanced margins to prevent horizontal eye fatigue. |
+| `loading` | Skeleton bar (`Fetching…`) | Non-layout-shifting animated placeholder |
+| `available` | Exact reading + unit (preserves `0`) | Displays provider `source` and `observedAt` |
+| `stale` | Exact reading + `Stale` badge | Shows last verified observation timestamp |
+| `unavailable` | `Not reported by source` | Never substitutes fallback or ambient values |
+| `error` | Concise error + `Retry` button | Surfaces provider failure honestly |
+| `not-applicable` | `Not applicable` | Used when metric does not apply (e.g., tides inland) |
+
+### Anti-Fabrication Rules
+- Missing `apparent_temperature` stays `null` (never copied from ambient `temperature_2m`).
+- Missing `weather_code` resolves to `UNKNOWN` (`Condition Unavailable`), never Clear Sky.
+- Valid `0` values (`0°C`, `0 mm`, `0 AQI`, `lat=0, lon=0`) are strictly preserved.
+- Provider `observedAt` / `validAt` timestamps are stored separately from client `fetchedAt`.
+- Static reference benchmarks (e.g., regional AQI comparison tables) are explicitly badged `Static Reference Benchmark` rather than live telemetry.
+
+---
+
+## 5. Workspace Architecture
+
+MAUSAM exposes three synchronized workspaces controlled from the shared `FloatingBrandBar`:
+
+1. **Analyze (Default — Warm Paper)**: Multi-route editorial workstation covering Overview (`/`), Weather (`/weather`), Forecast (`/forecast`), Radar (`/radar`), Warnings (`/warnings`), Cyclone Tracker (`/cyclone-tracker`), Air Quality (`/aqi`), Agromet (`/agromet`), Reports (`/reports`), Open Data API (`/api`), Docs (`/docs`), Diagnostics (`/api-debug`), Privacy (`/privacy`), and Terms (`/terms`).
+2. **Explore (Dark Spatial Workspace)**: Full-viewport 3D atmospheric globe / 2D interactive map canvas with `LayerDock`, `WeatherHUD`, and `ForecastTimeline`.
+3. **Classic (Warm Paper — Low-GPU Linear Briefing)**: Lightweight accessible linear report designed for low-bandwidth, older hardware, and screen-reader-first navigation.

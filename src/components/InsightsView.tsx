@@ -35,15 +35,15 @@ export const InsightsView: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] mx-auto select-none font-sans">
       {/* Top Banner */}
-      <div className="bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">analytics</span>
-            <h2 className="font-h3 text-base font-bold text-[#FFFFFF]">
+            <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)]">
               Atmospheric &amp; Environmental Intelligence Diagnostics
             </h2>
           </div>
-          <p className="text-xs text-[#8A94A6]">
+          <p className="text-xs text-[var(--m-text-secondary)]">
             Multi-sensor boundary layer inversion models &amp; aerosol dispersion diagnostics
           </p>
         </div>
@@ -57,13 +57,13 @@ export const InsightsView: React.FC = () => {
       {/* Grid of 2 Charts */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* PM2.5 vs Humidity Correlation (Span 7) */}
-        <div className="col-span-1 md:col-span-7 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl">
+        <div className="col-span-1 md:col-span-7 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="font-h4 text-sm font-semibold text-[#FFFFFF]">
+              <h3 className="font-h4 text-sm font-semibold text-[var(--m-text-primary)]">
                 7-Day Particulate Matter vs. Relative Humidity
               </h3>
-              <p className="text-xs text-[#8A94A6]">
+              <p className="text-xs text-[var(--m-text-secondary)]">
                 Hygroscopic growth of aerosols under humidity spikes
               </p>
             </div>
@@ -110,11 +110,11 @@ export const InsightsView: React.FC = () => {
         </div>
 
         {/* Aerosol & Gaseous Species Breakdown (Span 5) */}
-        <div className="col-span-1 md:col-span-5 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl">
-          <h3 className="font-h4 text-sm font-semibold text-[#FFFFFF] mb-1">
+        <div className="col-span-1 md:col-span-5 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl">
+          <h3 className="font-h4 text-sm font-semibold text-[var(--m-text-primary)] mb-1">
             Gaseous Pollutant &amp; Particulate Vector
           </h3>
-          <p className="text-xs text-[#8A94A6] mb-4">
+          <p className="text-xs text-[var(--m-text-secondary)] mb-4">
             Current concentration vs. National Ambient Air Quality Limit
           </p>
 
@@ -142,38 +142,38 @@ export const InsightsView: React.FC = () => {
 
       {/* Atmospheric Inversion & Ventilation Index Analysis */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#1E2733] card-border rounded-xl p-5 shadow-xl">
+        <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-5 shadow-xl">
           <span className="text-xs uppercase text-[#4FA8E0] font-bold">
             Boundary Layer Height
           </span>
-          <p className="text-2xl font-bold text-[#FFFFFF] mt-1">
+          <p className="text-2xl font-bold text-[var(--m-text-primary)] mt-1">
             820 meters
           </p>
-          <p className="text-xs text-[#8A94A6] mt-2 leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] mt-2 leading-relaxed">
             Surface heating is expanding the mixing height, encouraging vertical dispersion of trapped aerosols by 18:00 Local.
           </p>
         </div>
 
-        <div className="bg-[#1E2733] card-border rounded-xl p-5 shadow-xl">
+        <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-5 shadow-xl">
           <span className="text-xs uppercase text-[#2ECC71] font-bold">
             Ventilation Index (VI)
           </span>
           <p className="text-2xl font-bold text-[#2ECC71] mt-1">
             4,850 m²/s
           </p>
-          <p className="text-xs text-[#8A94A6] mt-2 leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] mt-2 leading-relaxed">
             Rated "Moderate Clearing". Wind velocity field of 18 km/h is clearing industrial plumes towards southeast corridors.
           </p>
         </div>
 
-        <div className="bg-[#1E2733] card-border rounded-xl p-5 shadow-xl">
+        <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-5 shadow-xl">
           <span className="text-xs uppercase text-[#FFB703] font-bold">
             Synoptic Barometric Drift
           </span>
           <p className="text-2xl font-bold text-[#FFB703] mt-1">
             -1.2 hPa / 3h
           </p>
-          <p className="text-xs text-[#8A94A6] mt-2 leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] mt-2 leading-relaxed">
             Slight pressure dip indicates approaching trough, bringing increased cloud cover and chance of convective precipitation.
           </p>
         </div>

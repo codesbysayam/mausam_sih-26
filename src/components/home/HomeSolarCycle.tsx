@@ -109,9 +109,9 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
             ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})`
             : 'Astronomical Solar Ephemeris'
         }
-        icon={<Sun className="w-4 h-4 text-[#F59E0B]" />}
+        icon={<Sun className="w-4 h-4 text-[var(--m-watch)]" />}
         action={
-          <span className="text-[11px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-2.5 py-1 rounded-md border border-[#F59E0B]/30 flex items-center gap-1.5 tabular-nums">
+          <span className="text-[11px] font-mono text-[var(--m-watch)] bg-[var(--m-watch-soft)] px-2.5 py-1 rounded-md border border-[var(--m-watch)]/30 flex items-center gap-1.5 tabular-nums">
             <Clock className="w-3 h-3 shrink-0" />
             <span>{solarData.countdownFormatted} to {solarData.nextEventName}</span>
           </span>
@@ -160,41 +160,41 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
 
         <div className="w-full max-w-sm flex items-center justify-between text-xs px-2 mt-1">
           <div className="flex items-center gap-1.5">
-            <Sunrise className="w-4 h-4 text-[#35C7E8]" />
+            <Sunrise className="w-4 h-4 text-[var(--m-accent)]" />
             <div>
-              <span className="text-[10px] text-[#8295A8] block">Sunrise</span>
-              <strong className="text-[#F3F6FA] font-mono tabular-nums">{displaySunrise}</strong>
+              <span className="text-[10px] text-[var(--m-text-muted)] block">Sunrise</span>
+              <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{displaySunrise}</strong>
             </div>
           </div>
 
           <div className="text-center">
-            <span className="text-[10px] text-[#8295A8] block">Total Daylight</span>
-            <strong className="text-[#F59E0B] font-mono text-xs tabular-nums">{dayLengthStr}</strong>
+            <span className="text-[10px] text-[var(--m-text-muted)] block">Total Daylight</span>
+            <strong className="text-[var(--m-watch)] font-mono text-xs tabular-nums">{dayLengthStr}</strong>
           </div>
 
           <div className="flex items-center gap-1.5 text-right">
             <div>
-              <span className="text-[10px] text-[#8295A8] block">Sunset</span>
-              <strong className="text-[#F3F6FA] font-mono tabular-nums">{displaySunset}</strong>
+              <span className="text-[10px] text-[var(--m-text-muted)] block">Sunset</span>
+              <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{displaySunset}</strong>
             </div>
-            <Sunset className="w-4 h-4 text-[#F97316]" />
+            <Sunset className="w-4 h-4 text-[var(--m-alert)]" />
           </div>
         </div>
       </div>
 
       {/* Real-time Solar Angle & Azimuth Metadata */}
-      <div className="flex items-center justify-between text-[11px] pt-2.5 border-t border-[#26394B] text-[#8295A8]">
+      <div className="flex items-center justify-between text-[11px] pt-2.5 border-t border-[var(--m-border)] text-[var(--m-text-muted)]">
         <div className="flex items-center gap-1.5 font-mono tabular-nums">
-          <Compass className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <Compass className="w-3.5 h-3.5 text-[var(--m-accent)]" />
           <span>
-            Azimuth: <strong className="text-[#F3F6FA]">{solarData.solarAzimuthDeg.toFixed(1)}°</strong>
+            Azimuth: <strong className="text-[var(--m-text-primary)]">{solarData.solarAzimuthDeg.toFixed(1)}°</strong>
           </span>
         </div>
         <div className="flex items-center gap-1.5 font-mono tabular-nums">
-          <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+          <Sparkles className="w-3.5 h-3.5 text-[var(--m-watch)]" />
           <span>
             Elevation:{' '}
-            <strong className="text-[#F59E0B]">
+            <strong className="text-[var(--m-watch)]">
               {solarData.solarElevationDeg > 0
                 ? `+${solarData.solarElevationDeg.toFixed(1)}°`
                 : `${solarData.solarElevationDeg.toFixed(1)}°`}

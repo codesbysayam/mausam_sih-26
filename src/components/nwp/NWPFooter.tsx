@@ -5,21 +5,21 @@ export const NWPFooter: React.FC = () => {
   return (
     <footer
       id="nwp-page-footer"
-      className="w-full pt-5 pb-8 border-t border-[#26394B] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8295A8]"
+      className="w-full pt-5 pb-8 border-t border-[var(--m-border)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--m-text-muted)]"
     >
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-md bg-[#0B72B9] flex items-center justify-center text-white font-bold text-[10px] font-mono">
+        <div className="w-5 h-5 rounded-md bg-[var(--m-accent)] flex items-center justify-center text-white font-bold text-[10px] font-mono">
           M
         </div>
-        <span className="font-semibold text-[#F3F6FA] tracking-tight">
+        <span className="font-semibold text-[var(--m-text-primary)] tracking-tight">
           MAUSAM Atmospheric Intelligence Platform
         </span>
         <span className="text-[#26394B] hidden sm:inline">·</span>
-        <span className="text-[#8295A8] hidden sm:inline">Numerical Weather Prediction</span>
+        <span className="text-[var(--m-text-muted)] hidden sm:inline">Numerical Weather Prediction</span>
       </div>
 
       <div className="flex items-center gap-3 text-[11px] font-mono">
-        <span className="inline-flex items-center gap-1.5 text-[#6EE7B7]">
+        <span className="inline-flex items-center gap-1.5 text-[var(--m-ok)]">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Statutory Warning Priority Active</span>
         </span>

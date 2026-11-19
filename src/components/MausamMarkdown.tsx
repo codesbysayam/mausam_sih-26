@@ -29,17 +29,17 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
   const cleaned = cleanMarkdownText(content);
 
   return (
-    <div className="mausam-markdown text-xs sm:text-[13px] leading-relaxed text-[#D7DEE8] select-text">
+    <div className="mausam-markdown text-xs sm:text-[13px] leading-relaxed text-[var(--m-text-primary)] select-text">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="block text-base font-bold text-white mb-2.5 mt-1.5 border-b border-[#202B3B] pb-1.5">
+            <h1 className="block text-base font-bold text-[var(--m-text-primary)] mb-2.5 mt-1.5 border-b border-[var(--m-border)] pb-1.5">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="block text-sm font-bold text-[#4FA8E0] mb-2 mt-2 border-b border-[#202B3B]/60 pb-1">
+            <h2 className="block text-sm font-bold text-[#4FA8E0] mb-2 mt-2 border-b border-[var(--m-border)] pb-1">
               {children}
             </h2>
           ),
@@ -49,22 +49,22 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="block text-xs font-semibold text-white mb-1.5 mt-2">
+            <h4 className="block text-xs font-semibold text-[var(--m-text-primary)] mb-1.5 mt-2">
               {children}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="mb-2 last:mb-0 leading-relaxed text-[#D7DEE8]">
+            <p className="mb-2 last:mb-0 leading-relaxed text-[var(--m-text-primary)]">
               {children}
             </p>
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-white tracking-tight">
+            <strong className="font-semibold text-[var(--m-text-primary)] tracking-tight">
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className="text-[#94A3B8] italic font-serif">
+            <em className="text-[var(--m-text-muted)] italic font-serif">
               {children}
             </em>
           ),
@@ -79,43 +79,43 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
             </ol>
           ),
           li: ({ children }) => (
-            <li className="leading-relaxed pl-0.5 text-[#CBD5E1]">
+            <li className="leading-relaxed pl-0.5 text-[var(--m-text-secondary)]">
               {children}
             </li>
           ),
           table: ({ children }) => (
-            <div className="overflow-x-auto my-2.5 rounded-lg border border-[#202B3B] shadow-inner bg-[#0B1017]">
+            <div className="overflow-x-auto my-2.5 rounded-lg border border-[var(--m-border)] shadow-inner bg-[var(--m-surface-inset)]">
               <table className="w-full text-left text-xs border-collapse">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#17212B] border-b border-[#202B3B] text-white">
+            <thead className="bg-[var(--m-surface-2)] border-b border-[var(--m-border)] text-[var(--m-text-primary)]">
               {children}
             </thead>
           ),
           th: ({ children }) => (
-            <th className="p-2 font-semibold text-white border-b border-[#202B3B] text-[11px] uppercase tracking-wider">
+            <th className="p-2 font-semibold text-[var(--m-text-primary)] border-b border-[var(--m-border)] text-[11px] uppercase tracking-wider">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="p-2 border-b border-[#202B3B]/40 text-[#CBD5E1] text-[11px]">
+            <td className="p-2 border-b border-[var(--m-border)] text-[var(--m-text-secondary)] text-[11px]">
               {children}
             </td>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#0B72B9] pl-3 py-1.5 my-2 bg-[#0B72B9]/10 text-xs text-[#93C5FD] rounded-r-md">
+            <blockquote className="border-l-2 border-[#0B72B9] pl-3 py-1.5 my-2 bg-[var(--m-accent-soft)] text-xs text-[#93C5FD] rounded-r-md">
               {children}
             </blockquote>
           ),
           code: ({ children }) => (
-            <code className="px-1.5 py-0.5 rounded bg-[#1A2533] text-[#4FA8E0] font-mono text-[11px] border border-[#202B3B]">
+            <code className="px-1.5 py-0.5 rounded bg-[var(--m-surface-2)] text-[#4FA8E0] font-mono text-[11px] border border-[var(--m-border)]">
               {children}
             </code>
           ),
-          hr: () => <hr className="my-3 border-[#202B3B]" />,
+          hr: () => <hr className="my-3 border-[var(--m-border)]" />,
         }}
       >
         {cleaned}

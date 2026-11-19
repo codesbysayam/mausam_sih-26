@@ -51,18 +51,18 @@ export const IrrigationIntelligenceCommand: React.FC<IrrigationIntelligenceComma
 
   let decisionState: 'DEFER IRRIGATION' | 'PROCEED WITH IRRIGATION' | 'LIGHT DEFICIT SUPPLEMENT' =
     'PROCEED WITH IRRIGATION';
-  let decisionBg = 'bg-[#22C7A0]/12 border-[#22C7A0]/35 text-[#6EE7B7]';
+  let decisionBg = 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35 text-[var(--m-ok)]';
   let decisionReason = `Standard irrigation rotation recommended to meet ${etDemand} mm/day evapotranspiration demand for ${selectedCrop}.`;
   let pumpWindow = '05:30 – 08:30 IST / 17:00 – 19:00 IST';
 
   if (isWet) {
     decisionState = 'DEFER IRRIGATION';
-    decisionBg = 'bg-[#35C7E8]/12 border-[#35C7E8]/35 text-[#7DD3FC]';
+    decisionBg = 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/35 text-[var(--m-accent)]';
     decisionReason = `Observed/forecast precipitation (${rain24h !== null ? `${rain24h} mm` : 'active'}, 48h est. ${totalForecastRain !== null ? `${totalForecastRain} mm` : 'active'}) satisfies root-zone moisture demand. Suspend tubewell pumps to conserve power and prevent waterlogging.`;
     pumpWindow = 'Pumps Powered Down / Hold for 48 Hours';
   } else if (isMoist) {
     decisionState = 'LIGHT DEFICIT SUPPLEMENT';
-    decisionBg = 'bg-[#F59E0B]/12 border-[#F59E0B]/35 text-[#FCD34D]';
+    decisionBg = 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35 text-[var(--m-watch)]';
     decisionReason =
       'Moderate soil moisture replenishment expected. Apply short-cycle drip irrigation only if topsoil tension indicates drying.';
     pumpWindow = 'Short 45-min morning cycle (06:00 – 07:00 IST)';
@@ -108,7 +108,7 @@ export const IrrigationIntelligenceCommand: React.FC<IrrigationIntelligenceComma
                 unit="mm"
                 precision={1}
                 hint={`48h Outlook: ${totalForecastRain !== null ? `${totalForecastRain} mm` : '—'}`}
-                valueClassName="text-xl font-bold text-[#35C7E8]"
+                valueClassName="text-xl font-bold text-[var(--m-accent)]"
               />
             </div>
 
@@ -124,7 +124,7 @@ export const IrrigationIntelligenceCommand: React.FC<IrrigationIntelligenceComma
                     ? 'Saturated / Adequate'
                     : 'Field Capacity Proxy'
                 }
-                valueClassName="text-xl font-bold text-[#22C7A0]"
+                valueClassName="text-xl font-bold text-[var(--m-ok)]"
               />
             </div>
 
@@ -150,18 +150,18 @@ export const IrrigationIntelligenceCommand: React.FC<IrrigationIntelligenceComma
 
           <div className="lg:col-span-5 m-panel-inset p-4 flex flex-col justify-between space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F3F6FA] uppercase">
-                <Zap className="w-4 h-4 text-[#F59E0B]" />
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase">
+                <Zap className="w-4 h-4 text-[var(--m-watch)]" />
                 <span>Operational Guidance</span>
               </div>
-              <p className="text-xs text-[#B5C3D1] leading-relaxed">{decisionReason}</p>
+              <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{decisionReason}</p>
             </div>
 
-            <div className="bg-[#07111D] border border-[#26394B] rounded-lg p-3 space-y-1">
-              <span className="text-[10px] font-mono text-[#8295A8] uppercase block">
+            <div className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg p-3 space-y-1">
+              <span className="text-[10px] font-mono text-[var(--m-text-muted)] uppercase block">
                 Recommended Pump Schedule
               </span>
-              <div className="text-xs font-mono font-bold text-[#35C7E8] flex items-center gap-1.5">
+              <div className="text-xs font-mono font-bold text-[var(--m-accent)] flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 shrink-0" />
                 <span>{pumpWindow}</span>
               </div>

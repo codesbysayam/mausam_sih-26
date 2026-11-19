@@ -72,41 +72,37 @@ const CustomTrendTooltip = ({ active, payload, label }: any) => {
 
   const aqiCategory =
     aqi === undefined || aqi === null
-      ? { name: '—', color: '#8295A8' }
+      ? { name: 'Not reported', color: 'var(--m-text-muted)' }
       : aqi <= 50
-      ? { name: 'Good', color: '#22C7A0' }
+      ? { name: 'Good', color: 'var(--m-ok)' }
       : aqi <= 100
-      ? { name: 'Satisfactory', color: '#22C7A0' }
+      ? { name: 'Satisfactory', color: 'var(--m-ok)' }
       : aqi <= 200
-      ? { name: 'Moderate', color: '#F59E0B' }
+      ? { name: 'Moderate', color: 'var(--m-watch)' }
       : aqi <= 300
-      ? { name: 'Poor', color: '#F97316' }
-      : { name: 'Very Poor', color: '#EF4444' };
+      ? { name: 'Poor', color: 'var(--m-alert)' }
+      : { name: 'Very Poor', color: 'var(--m-danger)' };
 
   const pollenRisk =
     pollen === undefined || pollen === null
-      ? { label: 'Unavailable', color: '#8295A8' }
+      ? { label: 'Not reported', color: 'var(--m-text-muted)' }
       : pollen <= 2
-      ? { label: 'Low', color: '#22C7A0' }
+      ? { label: 'Low', color: 'var(--m-ok)' }
       : pollen <= 3.5
-      ? { label: 'Moderate', color: '#F59E0B' }
-      : { label: 'High Allergen Risk', color: '#EF4444' };
+      ? { label: 'Moderate', color: 'var(--m-watch)' }
+      : { label: 'High Allergen Risk', color: 'var(--m-danger)' };
 
   return (
-    <div className="rounded-xl bg-[#08131F] border border-[#38536A] p-3.5 min-w-[235px] text-xs flex flex-col gap-2.5 shadow-xl">
-      <div className="flex items-center justify-between pb-2 border-b border-[#26394B]">
-        <div className="flex items-center gap-1.5 text-[#F3F6FA] font-semibold">
-          <Calendar className="w-3.5 h-3.5 text-[#35C7E8]" />
+    <div className="rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] p-3.5 min-w-[235px] text-xs flex flex-col gap-2.5 shadow-xl text-[var(--m-text-primary)]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
+        <div className="flex items-center gap-1.5 text-[var(--m-text-primary)] font-semibold">
+          <Calendar className="w-3.5 h-3.5 text-[var(--m-accent)]" />
           <span>{label || data.day || data.date}</span>
         </div>
         {aqi !== undefined && aqi !== null && (
           <span
-            className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold border"
-            style={{
-              color: aqiCategory.color,
-              backgroundColor: `${aqiCategory.color}15`,
-              borderColor: `${aqiCategory.color}40`,
-            }}
+            className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold border border-[var(--m-border)] bg-[var(--m-surface-2)]"
+            style={{ color: aqiCategory.color }}
           >
             AQI {aqi} · {aqiCategory.name}
           </span>
@@ -117,14 +113,14 @@ const CustomTrendTooltip = ({ active, payload, label }: any) => {
         {pm25 !== undefined && pm25 !== null && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-[#8295A8]">PM2.5 Fine Dust</span>
-              <span className="font-bold text-[#F3F6FA]">
-                {pm25} <span className="text-[10px] text-[#8295A8] font-normal">µg/m³</span>
+              <span className="text-[var(--m-text-muted)]">PM2.5 Fine Dust</span>
+              <span className="font-bold text-[var(--m-text-primary)]">
+                {pm25} <span className="text-[10px] text-[var(--m-text-muted)] font-normal">µg/m³</span>
               </span>
             </div>
-            <div className="flex items-center justify-between text-[11px] px-2 py-1 rounded bg-[#07111D] border border-[#26394B]">
-              <span className="text-[#8295A8]">CPCB 24h Limit (60)</span>
-              <span className={isAboveStandard ? 'text-[#FCA5A5] font-semibold' : 'text-[#6EE7B7] font-semibold'}>
+            <div className="flex items-center justify-between text-[11px] px-2 py-1 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)]">CPCB 24h Limit (60)</span>
+              <span className={isAboveStandard ? 'text-[var(--m-danger)] font-semibold' : 'text-[var(--m-ok)] font-semibold'}>
                 {isAboveStandard
                   ? `+${Math.round(pm25 - 60)} µg/m³ over`
                   : `${Math.round(60 - pm25)} µg/m³ under`}
@@ -134,10 +130,10 @@ const CustomTrendTooltip = ({ active, payload, label }: any) => {
         )}
 
         {pollen !== undefined && pollen !== null && (
-          <div className="flex items-center justify-between pt-1 border-t border-[#26394B]">
-            <span className="text-[#8295A8]">Bio-Pollen Index</span>
+          <div className="flex items-center justify-between pt-1 border-t border-[var(--m-border)]">
+            <span className="text-[var(--m-text-muted)]">Bio-Pollen Index</span>
             <div className="text-right">
-              <span className="font-bold text-[#F3F6FA]">Level {pollen} / 5</span>
+              <span className="font-bold text-[var(--m-text-primary)]">Level {pollen} / 5</span>
               <span className="text-[10px] block" style={{ color: pollenRisk.color }}>
                 {pollenRisk.label}
               </span>
@@ -219,8 +215,19 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
       'Odisha';
     const rawLat = selectedLocation.lat;
     const rawLon = selectedLocation.lng;
-    const lat = typeof rawLat === 'number' && Number.isFinite(rawLat) ? rawLat : 20.2961;
-    const lon = typeof rawLon === 'number' && Number.isFinite(rawLon) ? rawLon : 85.8245;
+    if (
+      typeof rawLat !== 'number' ||
+      !Number.isFinite(rawLat) ||
+      typeof rawLon !== 'number' ||
+      !Number.isFinite(rawLon)
+    ) {
+      setHistoricalData(null);
+      setIsLoadingHistory(false);
+      setHistoryError('Location coordinates are not available for air quality history.');
+      return;
+    }
+    const lat = rawLat;
+    const lon = rawLon;
     const stationId =
       selectedLocation.stationId ||
       selectedLocation.id ||
@@ -346,30 +353,30 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
   }, [historicalData, activeStateRecord, selectedDate]);
 
   const activeAqi: number | null =
-    typeof current.aqi === 'number' && !Number.isNaN(current.aqi) && current.aqi > 0
+    typeof current.aqi === 'number' && Number.isFinite(current.aqi) && current.aqi >= 0
       ? Math.round(current.aqi)
-      : typeof current.aqiIndex === 'number' && !Number.isNaN(current.aqiIndex) && current.aqiIndex > 0
+      : typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex) && current.aqiIndex >= 0
       ? Math.round(current.aqiIndex)
-      : typeof aqiData?.aqi === 'number' && !Number.isNaN(aqiData.aqi) && aqiData.aqi > 0
+      : typeof aqiData?.aqi === 'number' && Number.isFinite(aqiData.aqi) && aqiData.aqi >= 0
       ? Math.round(aqiData.aqi)
       : null;
 
   const activePm25: number | null =
-    typeof current.aqiPm25 === 'number' && !Number.isNaN(current.aqiPm25) && current.aqiPm25 >= 0
+    typeof current.aqiPm25 === 'number' && Number.isFinite(current.aqiPm25) && current.aqiPm25 >= 0
       ? Math.round(current.aqiPm25)
-      : typeof aqiData?.pm25 === 'number' && !Number.isNaN(aqiData.pm25)
+      : typeof aqiData?.pm25 === 'number' && Number.isFinite(aqiData.pm25) && aqiData.pm25 >= 0
       ? Math.round(aqiData.pm25)
       : null;
 
   const activePm10: number | null =
-    typeof current.aqiPm10 === 'number' && !Number.isNaN(current.aqiPm10) && current.aqiPm10 >= 0
+    typeof current.aqiPm10 === 'number' && Number.isFinite(current.aqiPm10) && current.aqiPm10 >= 0
       ? Math.round(current.aqiPm10)
-      : typeof aqiData?.pm10 === 'number' && !Number.isNaN(aqiData.pm10)
+      : typeof aqiData?.pm10 === 'number' && Number.isFinite(aqiData.pm10) && aqiData.pm10 >= 0
       ? Math.round(aqiData.pm10)
       : null;
 
   const getAqiCategory = (val: number | null) => {
-    if (val === null || Number.isNaN(val)) return 'Unavailable';
+    if (val === null || Number.isNaN(val)) return 'Not reported';
     if (val <= 50) return 'Good';
     if (val <= 100) return 'Satisfactory';
     if (val <= 200) return 'Moderate';
@@ -380,48 +387,54 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
 
   const cityAqiData = [
     {
-      city: `${selectedLocation.city || 'Selected Location'} (Active)`,
-      state: selectedLocation.state || 'Odisha',
+      city: `${selectedLocation.city || 'Selected Location'}`,
+      state: selectedLocation.state || 'India',
+      dataClass: 'Live Model Telemetry',
       aqi: activeAqi,
       category: getAqiCategory(activeAqi),
       pm25: activePm25,
       pm10: activePm10,
       isLiveSelected: true,
     },
-    { city: 'Cuttack (Ref)', state: 'Odisha', aqi: 112, category: 'Moderate', pm25: 52, pm10: 94 },
-    { city: 'Rourkela (Ref)', state: 'Odisha', aqi: 145, category: 'Moderate', pm25: 64, pm10: 120 },
-    { city: 'Puri (Ref)', state: 'Odisha', aqi: 45, category: 'Good', pm25: 18, pm10: 42 },
-    { city: 'New Delhi (Ref)', state: 'Delhi', aqi: 240, category: 'Poor', pm25: 110, pm10: 215 },
-    { city: 'Mumbai (Ref)', state: 'Maharashtra', aqi: 92, category: 'Satisfactory', pm25: 38, pm10: 76 },
-    { city: 'Kolkata (Ref)', state: 'West Bengal', aqi: 135, category: 'Moderate', pm25: 58, pm10: 110 },
-    { city: 'Bengaluru (Ref)', state: 'Karnataka', aqi: 62, category: 'Satisfactory', pm25: 26, pm10: 54 },
+    { city: 'Cuttack', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 112, category: 'Moderate', pm25: 52, pm10: 94 },
+    { city: 'Rourkela', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 145, category: 'Moderate', pm25: 64, pm10: 120 },
+    { city: 'Puri', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 45, category: 'Good', pm25: 18, pm10: 42 },
+    { city: 'New Delhi', state: 'Delhi', dataClass: 'Static Reference Benchmark', aqi: 240, category: 'Poor', pm25: 110, pm10: 215 },
+    { city: 'Mumbai', state: 'Maharashtra', dataClass: 'Static Reference Benchmark', aqi: 92, category: 'Satisfactory', pm25: 38, pm10: 76 },
+    { city: 'Kolkata', state: 'West Bengal', dataClass: 'Static Reference Benchmark', aqi: 135, category: 'Moderate', pm25: 58, pm10: 110 },
+    { city: 'Bengaluru', state: 'Karnataka', dataClass: 'Static Reference Benchmark', aqi: 62, category: 'Satisfactory', pm25: 26, pm10: 54 },
   ];
 
   const cityColumns: ColumnDef<any>[] = [
     {
       header: 'Station / City',
       render: (item) => (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveStateName(item.state)}
-            className="text-left font-semibold text-[#F3F6FA] hover:text-[#35C7E8] transition-colors text-xs cursor-pointer"
-          >
-            {item.city}
-          </button>
-          <span className="text-[11px] text-[#8295A8]">({item.state})</span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveStateName(item.state)}
+              className="text-left font-semibold text-[var(--m-text-primary)] hover:text-[var(--m-accent)] transition-colors text-xs cursor-pointer"
+            >
+              {item.city}
+            </button>
+            <span className="text-[11px] text-[var(--m-text-muted)]">({item.state})</span>
+          </div>
+          <span className={`text-[10px] font-mono ${item.isLiveSelected ? 'text-[var(--m-ok)] font-semibold' : 'text-[var(--m-text-muted)]'}`}>
+            {item.dataClass}
+          </span>
         </div>
       ),
-      width: '210px',
+      width: '240px',
     },
     {
       header: 'NAQI Index',
       render: (item) => (
-        <span className="font-mono font-bold text-[#F3F6FA] text-sm tabular-nums">
-          {item.aqi !== null && item.aqi !== undefined ? item.aqi : '—'}
+        <span className="font-mono font-bold text-[var(--m-text-primary)] text-sm tabular-nums">
+          {item.aqi !== null && item.aqi !== undefined ? item.aqi : 'Not reported'}
         </span>
       ),
-      width: '110px',
+      width: '120px',
     },
     {
       header: 'Category',
@@ -446,8 +459,8 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     {
       header: 'PM2.5 (µg/m³)',
       render: (item) => (
-        <span className="font-mono text-xs text-[#B5C3D1] tabular-nums">
-          {item.pm25 !== null && item.pm25 !== undefined ? item.pm25 : '—'}
+        <span className="font-mono text-xs text-[var(--m-text-secondary)] tabular-nums">
+          {item.pm25 !== null && item.pm25 !== undefined ? item.pm25 : 'Not reported'}
         </span>
       ),
       width: '130px',
@@ -455,8 +468,8 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     {
       header: 'PM10 (µg/m³)',
       render: (item) => (
-        <span className="font-mono text-xs text-[#B5C3D1] tabular-nums">
-          {item.pm10 !== null && item.pm10 !== undefined ? item.pm10 : '—'}
+        <span className="font-mono text-xs text-[var(--m-text-secondary)] tabular-nums">
+          {item.pm10 !== null && item.pm10 !== undefined ? item.pm10 : 'Not reported'}
         </span>
       ),
       width: '130px',
@@ -467,7 +480,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         <button
           type="button"
           onClick={() => setActiveStateName(item.state)}
-          className="px-2.5 py-1.5 min-h-[34px] bg-[#08131F] hover:bg-[#0B72B9] text-[#B5C3D1] hover:text-white border border-[#26394B] rounded-lg text-[11px] font-mono font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="px-2.5 py-1.5 min-h-[34px] bg-[var(--m-surface-2)] hover:bg-[var(--m-accent)] text-[var(--m-text-secondary)] hover:text-white border border-[var(--m-border)] rounded-lg text-[11px] font-mono font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <MapIcon className="w-3.5 h-3.5" />
           <span>Focus</span>
@@ -507,17 +520,17 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                 type="button"
                 onClick={() => onDetectLocation(true)}
                 disabled={isLocating}
-                className="px-3 py-2 min-h-[40px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
+                className="px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
               >
-                <LocateFixed className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
-                <span>{isLocating ? 'Locating...' : 'Detect GPS'}</span>
+                <LocateFixed className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating…' : 'Detect GPS'}</span>
               </button>
             )}
             {onOpenLocationCenter && (
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="px-3 py-2 min-h-[40px] rounded-lg bg-[#0B72B9] hover:bg-[#095C96] text-xs font-semibold text-white flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
+                className="px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-white flex items-center gap-1.5 transition-opacity cursor-pointer m-focus-ring"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Change Station</span>
@@ -535,7 +548,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
 
       {/* 7-Day Trend History Visualization */}
       <DataPanel id="aqi-pollen-trend-card" className="flex flex-col gap-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#26394B]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[var(--m-border)]">
           <SectionHeading
             title={`7-Day Historical Trend: PM2.5 & Bio-Pollen (${activeStateRecord.name})`}
             subtitle={`Observation Baseline: ${formatDateShort(new Date(`${selectedDate}T00:00:00`))}${
@@ -548,7 +561,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               isLoadingHistory ? (
                 <SourceStatus status="LOADING" labelOverride="SYNCING ARCHIVE" />
               ) : visibleChartData.length > 0 ? (
-                <SourceStatus status="RECENT" labelOverride="VERIFIED ARCHIVE" />
+                <SourceStatus status="RECENT" labelOverride="MODEL ARCHIVE" />
               ) : (
                 <SourceStatus status="UNAVAILABLE" />
               )
@@ -561,21 +574,22 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               <button
                 type="button"
                 onClick={() => setShowDateCalendar(!showDateCalendar)}
-                className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] text-[#F3F6FA] rounded-lg border border-[#26394B] text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-2 min-h-[38px] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] rounded-lg border border-[var(--m-border)] text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Calendar className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <Calendar className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span>{formatDateShort(new Date(`${selectedDate}T00:00:00`))}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-[#8295A8] transition-transform ${showDateCalendar ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-[var(--m-text-muted)] transition-transform ${showDateCalendar ? 'rotate-180' : ''}`} />
               </button>
 
               {showDateCalendar && (
-                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[#0B1927] border border-[#38536A] rounded-xl shadow-2xl">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#26394B] mb-2 text-xs">
-                    <span className="text-[#F3F6FA] font-semibold">Observation Baseline Date</span>
+                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] rounded-xl shadow-2xl">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--m-border)] mb-2 text-xs">
+                    <span className="text-[var(--m-text-primary)] font-semibold">Observation Baseline Date</span>
                     <button
                       type="button"
                       onClick={() => setShowDateCalendar(false)}
-                      className="text-[#8295A8] hover:text-[#F3F6FA] p-1"
+                      aria-label="Close calendar"
+                      className="text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] p-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -594,13 +608,15 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-1 p-1 bg-[#08131F] border border-[#26394B] rounded-lg">
+            <div className="flex items-center gap-1 p-1 bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded-lg">
               <button
                 id="btn-trend-filter-both"
                 type="button"
                 onClick={() => setTrendView('both')}
                 className={`px-3 py-1.5 min-h-[34px] rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  trendView === 'both' ? 'bg-[#0B72B9] text-white' : 'text-[#B5C3D1] hover:text-[#F3F6FA]'
+                  trendView === 'both'
+                    ? 'bg-[var(--m-accent)] text-white'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -611,7 +627,9 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                 type="button"
                 onClick={() => setTrendView('pm25')}
                 className={`px-3 py-1.5 min-h-[34px] rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                  trendView === 'pm25' ? 'bg-[#F59E0B] text-[#07111D]' : 'text-[#B5C3D1] hover:text-[#F3F6FA]'
+                  trendView === 'pm25'
+                    ? 'bg-[var(--m-watch)] text-white'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 PM2.5
@@ -621,7 +639,9 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                 type="button"
                 onClick={() => setTrendView('pollen')}
                 className={`px-3 py-1.5 min-h-[34px] rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  trendView === 'pollen' ? 'bg-[#22C7A0] text-[#07111D]' : 'text-[#B5C3D1] hover:text-[#F3F6FA]'
+                  trendView === 'pollen'
+                    ? 'bg-[var(--m-ok)] text-white'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 <Flower2 className="w-3.5 h-3.5" />
@@ -633,7 +653,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               type="button"
               onClick={handleExportCSV}
               disabled={!historicalData?.observations?.length || isLoadingHistory}
-              className="w-9 h-9 bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] rounded-lg border border-[#26394B] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-9 h-9 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] rounded-lg border border-[var(--m-border)] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               title="Export 7-Day Trend CSV"
               aria-label="Export 7-Day Trend CSV"
             >
@@ -645,19 +665,19 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         {/* Summary KPI Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
-            <span className="text-[10px] font-mono text-[#8295A8] uppercase font-semibold tracking-wider">
+            <span className="text-[10px] font-mono text-[var(--m-text-muted)] uppercase font-semibold tracking-wider">
               Observatory Region
             </span>
             <div>
-              <span className="text-base font-bold text-[#F3F6FA] block leading-tight">
+              <span className="text-base font-bold text-[var(--m-text-primary)] block leading-tight">
                 {activeStateRecord.name}
               </span>
-              <span className="text-xs text-[#35C7E8] flex items-center gap-1 mt-1 font-mono">
+              <span className="text-xs text-[var(--m-accent)] flex items-center gap-1 mt-1 font-mono">
                 <MapPin className="w-3 h-3 shrink-0" />
                 {historicalData?.stationId || activeStateRecord.city || 'Regional Observatory'}
               </span>
             </div>
-            <span className="text-[11px] font-mono text-[#8295A8]">
+            <span className="text-[11px] font-mono text-[var(--m-text-muted)]">
               Baseline: {formatDateShort(new Date(`${selectedDate}T00:00:00`))}
             </span>
           </div>
@@ -669,12 +689,12 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               unit="µg/m³"
               hint="CPCB 24h Std: 60 µg/m³"
               unavailableLabel="Awaiting archive"
-              valueClassName="text-2xl font-bold text-[#FCD34D]"
+              valueClassName="text-2xl font-bold text-[var(--m-watch)]"
             />
-            <div className="w-full bg-[#07111D] h-1.5 rounded-full overflow-hidden border border-[#26394B]">
+            <div className="w-full bg-[var(--m-surface-3)] h-1.5 rounded-full overflow-hidden border border-[var(--m-border)]">
               <div
                 className={`h-full transition-all ${
-                  (currentPm25Value ?? 0) > 60 ? 'bg-[#EF4444]' : 'bg-[#22C7A0]'
+                  (currentPm25Value ?? 0) > 60 ? 'bg-[var(--m-danger)]' : 'bg-[var(--m-ok)]'
                 }`}
                 style={{
                   width: `${currentPm25Value !== null ? Math.min(100, (currentPm25Value / 60) * 100) : 0}%`,
@@ -694,7 +714,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                   : 'Aero-allergen scale'
               }
               unavailableLabel="Pollen index unavailable"
-              valueClassName="text-2xl font-bold text-[#6EE7B7]"
+              valueClassName="text-2xl font-bold text-[var(--m-ok)]"
             />
           </div>
 
@@ -709,21 +729,21 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                   : 'Rolling PM2.5 archive'
               }
               unavailableLabel="Awaiting 7-day series"
-              valueClassName="text-2xl font-bold text-[#35C7E8]"
+              valueClassName="text-2xl font-bold text-[var(--m-accent)]"
             />
           </div>
         </div>
 
         {/* Chart Area */}
-        <div className="h-[320px] w-full bg-[#08131F] p-4 rounded-xl border border-[#26394B] relative overflow-hidden flex items-center justify-center">
+        <div className="h-[320px] w-full bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)] relative overflow-hidden flex items-center justify-center">
           {isLoadingHistory ? (
-            <div className="flex flex-col items-center gap-2 text-[#B5C3D1] text-xs font-mono">
-              <Loader2 className="w-6 h-6 animate-spin text-[#35C7E8]" />
-              <span>Loading verified observations...</span>
+            <div className="flex flex-col items-center gap-2 text-[var(--m-text-secondary)] text-xs font-mono">
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--m-accent)]" />
+              <span>Fetching archive observations…</span>
             </div>
           ) : historyError || !visibleChartData.length ? (
             <UnavailableState
-              title="No Verified Historical Telemetry"
+              title="No Historical Air Quality Telemetry"
               reason={historyError || 'No archival measurements exist for the selected coordinate and baseline date.'}
               source="Open-Meteo Air Quality Archive"
             />
@@ -735,26 +755,26 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               >
                 <defs>
                   <linearGradient id="pm25GlowGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.32} />
-                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#B87A0B" stopOpacity={0.28} />
+                    <stop offset="100%" stopColor="#B87A0B" stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
-                <CartesianGrid strokeDasharray="3 3" stroke="#26394B" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--m-border)" vertical={false} />
                 <XAxis
                   dataKey="day"
-                  stroke="#8295A8"
+                  stroke="var(--m-text-muted)"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#26394B' }}
+                  axisLine={{ stroke: 'var(--m-border)' }}
                   dy={8}
                 />
                 <YAxis
                   yAxisId="left"
-                  stroke="#FCD34D"
+                  stroke="var(--m-watch)"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#26394B' }}
+                  axisLine={{ stroke: 'var(--m-border)' }}
                   domain={[0, (dataMax: number) => Math.max(80, Math.ceil(dataMax * 1.3))]}
                   ticks={[0, 20, 40, 60, 80]}
                   dx={-4}
@@ -767,29 +787,29 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                     domain={[0, 6]}
                     ticks={[1, 2, 3, 4, 5]}
                     tickFormatter={(v) => `L${v}`}
-                    stroke="#6EE7B7"
+                    stroke="var(--m-ok)"
                     fontSize={11}
                     tickLine={false}
-                    axisLine={{ stroke: '#26394B' }}
+                    axisLine={{ stroke: 'var(--m-border)' }}
                     dx={4}
                   />
                 )}
 
                 <Tooltip
                   content={<CustomTrendTooltip />}
-                  cursor={{ stroke: '#35C7E8', strokeWidth: 1.5, strokeDasharray: '3 3' }}
+                  cursor={{ stroke: 'var(--m-accent)', strokeWidth: 1.5, strokeDasharray: '3 3' }}
                 />
 
                 {(trendView === 'both' || trendView === 'pm25') && (
                   <ReferenceLine
                     yAxisId="left"
                     y={60}
-                    stroke="#EF4444"
+                    stroke="var(--m-danger)"
                     strokeDasharray="4 4"
                     strokeWidth={1.5}
                     label={{
                       value: 'CPCB Limit: 60 µg/m³',
-                      fill: '#FCA5A5',
+                      fill: 'var(--m-danger)',
                       fontSize: 10,
                       position: 'top',
                     }}
@@ -802,12 +822,12 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                     type="monotone"
                     dataKey="pm25"
                     name="PM2.5"
-                    stroke="#F59E0B"
+                    stroke="#B87A0B"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#pm25GlowGradient)"
-                    dot={{ r: 4, fill: '#08131F', stroke: '#F59E0B', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#F59E0B', stroke: '#F3F6FA', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: 'var(--m-surface-1)', stroke: '#B87A0B', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#B87A0B', stroke: 'var(--m-surface-1)', strokeWidth: 2 }}
                   />
                 )}
 
@@ -817,10 +837,10 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                     type="monotone"
                     dataKey="pollen"
                     name="Bio-Pollen Level"
-                    stroke="#22C7A0"
+                    stroke="#0F7A5A"
                     strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#08131F', stroke: '#22C7A0', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#22C7A0', stroke: '#F3F6FA', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: 'var(--m-surface-1)', stroke: '#0F7A5A', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#0F7A5A', stroke: 'var(--m-surface-1)', strokeWidth: 2 }}
                   />
                 )}
               </ComposedChart>
@@ -829,22 +849,24 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         </div>
       </DataPanel>
 
-      {/* India Synoptic Weather & AQI Map */}
-      <IndiaWeatherMap
-        data={INDIA_WEATHER_DATA}
-        metric={mapMetric}
-        onMetricChange={setMapMetric}
-        selectedState={activeStateName}
-        onStateSelect={handleStateSelect}
-      />
+      {/* India Synoptic Weather & AQI Map (Scoped Dark Spatial Canvas) */}
+      <div data-theme="dark-workspace" className="rounded-xl overflow-hidden">
+        <IndiaWeatherMap
+          data={INDIA_WEATHER_DATA}
+          metric={mapMetric}
+          onMetricChange={setMapMetric}
+          selectedState={activeStateName}
+          onStateSelect={handleStateSelect}
+        />
+      </div>
 
       {/* Regional Reference Table */}
       <DataPanel className="flex flex-col gap-4">
         <SectionHeading
-          title="Selected Location & Regional CAAQMS Reference Benchmarks"
-          subtitle="First row reflects live telemetry for your active location; remaining rows display CPCB/SPCB reference benchmarks"
+          title="Selected Location & Static Regional CAAQMS Reference Benchmarks"
+          subtitle="Row 1 reflects live Open-Meteo model telemetry for your active coordinates; all remaining rows are static CPCB/SPCB reference benchmarks (not live station feeds)."
           icon={<MapPin className="w-4 h-4" />}
-          badge={<SourceStatus status="REFERENCE" labelOverride="LIVE + BENCHMARK" />}
+          badge={<SourceStatus status="REFERENCE" labelOverride="LIVE + STATIC BENCHMARKS" />}
         />
 
         <div className="table-wrapper">

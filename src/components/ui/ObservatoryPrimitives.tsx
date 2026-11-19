@@ -33,57 +33,57 @@ const STATUS_META: Record<
 > = {
   LIVE: {
     label: 'LIVE FEED',
-    containerClass: 'bg-[#2E7D5B]/15 text-[#75D4A6] border-[#2E7D5B]/45',
+    containerClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30',
     Icon: CheckCircle2,
   },
   OBSERVED: {
     label: 'OBSERVED',
-    containerClass: 'bg-[#2E7D5B]/15 text-[#75D4A6] border-[#2E7D5B]/45',
+    containerClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30',
     Icon: CheckCircle2,
   },
   RECENT: {
     label: 'RECENT',
-    containerClass: 'bg-[#2C7BE5]/15 text-[#8AB8F7] border-[#2C7BE5]/40',
+    containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
     Icon: Clock,
   },
   FORECAST: {
     label: 'FORECAST',
-    containerClass: 'bg-[#2C7BE5]/15 text-[#8AB8F7] border-[#2C7BE5]/40',
+    containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
     Icon: Clock,
   },
   MODEL_DERIVED: {
     label: 'MODEL-DERIVED',
-    containerClass: 'bg-[#1E90B8]/15 text-[#7CD4F0] border-[#1E90B8]/40',
+    containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
     Icon: Info,
   },
   ESTIMATED: {
     label: 'ESTIMATED',
-    containerClass: 'bg-[#D98A2B]/15 text-[#F4B96B] border-[#D98A2B]/40',
+    containerClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/30',
     Icon: Info,
   },
   DERIVED: {
     label: 'DERIVED',
-    containerClass: 'bg-[#D98A2B]/15 text-[#F4B96B] border-[#D98A2B]/40',
+    containerClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/30',
     Icon: Info,
   },
   STALE: {
     label: 'CACHED / STALE',
-    containerClass: 'bg-[#D98A2B]/15 text-[#F4B96B] border-[#D98A2B]/40',
+    containerClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
     Icon: Clock,
   },
   UNAVAILABLE: {
     label: 'NOT AVAILABLE',
-    containerClass: 'bg-[#B83227]/15 text-[#F59B93] border-[#B83227]/40',
+    containerClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/30',
     Icon: WifiOff,
   },
   LOADING: {
     label: 'SYNCING',
-    containerClass: 'bg-[#2C7BE5]/15 text-[#8AB8F7] border-[#2C7BE5]/40',
+    containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
     Icon: Loader2,
   },
   ALL_CLEAR: {
-    label: 'ALL CLEAR',
-    containerClass: 'bg-[#2E7D5B]/15 text-[#75D4A6] border-[#2E7D5B]/45',
+    label: 'NO ACTIVE ALERTS',
+    containerClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30',
     Icon: CheckCircle2,
   },
   REFERENCE: {
@@ -131,7 +131,7 @@ export const SourceStatus: React.FC<SourceStatusProps> = ({
       )}
       {updatedAt && (
         <span className="text-[var(--m-text-muted)] font-mono text-[11px] tabular-nums">
-          · Valid {updatedAt}
+          · {status === 'OBSERVED' ? 'Observed' : status === 'MODEL_DERIVED' || status === 'FORECAST' ? 'Model valid' : 'Valid'} {updatedAt}
         </span>
       )}
       {retrievedAt && (
@@ -182,7 +182,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div className="min-w-0 flex flex-col gap-1.5">
           {eyebrow && (
-            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.08em] text-[#2C7BE5]">
+            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.08em] text-[var(--m-accent)]">
               {eyebrow}
             </span>
           )}
@@ -257,7 +257,7 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   >
     <div className="flex items-start sm:items-center gap-3 min-w-0">
       {icon && (
-        <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[#2C7BE5] shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
           {icon}
         </div>
       )}
@@ -400,13 +400,13 @@ export const UnavailableState: React.FC<UnavailableStateProps> = ({
     role="status"
   >
     <div className="flex items-start gap-3 min-w-0">
-      <div className="w-8 h-8 rounded-lg bg-[#B83227]/12 border border-[#B83227]/35 flex items-center justify-center text-[#F59B93] shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/30 flex items-center justify-center text-[var(--m-danger)] shrink-0">
         <XCircle className="w-4 h-4" />
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-semibold text-[var(--m-text-primary)]">{title}</span>
-          <span className="text-[10px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded bg-[#B83227]/15 text-[#F59B93] border border-[#B83227]/35">
+          <span className="text-[10px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/30">
             Not available
           </span>
         </div>
@@ -423,7 +423,7 @@ export const UnavailableState: React.FC<UnavailableStateProps> = ({
       <button
         type="button"
         onClick={onRetry}
-        className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-text-primary)] transition-colors shrink-0 cursor-pointer m-focus-ring"
+        className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-text-primary)] transition-colors shrink-0 cursor-pointer m-focus-ring"
       >
         {retryLabel}
       </button>
@@ -450,30 +450,35 @@ export const SeverityBanner: React.FC<SeverityBannerProps> = ({
 }) => {
   const styles: Record<
     SeverityBannerProps['state'],
-    { wrap: string; label: string; Icon: React.ComponentType<{ className?: string }> }
+    { wrap: string; badge: string; label: string; Icon: React.ComponentType<{ className?: string }> }
   > = {
     UNAVAILABLE: {
-      wrap: 'bg-[var(--m-surface-2)] border-[#D98A2B]/45 text-[#F4B96B]',
+      wrap: 'bg-[var(--m-surface-2)] border-[var(--m-watch)]/40 text-[var(--m-watch)]',
+      badge: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/30',
       label: 'FEED UNAVAILABLE',
       Icon: WifiOff,
     },
     ALL_CLEAR: {
-      wrap: 'bg-[var(--m-surface-1)] border-[#2E7D5B]/45 text-[#75D4A6]',
-      label: 'ALL CLEAR',
+      wrap: 'bg-[var(--m-surface-1)] border-[var(--m-ok)]/35 text-[var(--m-ok)]',
+      badge: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30',
+      label: 'NO ACTIVE ALERTS',
       Icon: CheckCircle2,
     },
     WATCH: {
-      wrap: 'bg-[#D98A2B]/12 border-[#D98A2B]/45 text-[#F4B96B]',
+      wrap: 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/40 text-[var(--m-watch)]',
+      badge: 'bg-[var(--m-surface-1)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
       label: 'YELLOW WATCH',
       Icon: AlertTriangle,
     },
     ALERT: {
-      wrap: 'bg-[#C65D21]/15 border-[#C65D21]/50 text-[#F7B28B]',
+      wrap: 'bg-[var(--m-alert-soft)] border-[var(--m-alert)]/45 text-[var(--m-alert)]',
+      badge: 'bg-[var(--m-surface-1)] text-[var(--m-alert)] border-[var(--m-alert)]/35',
       label: 'ORANGE ALERT',
       Icon: AlertTriangle,
     },
     SEVERE: {
-      wrap: 'bg-[#B83227]/15 border-[#B83227]/55 text-[#F59B93]',
+      wrap: 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/50 text-[var(--m-danger)]',
+      badge: 'bg-[var(--m-surface-1)] text-[var(--m-danger)] border-[var(--m-danger)]/35',
       label: 'RED WARNING',
       Icon: AlertTriangle,
     },
@@ -492,7 +497,7 @@ export const SeverityBanner: React.FC<SeverityBannerProps> = ({
         <Icon className="w-4 h-4 shrink-0 mt-0.5" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-current/30 bg-black/20">
+            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${current.badge}`}>
               {current.label}
             </span>
             <span className="text-xs sm:text-sm font-semibold text-[var(--m-text-primary)]">

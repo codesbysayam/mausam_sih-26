@@ -18,28 +18,28 @@ export const BeachSurferCard: React.FC<BeachSurferCardProps> = ({
 }) => {
   const surfBadgeColor =
     !marine
-      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]'
       : marine.surfCondition === 'Calm & Safe'
-      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
+      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
       : marine.surfCondition === 'Moderate Swell'
-      ? 'bg-[#0B72B9]/15 text-[#7DD3FC] border-[#0B72B9]/35'
+      ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[#0B72B9]/35'
       : marine.surfCondition === 'Rough Waves'
-      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
-      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
+      ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35'
+      : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35';
 
   return (
     <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-[var(--m-border)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#35C7E8] flex items-center justify-center border border-[#26394B]">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] text-[var(--m-accent)] flex items-center justify-center border border-[var(--m-border)]">
               <Waves className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
+              <h3 className="text-sm font-bold text-[var(--m-text-primary)] uppercase tracking-wide">
                 Beach, Surf &amp; Maritime
               </h3>
-              <p className="text-[11px] text-[#8295A8]">
+              <p className="text-[11px] text-[var(--m-text-muted)]">
                 Coastal Marine Hydrodynamics • {city}
               </p>
             </div>
@@ -49,16 +49,16 @@ export const BeachSurferCard: React.FC<BeachSurferCardProps> = ({
               {marine?.surfCondition || 'Unavailable'}
             </span>
           ) : (
-            <span className="text-[10px] font-mono bg-[#0B1927] text-[#8295A8] px-2 py-0.5 rounded border border-[#26394B]">
+            <span className="text-[10px] font-mono bg-[var(--m-surface-1)] text-[var(--m-text-muted)] px-2 py-0.5 rounded border border-[var(--m-border)]">
               Inland Sector
             </span>
           )}
         </div>
 
         {!isCoastal ? (
-          <div className="mt-4 p-4 rounded-lg bg-[#0B1927] border border-[#26394B] text-center">
-            <Waves className="w-7 h-7 text-[#8295A8] mx-auto" />
-            <p className="text-xs text-[#B5C3D1] mt-2 leading-relaxed">
+          <div className="mt-4 p-4 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] text-center">
+            <Waves className="w-7 h-7 text-[var(--m-text-muted)] mx-auto" />
+            <p className="text-xs text-[var(--m-text-secondary)] mt-2 leading-relaxed">
               {city} is an inland station. Marine swell, wave period, and sea-surface temperature telemetry apply only to coastal districts (e.g. Mumbai, Puri, Paradip, Chennai, Kochi, Visakhapatnam).
             </p>
           </div>
@@ -73,84 +73,84 @@ export const BeachSurferCard: React.FC<BeachSurferCardProps> = ({
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 font-mono tabular-nums">
-              <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+              <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">High Tide</span>
-                  <span className="text-[10px] text-[#6EE7B7] font-bold">
+                  <span className="text-[10px] font-sans uppercase font-bold text-[var(--m-text-muted)]">High Tide</span>
+                  <span className="text-[10px] text-[var(--m-ok)] font-bold">
                     {tides?.nextHighTide ? 'Flood' : '—'}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <span className="text-base font-bold text-[#F3F6FA]">
+                  <span className="text-base font-bold text-[var(--m-text-primary)]">
                     {tides?.nextHighTide?.time || 'Unavailable'}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#35C7E8] block mt-1">
+                <span className="text-[10px] text-[var(--m-accent)] block mt-1">
                   {tides?.nextHighTide?.heightMeters !== undefined
                     ? `Peak: +${tides.nextHighTide.heightMeters} m`
                     : 'Requires tide gauge'}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
+              <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8]">Low Tide</span>
-                  <span className="text-[10px] text-[#FCD34D] font-bold">
+                  <span className="text-[10px] font-sans uppercase font-bold text-[var(--m-text-muted)]">Low Tide</span>
+                  <span className="text-[10px] text-[var(--m-watch)] font-bold">
                     {tides?.nextLowTide ? 'Ebb' : '—'}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <span className="text-base font-bold text-[#F3F6FA]">
+                  <span className="text-base font-bold text-[var(--m-text-primary)]">
                     {tides?.nextLowTide?.time || 'Unavailable'}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#8295A8] block mt-1">
+                <span className="text-[10px] text-[var(--m-text-muted)] block mt-1">
                   {tides?.nextLowTide?.heightMeters !== undefined
                     ? `Low: +${tides.nextLowTide.heightMeters} m`
                     : 'Requires tide gauge'}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
-                <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
+              <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
+                <span className="text-[10px] font-sans uppercase font-bold text-[var(--m-text-muted)] block">
                   Wave Height
                 </span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-2xl font-bold text-[#F3F6FA]">
+                  <span className="text-2xl font-bold text-[var(--m-text-primary)]">
                     {typeof marine?.waveHeightMeters === 'number' ? marine.waveHeightMeters : '—'}
                   </span>
                   {typeof marine?.waveHeightMeters === 'number' && (
-                    <span className="text-[10px] font-sans text-[#8295A8]">m</span>
+                    <span className="text-[10px] font-sans text-[var(--m-text-muted)]">m</span>
                   )}
                 </div>
-                <span className="text-[10px] text-[#8295A8] block mt-1">
+                <span className="text-[10px] text-[var(--m-text-muted)] block mt-1">
                   Period: {typeof marine?.wavePeriodSeconds === 'number' ? `${marine.wavePeriodSeconds}s` : '—'}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
-                <span className="text-[10px] font-sans uppercase font-bold text-[#8295A8] block">
+              <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
+                <span className="text-[10px] font-sans uppercase font-bold text-[var(--m-text-muted)] block">
                   Water Temp (SST)
                 </span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-2xl font-bold text-[#22C7A0]">
+                  <span className="text-2xl font-bold text-[var(--m-ok)]">
                     {typeof marine?.seaSurfaceTemperatureC === 'number'
                       ? marine.seaSurfaceTemperatureC
                       : '—'}
                   </span>
                   {typeof marine?.seaSurfaceTemperatureC === 'number' && (
-                    <span className="text-[10px] text-[#8295A8]">°C</span>
+                    <span className="text-[10px] text-[var(--m-text-muted)]">°C</span>
                   )}
                 </div>
-                <span className="text-[10px] font-sans text-[#8295A8] block mt-1">Sea Surface Temp</span>
+                <span className="text-[10px] font-sans text-[var(--m-text-muted)] block mt-1">Sea Surface Temp</span>
               </div>
             </div>
 
             {marine?.marineAdvisory && (
-              <div className="mt-3.5 p-3 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-start gap-2.5">
-                <Anchor className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
-                <p className="text-xs text-[#B5C3D1]">
-                  <strong className="text-[#F3F6FA]">Marine Advisory:</strong> {marine.marineAdvisory}
+              <div className="mt-3.5 p-3 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-start gap-2.5">
+                <Anchor className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
+                <p className="text-xs text-[var(--m-text-secondary)]">
+                  <strong className="text-[var(--m-text-primary)]">Marine Advisory:</strong> {marine.marineAdvisory}
                 </p>
               </div>
             )}
@@ -158,8 +158,8 @@ export const BeachSurferCard: React.FC<BeachSurferCardProps> = ({
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
-        <span>Source: <strong className="text-[#B5C3D1]">{marine?.source || tides?.source || 'Open-Meteo Marine'}</strong></span>
+      <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[var(--m-text-muted)]">
+        <span>Source: <strong className="text-[var(--m-text-secondary)]">{marine?.source || tides?.source || 'Open-Meteo Marine'}</strong></span>
         <span>Coastal Hydrography</span>
       </div>
     </div>

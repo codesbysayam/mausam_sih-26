@@ -57,7 +57,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: '°C',
       precision: 1,
       icon: Thermometer,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
       hint:
         tempDiff !== null
           ? `${tempDiff > 0 ? `+${tempDiff}°` : `${tempDiff}°`} next hour`
@@ -70,7 +70,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: '°C',
       precision: 1,
       icon: Thermometer,
-      accent: 'text-[#F59E0B]',
+      accent: 'text-[var(--m-watch)]',
       hint:
         typeof currentPoint.apparentTemperature === 'number' && typeof currentPoint.temperature2m === 'number'
           ? `${Math.abs(Math.round((currentPoint.apparentTemperature - currentPoint.temperature2m) * 10) / 10)}° vs ambient`
@@ -83,7 +83,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: 'mm',
       precision: 1,
       icon: CloudRain,
-      accent: 'text-[#22C7A0]',
+      accent: 'text-[var(--m-ok)]',
       hint:
         typeof currentPoint.precipitationProbability === 'number'
           ? `${currentPoint.precipitationProbability}% probability`
@@ -98,7 +98,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: 'km/h',
       precision: 0,
       icon: Wind,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
       hint:
         typeof currentPoint.windGusts10m === 'number'
           ? `Gust ${currentPoint.windGusts10m} km/h${windDirStr ? ` · ${windDirStr}` : ''}`
@@ -113,7 +113,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: 'hPa',
       precision: 1,
       icon: Gauge,
-      accent: 'text-[#B5C3D1]',
+      accent: 'text-[var(--m-text-secondary)]',
       hint:
         typeof currentPoint.pressureMSL === 'number'
           ? currentPoint.pressureMSL > 1013
@@ -128,7 +128,7 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
       unit: '%',
       precision: 0,
       icon: Droplets,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
       hint:
         typeof currentPoint.dewPoint2m === 'number'
           ? `Dew point ${currentPoint.dewPoint2m}°C`
@@ -154,8 +154,8 @@ export const KeyForecastMetrics: React.FC<KeyForecastMetricsProps> = ({
             <div key={c.label} className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
               <div className="flex items-center justify-between">
                 <Icon className={`w-3.5 h-3.5 ${c.accent}`} />
-                {c.trendType === 'up' && <TrendingUp className="w-3 h-3 text-[#F59E0B]" />}
-                {c.trendType === 'down' && <TrendingDown className="w-3 h-3 text-[#35C7E8]" />}
+                {c.trendType === 'up' && <TrendingUp className="w-3 h-3 text-[var(--m-watch)]" />}
+                {c.trendType === 'down' && <TrendingDown className="w-3 h-3 text-[var(--m-accent)]" />}
               </div>
               <MetricValue
                 label={c.label}

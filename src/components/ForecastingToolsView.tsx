@@ -11,24 +11,24 @@ export const ForecastingToolsView: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] mx-auto select-none font-sans">
       {/* Top Banner */}
-      <div className="bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-[#0B72B9]/15 border border-[#0B72B9]/30 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
                 precision_manufacturing
               </span>
             </div>
-            <h2 className="font-h3 text-base font-bold text-[#FFFFFF]">
+            <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)]">
               Key Weather Forecasting Instruments &amp; Telemetry
             </h2>
           </div>
-          <p className="text-xs text-[#8A94A6] max-w-3xl leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] max-w-3xl leading-relaxed">
             Meteorological observation instruments powering numerical weather prediction models and real-time synoptic forecasting across the India Meteorological Department network.
           </p>
         </div>
 
-        <div className="bg-[#0F141A] px-4 py-2 rounded-lg card-border text-xs text-[#2ECC71] font-semibold border border-[#2ECC71]/20">
+        <div className="bg-[var(--m-surface-1)] px-4 py-2 rounded-lg card-border text-xs text-[#2ECC71] font-semibold border border-[#2ECC71]/20">
           6 Core Planetary Instruments
         </div>
       </div>
@@ -43,22 +43,22 @@ export const ForecastingToolsView: React.FC = () => {
               onClick={() => setSelectedTool(tool)}
               className={`p-3 rounded-xl card-border flex flex-col items-center gap-2 transition-all cursor-pointer text-center ${
                 isSelected
-                  ? 'bg-[#242F3D] border-[#0B72B9] ring-1 ring-[#4FA8E0] shadow-lg scale-[1.02]'
-                  : 'bg-[#1E2733] hover:bg-[#242F3D] border-[rgba(225,230,235,0.12)]'
+                  ? 'bg-[var(--m-surface-2)] border-[#0B72B9] ring-1 ring-[#4FA8E0] shadow-lg scale-[1.02]'
+                  : 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[rgba(225,230,235,0.12)]'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                   isSelected
-                    ? 'bg-[#0B72B9] text-[#FFFFFF]'
-                    : 'bg-[#0F141A] text-[#4FA8E0]'
+                    ? 'bg-[var(--m-accent)] text-[#FFFFFF]'
+                    : 'bg-[var(--m-surface-1)] text-[#4FA8E0]'
                 }`}
               >
                 <span className="material-symbols-outlined text-[24px]">
                   {tool.icon}
                 </span>
               </div>
-              <span className="text-xs font-semibold text-[#FFFFFF]">
+              <span className="text-xs font-semibold text-[var(--m-text-primary)]">
                 {tool.name}
               </span>
             </button>
@@ -69,17 +69,17 @@ export const ForecastingToolsView: React.FC = () => {
       {/* Active Tool Detailed Spotlight */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Specification & Definition Column (Span 7) */}
-        <div className="lg:col-span-7 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
+        <div className="lg:col-span-7 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
           <div>
             <div className="flex justify-between items-start gap-3 pb-4 border-b border-[rgba(225,230,235,0.12)] mb-4">
               <div>
                 <span className="text-xs text-[#4FA8E0] font-semibold block mb-0.5">
                   Instrument Profile
                 </span>
-                <h3 className="font-h2 text-2xl font-bold text-[#FFFFFF]">
+                <h3 className="font-h2 text-2xl font-bold text-[var(--m-text-primary)]">
                   {selectedTool.name}
                 </h3>
-                <span className="text-xs text-[#8A94A6]">
+                <span className="text-xs text-[var(--m-text-secondary)]">
                   {selectedTool.subtitle}
                 </span>
               </div>
@@ -90,35 +90,35 @@ export const ForecastingToolsView: React.FC = () => {
             </div>
 
             {/* Core Definition */}
-            <div className="bg-[#0F141A] p-4 rounded-lg card-border mb-4">
+            <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border mb-4">
               <span className="text-xs text-[#4FA8E0] font-semibold block mb-1">
                 Core Function &amp; Mechanism
               </span>
-              <p className="text-sm text-[#F4F7FA] leading-relaxed">
+              <p className="text-sm text-[var(--m-text-primary)] leading-relaxed">
                 {selectedTool.description}
               </p>
             </div>
 
             {/* Role in Forecasting */}
-            <div className="bg-[#0F141A] p-4 rounded-lg card-border mb-4">
+            <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border mb-4">
               <span className="text-xs text-[#2ECC71] font-semibold block mb-1">
                 Role in Weather Forecasting &amp; Early Warning
               </span>
-              <p className="text-xs text-[#8A94A6] leading-relaxed">
+              <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
                 {selectedTool.roleInForecasting}
               </p>
             </div>
 
             {/* Technical Specifications */}
-            <div className="bg-[#0F141A] p-4 rounded-lg card-border">
+            <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
               <span className="text-xs text-[#FFB703] font-semibold block mb-2">
                 Technical Sensor &amp; Operating Specifications
               </span>
-              <ul className="flex flex-col gap-1.5 text-xs text-[#8A94A6]">
+              <ul className="flex flex-col gap-1.5 text-xs text-[var(--m-text-secondary)]">
                 {selectedTool.specifications.map((spec, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="text-[#FFB703]">•</span>
-                    <span className="text-[#F4F7FA]">{spec}</span>
+                    <span className="text-[var(--m-text-primary)]">{spec}</span>
                   </li>
                 ))}
               </ul>
@@ -126,8 +126,8 @@ export const ForecastingToolsView: React.FC = () => {
           </div>
 
           {/* Key Metric Card */}
-          <div className="bg-[#0F141A] p-4 rounded-lg card-border flex justify-between items-center">
-            <span className="text-xs text-[#8A94A6] font-semibold">
+          <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border flex justify-between items-center">
+            <span className="text-xs text-[var(--m-text-secondary)] font-semibold">
               {selectedTool.keyMetricLabel}
             </span>
             <span className="text-base font-bold text-[#4FA8E0]">
@@ -137,10 +137,10 @@ export const ForecastingToolsView: React.FC = () => {
         </div>
 
         {/* Right Interactive Instrument Simulation Sandbox (Span 5) */}
-        <div className="lg:col-span-5 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
+        <div className="lg:col-span-5 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
           <div>
             <div className="pb-3 border-b border-[rgba(225,230,235,0.12)] mb-4 flex justify-between items-center">
-              <h4 className="font-h4 text-xs text-[#FFFFFF] font-semibold">
+              <h4 className="font-h4 text-xs text-[var(--m-text-primary)] font-semibold">
                 Interactive Instrument Simulator
               </h4>
               <span className="text-xs text-[#4FA8E0] font-semibold">
@@ -162,22 +162,22 @@ export const ForecastingToolsView: React.FC = () => {
                     <div className="absolute w-full h-1 bg-[#4FA8E0]/80"></div>
                     <div className="absolute h-full w-1 bg-[#4FA8E0]/80"></div>
                     {/* Anemometer Cup 1 */}
-                    <div className="absolute top-0 w-6 h-6 rounded-full bg-[#0B72B9] shadow-lg"></div>
+                    <div className="absolute top-0 w-6 h-6 rounded-full bg-[var(--m-accent)] shadow-lg"></div>
                     {/* Anemometer Cup 2 */}
-                    <div className="absolute bottom-0 w-6 h-6 rounded-full bg-[#0B72B9] shadow-lg"></div>
+                    <div className="absolute bottom-0 w-6 h-6 rounded-full bg-[var(--m-accent)] shadow-lg"></div>
                     {/* Anemometer Cup 3 */}
-                    <div className="absolute right-0 w-6 h-6 rounded-full bg-[#0B72B9] shadow-lg"></div>
+                    <div className="absolute right-0 w-6 h-6 rounded-full bg-[var(--m-accent)] shadow-lg"></div>
                   </div>
                   {/* Center Hub */}
-                  <div className="absolute w-8 h-8 rounded-full bg-[#0F141A] border-2 border-[#4FA8E0] flex items-center justify-center">
+                  <div className="absolute w-8 h-8 rounded-full bg-[var(--m-surface-1)] border-2 border-[#4FA8E0] flex items-center justify-center">
                     <span className="w-2 h-2 rounded-full bg-[#2ECC71]"></span>
                   </div>
                 </div>
 
                 {/* Speed Slider */}
-                <div className="w-full bg-[#0F141A] p-4 rounded-lg card-border">
+                <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
-                    <span className="text-[#8A94A6]">Simulate Wind Velocity</span>
+                    <span className="text-[var(--m-text-secondary)]">Simulate Wind Velocity</span>
                     <span className="text-[#4FA8E0] font-bold">{interactiveWindSpeed} km/h</span>
                   </div>
                   <input
@@ -188,7 +188,7 @@ export const ForecastingToolsView: React.FC = () => {
                     onChange={(e) => setInteractiveWindSpeed(Number(e.target.value))}
                     className="w-full accent-[#0B72B9] cursor-pointer"
                   />
-                  <div className="flex justify-between text-[11px] text-[#8A94A6] mt-1">
+                  <div className="flex justify-between text-[11px] text-[var(--m-text-secondary)] mt-1">
                     <span>Calm (0)</span>
                     <span>Gale (60)</span>
                     <span>Storm (120)</span>
@@ -200,10 +200,10 @@ export const ForecastingToolsView: React.FC = () => {
             {/* Barometer Simulator (Aneroid Dial) */}
             {selectedTool.id === 'barometers' && (
               <div className="flex flex-col items-center gap-6 py-4">
-                <div className="relative w-44 h-44 rounded-full bg-[#0F141A] border-4 border-[#242F3D] flex items-center justify-center shadow-2xl">
+                <div className="relative w-44 h-44 rounded-full bg-[var(--m-surface-1)] border-4 border-[var(--m-border-strong)] flex items-center justify-center shadow-2xl">
                   {/* Dial Marks */}
-                  <span className="absolute top-2 text-[10px] text-[#8A94A6]">1013 hPa</span>
-                  <span className="absolute bottom-2 text-[10px] text-[#8A94A6]">Standard</span>
+                  <span className="absolute top-2 text-[10px] text-[var(--m-text-secondary)]">1013 hPa</span>
+                  <span className="absolute bottom-2 text-[10px] text-[var(--m-text-secondary)]">Standard</span>
                   <span className="absolute left-2 text-[10px] text-[#E74C3C]">Storm 980</span>
                   <span className="absolute right-2 text-[10px] text-[#2ECC71]">Clear 1040</span>
 
@@ -215,12 +215,12 @@ export const ForecastingToolsView: React.FC = () => {
                       transformOrigin: 'bottom center',
                     }}
                   ></div>
-                  <div className="absolute w-4 h-4 rounded-full bg-[#FFFFFF] border-2 border-[#0F141A]"></div>
+                  <div className="absolute w-4 h-4 rounded-full bg-[#FFFFFF] border-2 border-[var(--m-border)]"></div>
                 </div>
 
-                <div className="w-full bg-[#0F141A] p-4 rounded-lg card-border">
+                <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
-                    <span className="text-[#8A94A6]">Atmospheric Pressure</span>
+                    <span className="text-[var(--m-text-secondary)]">Atmospheric Pressure</span>
                     <span className="text-[#4FA8E0] font-bold">{interactivePressure} hPa</span>
                   </div>
                   <input
@@ -245,8 +245,8 @@ export const ForecastingToolsView: React.FC = () => {
             {/* Hygrometer Simulator */}
             {selectedTool.id === 'hygrometers' && (
               <div className="flex flex-col items-center gap-6 py-4">
-                <div className="w-full bg-[#0F141A] p-4 rounded-lg card-border flex flex-col items-center">
-                  <div className="w-24 h-44 bg-[#0F141A] rounded-full border-2 border-[#4FA8E0] relative overflow-hidden flex flex-col justify-end p-1">
+                <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border flex flex-col items-center">
+                  <div className="w-24 h-44 bg-[var(--m-surface-1)] rounded-full border-2 border-[#4FA8E0] relative overflow-hidden flex flex-col justify-end p-1">
                     <div
                       className="w-full rounded-full bg-gradient-to-t from-[#0B72B9] to-[#4FA8E0] transition-all duration-300"
                       style={{ height: `${interactiveHumidity}%` }}
@@ -257,9 +257,9 @@ export const ForecastingToolsView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full bg-[#0F141A] p-4 rounded-lg card-border">
+                <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
-                    <span className="text-[#8A94A6]">Relative Humidity (RH)</span>
+                    <span className="text-[var(--m-text-secondary)]">Relative Humidity (RH)</span>
                     <span className="text-[#4FA8E0] font-bold">{interactiveHumidity}%</span>
                   </div>
                   <input
@@ -278,8 +278,8 @@ export const ForecastingToolsView: React.FC = () => {
             {(selectedTool.id === 'weather-satellites' ||
               selectedTool.id === 'doppler-radar' ||
               selectedTool.id === 'radiosondes') && (
-              <div className="bg-[#0F141A] p-4 rounded-lg card-border flex flex-col items-center gap-3">
-                <div className="w-full h-44 rounded-lg bg-[#0F141A] card-border flex items-center justify-center relative overflow-hidden">
+              <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border flex flex-col items-center gap-3">
+                <div className="w-full h-44 rounded-lg bg-[var(--m-surface-1)] card-border flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-radial from-[#0B72B9]/20 to-transparent animate-pulse"></div>
                   <span className="material-symbols-outlined text-[64px] text-[#4FA8E0] drop-shadow-xl animate-bounce">
                     {selectedTool.icon}
@@ -288,15 +288,15 @@ export const ForecastingToolsView: React.FC = () => {
                     Live Active Telemetry
                   </div>
                 </div>
-                <p className="text-xs text-[#8A94A6] text-center">
+                <p className="text-xs text-[var(--m-text-secondary)] text-center">
                   Calibrated across IMD high-resolution numerical weather models (WRF &amp; GFS).
                 </p>
               </div>
             )}
           </div>
 
-          <div className="p-3 bg-[#0F141A] rounded-lg card-border text-center">
-            <span className="text-[11px] text-[#8A94A6] font-semibold block mb-0.5">
+          <div className="p-3 bg-[var(--m-surface-1)] rounded-lg card-border text-center">
+            <span className="text-[11px] text-[var(--m-text-secondary)] font-semibold block mb-0.5">
               Instrument Compliance
             </span>
             <p className="text-xs text-[#2ECC71] font-semibold">

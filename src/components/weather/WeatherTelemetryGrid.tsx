@@ -95,7 +95,7 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
     {
       id: 'temp',
       icon: Thermometer,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       label: 'Ambient Temp',
       value: temp !== null ? `${temp}` : '—',
       unit: temp !== null ? '°C' : '',
@@ -107,13 +107,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : temp < 10
           ? 'Cold'
           : 'Normal range',
-      statusColor: temp === null ? 'text-[#8295A8]' : temp > 38 ? 'text-[#FCA5A5]' : 'text-[#6EE7B7]',
+      statusColor: temp === null ? 'text-[var(--m-text-muted)]' : temp > 38 ? 'text-[var(--m-danger)]' : 'text-[var(--m-ok)]',
       source: 'Surface Thermometer',
     },
     {
       id: 'feels_like',
       icon: Flame,
-      iconColor: 'text-[#F59E0B]',
+      iconColor: 'text-[var(--m-watch)]',
       label: 'Apparent Temp',
       value: feelsLike !== null ? `${feelsLike}` : '—',
       unit: feelsLike !== null ? '°C' : '',
@@ -123,13 +123,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : Math.abs(feelsLike - temp) > 3
           ? 'Humidity-adjusted'
           : 'Thermal equilibrium',
-      statusColor: 'text-[#8295A8]',
+      statusColor: 'text-[var(--m-text-muted)]',
       source: 'Steadman Formula',
     },
     {
       id: 'humidity',
       icon: Droplets,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       label: 'Relative Humidity',
       value: humidity !== null ? `${humidity}` : '—',
       unit: humidity !== null ? '%' : '',
@@ -141,13 +141,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : humidity < 30
           ? 'Arid air mass'
           : 'Moderate',
-      statusColor: humidity === null ? 'text-[#8295A8]' : humidity > 85 ? 'text-[#7DD3FC]' : 'text-[#6EE7B7]',
+      statusColor: humidity === null ? 'text-[var(--m-text-muted)]' : humidity > 85 ? 'text-[var(--m-accent)]' : 'text-[var(--m-ok)]',
       source: 'Hygrometer Feed',
     },
     {
       id: 'dew_point',
       icon: Droplets,
-      iconColor: 'text-[#22C7A0]',
+      iconColor: 'text-[var(--m-ok)]',
       label: 'Dew Point',
       value: dewPoint !== null ? `${dewPoint}` : '—',
       unit: dewPoint !== null ? '°C' : '',
@@ -157,13 +157,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : dewPoint > 22
           ? 'Muggy'
           : 'Comfortable range',
-      statusColor: 'text-[#8295A8]',
+      statusColor: 'text-[var(--m-text-muted)]',
       source: isFiniteNum(weather.dewPoint) ? 'Reported Dew Pt' : 'Psychrometric Calc',
     },
     {
       id: 'pressure',
       icon: Gauge,
-      iconColor: 'text-[#FCD34D]',
+      iconColor: 'text-[var(--m-watch)]',
       label: 'Surface Pressure',
       value: pressure !== null ? `${pressure}` : '—',
       unit: pressure !== null ? 'hPa' : '',
@@ -175,16 +175,16 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : 'MSL Barometer',
       statusColor:
         pressure === null
-          ? 'text-[#8295A8]'
+          ? 'text-[var(--m-text-muted)]'
           : pressureTendency === 'Falling'
-          ? 'text-[#FCA5A5]'
-          : 'text-[#6EE7B7]',
+          ? 'text-[var(--m-danger)]'
+          : 'text-[var(--m-ok)]',
       source: 'Barometric MSL',
     },
     {
       id: 'wind_speed',
       icon: Wind,
-      iconColor: 'text-[#22C7A0]',
+      iconColor: 'text-[var(--m-ok)]',
       label: 'Wind Vector',
       value: windSpeed !== null ? `${windSpeed}` : '—',
       unit: windSpeed !== null ? 'km/h' : '',
@@ -192,13 +192,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
         windSpeed === null
           ? 'Unavailable'
           : `${windDir || 'Calm'} • ${windSpeed < 15 ? 'Gentle' : windSpeed < 30 ? 'Breezy' : 'Strong'}`,
-      statusColor: windSpeed === null ? 'text-[#8295A8]' : 'text-[#6EE7B7]',
+      statusColor: windSpeed === null ? 'text-[var(--m-text-muted)]' : 'text-[var(--m-ok)]',
       source: '10m Anemometer',
     },
     {
       id: 'wind_gusts',
       icon: Zap,
-      iconColor: 'text-[#F59E0B]',
+      iconColor: 'text-[var(--m-watch)]',
       label: 'Peak Wind Gusts',
       value: windGusts !== null ? `${windGusts}` : '—',
       unit: windGusts !== null ? 'km/h' : '',
@@ -208,7 +208,7 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : windGusts > 35
           ? 'Elevated gusts'
           : 'Routine variance',
-      statusColor: windGusts !== null && windGusts > 35 ? 'text-[#FDBA74]' : 'text-[#8295A8]',
+      statusColor: windGusts !== null && windGusts > 35 ? 'text-[var(--m-alert)]' : 'text-[var(--m-text-muted)]',
       source: 'Peak Gust Feed',
     },
     {
@@ -228,16 +228,16 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : 'Moderate',
       statusColor:
         visibility === null
-          ? 'text-[#8295A8]'
+          ? 'text-[var(--m-text-muted)]'
           : visibility >= 10
-          ? 'text-[#6EE7B7]'
-          : 'text-[#FDBA74]',
+          ? 'text-[var(--m-ok)]'
+          : 'text-[var(--m-alert)]',
       source: 'Optical Range',
     },
     {
       id: 'cloud_cover',
       icon: Cloud,
-      iconColor: 'text-[#B5C3D1]',
+      iconColor: 'text-[var(--m-text-secondary)]',
       label: 'Cloud Cover',
       value: cloudCover !== null ? `${cloudCover}` : '—',
       unit: cloudCover !== null ? '%' : '',
@@ -249,24 +249,24 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : cloudCover > 40
           ? 'Scattered'
           : 'Mostly clear',
-      statusColor: 'text-[#8295A8]',
+      statusColor: 'text-[var(--m-text-muted)]',
       source: 'Satellite / NWP Fraction',
     },
     {
       id: 'rain_accum',
       icon: CloudRain,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       label: 'Rainfall 1h / 3h',
       value: rain1h,
       unit: rain3h !== '—' ? `(3h: ${rain3h})` : '',
       status: rain24h !== '—' ? `24h Total: ${rain24h}` : '24h total unavailable',
-      statusColor: rain1h !== '—' ? 'text-[#7DD3FC]' : 'text-[#8295A8]',
+      statusColor: rain1h !== '—' ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]',
       source: 'Precipitation Gauge',
     },
     {
       id: 'rain_probability',
       icon: Umbrella,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       label: 'Rain Probability',
       value: rainProb !== null ? `${rainProb}` : '—',
       unit: rainProb !== null ? '%' : '',
@@ -278,13 +278,13 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : rainProb > 40
           ? 'Moderate chance'
           : 'Low probability',
-      statusColor: rainProb !== null && rainProb > 70 ? 'text-[#7DD3FC]' : 'text-[#8295A8]',
+      statusColor: rainProb !== null && rainProb > 70 ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]',
       source: 'NWP PoP Output',
     },
     {
       id: 'uv_solar',
       icon: Sun,
-      iconColor: 'text-[#F59E0B]',
+      iconColor: 'text-[var(--m-watch)]',
       label: 'UV & Irradiance',
       value: uvIndex !== null ? `${uvIndex}` : '—',
       unit: uvIndex !== null ? (solarRadiation ? `/ 11+ (${solarRadiation})` : '/ 11+ Index') : solarRadiation || '',
@@ -298,10 +298,10 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
           : 'Low to moderate',
       statusColor:
         uvIndex === null
-          ? 'text-[#8295A8]'
+          ? 'text-[var(--m-text-muted)]'
           : uvIndex >= 8
-          ? 'text-[#FCA5A5]'
-          : 'text-[#FCD34D]',
+          ? 'text-[var(--m-danger)]'
+          : 'text-[var(--m-watch)]',
       source: 'Radiometer / UV Index',
     },
     {
@@ -315,18 +315,18 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
         weather.moonrise || weather.moonset
           ? `Rise: ${weather.moonrise || '—'} • Set: ${weather.moonset || '—'}`
           : 'Lunar rise/set unavailable',
-      statusColor: moonPhase ? 'text-[#C084FC]' : 'text-[#8295A8]',
+      statusColor: moonPhase ? 'text-[#C084FC]' : 'text-[var(--m-text-muted)]',
       source: 'Lunar Ephemeris',
     },
     {
       id: 'agro_soil',
       icon: Sprout,
-      iconColor: 'text-[#22C7A0]',
+      iconColor: 'text-[var(--m-ok)]',
       label: 'Soil & ET0',
       value: soilMoisture || '—',
       unit: soilTemp ? `(${soilTemp})` : '',
       status: et0 ? `ET0: ${et0} (FAO-56)` : 'Agromet telemetry N/A',
-      statusColor: soilMoisture ? 'text-[#6EE7B7]' : 'text-[#8295A8]',
+      statusColor: soilMoisture ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]',
       source: 'Root-Zone Sensor / Model',
     },
   ];
@@ -354,30 +354,30 @@ export const WeatherTelemetryGrid: React.FC<WeatherTelemetryGridProps> = ({ weat
             <div
               key={m.id}
               id={`telemetry-card-${m.id}`}
-              className="m-panel-inset p-3.5 flex flex-col justify-between gap-2 transition-colors hover:border-[#38536A]"
+              className="m-panel-inset p-3.5 flex flex-col justify-between gap-2 transition-colors hover:border-[var(--m-border-strong)]"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-semibold text-[#8295A8] uppercase tracking-wider truncate">
+                <span className="text-[10px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider truncate">
                   {m.label}
                 </span>
-                <div className="p-1.5 rounded-md bg-[#0B1927] border border-[#26394B] shrink-0">
-                  <Icon className={`w-3.5 h-3.5 ${isMissing ? 'text-[#8295A8]' : m.iconColor}`} />
+                <div className="p-1.5 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0">
+                  <Icon className={`w-3.5 h-3.5 ${isMissing ? 'text-[var(--m-text-muted)]' : m.iconColor}`} />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-baseline gap-1 font-mono tabular-nums flex-wrap">
-                  <span className={`text-xl font-bold tracking-tight ${isMissing ? 'text-[#8295A8]' : 'text-[#F3F6FA]'}`}>
+                  <span className={`text-xl font-bold tracking-tight ${isMissing ? 'text-[var(--m-text-muted)]' : 'text-[var(--m-text-primary)]'}`}>
                     {m.value}
                   </span>
-                  {m.unit && <span className="text-[11px] text-[#8295A8]">{m.unit}</span>}
+                  {m.unit && <span className="text-[11px] text-[var(--m-text-muted)]">{m.unit}</span>}
                 </div>
                 <div className={`text-[11px] font-medium mt-0.5 truncate ${m.statusColor}`}>
                   {m.status}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#26394B]/70 text-[10px] text-[#8295A8] truncate">
+              <div className="pt-2 border-t border-[var(--m-border)]/70 text-[10px] text-[var(--m-text-muted)] truncate">
                 {m.source}
               </div>
             </div>

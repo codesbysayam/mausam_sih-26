@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { LocationRecord, WeatherStation } from './types';
 import type { CyclonePayload } from './types/cyclone';
 import { locationService } from './services/locationService';
@@ -20,6 +20,7 @@ import { FloatingBrandBar } from './components/experience/FloatingBrandBar';
 import { ExploreWorkspace } from './components/experience/ExploreWorkspace';
 import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
 import { ClassicWorkspace } from './components/experience/ClassicWorkspace';
+import { AlertCenterModal } from './components/experience/AlertCenterModal';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useAlertAudio } from './hooks/useAlertAudio';
 import { Volume2, AlertTriangle, X } from 'lucide-react';
@@ -85,11 +86,24 @@ function getPathForView(view: AppView): string {
 
 export default function App() {
   const { t } = useLanguage();
-  const { mode, setMode, flyCameraTo } = useExperience();
+  const { mode, setMode, surfaceTheme, flyCameraTo } = useExperience();
+  const weatherRequestIdRef = useRef(0);
 
   const [activeTab, setActiveTab] = useState<AppView>(() =>
     getTabFromPathname(window.location.pathname)
   );
+
+  // Sync active editorial / spatial dark-workspace theme to documentElement & theme-color meta
+  const activeTheme = mode === 'explore' ? 'dark-workspace' : surfaceTheme;
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.setAttribute('data-theme', activeTheme);
+    document.documentElement.classList.toggle('dark', activeTheme !== 'paper');
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', activeTheme === 'paper' ? '#F7F6F1' : '#0B141D');
+    }
+  }, [activeTheme]);
 
   // If landing directly on a deep sub-route (e.g. /forecast or /radar), synchronize initial mode cleanly
   useEffect(() => {
@@ -171,7 +185,9 @@ export default function App() {
     const handlePopState = () => {
       const tab = getTabFromPathname(window.location.pathname);
       setActiveTab(tab);
-      setMode(tab === 'home' ? 'explore' : 'analyze');
+      if (tab !== 'home') {
+        setMode('analyze');
+      }
       if (typeof window !== 'undefined' && (window as any).MausamSEO) {
         (window as any).MausamSEO.updateMeta(window.location.pathname);
       }
@@ -184,12 +200,8 @@ export default function App() {
   const navigateToTab = useCallback(
     (tab: AppView, pushHistory = true) => {
       setActiveTab(tab);
-      if (tab === 'home') {
-        setMode('explore');
-      } else {
-        setMode('analyze');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      setMode('analyze');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const targetPath = getPathForView(tab);
       if (pushHistory && window.location.pathname !== targetPath) {
         window.history.pushState({ tab }, '', targetPath);
@@ -215,8 +227,7 @@ export default function App() {
           window.history.pushState({ tab: 'home' }, '', '/');
         }
       } else if (nextMode === 'analyze') {
-        const nextTab = activeTab === 'home' ? 'weather' : activeTab;
-        setActiveTab(nextTab);
+        const nextTab = activeTab;
         const path = getPathForView(nextTab);
         if (window.location.pathname !== path) {
           window.history.pushState({ tab: nextTab }, '', path);
@@ -227,9 +238,11 @@ export default function App() {
   );
 
   const loadWeatherData = useCallback(async (location: LocationRecord, forceRefresh = false) => {
+    const requestId = ++weatherRequestIdRef.current;
     setIsLoadingWeather(true);
     try {
       const bundle = await weatherService.getWeatherData(location, forceRefresh);
+      if (requestId !== weatherRequestIdRef.current) return;
       setWeatherBundle({
         ...bundle,
         hourly: Array.isArray(bundle.hourly) ? bundle.hourly : [],
@@ -237,7 +250,8 @@ export default function App() {
         trends: Array.isArray(bundle.trends) ? bundle.trends : [],
         alerts: Array.isArray(bundle.alerts) ? bundle.alerts : [],
       });
-      } catch (err) {
+    } catch (err) {
+      if (requestId !== weatherRequestIdRef.current) return;
       console.warn('Weather sync error, marking telemetry unavailable:', err);
       setWeatherBundle(
         weatherService.createUnavailableBundle(
@@ -246,7 +260,9 @@ export default function App() {
         )
       );
     } finally {
-      setIsLoadingWeather(false);
+      if (requestId === weatherRequestIdRef.current) {
+        setIsLoadingWeather(false);
+      }
     }
   }, []);
 
@@ -289,7 +305,10 @@ export default function App() {
   };
 
   return (
-    <div className="mausam-app min-h-screen bg-[#07111D] text-[#F3F6FA] flex flex-col font-sans w-full overflow-x-hidden">
+    <div
+      data-theme={activeTheme}
+      className="mausam-app min-h-screen bg-[var(--m-canvas)] text-[var(--m-text-primary)] flex flex-col font-sans w-full overflow-x-hidden transition-colors duration-200"
+    >
       {/* Network Offline / Degraded Banner */}
       <NetworkStatusBanner
         isOnline={isOnline}
@@ -381,138 +400,138 @@ export default function App() {
 
       {/* Official Institutional Footer (Rendered in Analyze & Classic modes so 3D Explore stage remains uncropped) */}
       {mode !== 'explore' && (
-        <footer className="w-full bg-[#08131F] border-t border-[#26394B] py-8 text-xs text-[#8295A8]">
-          <div className="max-w-[1560px] mx-auto px-4 lg:px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-[#26394B]">
+        <footer className="site-footer w-full text-xs text-[var(--m-text-muted)]">
+          <div className="site-footer__inner">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-8 border-b border-[var(--m-border)]">
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[#F3F6FA] font-bold text-sm">
-                    {t('mausamPortal', 'MAUSAM PORTAL')}
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="text-[var(--m-text-primary)] font-bold text-sm tracking-tight">
+                    {t('mausamPortal', 'MAUSAM')}
                   </span>
-                  <span className="text-[#35C7E8] text-[10px] font-mono font-semibold uppercase tracking-wider">
-                    India
+                  <span className="text-[var(--m-accent)] text-[10px] font-mono font-semibold uppercase tracking-wider">
+                    Atmospheric Intelligence
                   </span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-[#8295A8]">
+                <p className="text-xs leading-relaxed text-[var(--m-text-secondary)]">
                   {t(
                     'footerTagline',
-                    'National Atmospheric Intelligence & Citizen Weather Platform. Calibrated with Doppler weather radars, Automatic Weather Stations (AWS), and satellite telemetry.'
+                    'National atmospheric intelligence, numerical weather guidance, radar nowcasting, and environmental observation platform for India.'
                   )}
                 </p>
               </div>
 
               <div>
-                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
+                <span className="font-mono font-semibold text-[var(--m-text-primary)] uppercase text-[11px] tracking-wider block mb-2.5">
                   {t('dataProvidersTitle', 'Data Providers & Networks')}
                 </span>
-                <ul className="space-y-0.5 text-[11px]">
+                <ul className="space-y-1 text-xs">
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('dwr-all-india-20260826')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • {t('imdCredit', 'India Meteorological Department (IMD)')}
+                      {t('imdCredit', 'India Meteorological Department (IMD)')}
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('ncmrwf-unified-model-nwp')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • {t('ncmrwfCredit', 'NCMRWF Global & Regional Models')}
+                      {t('ncmrwfCredit', 'NCMRWF Global & Regional Models')}
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('cpcb-air-quality-annual-2026')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • {t('cpcbCredit', 'Central Pollution Control Board (CPCB)')}
+                      {t('cpcbCredit', 'Central Pollution Control Board (CPCB)')}
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('isro-mosdac-satellite-meteorology')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • {t('isroCredit', 'ISRO MOSDAC Earth Observation')}
+                      {t('isroCredit', 'ISRO MOSDAC Earth Observation')}
                     </button>
                   </li>
                 </ul>
               </div>
 
               <div>
-                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
+                <span className="font-mono font-semibold text-[var(--m-text-primary)] uppercase text-[11px] tracking-wider block mb-2.5">
                   {t('citizenServicesTitle', 'Citizen Meteorological Services')}
                 </span>
-                <ul className="space-y-0.5 text-[11px]">
+                <ul className="space-y-1 text-xs">
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('doppler-radar-nowcasting-techniques')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • Nowcasting &amp; Thunderstorm Warnings
+                      Nowcasting &amp; Thunderstorm Warnings
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('agromet-advisory-gkms-odisha-india')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • Gramin Krishi Mausam Sewa (Agromet)
+                      Gramin Krishi Mausam Sewa (Agromet)
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('cpcb-air-quality-annual-2026')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • National Air Quality Index (NAQI)
+                      National Air Quality Index (NAQI)
                     </button>
                   </li>
                   <li>
                     <button
                       type="button"
                       onClick={() => handleOpenFooterArticle('aero-allergen-pollen-surveillance')}
-                      className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
+                      className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block min-h-[36px] sm:min-h-[28px]"
                     >
-                      • Aero-Allergen Pollen Surveillance
+                      Aero-Allergen Pollen Surveillance
                     </button>
                   </li>
                 </ul>
               </div>
 
               <div>
-                <span className="font-bold text-[#F3F6FA] uppercase text-[11px] block mb-2">
+                <span className="font-mono font-semibold text-[var(--m-text-primary)] uppercase text-[11px] tracking-wider block mb-2.5">
                   {t('standardProtocolsTitle', 'Standard Protocols')}
                 </span>
-                <p className="text-[11px] leading-relaxed">
+                <p className="text-xs leading-relaxed">
                   <button
                     type="button"
                     onClick={() => handleOpenFooterArticle('wmo-instrument-calibration-ndma-standards')}
-                    className="text-left text-[#B5C3D1] hover:text-[#35C7E8] hover:underline transition-colors cursor-pointer block leading-relaxed"
+                    className="text-left text-[var(--m-text-secondary)] hover:text-[var(--m-accent)] hover:underline underline-offset-4 transition-colors cursor-pointer block leading-relaxed"
                   >
                     {t(
                       'footerStandardNotice',
-                      'Adheres to World Meteorological Organization (WMO) standards for meteorological instrument calibration and NDMA hazard classification.'
+                      'Adheres to World Meteorological Organization (WMO) standards for meteorological reporting and NDMA hazard classification.'
                     )}
                   </button>
                 </p>
               </div>
             </div>
 
-            <div className="pt-4 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-center md:text-left">
-              <div>
+            <div className="pt-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-center md:text-left">
+              <div className="text-[var(--m-text-muted)]">
                 {t(
                   'allRightsReserved',
-                  '© 2026 MAUSAM National Meteorological Platform • India Meteorological Department'
+                  '© 2026 MAUSAM Atmospheric Intelligence • Open-Meteo & Institutional Reference Feeds'
                 )}
               </div>
 
@@ -566,11 +585,11 @@ export default function App() {
           id="global-severe-alert-surge-toast"
           role="alert"
           aria-live="assertive"
-          className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[#101F2E] border border-[#EF4444]/55 text-[#F3F6FA] p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
+          className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[var(--m-surface-1)] border border-[var(--m-danger)]/50 text-[var(--m-text-primary)] p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#FCA5A5]">
-              <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
+            <div className="flex items-center gap-2 text-[var(--m-danger)]">
+              <AlertTriangle className="w-4 h-4" />
               <span className="text-xs font-semibold uppercase tracking-wider">
                 Severe Warning Surge
               </span>
@@ -578,22 +597,22 @@ export default function App() {
             <button
               type="button"
               onClick={() => setGlobalAlertSurge(null)}
-              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#0B1927] cursor-pointer"
+              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer"
               aria-label="Dismiss alert toast"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
             Active severe weather alerts increased from{' '}
-            <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">{globalAlertSurge.oldCount}</span> to{' '}
-            <span className="font-mono font-bold text-[#FCA5A5] tabular-nums">{globalAlertSurge.newCount}</span> for your sector.
+            <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">{globalAlertSurge.oldCount}</span> to{' '}
+            <span className="font-mono font-bold text-[var(--m-danger)] tabular-nums">{globalAlertSurge.newCount}</span> for your sector.
           </p>
 
-          <div className="flex items-center justify-between pt-1.5 border-t border-[#26394B]">
-            <div className="flex items-center gap-1.5 text-[11px] text-[#8295A8]">
-              <Volume2 className="w-3.5 h-3.5 text-[#FCA5A5]" />
+          <div className="flex items-center justify-between pt-1.5 border-t border-[var(--m-border)]">
+            <div className="flex items-center gap-1.5 text-[11px] text-[var(--m-text-muted)]">
+              <Volume2 className="w-3.5 h-3.5 text-[var(--m-danger)]" />
               <span>{isAudioAlertEnabled ? 'Emergency alert audio played' : 'Audio alert muted'}</span>
             </div>
             <button
@@ -602,13 +621,20 @@ export default function App() {
                 setGlobalAlertSurge(null);
                 navigateToTab('warnings');
               }}
-              className="text-xs font-semibold text-[#35C7E8] hover:underline cursor-pointer min-h-[36px] px-1"
+              className="text-xs font-semibold text-[var(--m-accent)] hover:underline cursor-pointer min-h-[36px] px-1"
             >
               View Warnings →
             </button>
           </div>
         </div>
       )}
+
+      {/* Global SACHET / IMD Hazard Alert Center Drawer (works in Analyze, Explore & Classic) */}
+      <AlertCenterModal
+        selectedLocation={selectedLocation}
+        alerts={weatherBundle.alerts || []}
+        onOpenFullWarningsPage={() => navigateToTab('warnings')}
+      />
 
       {/* Ask MAUSAM Atmospheric Intelligence Drawer */}
       <AskMausamDrawer

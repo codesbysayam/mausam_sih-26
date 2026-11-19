@@ -88,11 +88,11 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
   return (
     <section id="todays-farm-actions-section" className="space-y-4">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#1E2E40]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#38BDF8] animate-ping"></span>
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-accent)]">
               Decisive Field Action Plan
             </span>
           </div>
@@ -105,9 +105,9 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
         <button
           type="button"
           onClick={() => setShowTechnicalComparison(!showTechnicalComparison)}
-          className="px-3 py-1.5 rounded-xl bg-[#080E16] border border-[#1E2E40] hover:border-[#38BDF8]/50 text-xs font-mono text-[#94A3B8] hover:text-white transition-all flex items-center gap-2 cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 text-xs font-mono text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] transition-all flex items-center gap-2 cursor-pointer"
         >
-          <HelpCircle className="w-3.5 h-3.5 text-[#38BDF8]" />
+          <HelpCircle className="w-3.5 h-3.5 text-[var(--m-accent)]" />
           <span>{showTechnicalComparison ? 'Hide Technical Translation' : 'Advisory Explained (Simple vs Tech)'}</span>
         </button>
       </div>
@@ -119,7 +119,7 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
           return (
             <div
               key={act.id}
-              className="p-5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-4 shadow-xl"
+              className="p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-4 shadow-xl"
             >
               {/* Card Header: Category & Priority */}
               <div className="flex items-center justify-between">
@@ -133,7 +133,7 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
                   >
                     <IconComp className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-[#E2E8F0] tracking-wider">
+                  <span className="text-[11px] font-mono font-bold text-[var(--m-text-primary)] tracking-wider">
                     {act.category}
                   </span>
                 </div>
@@ -157,31 +157,31 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
                 <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
                   {act.action}
                 </h3>
-                <p className="text-xs text-[#94A3B8] leading-relaxed">
+                <p className="text-xs text-[var(--m-text-muted)] leading-relaxed">
                   {act.reason}
                 </p>
               </div>
 
               {/* Best Timing & Context */}
-              <div className="p-3 rounded-xl bg-[#080E16] border border-[#1E2E40] flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2 text-[#38BDF8]">
+              <div className="p-3 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-between text-xs font-mono">
+                <div className="flex items-center gap-2 text-[var(--m-accent)]">
                   <Clock className="w-3.5 h-3.5 shrink-0" />
                   <span className="font-bold">Best Window:</span>
                 </div>
-                <span className="text-[#E2E8F0] text-right">{act.bestTime}</span>
+                <span className="text-[var(--m-text-primary)] text-right">{act.bestTime}</span>
               </div>
 
               {/* Optional Simple Translation Box */}
               {showTechnicalComparison && (
-                <div className="p-3 rounded-xl bg-[#111C28] border border-[#38BDF8]/20 space-y-2 text-xs">
-                  <div className="flex items-start gap-1.5 text-[#94A3B8]">
-                    <span className="font-mono font-bold text-[10px] uppercase text-[#64748B] block shrink-0 mt-0.5">
+                <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-accent)]/20 space-y-2 text-xs">
+                  <div className="flex items-start gap-1.5 text-[var(--m-text-muted)]">
+                    <span className="font-mono font-bold text-[10px] uppercase text-[var(--m-text-muted)] block shrink-0 mt-0.5">
                       TECH:
                     </span>
                     <p className="italic text-[11px]">{act.technicalText}</p>
                   </div>
-                  <div className="flex items-start gap-1.5 text-[#10B981] pt-1 border-t border-[#1E2E40]">
-                    <span className="font-mono font-bold text-[10px] uppercase text-[#10B981] block shrink-0 mt-0.5">
+                  <div className="flex items-start gap-1.5 text-[var(--m-ok)] pt-1 border-t border-[var(--m-border)]">
+                    <span className="font-mono font-bold text-[10px] uppercase text-[var(--m-ok)] block shrink-0 mt-0.5">
                       SIMPLE:
                     </span>
                     <p className="font-medium text-[11px]">{act.simpleText}</p>
@@ -194,21 +194,21 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
       </div>
 
       {/* Quick Farm Priority Queue */}
-      <div className="p-4 rounded-2xl bg-[#080E16] border border-[#1E2E40] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+      <div className="p-4 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
         <div className="flex items-center gap-2 text-white font-bold">
-          <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
+          <ShieldAlert className="w-4 h-4 text-[var(--m-danger)]" />
           <span>Today&apos;s Priority Execution Sequence:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="px-2.5 py-1 rounded-lg bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-bold">
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/30 font-bold">
             1. Hold Irrigation
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2.5 py-1 rounded-lg bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-bold">
+          <span className="text-[var(--m-text-muted)]">→</span>
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/30 font-bold">
             2. Morning Canopy Scout
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2.5 py-1 rounded-lg bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 font-bold">
+          <span className="text-[var(--m-text-muted)]">→</span>
+          <span className="px-2.5 py-1 rounded-lg bg-[var(--m-watch-soft)] text-[var(--m-watch)] border border-[var(--m-watch)]/30 font-bold">
             3. Clear Field Drainage
           </span>
         </div>

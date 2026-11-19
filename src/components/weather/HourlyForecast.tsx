@@ -38,13 +38,13 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
           {displayItems.map((item, idx) => (
             <div
               key={idx}
-              className={`flex-1 bg-[#1E2733] border rounded p-2.5 flex flex-col items-center text-center justify-between min-w-[85px] ${
+              className={`flex-1 bg-[var(--m-surface-2)] border rounded p-2.5 flex flex-col items-center text-center justify-between min-w-[85px] ${
                 item.isNow
-                  ? 'border-[#4FA8E0] bg-[#0B72B9]/15'
-                  : 'border-[#334155]'
+                  ? 'border-[#4FA8E0] bg-[var(--m-accent-soft)]'
+                  : 'border-[var(--m-border-strong)]'
               }`}
             >
-              <div className="text-xs font-bold text-[#D7DEE8]">
+              <div className="text-xs font-bold text-[var(--m-text-primary)]">
                 {item.time}
                 {item.isNow && (
                   <span className="block text-[10px] text-[#4FA8E0] font-normal">
@@ -57,12 +57,12 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
                 <span className="text-lg font-bold text-white font-mono">
                   {typeof item.temp === 'number' && !Number.isNaN(item.temp) ? `${Math.round(item.temp)}°C` : '—'}
                 </span>
-                <span className="text-[11px] text-[#8A94A6] line-clamp-1 mt-0.5 max-w-[80px]">
+                <span className="text-[11px] text-[var(--m-text-secondary)] line-clamp-1 mt-0.5 max-w-[80px]">
                   {tCondition(item.condition)}
                 </span>
               </div>
 
-              <div className="w-full pt-1.5 border-t border-[#334155] text-[11px] text-[#8A94A6] flex flex-col gap-0.5">
+              <div className="w-full pt-1.5 border-t border-[var(--m-border-strong)] text-[11px] text-[var(--m-text-secondary)] flex flex-col gap-0.5">
                 <div className="flex items-center justify-between text-[10px]">
                   <span>{language === 'hi' ? 'वर्षा' : language === 'or' ? 'ବର୍ଷା' : 'Rain'}</span>
                   <span className="text-[#4FA8E0] font-bold font-mono">
@@ -71,7 +71,7 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
                 </div>
                 <div className="flex items-center justify-between text-[10px]">
                   <span>{language === 'hi' ? 'हवा' : language === 'or' ? 'ପବନ' : 'Wind'}</span>
-                  <span className="text-[#D7DEE8] font-mono">
+                  <span className="text-[var(--m-text-primary)] font-mono">
                     {item.windSpeed || 10}k
                   </span>
                 </div>

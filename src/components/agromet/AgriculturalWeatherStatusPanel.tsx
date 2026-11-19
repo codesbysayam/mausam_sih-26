@@ -84,7 +84,7 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
             type="button"
             id="btn-view-agri-advisory"
             onClick={handleScrollToAdvisories}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] sm:min-h-[40px] bg-[#0B72B9] hover:bg-[#0D84D6] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] sm:min-h-[40px] bg-[var(--m-accent)] hover:bg-[#0D84D6] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring"
           >
             <span>View Advisory</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -108,7 +108,7 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
                 unit="mm"
                 precision={1}
                 hint="Observed precip"
-                valueClassName="text-lg sm:text-xl font-bold text-[#35C7E8]"
+                valueClassName="text-lg sm:text-xl font-bold text-[var(--m-accent)]"
               />
             </div>
 
@@ -145,7 +145,7 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
                 label="Soil Hydrology"
                 value={soilMoistureValue}
                 hint={rawSoilMoisture !== null ? 'Root-zone sensor' : 'Precip proxy'}
-                valueClassName="text-base sm:text-lg font-bold text-[#22C7A0]"
+                valueClassName="text-base sm:text-lg font-bold text-[var(--m-ok)]"
               />
             </div>
 
@@ -155,7 +155,7 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
                 value={frostHeatCondition}
                 hint={temp >= 35 ? 'Elevated ETc' : 'Physiological zone'}
                 valueClassName={`text-base sm:text-lg font-bold ${
-                  temp >= 38 ? 'text-[#EF4444]' : temp >= 35 ? 'text-[#F59E0B]' : 'text-[#22C7A0]'
+                  temp >= 38 ? 'text-[var(--m-danger)]' : temp >= 35 ? 'text-[var(--m-watch)]' : 'text-[var(--m-ok)]'
                 }`}
               />
             </div>
@@ -163,15 +163,15 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
 
           {agrometWarning && (
             <div className="m-panel-inset p-3.5 flex items-start gap-2.5 text-xs">
-              <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-[var(--m-watch)] shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F59E0B]">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--m-watch)]">
                     Operational Agromet Directive
                   </span>
-                  <span className="text-[10px] font-mono text-[#8295A8]">ICAR-IMD GKMS Protocol</span>
+                  <span className="text-[10px] font-mono text-[var(--m-text-muted)]">ICAR-IMD GKMS Protocol</span>
                 </div>
-                <p className="text-[#F3F6FA] mt-1 leading-relaxed">{agrometWarning}</p>
+                <p className="text-[var(--m-text-primary)] mt-1 leading-relaxed">{agrometWarning}</p>
               </div>
             </div>
           )}

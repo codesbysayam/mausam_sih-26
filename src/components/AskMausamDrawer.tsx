@@ -57,7 +57,7 @@ export const AskMausamDrawer: React.FC<AskMausamDrawerProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-2xl bg-[#07111D] h-full shadow-2xl flex flex-col z-10 border-l border-[#26394B]">
+      <div className="relative w-full max-w-2xl bg-[var(--m-surface-inset)] h-full shadow-2xl flex flex-col z-10 border-l border-[var(--m-border)]">
         <AskMausamPanel
           currentLocation={{
             name: locName,

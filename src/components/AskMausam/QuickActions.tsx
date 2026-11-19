@@ -29,7 +29,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
 
   return (
     <div className="flex flex-col gap-1.5 pb-2">
-      <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+      <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
         <span>Quick Inquiries</span>
       </div>
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -38,7 +38,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             key={chip.label}
             type="button"
             onClick={() => onSelectPrompt(chip.prompt)}
-            className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-[#0B1927] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] transition-colors cursor-pointer m-focus-ring"
+            className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
           >
             {chip.label}
           </button>

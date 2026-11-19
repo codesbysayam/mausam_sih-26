@@ -84,7 +84,7 @@ export const AgrometView: React.FC = () => {
     };
 
   return (
-    <div className="flex flex-col gap-10 max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-8 py-5 select-none font-sans text-[#CBD5E1]">
+    <div className="flex flex-col gap-10 max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-8 py-5 select-none font-sans text-[var(--m-text-secondary)]">
       {/* 1. Agromet Command Center Header */}
       <AgrometHero
         bulletin={bulletin}
@@ -97,7 +97,7 @@ export const AgrometView: React.FC = () => {
 
       {/* Chapter 01: Farm Status Hero */}
       <section id="chapter-farm-status" className="space-y-3">
-        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[#38BDF8] uppercase tracking-widest px-1">
+        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>01</span>
           <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
           <span>Today on the Farm</span>
@@ -117,7 +117,7 @@ export const AgrometView: React.FC = () => {
 
       {/* Chapter 03: Weather -> Crop Impact Pipeline */}
       <section id="chapter-causal-impact" className="space-y-3">
-        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[#38BDF8] uppercase tracking-widest px-1">
+        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>03</span>
           <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
           <span>Weather → Farm Impact Linkage</span>
@@ -127,7 +127,7 @@ export const AgrometView: React.FC = () => {
 
       {/* Chapter 04: Rain & Soil Intelligence */}
       <section id="chapter-rainfall-soil" className="space-y-3">
-        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[#38BDF8] uppercase tracking-widest px-1">
+        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>04</span>
           <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
           <span>Rainfall &amp; Soil Intelligence</span>
@@ -154,7 +154,7 @@ export const AgrometView: React.FC = () => {
 
       {/* Chapter 06: Pest & Disease Biosecurity Watch */}
       <section id="chapter-pest-watch" className="space-y-3">
-        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[#EF4444] uppercase tracking-widest px-1">
+        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-danger)] uppercase tracking-widest px-1">
           <span>06</span>
           <span className="w-8 h-[1px] bg-[#EF4444]/40" />
           <span>Pest &amp; Disease Surveillance</span>
@@ -177,7 +177,7 @@ export const AgrometView: React.FC = () => {
 
       {/* Chapter 08: 5-Day Agricultural Horizon & Risk Radar */}
       <section id="chapter-outlook-radar" className="space-y-6">
-        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[#38BDF8] uppercase tracking-widest px-1">
+        <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>08</span>
           <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
           <span>5-Day Farm Horizon &amp; Risk Radar</span>

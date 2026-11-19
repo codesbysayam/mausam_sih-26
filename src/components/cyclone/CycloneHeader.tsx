@@ -73,12 +73,12 @@ export const CycloneHeader: React.FC<CycloneHeaderProps> = ({
         : undefined;
     return (
       <div
-        className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[#08131F] border border-[#26394B] text-[11px]"
+        className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px]"
         title={`${label}: ${health.status}${suffix ? ` (${suffix})` : ''}`}
       >
         <SourceStatus status={prov} labelOverride={`${label}: ${prov}`} />
         {suffix && (
-          <span className="font-mono text-[10px] text-[#8295A8] tabular-nums">{suffix}</span>
+          <span className="font-mono text-[10px] text-[var(--m-text-muted)] tabular-nums">{suffix}</span>
         )}
       </div>
     );
@@ -104,17 +104,17 @@ export const CycloneHeader: React.FC<CycloneHeaderProps> = ({
       updatedAt={formattedUpdated}
       actions={
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[#08131F] border border-[#26394B] text-xs font-mono text-[#B5C3D1] tabular-nums">
-            <Clock className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <div className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs font-mono text-[var(--m-text-secondary)] tabular-nums">
+            <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span>Sync in</span>
-            <strong className="text-[#F3F6FA] w-6 text-right">{countdownSeconds}s</strong>
+            <strong className="text-[var(--m-text-primary)] w-6 text-right">{countdownSeconds}s</strong>
           </div>
 
           <button
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[#0B72B9] hover:bg-[#095C96] disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed m-focus-ring"
+            className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed m-focus-ring"
             title="Force ingest latest synoptic bulletins"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />

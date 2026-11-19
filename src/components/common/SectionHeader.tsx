@@ -21,7 +21,7 @@ interface SectionHeaderProps {
 
 function renderSectionIcon(icon?: string) {
   if (!icon) return null;
-  const cls = 'w-5 h-5 text-[#35C7E8] shrink-0';
+  const cls = 'w-5 h-5 text-[var(--m-accent)] shrink-0';
   switch (icon) {
     case 'warning':
       return <AlertTriangle className={cls} />;

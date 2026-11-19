@@ -183,88 +183,88 @@ export const HomeWhatsHappeningNow: React.FC<HomeWhatsHappeningNowProps> = ({
           <div
             className={`p-2.5 rounded-lg border flex items-start gap-2.5 ${
               isRaining
-                ? 'bg-[#0B72B9]/12 border-[#35C7E8]/40'
+                ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/40'
                 : 'm-panel-inset'
             }`}
           >
-            <CloudRain className={`w-4 h-4 shrink-0 mt-0.5 ${isRaining ? 'text-[#35C7E8]' : 'text-[#8295A8]'}`} />
+            <CloudRain className={`w-4 h-4 shrink-0 mt-0.5 ${isRaining ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]'}`} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8295A8]">Rainfall</span>
-                <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--m-text-muted)]">Rainfall</span>
+                <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">
                   {precipMm !== null ? `${precipMm.toFixed(1)} mm` : '—'}
                 </span>
               </div>
-              <p className="text-[#F3F6FA] font-medium mt-0.5">{rainLabel}</p>
-              <p className="text-[11px] text-[#8295A8] mt-0.5 truncate">{rainDetail}</p>
+              <p className="text-[var(--m-text-primary)] font-medium mt-0.5">{rainLabel}</p>
+              <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5 truncate">{rainDetail}</p>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-start gap-2.5">
-            <Thermometer className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
+            <Thermometer className="w-4 h-4 text-[var(--m-watch)] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8295A8]">Thermal Load</span>
-                <span className="font-mono font-bold text-[#F59E0B] tabular-nums">{tempVal}</span>
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--m-text-muted)]">Thermal Load</span>
+                <span className="font-mono font-bold text-[var(--m-watch)] tabular-nums">{tempVal}</span>
               </div>
-              <p className="text-[#F3F6FA] font-medium mt-0.5">{tempDetail}</p>
+              <p className="text-[var(--m-text-primary)] font-medium mt-0.5">{tempDetail}</p>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-start gap-2.5">
-            <Wind className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+            <Wind className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8295A8]">Wind Vector</span>
-                <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">{windSpeedStr}</span>
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--m-text-muted)]">Wind Vector</span>
+                <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">{windSpeedStr}</span>
               </div>
-              <p className="text-[#F3F6FA] font-medium mt-0.5">{windDetail}</p>
+              <p className="text-[var(--m-text-primary)] font-medium mt-0.5">{windDetail}</p>
             </div>
           </div>
 
           <div
             className={`p-2.5 rounded-lg border flex items-start gap-2.5 ${
-              hasWarning ? 'bg-[#EF4444]/10 border-[#EF4444]/40' : 'm-panel-inset'
+              hasWarning ? 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/40' : 'm-panel-inset'
             }`}
           >
             {hasWarning ? (
-              <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-[var(--m-danger)] shrink-0 mt-0.5" />
             ) : (
-              <ShieldCheck className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 text-[var(--m-ok)] shrink-0 mt-0.5" />
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8295A8]">Warning Status</span>
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--m-text-muted)]">Warning Status</span>
                 {hasWarning && (
                   <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#EF4444] text-white">
                     ACTIVE
                   </span>
                 )}
               </div>
-              <p className={`font-semibold mt-0.5 ${hasWarning ? 'text-[#FCA5A5]' : 'text-[#F3F6FA]'}`}>
+              <p className={`font-semibold mt-0.5 ${hasWarning ? 'text-[var(--m-danger)]' : 'text-[var(--m-text-primary)]'}`}>
                 {warningLabel}
               </p>
-              <p className="text-[11px] text-[#8295A8] mt-0.5 truncate">{warningDetail}</p>
+              <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5 truncate">{warningDetail}</p>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-start gap-2.5">
-            <Activity className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+            <Activity className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8295A8]">Air Quality (NAQI)</span>
-                <span className="font-mono font-bold text-[#F3F6FA] tabular-nums">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--m-text-muted)]">Air Quality (NAQI)</span>
+                <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">
                   {hasAqi ? Math.round(aqiVal as number) : '—'}
                 </span>
               </div>
-              <p className="text-[#F3F6FA] font-medium mt-0.5">{aqiLabel}</p>
-              <p className="text-[11px] text-[#8295A8] mt-0.5 truncate">{aqiDetail}</p>
+              <p className="text-[var(--m-text-primary)] font-medium mt-0.5">{aqiLabel}</p>
+              <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5 truncate">{aqiDetail}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-xs text-[#B5C3D1] leading-relaxed">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#35C7E8] block mb-0.5">
+        <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)] leading-relaxed">
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[var(--m-accent)] block mb-0.5">
             Meteorological Synthesis
           </span>
           {smartSummary}
@@ -272,12 +272,12 @@ export const HomeWhatsHappeningNow: React.FC<HomeWhatsHappeningNowProps> = ({
       </div>
 
       {/* Truthful Footer Provenance */}
-      <div className="pt-2.5 border-t border-[#26394B] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8295A8]">
+      <div className="pt-2.5 border-t border-[var(--m-border)] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--m-text-muted)]">
         <div className="flex items-center gap-1.5 truncate max-w-[300px]" title={stationSource}>
-          <Navigation className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+          <Navigation className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
           <span className="truncate">Source: {stationSource}</span>
         </div>
-        <span className="font-mono text-[10px] text-[#B5C3D1]">
+        <span className="font-mono text-[10px] text-[var(--m-text-secondary)]">
           Feed: {status}
         </span>
       </div>

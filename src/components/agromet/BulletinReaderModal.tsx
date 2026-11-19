@@ -79,9 +79,9 @@ For real-time weather updates visit mausam.imd.gov.in
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0F1622] border border-[#1E2E40] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         {/* Modal Top Header */}
-        <div className="p-4 sm:p-5 bg-[#131E2A] border-b border-[#1E2E40] flex items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 bg-[var(--m-surface-2)] border-b border-[var(--m-border)] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#2ECC71]/15 border border-[#2ECC71]/30 flex items-center justify-center text-[#2ECC71]">
               <FileText className="w-5 h-5" />
@@ -90,7 +90,7 @@ For real-time weather updates visit mausam.imd.gov.in
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
                 Official GKMS Agromet Advisory Bulletin
               </h2>
-              <p className="text-xs text-[#93A4B8]">
+              <p className="text-xs text-[var(--m-text-muted)]">
                 {bulletin.amfuUnit}
               </p>
             </div>
@@ -99,14 +99,14 @@ For real-time weather updates visit mausam.imd.gov.in
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg bg-[#182635] text-[#93A4B8] hover:text-white hover:bg-[#22354A] transition-colors focus:outline-none cursor-pointer"
+            className="p-2 rounded-lg bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] transition-colors focus:outline-none cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Toolbar */}
-        <div className="px-5 py-2.5 bg-[#0D141F] border-b border-[#1E2E40] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="px-5 py-2.5 bg-[var(--m-surface-1)] border-b border-[var(--m-border)] flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -114,7 +114,7 @@ For real-time weather updates visit mausam.imd.gov.in
               className={`px-3 py-1 rounded-md font-semibold transition-all ${
                 viewFormat === 'formatted'
                   ? 'bg-[#2ECC71] text-[#0A1017]'
-                  : 'text-[#93A4B8] hover:text-white'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               Formatted Document
@@ -125,7 +125,7 @@ For real-time weather updates visit mausam.imd.gov.in
               className={`px-3 py-1 rounded-md font-semibold transition-all ${
                 viewFormat === 'raw'
                   ? 'bg-[#2ECC71] text-[#0A1017]'
-                  : 'text-[#93A4B8] hover:text-white'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               Raw AAS Text
@@ -136,16 +136,16 @@ For real-time weather updates visit mausam.imd.gov.in
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#182635] hover:bg-[#22354A] text-white border border-[#2A3E54] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-border-strong)] transition-all cursor-pointer"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-[#2ECC71]" /> : <Copy className="w-3.5 h-3.5 text-[#38BDF8]" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-[#2ECC71]" /> : <Copy className="w-3.5 h-3.5 text-[var(--m-accent)]" />}
               <span>{copied ? 'Copied' : 'Copy Text'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownload}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#182635] hover:bg-[#22354A] text-white border border-[#2A3E54] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-border-strong)] transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-[#2ECC71]" />
               <span>Download (.txt)</span>
@@ -163,41 +163,41 @@ For real-time weather updates visit mausam.imd.gov.in
         </div>
 
         {/* Modal Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-[#CBD5E1]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-[var(--m-text-secondary)]">
           {viewFormat === 'raw' ? (
-            <pre className="font-mono text-xs text-[#2ECC71] bg-[#0A1017] p-4 rounded-xl border border-[#1E2E40] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+            <pre className="font-mono text-xs text-[#2ECC71] bg-[var(--m-surface-inset)] p-4 rounded-xl border border-[var(--m-border)] overflow-x-auto whitespace-pre-wrap leading-relaxed">
               {rawText}
             </pre>
           ) : (
             <div className="space-y-6">
               {/* Bulletin Header Seal */}
-              <div className="text-center pb-4 border-b border-[#1E2E40]">
+              <div className="text-center pb-4 border-b border-[var(--m-border)]">
                 <span className="text-[10px] text-[#2ECC71] uppercase font-mono tracking-widest font-bold block">
                   INDIA METEOROLOGICAL DEPARTMENT • MINISTRY OF EARTH SCIENCES
                 </span>
                 <h1 className="text-lg font-bold text-white mt-1">
                   GRAMIN KRISHI MAUSAM SEWA (GKMS) DISTRICT AGROMET BULLETIN
                 </h1>
-                <p className="text-xs text-[#93A4B8] mt-0.5">{bulletin.amfuUnit}</p>
+                <p className="text-xs text-[var(--m-text-muted)] mt-0.5">{bulletin.amfuUnit}</p>
 
                 <div className="flex flex-wrap justify-center gap-4 mt-3 text-[11px] font-mono">
-                  <span className="text-white">Bulletin No: <strong className="text-[#38BDF8]">{bulletin.bulletinNo}</strong></span>
+                  <span className="text-white">Bulletin No: <strong className="text-[var(--m-accent)]">{bulletin.bulletinNo}</strong></span>
                   <span className="text-[#334155]">|</span>
                   <span className="text-white">Issue Date: <strong>{bulletin.issueDate}</strong></span>
                   <span className="text-[#334155]">|</span>
-                  <span className="text-white">Validity: <strong className="text-[#F59E0B]">{bulletin.validPeriod}</strong></span>
+                  <span className="text-white">Validity: <strong className="text-[var(--m-watch)]">{bulletin.validPeriod}</strong></span>
                 </div>
               </div>
 
               {/* Weather Synopsis */}
-              <div className="p-4 rounded-xl bg-[#131D28] border border-[#1E2E40]">
-                <h3 className="text-xs font-bold text-[#38BDF8] uppercase tracking-wider mb-1.5">
+              <div className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+                <h3 className="text-xs font-bold text-[var(--m-accent)] uppercase tracking-wider mb-1.5">
                   1. Meteorological Synopsis &amp; 5-Day Numerical Forecast
                 </h3>
                 <p className="text-xs text-white leading-relaxed mb-2">
                   {bulletin.weatherSummary}
                 </p>
-                <div className="text-[11px] text-[#93A4B8] font-mono bg-[#0F1622] p-2 rounded border border-[#1E2E40]">
+                <div className="text-[11px] text-[var(--m-text-muted)] font-mono bg-[var(--m-surface-1)] p-2 rounded border border-[var(--m-border)]">
                   Quantitative Rainfall Projection: <strong className="text-white">{bulletin.rainfallForecast5Days}</strong>
                 </div>
               </div>
@@ -209,36 +209,36 @@ For real-time weather updates visit mausam.imd.gov.in
                 </h3>
 
                 {bulletin.crops.map((crop, idx) => (
-                  <div key={crop.cropName} className="p-4 rounded-xl bg-[#111A24] border border-[#1E2E40] space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#1E2E40]">
+                  <div key={crop.cropName} className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#182635] text-[#2ECC71] font-mono font-bold flex items-center justify-center text-[10px]">
+                        <span className="w-5 h-5 rounded-full bg-[var(--m-surface-2)] text-[#2ECC71] font-mono font-bold flex items-center justify-center text-[10px]">
                           0{idx + 1}
                         </span>
                         <h4 className="text-sm font-bold text-white">{crop.cropName}</h4>
-                        <span className="text-[10px] text-[#38BDF8] font-mono">({crop.stage})</span>
+                        <span className="text-[10px] text-[var(--m-accent)] font-mono">({crop.stage})</span>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#F59E0B]/20 text-[#F59E0B] font-semibold">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-watch-soft)] text-[var(--m-watch)] font-semibold">
                         {crop.riskLevel} Risk
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                       <div>
-                        <strong className="text-[#38BDF8] block text-[11px] mb-0.5">Irrigation Guidance:</strong>
-                        <p className="text-[#D7DEE8]">{crop.irrigationAdvice}</p>
+                        <strong className="text-[var(--m-accent)] block text-[11px] mb-0.5">Irrigation Guidance:</strong>
+                        <p className="text-[var(--m-text-primary)]">{crop.irrigationAdvice}</p>
                       </div>
                       <div>
                         <strong className="text-[#2ECC71] block text-[11px] mb-0.5">Nutrient &amp; Fertilizer:</strong>
-                        <p className="text-[#D7DEE8]">{crop.fertilizerAdvice}</p>
+                        <p className="text-[var(--m-text-primary)]">{crop.fertilizerAdvice}</p>
                       </div>
                       <div>
-                        <strong className="text-[#EF4444] block text-[11px] mb-0.5">Pest &amp; Disease IPM:</strong>
-                        <p className="text-[#D7DEE8]">{crop.pestDiseaseAdvice}</p>
+                        <strong className="text-[var(--m-danger)] block text-[11px] mb-0.5">Pest &amp; Disease IPM:</strong>
+                        <p className="text-[var(--m-text-primary)]">{crop.pestDiseaseAdvice}</p>
                       </div>
                       <div>
                         <strong className="text-[#A855F7] block text-[11px] mb-0.5">Cultural &amp; Harvesting:</strong>
-                        <p className="text-[#D7DEE8]">{crop.harvestingAdvice}</p>
+                        <p className="text-[var(--m-text-primary)]">{crop.harvestingAdvice}</p>
                       </div>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ For real-time weather updates visit mausam.imd.gov.in
               </div>
 
               {/* Disclaimer */}
-              <div className="p-3 rounded-lg bg-[#0A1017] border border-[#1E2E40] text-[10px] text-[#64748B] text-center leading-relaxed">
+              <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[10px] text-[var(--m-text-muted)] text-center leading-relaxed">
                 Gramin Krishi Mausam Sewa (GKMS) advisory issued by Agromet Field Unit (AMFU) under the aegis of IMD &amp; ICAR for agricultural planning.
               </div>
             </div>

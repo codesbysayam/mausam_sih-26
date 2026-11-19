@@ -47,7 +47,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: avgTemp !== null ? `Across 36 capitals (${minTemp}° – ${maxTemp}°C)` : 'Aggregation unavailable',
       source: '36-Region Reference Dataset',
       status: 'REF',
-      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
+      statusClass: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/30',
       tab: 'weather',
     },
     {
@@ -58,7 +58,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: stationsWithRain > 0 ? `Reference peak: ${maxRain} mm` : 'No widespread rainfall in snapshot',
       source: 'Regional Baseline',
       status: 'REF',
-      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
+      statusClass: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/30',
       tab: 'radar',
     },
     {
@@ -70,8 +70,8 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       source: 'Threshold Classifier',
       status: severeAlerts > 0 ? 'WATCH' : 'ROUTINE',
       statusClass: severeAlerts > 0
-        ? 'text-[#FCD34D] bg-[#F59E0B]/12 border-[#F59E0B]/30'
-        : 'text-[#6EE7B7] bg-[#22C7A0]/12 border-[#22C7A0]/30',
+        ? 'text-[var(--m-watch)] bg-[var(--m-watch-soft)] border-[var(--m-watch)]/30'
+        : 'text-[var(--m-ok)] bg-[var(--m-ok-soft)] border-[var(--m-ok)]/30',
       tab: 'warnings',
     },
     {
@@ -82,7 +82,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: avgAQI !== null ? '36-Capital Reference Mean' : 'Aggregation unavailable',
       source: 'Reference Summary',
       status: 'REF',
-      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
+      statusClass: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/30',
       tab: 'aqi',
     },
     {
@@ -93,7 +93,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: maxWind !== null ? `Reference max ${maxWind} km/h` : 'Aggregation unavailable',
       source: 'Regional Baseline',
       status: 'REF',
-      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
+      statusClass: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/30',
       tab: 'weather',
     },
     {
@@ -104,7 +104,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: avgHumidity !== null ? 'Mean national snapshot RH' : 'Aggregation unavailable',
       source: 'Regional Baseline',
       status: 'REF',
-      statusClass: 'text-[#35C7E8] bg-[#35C7E8]/12 border-[#35C7E8]/30',
+      statusClass: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/30',
       tab: 'weather',
     },
     {
@@ -115,7 +115,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: 'All-India State & UT Capitals',
       source: 'Regional Registry',
       status: 'INDEXED',
-      statusClass: 'text-[#6EE7B7] bg-[#22C7A0]/12 border-[#22C7A0]/30',
+      statusClass: 'text-[var(--m-ok)] bg-[var(--m-ok-soft)] border-[var(--m-ok)]/30',
       tab: 'reports',
     },
     {
@@ -126,7 +126,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: 'National baseline reference',
       source: 'Synoptic Snapshot',
       status: 'SNAPSHOT',
-      statusClass: 'text-[#B5C3D1] bg-[#8295A8]/12 border-[#38536A]',
+      statusClass: 'text-[var(--m-text-secondary)] bg-[#8295A8]/12 border-[var(--m-border-strong)]',
       tab: 'radar',
     },
   ];
@@ -153,10 +153,10 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
             id={card.id}
             type="button"
             onClick={() => onNavigate?.(card.tab)}
-            className="text-left m-panel-inset hover:bg-[#101F2E] hover:border-[#38536A] p-3.5 transition-colors cursor-pointer group flex flex-col justify-between m-focus-ring"
+            className="text-left m-panel-inset hover:bg-[var(--m-surface-2)] hover:border-[var(--m-border-strong)] p-3.5 transition-colors cursor-pointer group flex flex-col justify-between m-focus-ring"
           >
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-semibold tracking-wider text-[#B5C3D1] uppercase truncate">
+              <span className="text-[11px] font-semibold tracking-wider text-[var(--m-text-secondary)] uppercase truncate">
                 {card.title}
               </span>
               <span
@@ -168,19 +168,19 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
 
             <div className="my-1">
               <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA] tracking-tight">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">
                   {card.value}
                 </span>
                 {card.unit && (
-                  <span className="text-xs font-sans font-medium text-[#8295A8]">{card.unit}</span>
+                  <span className="text-xs font-sans font-medium text-[var(--m-text-muted)]">{card.unit}</span>
                 )}
               </div>
-              <p className="text-[11px] text-[#8295A8] mt-0.5 truncate">{card.subtext}</p>
+              <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5 truncate">{card.subtext}</p>
             </div>
 
-            <div className="mt-2.5 pt-2 border-t border-[#26394B] flex items-center justify-between text-[10px] text-[#8295A8] font-mono">
+            <div className="mt-2.5 pt-2 border-t border-[var(--m-border)] flex items-center justify-between text-[10px] text-[var(--m-text-muted)] font-mono">
               <span className="truncate">{card.source}</span>
-              <ArrowRight className="w-3 h-3 shrink-0 text-[#35C7E8] group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3 h-3 shrink-0 text-[var(--m-accent)] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>
         ))}

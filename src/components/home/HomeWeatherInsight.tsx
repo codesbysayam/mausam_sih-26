@@ -68,28 +68,28 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
       <SectionHeading
         title="Operational Guidance"
         subtitle="Condition-driven interpretation derived strictly from observed telemetry"
-        icon={<Sparkles className="w-4 h-4 text-[#F59E0B]" />}
+        icon={<Sparkles className="w-4 h-4 text-[var(--m-watch)]" />}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#35C7E8]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--m-accent)]">
             <Car className="w-4 h-4" />
             <span>Commute &amp; Travel</span>
           </div>
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">{commuteInsight}</p>
-          <span className="text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B]">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{commuteInsight}</p>
+          <span className="text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)]">
             Surface: {rainProb === null ? '—' : rainProb >= 50 ? 'Wet / Damp' : 'Dry'}
           </span>
         </div>
 
         <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#22C7A0]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--m-ok)]">
             <Bike className="w-4 h-4" />
             <span>Fitness &amp; Outdoors</span>
           </div>
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">{fitnessInsight}</p>
-          <span className="text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B]">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{fitnessInsight}</p>
+          <span className="text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)]">
             Exertion: {currentTemp === null ? '—' : currentTemp >= 35 ? 'Caution' : 'Nominal'}
           </span>
         </div>
@@ -102,19 +102,19 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
             <HeartPulse className="w-4 h-4" />
             <span>Respiratory Health</span>
           </div>
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">{healthInsight}</p>
-          <span className="text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{healthInsight}</p>
+          <span className="text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">
             {aqi !== null && aqiInfo ? `AQI ${aqi} · ${aqiInfo.category}` : 'AQI Unavailable'}
           </span>
         </div>
 
         <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#F59E0B]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--m-watch)]">
             <SunMedium className="w-4 h-4" />
             <span>Solar Protection</span>
           </div>
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">{solarInsight}</p>
-          <span className="text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{solarInsight}</p>
+          <span className="text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">
             {uvIndex !== null ? `UV Index ${uvIndex.toFixed(1)}` : 'UV Unavailable'}
           </span>
         </div>

@@ -251,70 +251,69 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
     return () => clearInterval(interval);
   }, [selectedDetailWarning, locationResult, fetchWarningData]);
 
-  // Status configuration for command-center indicator (v3.0.0 Observatory tokens, zero left-rail borders)
-  const statusTheme = useMemo(() => {
-    if (!data) {
-      return {
-        cardBorder: 'border-[#26394B]',
-        bg: 'bg-[#0B1927]',
-        badgeBg: 'bg-[#8295A8]/12 text-[#B5C3D1] border-[#38536A]',
-        dotColor: 'bg-[#8295A8]',
-        accentColor: 'text-[#8295A8]',
-      };
-    }
+  type NormalizedAlertSeverity = 'red' | 'orange' | 'yellow' | 'green' | 'unknown';
 
+  const normalizedSeverity: NormalizedAlertSeverity = useMemo(() => {
+    if (!data) return 'unknown';
     switch (data.uiState) {
       case 'RED_ALERT':
-        return {
-          cardBorder: 'border-[#EF4444]/45',
-          bg: 'bg-[#160B10]',
-          badgeBg: 'bg-[#EF4444]/15 text-[#FCA5A5] border-[#EF4444]/45',
-          dotColor: 'bg-[#EF4444]',
-          accentColor: 'text-[#FCA5A5]',
-        };
+        return 'red';
       case 'ORANGE_ALERT':
-        return {
-          cardBorder: 'border-[#F97316]/45',
-          bg: 'bg-[#161009]',
-          badgeBg: 'bg-[#F97316]/15 text-[#FDBA74] border-[#F97316]/45',
-          dotColor: 'bg-[#F97316]',
-          accentColor: 'text-[#FDBA74]',
-        };
+        return 'orange';
       case 'WATCH_ADVISORY':
-        return {
-          cardBorder: 'border-[#F59E0B]/40',
-          bg: 'bg-[#141209]',
-          badgeBg: 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40',
-          dotColor: 'bg-[#F59E0B]',
-          accentColor: 'text-[#FCD34D]',
-        };
-      case 'NOT_APPLICABLE':
-        return {
-          cardBorder: 'border-[#35C7E8]/35',
-          bg: 'bg-[#0B1927]',
-          badgeBg: 'bg-[#35C7E8]/12 text-[#7DD3FC] border-[#35C7E8]/35',
-          dotColor: 'bg-[#35C7E8]',
-          accentColor: 'text-[#35C7E8]',
-        };
-      case 'DATA_UNAVAILABLE':
-        return {
-          cardBorder: 'border-[#26394B]',
-          bg: 'bg-[#0B1927]',
-          badgeBg: 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35',
-          dotColor: 'bg-[#F59E0B]',
-          accentColor: 'text-[#FCD34D]',
-        };
+        return 'yellow';
       case 'NO_ACTIVE_WARNING':
+        return 'green';
+      case 'OPERATIONAL':
+      case 'OPERATIONAL_WITH_FALLBACK':
+        if (data.severity === 'red') return 'red';
+        if (data.severity === 'orange') return 'orange';
+        if (data.severity === 'yellow') return 'yellow';
+        return 'unknown';
+      case 'NOT_APPLICABLE':
+      case 'DATA_UNAVAILABLE':
+      case 'PROVIDER_UNAVAILABLE':
       default:
-        return {
-          cardBorder: 'border-[#22C7A0]/35',
-          bg: 'bg-[#0B1927]',
-          badgeBg: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
-          dotColor: 'bg-[#22C7A0]',
-          accentColor: 'text-[#6EE7B7]',
-        };
+        return 'unknown';
     }
   }, [data]);
+
+  // Status configuration for panel-local severity styling (strict contrast separation)
+  const statusTheme = useMemo(() => {
+    switch (normalizedSeverity) {
+      case 'red':
+        return {
+          badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
+          dotColor: 'bg-[#B42318]',
+          accentColor: 'text-[var(--alert-accent)]',
+        };
+      case 'orange':
+        return {
+          badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
+          dotColor: 'bg-[#C45100]',
+          accentColor: 'text-[var(--alert-accent)]',
+        };
+      case 'yellow':
+        return {
+          badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
+          dotColor: 'bg-[#B7791F]',
+          accentColor: 'text-[var(--alert-accent)]',
+        };
+      case 'green':
+        return {
+          badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
+          dotColor: 'bg-[#1D6B47]',
+          accentColor: 'text-[var(--alert-accent)]',
+        };
+      case 'unknown':
+      default:
+        return {
+          badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
+          dotColor: 'bg-[#1678B8]',
+          accentColor: 'text-[var(--alert-accent)]',
+        };
+    }
+  }, [normalizedSeverity]);
 
   // Loading skeleton state
   if (isLoading && !data) {
@@ -369,6 +368,10 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
     currentData.uiState === 'PROVIDER_UNAVAILABLE' ||
     currentData.uiState === 'DATA_UNAVAILABLE';
 
+  const isBulletinExpired = Boolean(currentData.isExpired || countdownText === 'Expired');
+  const additionalWarningsCount =
+    locationResult?.additionalCount ?? currentData.additionalActiveCount ?? 0;
+
   // ─────────────────────────────────────────────────────────────
   // 9. NO-WARNING STATE / ALL CLEAR (Calm Green Visual Treatment)
   // Allowed ONLY when valid official feed responded with 0 warnings!
@@ -377,64 +380,65 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
     return (
       <section
         id="severe-weather-alert-center"
-        aria-label="National Weather Alert Center"
-        className={`w-full rounded-xl border ${statusTheme.cardBorder} ${statusTheme.bg} p-4 sm:p-5 transition-colors`}
+        aria-labelledby="weather-alert-title-clear"
+        data-severity="green"
+        className="weather-alert-center w-full transition-colors"
       >
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-4">
           {/* Top Bar: Center Title + Language Selector + Badge */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-1.5 text-[#22C7A0]">
+          <header className="weather-alert-center__header">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-1.5 text-[var(--alert-accent)]">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span className={`text-xs font-bold tracking-wider ${caseStyle} text-[#F3F6FA]`}>
+                <span className={`weather-alert-center__eyebrow ${caseStyle}`}>
                   {getAlertLabel('alertCenterTitle', effectiveLangCode)}
                 </span>
               </div>
-              <span className="hidden sm:inline-block text-[#38536A]">|</span>
-              <span className={`text-[10px] sm:text-[11px] font-semibold text-[#8295A8] tracking-wide ${caseStyle}`}>
+              <span className="hidden sm:inline-block text-[var(--alert-muted)]" aria-hidden="true">·</span>
+              <span className={`weather-alert-center__meta font-semibold tracking-wide ${caseStyle}`}>
                 {getAlertLabel('stateSubdivisionAlert', effectiveLangCode)}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <WarningLanguageSelector
                 regionConfig={regionConfig}
                 selectedMode={languageMode}
                 onSelectMode={handleSelectLanguageMode}
               />
 
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-bold font-mono tracking-wider ${caseStyle} bg-[#22C7A0]/12 text-[#6EE7B7] border border-[#22C7A0]/35 shrink-0`}>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold font-mono tracking-wider ${caseStyle} border shrink-0 ${statusTheme.badgeBg}`}>
                 <Check className="w-3.5 h-3.5" />
                 <span>{getAlertLabel('allClear', effectiveLangCode).split('-')[0].trim()}</span>
               </span>
             </div>
-          </div>
+          </header>
 
           {/* Main Status Block: ALL CLEAR */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
             <div className="lg:col-span-8 flex flex-col gap-1.5">
-              <div className={`flex items-center gap-2 text-xs font-semibold text-[#6EE7B7] ${caseStyle} tracking-wider`}>
+              <div className={`flex items-center gap-2 text-xs font-semibold text-[var(--alert-accent)] ${caseStyle} tracking-wider`}>
                 <span>{getAlertLabel('allClear', effectiveLangCode).split('-')[0].trim()}</span>
-                <span>·</span>
+                <span aria-hidden="true">·</span>
                 <span>{getLocalizedStateName(regionConfig.regionName, effectiveLangCode)}</span>
               </div>
 
-              <h3 className="text-base sm:text-lg font-bold text-[#F3F6FA] tracking-tight">
+              <h2 id="weather-alert-title-clear" className="weather-alert-center__title">
                 {getAlertLabel('allClear', effectiveLangCode)}
-              </h3>
+              </h2>
 
-              <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed max-w-2xl">
+              <p className="weather-alert-center__description">
                 {getAlertLabel('allClearSub', effectiveLangCode)}
               </p>
             </div>
 
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-[#B5C3D1]">
-                <span className="px-2.5 py-1 rounded-md bg-[#08131F] border border-[#26394B] text-[11px] font-mono">
-                  {getAlertLabel('severity', effectiveLangCode)}: <strong className="text-[#6EE7B7]">{getLocalizedSeverity('GREEN', effectiveLangCode)}</strong>
+              <div className="flex items-center gap-2 text-xs text-[var(--alert-secondary)] flex-wrap">
+                <span className="px-2.5 py-1 rounded-md bg-[var(--alert-surface)] border border-[var(--alert-border)] text-[11px] font-mono">
+                  {getAlertLabel('severity', effectiveLangCode)}: <strong className="text-[var(--alert-accent)]">{getLocalizedSeverity('GREEN', effectiveLangCode)}</strong>
                 </span>
-                <span className="px-2.5 py-1 rounded-md bg-[#08131F] border border-[#26394B] text-[11px] font-mono">
-                  {getAlertLabel('affected', effectiveLangCode)}: <strong className="text-[#F3F6FA]">0</strong>
+                <span className="px-2.5 py-1 rounded-md bg-[var(--alert-surface)] border border-[var(--alert-border)] text-[11px] font-mono">
+                  {getAlertLabel('affected', effectiveLangCode)}: <strong className="text-[var(--alert-text)]">0</strong>
                 </span>
               </div>
 
@@ -442,38 +446,38 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 type="button"
                 id="btn-view-warnings-bulletin"
                 onClick={onNavigateToWarnings}
-                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 min-h-[38px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#22C7A0]/35 hover:border-[#22C7A0] text-[#6EE7B7] hover:text-[#F3F6FA] text-xs font-semibold tracking-wide transition-colors cursor-pointer m-focus-ring"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 min-h-[38px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] text-[var(--alert-text)] text-xs font-semibold tracking-wide transition-colors cursor-pointer m-focus-ring"
               >
                 <span>{getAlertLabel('viewInWarnings', effectiveLangCode)}</span>
-                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 shrink-0 text-[var(--alert-accent)]" />
               </button>
             </div>
           </div>
 
           {/* Bottom Trust Panel */}
-          <div className="pt-2.5 border-t border-[#26394B] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8295A8]">
-            <div className="flex items-center gap-2">
-              <span>Source: {currentData.trust.source}</span>
-              <span>·</span>
-              <span>Updated: {currentData.trust.updatedAt}</span>
-              <span>·</span>
-              <span className="text-[#6EE7B7] font-medium">Status: Verified Feed (0 Active Alerts)</span>
+          <footer className="weather-alert-center__footer text-[11px] text-[var(--alert-muted)]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>Source: <strong className="text-[var(--alert-text)]">{currentData.trust.source}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>Feed checked: <strong className="text-[var(--alert-secondary)] font-mono tabular-nums">{currentData.trust.updatedAt}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span className="text-[var(--alert-accent)] font-semibold">Feed status: Verified (0 Active Alerts)</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => fetchWarningData(true)}
                 disabled={isRefreshing}
-                className="inline-flex items-center gap-1 text-[11px] text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] text-[var(--alert-secondary)] hover:text-[var(--alert-text)] transition-colors cursor-pointer"
                 title="Refresh warning feed"
               >
                 <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
                 <span>Verify</span>
               </button>
-              <span>·</span>
-              <span className="text-[10px] text-[#8295A8]">Monitored across 36 IMD Subdivisions</span>
+              <span aria-hidden="true">·</span>
+              <span className="text-[11px] text-[var(--alert-muted)]">Monitored across 36 IMD Subdivisions</span>
             </div>
-          </div>
+          </footer>
         </div>
       </section>
     );
@@ -486,25 +490,26 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
     return (
       <section
         id="severe-weather-alert-center"
-        aria-label="National Weather Alert Center"
-        className={`w-full rounded-xl border ${statusTheme.cardBorder} ${statusTheme.bg} p-4 sm:p-5 transition-colors`}
+        aria-labelledby="weather-alert-title-na"
+        data-severity="unknown"
+        className="weather-alert-center w-full transition-colors"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-[#35C7E8]" />
-              <h2 className="text-xs font-bold tracking-wider uppercase text-[#F3F6FA]">
-                WEATHER ALERT CENTER
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-[var(--alert-accent)]" />
+              <h2 id="weather-alert-title-na" className="weather-alert-center__eyebrow uppercase">
+                Weather Alert Center
               </h2>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold font-mono tracking-wider uppercase bg-[#35C7E8]/12 text-[#7DD3FC] border border-[#35C7E8]/30">
-                IMD NOT APPLICABLE
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold font-mono tracking-wider uppercase bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border border-[var(--alert-border)]">
+                IMD Not Applicable
               </span>
             </div>
 
-            <div className="text-sm font-semibold text-[#F3F6FA] mt-0.5">
+            <div className="text-base font-bold text-[var(--alert-text)] mt-0.5">
               {currentData.hazardHeadline}
             </div>
-            <p className="text-xs text-[#B5C3D1] leading-relaxed">
+            <p className="weather-alert-center__description">
               {currentData.summary}
             </p>
           </div>
@@ -513,22 +518,22 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
             type="button"
             id="btn-view-warnings-bulletin"
             onClick={onNavigateToWarnings}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#35C7E8]/40 text-[#35C7E8] hover:text-[#F3F6FA] text-xs font-semibold tracking-wide transition-colors cursor-pointer m-focus-ring"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] text-[var(--alert-text)] text-xs font-semibold tracking-wide transition-colors cursor-pointer m-focus-ring shrink-0"
           >
             <span>View All-India Bulletins</span>
-            <ChevronRight className="w-4 h-4 shrink-0" />
+            <ChevronRight className="w-4 h-4 shrink-0 text-[var(--alert-accent)]" />
           </button>
         </div>
 
-        <div className="mt-3 pt-2.5 border-t border-[#26394B] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8295A8]">
-          <div className="flex items-center gap-2">
-            <span>Source: IMD Synoptic Service</span>
-            <span>·</span>
-            <span>Updated: {currentData.trust.updatedAt}</span>
-            <span>·</span>
-            <span className="text-[#35C7E8] font-medium">Domain: Indian Sovereign Territory</span>
+        <footer className="weather-alert-center__footer mt-4 text-[11px] text-[var(--alert-muted)]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>Source: <strong className="text-[var(--alert-text)]">IMD Synoptic Service</strong></span>
+            <span aria-hidden="true">·</span>
+            <span>Updated: <strong className="font-mono text-[var(--alert-secondary)]">{currentData.trust.updatedAt}</strong></span>
+            <span aria-hidden="true">·</span>
+            <span className="text-[var(--alert-accent)] font-medium">Domain: Indian Sovereign Territory</span>
           </div>
-        </div>
+        </footer>
       </section>
     );
   }
@@ -541,38 +546,39 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
     return (
       <section
         id="severe-weather-alert-center"
-        aria-label="National Weather Alert Center"
-        className={`w-full rounded-xl border ${statusTheme.cardBorder} ${statusTheme.bg} p-4 sm:p-5 transition-colors`}
+        aria-labelledby="weather-alert-title-unavailable"
+        data-severity="unknown"
+        className="weather-alert-center w-full transition-colors"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2.5 text-[#8295A8]">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-[#F59E0B]" />
-              <h2 className={`text-xs font-bold tracking-wider ${caseStyle} text-[#F3F6FA]`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-[var(--m-watch)]" />
+              <h2 id="weather-alert-title-unavailable" className={`weather-alert-center__eyebrow ${caseStyle}`}>
                 {getAlertLabel('alertCenterTitle', effectiveLangCode)}
               </h2>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold font-mono tracking-wider ${caseStyle} bg-[#F59E0B]/12 text-[#FCD34D] border border-[#F59E0B]/35`}>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold font-mono tracking-wider ${caseStyle} bg-[var(--m-watch-soft)] text-[var(--m-watch)] border border-[var(--m-watch)]/35`}>
                 {getAlertLabel('feedUnavailableTitle', effectiveLangCode)}
               </span>
             </div>
-            <div className="text-sm font-semibold text-[#F3F6FA] mt-1">
-              Weather telemetry remains operational.
+            <div className="text-base font-bold text-[var(--alert-text)] mt-0.5">
+              Official warning endpoint could not be reached. Surface weather telemetry remains operational.
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#8295A8] mt-0.5">
-              <span>Last official warning sync: <strong className="text-[#B5C3D1] font-mono">{(!currentData.trust.updatedAt || currentData.trust.updatedAt === 'Recent' || currentData.trust.updatedAt === 'Live') ? 'Never synced in session' : currentData.trust.updatedAt}</strong></span>
-              <span>·</span>
-              <span>{getAlertLabel('source', effectiveLangCode)}: <strong className="text-[#B5C3D1]">{currentData.trust.source || 'SACHET/NDMA'}</strong></span>
-              <span>·</span>
-              <span>{getAlertLabel('status', effectiveLangCode)}: <strong className="text-[#FCD34D]">{getAlertLabel('temporarilyUnreachable', effectiveLangCode)}</strong></span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--alert-muted)]">
+              <span>Last official warning sync: <strong className="text-[var(--alert-secondary)] font-mono">{(!currentData.trust.updatedAt || currentData.trust.updatedAt === 'Recent' || currentData.trust.updatedAt === 'Live') ? 'Never synced in session' : currentData.trust.updatedAt}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>{getAlertLabel('source', effectiveLangCode)}: <strong className="text-[var(--alert-text)]">{currentData.trust.source || 'SACHET/NDMA'}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>{getAlertLabel('status', effectiveLangCode)}: <strong className="text-[var(--m-watch)]">{getAlertLabel('temporarilyUnreachable', effectiveLangCode)}</strong></span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               type="button"
               onClick={() => fetchWarningData(true)}
               disabled={isRefreshing}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] text-xs font-semibold text-[var(--alert-text)] transition-colors cursor-pointer m-focus-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{getAlertLabel('retrySync', effectiveLangCode)}</span>
@@ -580,10 +586,10 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
             <button
               type="button"
               onClick={onNavigateToWarnings}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] text-xs font-semibold text-[var(--alert-text)] transition-colors cursor-pointer m-focus-ring"
             >
               <span>View Warning Archive</span>
-              <ChevronRight className="w-4 h-4 text-[#8295A8]" />
+              <ChevronRight className="w-4 h-4 text-[var(--alert-muted)]" />
             </button>
           </div>
         </div>
@@ -593,164 +599,162 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
 
   // ─────────────────────────────────────────────────────────────
   // ACTIVE WARNING STATE: WATCH (Yellow), ALERT (Orange), SEVERE (Red)
-  // Meteorological Command-Center Architecture
+  // Severity-Aware High-Contrast Editorial Alert Center
   // ─────────────────────────────────────────────────────────────
-  const isSevere = currentData.uiState === 'RED_ALERT';
+  const isSevere = normalizedSeverity === 'red';
+  const feedFreshnessLabel =
+    currentData.trust.status === 'LIVE'
+      ? 'Feed synced'
+      : currentData.trust.status === 'RECENT'
+      ? 'Feed recent'
+      : currentData.trust.status;
 
   return (
     <>
       <section
         id="severe-weather-alert-center"
-        aria-label="National Weather Alert Center"
-        className={`w-full rounded-xl border ${statusTheme.cardBorder} ${statusTheme.bg} p-4 sm:p-5 lg:p-6 transition-colors`}
+        aria-labelledby="weather-alert-title"
+        data-severity={normalizedSeverity}
+        className="weather-alert-center w-full transition-colors"
       >
-        <div className="flex flex-col gap-4">
-          {/* ──────────────── Top Row: Command Center Bar ──────────────── */}
-          <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-[#26394B]">
-            {/* Left: Center Title + Scope */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="p-1 rounded bg-[#0A1018] border border-[#1E2E40]">
+        <div className="flex flex-col gap-5">
+          {/* ──────────────── Top Row: Alert Center Header ──────────────── */}
+          <header className="weather-alert-center__header">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="w-7 h-7 rounded-lg bg-[var(--alert-accent-soft)] border border-[var(--alert-border)] flex items-center justify-center shrink-0">
                 <AlertTriangle className={`w-4 h-4 ${statusTheme.accentColor}`} />
               </div>
-              <h2 className={`text-xs font-bold tracking-wider ${caseStyle} text-[#E2E8F0]`}>
+              <p className={`weather-alert-center__eyebrow ${caseStyle}`}>
                 {getAlertLabel('alertCenterTitle', effectiveLangCode)}
-              </h2>
-              <span className="hidden sm:inline-block text-[#334155]">|</span>
-              <span className={`text-[10px] sm:text-[11px] font-semibold text-[#94A3B8] tracking-wide ${caseStyle}`}>
+              </p>
+              <span className="hidden sm:inline-block text-[var(--alert-muted)]" aria-hidden="true">·</span>
+              <span className={`weather-alert-center__meta font-semibold tracking-wide ${caseStyle}`}>
                 {getAlertLabel('stateSubdivisionAlert', effectiveLangCode)}
               </span>
             </div>
 
-            {/* Right: Language Selector + Data Status & Live Pulse Indicator */}
-            <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Right: Language Selector + Separate Feed Freshness & Alert Severity */}
+            <div className="flex items-center gap-3 flex-wrap">
               <WarningLanguageSelector
                 regionConfig={regionConfig}
                 selectedMode={languageMode}
                 onSelectMode={handleSelectLanguageMode}
               />
 
-              <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#94A3B8]">
-                <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-                <span>
-                  {getAlertLabel('dataStatus', effectiveLangCode)}:{' '}
-                  <strong className="text-white">
-                    {currentData.trust.status === 'LIVE'
-                      ? getAlertLabel('live', effectiveLangCode)
-                      : currentData.trust.status}
-                  </strong>
-                </span>
-              </div>
+              <span className="text-[11px] font-mono text-[var(--alert-muted)] whitespace-nowrap">
+                {feedFreshnessLabel}
+              </span>
 
               <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] sm:text-xs font-bold font-mono tracking-wider ${caseStyle} border shrink-0 ${statusTheme.badgeBg}`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-bold font-mono tracking-wider ${caseStyle} border shrink-0 ${statusTheme.badgeBg}`}
               >
-                <span className={`w-2 h-2 rounded-full ${statusTheme.dotColor}`} />
-                <span>{localizedDisplay.severityLabel || currentData.statusBadge.label}</span>
+                <span className={`w-2 h-2 rounded-full ${statusTheme.dotColor}`} aria-hidden="true" />
+                <span>
+                  {isBulletinExpired
+                    ? 'EXPIRED BULLETIN'
+                    : localizedDisplay.severityLabel || currentData.statusBadge.label}
+                </span>
               </span>
             </div>
-          </div>
+          </header>
 
-          {/* ──────────────── Main Command Grid: Hazard & Impact ──────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-            {/* Left Col (Col 1-7): Large Live Status + Dynamic Hazard Icon + Prominent Headline */}
-            <div className="lg:col-span-7 flex flex-col justify-between gap-3">
-              <div>
-                {/* Status Block Header + Dynamic Hazard Visual */}
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`p-2.5 rounded-xl bg-[#08131F] border border-[#26394B] ${statusTheme.accentColor} shrink-0`}>
-                    <HazardIcon hazardType={currentData.hazardType} className="w-6 h-6 sm:w-7 sm:h-7" />
-                  </div>
+          {/* ──────────────── Main Alert Body: Official Bulletin & Impact Snapshot ──────────────── */}
+          <div className="weather-alert-center__body">
+            {/* Left Column: Hazard Icon, Region, Official Bulletin Headline & Affected Districts */}
+            <div className="weather-alert-center__main">
+              <div className="flex items-start gap-3">
+                <div className={`p-2.5 rounded-xl bg-[var(--alert-surface)] border border-[var(--alert-border)] ${statusTheme.accentColor} shrink-0`}>
+                  <HazardIcon hazardType={currentData.hazardType} className="w-6 h-6" />
+                </div>
 
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[11px] font-mono font-bold tracking-wider ${caseStyle} ${statusTheme.accentColor}`}>
-                        ● {localizedDisplay.severityLabel}
-                      </span>
-                      {currentData.additionalActiveCount > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#101F2E] border border-[#26394B] text-[#8295A8] font-mono tabular-nums">
-                          +{currentData.additionalActiveCount} {getAlertLabel(currentData.additionalActiveCount > 1 ? 'additionalWarningPlural' : 'additionalWarningSingle', effectiveLangCode)}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs font-semibold text-[#B5C3D1]">
+                <div className="flex flex-col gap-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-xs font-mono font-bold tracking-wider ${caseStyle} ${statusTheme.accentColor}`}>
+                      {isBulletinExpired ? 'ARCHIVED / EXPIRED' : localizedDisplay.severityLabel}
+                    </span>
+                    <span className="text-[var(--alert-muted)]" aria-hidden="true">·</span>
+                    <span className="text-xs font-semibold text-[var(--alert-secondary)]">
                       {localizedDisplay.stateOrRegionLabel}
                     </span>
+                    {additionalWarningsCount > 0 && (
+                      <>
+                        <span className="text-[var(--alert-muted)]" aria-hidden="true">·</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsAllWarningsModalOpen(true)}
+                          className="text-xs font-mono font-semibold text-[var(--m-accent-strong)] hover:underline underline-offset-2 cursor-pointer m-focus-ring rounded"
+                        >
+                          +{additionalWarningsCount} {getAlertLabel(additionalWarningsCount > 1 ? 'additionalWarningPlural' : 'additionalWarningSingle', effectiveLangCode)}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono text-[var(--alert-muted)]">
+                    <span className="font-semibold text-[var(--alert-secondary)]">
+                      {localizedDisplay.isOfficialQuote ? 'Official Government Notice' : localizedDisplay.badgeLabel}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>{localizedDisplay.hazardLabel}</span>
                   </div>
                 </div>
-
-                {/* Provenance badge: Official Govt Notice vs Translated Summary */}
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider ${caseStyle} border ${
-                      localizedDisplay.isOfficialQuote
-                        ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/35'
-                        : 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/35'
-                    }`}
-                  >
-                    {localizedDisplay.isOfficialQuote ? '✓ ' : ''}
-                    {localizedDisplay.badgeLabel}
-                  </span>
-                  <span className="text-[10px] font-mono text-[#8295A8]">
-                    {localizedDisplay.hazardLabel}
-                  </span>
-                </div>
-
-                {/* Big Visual Dominant Hazard Headline */}
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#F3F6FA] tracking-tight leading-snug">
-                  {localizedDisplay.headline}
-                </h3>
-
-                {/* Preserved Original Official Text if user selected translated version */}
-                {localizedDisplay.hasUntranslatedOriginal && (
-                  <div className="mt-2.5 p-3 rounded-xl bg-[#08131F] border border-[#26394B] text-xs text-[#8295A8]">
-                    <div className={`flex items-center gap-1.5 text-[10px] font-bold ${caseStyle} tracking-wider text-[#8295A8] mb-1`}>
-                      <Info className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
-                      <span>
-                        {getAlertLabel('originalNotice', effectiveLangCode)} ({localizedDisplay.officialLanguageName}):
-                      </span>
-                    </div>
-                    <p className="italic text-[#F3F6FA] whitespace-pre-line text-xs sm:text-sm font-normal">
-                      &ldquo;{localizedDisplay.officialText}&rdquo;
-                    </p>
-                  </div>
-                )}
-
-                {/* Short Official Summary */}
-                {!localizedDisplay.hasUntranslatedOriginal && currentData.summary && currentData.summary !== localizedDisplay.headline && (
-                  <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed mt-2 line-clamp-3">
-                    {currentData.summary}
-                  </p>
-                )}
               </div>
 
-              {/* Affected Area Visualization */}
+              {/* Dominant Readable Hazard Headline */}
+              <h2 id="weather-alert-title" className="weather-alert-center__title">
+                {localizedDisplay.headline}
+              </h2>
+
+              {/* Preserved Original Official Text if user selected translated version */}
+              {localizedDisplay.hasUntranslatedOriginal && (
+                <div className="p-3 rounded-xl bg-[var(--alert-surface)] border border-[var(--alert-border)] text-xs text-[var(--alert-muted)]">
+                  <div className={`flex items-center gap-1.5 text-[10px] font-bold ${caseStyle} tracking-wider text-[var(--alert-muted)] mb-1`}>
+                    <Info className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
+                    <span>
+                      {getAlertLabel('originalNotice', effectiveLangCode)} ({localizedDisplay.officialLanguageName}):
+                    </span>
+                  </div>
+                  <p className="italic text-[var(--alert-text)] whitespace-pre-line text-xs sm:text-sm font-normal leading-relaxed">
+                    &ldquo;{localizedDisplay.officialText}&rdquo;
+                  </p>
+                </div>
+              )}
+
+              {/* Official Summary */}
+              {!localizedDisplay.hasUntranslatedOriginal && currentData.summary && currentData.summary !== localizedDisplay.headline && (
+                <p className="weather-alert-center__description">
+                  {currentData.summary}
+                </p>
+              )}
+
+              {/* Affected Regions / Districts */}
               {localizedDisplay.affectedRegions.length > 0 && (
-                <div className="pt-2">
-                  <div className={`flex items-center gap-1.5 text-[10px] font-bold ${caseStyle} tracking-wider text-[#8295A8] mb-1.5`}>
-                    <MapPin className="w-3 h-3 text-[#8295A8]" />
+                <div className="pt-1">
+                  <div className={`flex items-center gap-1.5 text-[11px] font-mono font-bold ${caseStyle} tracking-wider text-[var(--alert-muted)] mb-2`}>
+                    <MapPin className="w-3.5 h-3.5 text-[var(--alert-accent)]" />
                     <span>
                       {getAlertLabel('affectedRegionsDistricts', effectiveLangCode)} ({getAlertLabel('clickToInspect', effectiveLangCode)})
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {localizedDisplay.affectedRegions.slice(0, 6).map((district, idx) => (
+                    {localizedDisplay.affectedRegions.slice(0, 8).map((district, idx) => (
                       <button
                         key={`${district}-${idx}`}
                         type="button"
                         onClick={() => setSelectedDistrictDetail(district)}
-                        className="px-2.5 min-h-[36px] sm:min-h-[30px] rounded bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] hover:border-[#35C7E8] text-xs font-medium text-[#F3F6FA] transition-colors cursor-pointer"
+                        className="px-2.5 min-h-[34px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] hover:border-[var(--alert-accent)] text-xs font-semibold text-[var(--alert-text)] transition-colors cursor-pointer m-focus-ring"
                         title={`View warning notice for ${district}`}
                       >
                         {district}
                       </button>
                     ))}
-                    {localizedDisplay.affectedRegions.length > 6 && (
+                    {localizedDisplay.affectedRegions.length > 8 && (
                       <button
                         type="button"
                         onClick={onNavigateToWarnings}
-                        className="px-2.5 min-h-[36px] sm:min-h-[30px] rounded bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-xs font-semibold text-[#35C7E8] hover:underline cursor-pointer"
+                        className="px-2.5 min-h-[34px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] text-xs font-semibold text-[var(--m-accent-strong)] hover:underline cursor-pointer m-focus-ring"
                       >
-                        +{localizedDisplay.affectedRegions.length - 6} more
+                        +{localizedDisplay.affectedRegions.length - 8} more
                       </button>
                     )}
                   </div>
@@ -758,79 +762,78 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
               )}
             </div>
 
-            {/* Right Col: Impact Snapshot Metrics + Timeline */}
-            <div className="lg:col-span-5 flex flex-col justify-between gap-3 bg-[#08131F] p-3.5 sm:p-4 rounded-xl border border-[#26394B]">
-              <div className="flex items-center justify-between pb-2 border-b border-[#26394B]">
-                <span className={`text-[10px] font-bold tracking-wider ${caseStyle} text-[#8295A8]`}>
+            {/* Right Column: Balanced Impact Snapshot & Validity (Zero Blank Void) */}
+            <aside className="weather-alert-center__impact" aria-label="Impact snapshot and bulletin validity">
+              <div className="weather-alert-center__impact-heading">
+                <h3 className={`text-[11px] font-mono font-bold tracking-wider ${caseStyle} text-[var(--alert-text)]`}>
                   {getAlertLabel('impactSnapshot', effectiveLangCode)}
-                </span>
-                <span className="text-[10px] font-mono text-[#8295A8]">
+                </h3>
+                <span className="text-[11px] font-mono text-[var(--alert-muted)]">
                   {getAlertLabel('imdBulletin', effectiveLangCode)}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-2.5 rounded-lg bg-[#0B1927] border border-[#26394B]">
-                  <span className={`block text-[10px] font-bold tracking-wider ${caseStyle} text-[#8295A8]`}>
-                    {getAlertLabel('affected', effectiveLangCode)}
-                  </span>
-                  <span className="block text-xs sm:text-sm font-bold text-[#F3F6FA] truncate mt-0.5">
-                    {localizedDisplay.stateOrRegionLabel}
-                  </span>
+              <dl className="weather-alert-center__impact-grid">
+                <div className="weather-alert-center__impact-item">
+                  <dt>{getAlertLabel('affected', effectiveLangCode)}</dt>
+                  <dd>{localizedDisplay.stateOrRegionLabel}</dd>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-[#0B1927] border border-[#26394B]">
-                  <span className={`block text-[10px] font-bold tracking-wider ${caseStyle} text-[#8295A8]`}>
-                    {getAlertLabel('severity', effectiveLangCode)}
-                  </span>
-                  <span className={`block text-xs sm:text-sm font-bold truncate mt-0.5 ${statusTheme.accentColor}`}>
-                    {localizedDisplay.severityLabel}
-                  </span>
+                <div className="weather-alert-center__impact-item">
+                  <dt>{getAlertLabel('severity', effectiveLangCode)}</dt>
+                  <dd className={statusTheme.accentColor}>
+                    {isBulletinExpired ? 'Expired / Archived' : localizedDisplay.severityLabel}
+                  </dd>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-[#0B1927] border border-[#26394B]">
-                  <span className={`block text-[10px] font-bold tracking-wider ${caseStyle} text-[#8295A8]`}>
-                    {getAlertLabel('validUntil', effectiveLangCode)}
-                  </span>
-                  <span className="block text-xs sm:text-sm font-mono tabular-nums font-semibold text-[#F3F6FA] truncate mt-0.5">
+                <div className="weather-alert-center__impact-item">
+                  <dt>{getAlertLabel('validUntil', effectiveLangCode)}</dt>
+                  <dd className="font-mono tabular-nums font-semibold">
                     {currentData.metrics.validUntilText}
-                  </span>
+                  </dd>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-[#0B1927] border border-[#26394B]">
-                  <span className={`block text-[10px] font-bold tracking-wider ${caseStyle} text-[#8295A8]`}>
-                    {getAlertLabel('issued', effectiveLangCode)}
-                  </span>
-                  <span className="block text-xs sm:text-sm font-mono tabular-nums font-semibold text-[#F3F6FA] truncate mt-0.5">
+                <div className="weather-alert-center__impact-item">
+                  <dt>{getAlertLabel('issued', effectiveLangCode)}</dt>
+                  <dd className="font-mono tabular-nums font-semibold">
                     {currentData.metrics.issuedAtText}
-                  </span>
+                  </dd>
                 </div>
-              </div>
+              </dl>
+
+              {countdownText && (
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--alert-border)] text-[11px] font-mono tabular-nums text-[var(--alert-muted)]">
+                  <span>Window status</span>
+                  <strong className={isBulletinExpired ? 'text-[var(--m-danger)]' : 'text-[var(--alert-text)]'}>
+                    {countdownText}
+                  </strong>
+                </div>
+              )}
 
               {currentData.timeline && currentData.timeline.isValid && (
-                <div className="mt-1 pt-2 border-t border-[#26394B] flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-mono tabular-nums text-[#8295A8]">
+                <div className="pt-2 border-t border-[var(--alert-border)] flex flex-col gap-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-[10px] font-mono tabular-nums text-[var(--alert-muted)]">
                     <span>{getAlertLabel('issued', effectiveLangCode)}: {currentData.timeline.issuedFormatted}</span>
                     <span>{getAlertLabel('validUntil', effectiveLangCode)}: {currentData.timeline.validUntilFormatted}</span>
                   </div>
-                  <div className="relative w-full h-1.5 bg-[#101F2E] rounded-sm overflow-hidden">
+                  <div className="relative w-full h-1.5 bg-[var(--alert-surface-subtle)] rounded-sm overflow-hidden">
                     <div
                       className={`h-full rounded-sm ${statusTheme.dotColor}`}
                       style={{ width: `${Math.min(100, Math.max(5, currentData.timeline.progressPercent))}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-[9px] text-[#8295A8] font-mono tabular-nums">
+                  <div className="flex items-center justify-between text-[10px] text-[var(--alert-muted)] font-mono tabular-nums">
                     <span>{getAlertLabel('cycleStart', effectiveLangCode)}</span>
-                    <span className="text-[#F3F6FA] font-semibold">{getAlertLabel('now', effectiveLangCode)} ({currentData.timeline.progressPercent}%)</span>
+                    <span className="text-[var(--alert-text)] font-semibold">{getAlertLabel('now', effectiveLangCode)} ({currentData.timeline.progressPercent}%)</span>
                     <span>{getAlertLabel('expiry', effectiveLangCode)}</span>
                   </div>
                 </div>
               )}
-            </div>
+            </aside>
           </div>
 
-          {/* Action Area & Data Trust Panel */}
-          <div className="pt-3 border-t border-[#26394B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* ──────────────── Footer: Primary Actions & Provenance ──────────────── */}
+          <footer className="weather-alert-center__footer">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <button
                 type="button"
@@ -841,10 +844,10 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   }
                   setIsWarningDetailModalOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] hover:border-[#38536A] text-xs font-bold text-[#F3F6FA] tracking-wide transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 min-h-[40px] rounded-lg bg-[var(--alert-surface)] hover:bg-[var(--alert-surface-subtle)] border border-[var(--alert-border)] hover:border-[var(--alert-accent)] text-xs font-bold text-[var(--alert-text)] tracking-wide transition-colors cursor-pointer m-focus-ring"
               >
                 <span>{getAlertLabel('viewFullWarning', effectiveLangCode)}</span>
-                <ChevronRight className="w-4 h-4 text-[#8295A8] shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[var(--alert-muted)] shrink-0" />
               </button>
 
               {currentData.actions.hasSafetyGuidance && (
@@ -852,10 +855,10 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   type="button"
                   id="btn-open-safety-guidance"
                   onClick={() => setIsSafetyModalOpen(true)}
-                  className={`inline-flex items-center justify-center gap-1.5 px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-bold tracking-wide transition-colors cursor-pointer ${
+                  className={`inline-flex items-center justify-center gap-1.5 px-3.5 min-h-[40px] rounded-lg text-xs font-bold tracking-wide transition-colors cursor-pointer border m-focus-ring ${
                     isSevere
-                      ? 'bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/50 text-[#FCA5A5]'
-                      : 'bg-[#F97316]/15 hover:bg-[#F97316]/25 border border-[#F97316]/50 text-[#FDBA74]'
+                      ? 'bg-[var(--m-danger-soft)] hover:bg-[#B42318]/20 border-[var(--m-danger)]/45 text-[var(--m-danger)]'
+                      : 'bg-[var(--alert-accent-soft)] hover:opacity-90 border-[var(--alert-border)] text-[var(--alert-accent)]'
                   }`}
                 >
                   <Shield className="w-3.5 h-3.5 shrink-0" />
@@ -863,26 +866,26 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 </button>
               )}
 
-              {((locationResult?.additionalCount ?? currentData.additionalActiveCount) > 0) && (
+              {additionalWarningsCount > 0 && (
                 <button
                   type="button"
                   id="btn-open-additional-warnings"
                   onClick={() => setIsAllWarningsModalOpen(true)}
-                  className="text-xs font-semibold text-[#35C7E8] hover:underline underline-offset-2 transition-colors cursor-pointer min-h-[36px] px-1"
+                  className="text-xs font-semibold text-[var(--m-accent-strong)] hover:underline underline-offset-2 transition-colors cursor-pointer min-h-[38px] px-1.5 m-focus-ring rounded"
                 >
-                  +{(locationResult?.additionalCount ?? currentData.additionalActiveCount)} {getAlertLabel((locationResult?.additionalCount ?? currentData.additionalActiveCount) > 1 ? 'additionalWarningPlural' : 'additionalWarningSingle', effectiveLangCode)}
+                  Inspect all {additionalWarningsCount + 1} bulletins
                 </button>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8295A8]">
-              <span>{getAlertLabel('source', effectiveLangCode)}: <strong className="text-[#F3F6FA]">{currentData.trust.source}</strong></span>
-              <span>·</span>
-              <span>{getAlertLabel('updated', effectiveLangCode)}: <strong className="text-[#B5C3D1] font-mono tabular-nums">{currentData.trust.updatedAt}</strong></span>
-              <span>·</span>
-              <span className="flex items-center gap-1 font-mono">
-                {getAlertLabel('status', effectiveLangCode)}:{' '}
-                <strong className={currentData.trust.status === 'LIVE' ? 'text-[#22C7A0]' : 'text-[#35C7E8]'}>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-[var(--alert-muted)]">
+              <span>{getAlertLabel('source', effectiveLangCode)}: <strong className="text-[var(--alert-text)]">{currentData.trust.source}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span>Feed retrieved: <strong className="text-[var(--alert-secondary)] font-mono tabular-nums">{currentData.trust.updatedAt}</strong></span>
+              <span aria-hidden="true">·</span>
+              <span className="font-mono">
+                Feed:{' '}
+                <strong className={currentData.trust.status === 'LIVE' ? 'text-[var(--m-ok)]' : 'text-[var(--alert-accent)]'}>
                   {currentData.trust.status === 'LIVE' ? getAlertLabel('live', effectiveLangCode) : currentData.trust.status}
                 </strong>
               </span>
@@ -891,13 +894,13 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 onClick={() => fetchWarningData(true)}
                 disabled={isRefreshing}
                 aria-label="Verify live warning status"
-                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] transition-colors cursor-pointer"
+                className="min-w-[34px] min-h-[34px] flex items-center justify-center rounded-lg text-[var(--alert-muted)] hover:text-[var(--alert-text)] hover:bg-[var(--alert-surface)] transition-colors cursor-pointer m-focus-ring"
                 title="Verify live warning status"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
             </div>
-          </div>
+          </footer>
         </div>
       </section>
 
@@ -911,19 +914,19 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
           onClick={() => setIsSafetyModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-xl bg-[#0B1927] border border-[#26394B] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[#B5C3D1]"
+            className="w-full max-w-lg rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[var(--m-text-secondary)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-[#26394B] pb-3">
+            <div className="flex items-start justify-between gap-3 border-b border-[var(--m-border)] pb-3">
               <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-lg bg-[#08131F] border border-[#EF4444]/40 ${statusTheme.accentColor}`}>
+                <div className={`p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-danger)]/40 ${statusTheme.accentColor}`}>
                   <ShieldAlert className="w-5 h-5 shrink-0" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#F3F6FA]">
+                  <h3 className="text-base font-bold text-[var(--m-text-primary)]">
                     {getAlertLabel('safetyGuidanceModalTitle', effectiveLangCode)}
                   </h3>
-                  <p className="text-xs text-[#8295A8]">
+                  <p className="text-xs text-[var(--m-text-muted)]">
                     {localizedDisplay.headline} · {localizedDisplay.stateOrRegionLabel}
                   </p>
                 </div>
@@ -932,7 +935,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 type="button"
                 id="btn-close-safety-modal"
                 onClick={() => setIsSafetyModalOpen(false)}
-                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] transition-colors cursor-pointer"
+                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer"
                 aria-label={getAlertLabel('close', effectiveLangCode)}
               >
                 <X className="w-5 h-5" />
@@ -940,7 +943,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
             </div>
 
             <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#B5C3D1]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--m-text-secondary)]">
                 {getAlertLabel('safetyMeasuresTitle', effectiveLangCode)}
               </span>
 
@@ -948,9 +951,9 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 localizedDisplay.safetyInstructions.map((action, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#101F2E] border border-[#26394B] text-xs text-[#B5C3D1]"
+                    className="flex items-start gap-2.5 p-2.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)]"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-[var(--m-ok)] shrink-0 mt-0.5" />
                     <span>{action}</span>
                   </div>
                 ))
@@ -958,33 +961,33 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 currentData.actions.recommendedActions.map((action, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#101F2E] border border-[#26394B] text-xs text-[#B5C3D1]"
+                    className="flex items-start gap-2.5 p-2.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)]"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-[#22C7A0] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-[var(--m-ok)] shrink-0 mt-0.5" />
                     <span>{action}</span>
                   </div>
                 ))
               ) : (
-                <div className="p-3 rounded-lg bg-[#101F2E] border border-[#26394B] text-xs text-[#8295A8]">
+                <div className="p-3 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs text-[var(--m-text-muted)]">
                   {getAlertLabel('disasterAdvisory', effectiveLangCode)}
                 </div>
               )}
 
-              <div className="mt-2 p-3 rounded-lg bg-[#08131F] border border-[#EF4444]/35 flex flex-col gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#FCA5A5] flex items-center gap-1.5">
+              <div className="mt-2 p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-danger)]/35 flex flex-col gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--m-danger)] flex items-center gap-1.5">
                   <PhoneCall className="w-3.5 h-3.5 shrink-0" />
                   {getAlertLabel('emergencyHelplines', effectiveLangCode)}
                 </span>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 rounded bg-[#0B1927] border border-[#26394B]">
-                    <div className="text-[10px] text-[#8295A8] uppercase">{getAlertLabel('nationalEmergency', effectiveLangCode)}</div>
-                    <div className="text-sm font-mono tabular-nums font-bold text-[#F3F6FA]">112 ({getAlertLabel('tollFree', effectiveLangCode)})</div>
+                  <div className="p-2 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+                    <div className="text-[10px] text-[var(--m-text-muted)] uppercase">{getAlertLabel('nationalEmergency', effectiveLangCode)}</div>
+                    <div className="text-sm font-mono tabular-nums font-bold text-[var(--m-text-primary)]">112 ({getAlertLabel('tollFree', effectiveLangCode)})</div>
                   </div>
-                  <div className="p-2 rounded bg-[#0B1927] border border-[#26394B]">
-                    <div className="text-[10px] text-[#8295A8] uppercase">
+                  <div className="p-2 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+                    <div className="text-[10px] text-[var(--m-text-muted)] uppercase">
                       {currentData.actions.emergencyHelpline?.title || getAlertLabel('stateDisasterHelpline', effectiveLangCode)}
                     </div>
-                    <div className="text-sm font-mono tabular-nums font-bold text-[#FCA5A5]">
+                    <div className="text-sm font-mono tabular-nums font-bold text-[var(--m-danger)]">
                       {currentData.actions.emergencyHelpline?.number || '1070'}
                     </div>
                   </div>
@@ -992,11 +995,11 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-[#26394B]">
+            <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setIsSafetyModalOpen(false)}
-                className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-xs font-semibold text-[#B5C3D1] transition-colors cursor-pointer"
+                className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-secondary)] transition-colors cursor-pointer"
               >
                 {getAlertLabel('close', effectiveLangCode)}
               </button>
@@ -1006,7 +1009,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   setIsSafetyModalOpen(false);
                   onNavigateToWarnings?.();
                 }}
-                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#EF4444] hover:bg-[#DC2626] text-xs font-bold text-[#F3F6FA] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#B42318] hover:bg-[#912018] text-xs font-bold text-white transition-colors cursor-pointer"
               >
                 <span>{getAlertLabel('openFullBulletin', effectiveLangCode)}</span>
                 <ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -1025,38 +1028,38 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
           onClick={() => setSelectedDistrictDetail(null)}
         >
           <div
-            className="w-full max-w-sm rounded-xl bg-[#0B1927] border border-[#26394B] p-5 flex flex-col gap-3 shadow-2xl"
+            className="w-full max-w-sm rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col gap-3 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#26394B] pb-2">
-              <div className="flex items-center gap-1.5 text-[#F3F6FA] font-bold text-sm">
-                <MapPin className="w-4 h-4 text-[#35C7E8]" />
+            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-2">
+              <div className="flex items-center gap-1.5 text-[var(--m-text-primary)] font-bold text-sm">
+                <MapPin className="w-4 h-4 text-[var(--m-accent)]" />
                 <span>{selectedDistrictDetail}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedDistrictDetail(null)}
                 aria-label="Close district sheet"
-                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-xs text-[#B5C3D1] space-y-1.5">
+            <div className="text-xs text-[var(--m-text-secondary)] space-y-1.5">
               <p>
-                District <strong className="text-[#F3F6FA]">{selectedDistrictDetail}</strong> is identified under the current active warning notice for <strong className="text-[#F3F6FA]">{currentData.hazardHeadline}</strong>.
+                District <strong className="text-[var(--m-text-primary)]">{selectedDistrictDetail}</strong> is identified under the current active warning notice for <strong className="text-[var(--m-text-primary)]">{currentData.hazardHeadline}</strong>.
               </p>
-              <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-[11px] font-mono tabular-nums space-y-0.5">
+              <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] font-mono tabular-nums space-y-0.5">
                 <div>Subdivision: {currentData.regionSubdivision}</div>
                 <div>Severity: {currentData.severityText}</div>
                 <div>Validity: {currentData.metrics.validUntilText}</div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#26394B]">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setSelectedDistrictDetail(null)}
-                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#B5C3D1] cursor-pointer"
+                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-secondary)] cursor-pointer"
               >
                 {getAlertLabel('dismiss', effectiveLangCode)}
               </button>
@@ -1066,7 +1069,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   setSelectedDistrictDetail(null);
                   onNavigateToWarnings?.();
                 }}
-                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[#35C7E8] hover:opacity-95 text-xs font-bold text-[#07111D] cursor-pointer"
+                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-white cursor-pointer"
               >
                 {getAlertLabel('viewInWarnings', effectiveLangCode)}
               </button>
@@ -1085,12 +1088,12 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
           onClick={() => setIsWarningDetailModalOpen(false)}
         >
           <div
-            className="w-full max-w-2xl rounded-2xl bg-[#0B1927] border border-[#26394B] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[#B5C3D1] max-h-[90vh]"
+            className="w-full max-w-2xl rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[var(--m-text-secondary)] max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-[#26394B] pb-3">
+            <div className="flex items-start justify-between gap-3 border-b border-[var(--m-border)] pb-3">
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl bg-[#08131F] border border-[#26394B] ${statusTheme.accentColor} shrink-0`}>
+                <div className={`p-2.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] ${statusTheme.accentColor} shrink-0`}>
                   <HazardIcon hazardType={currentData.hazardType} className="w-6 h-6" />
                 </div>
                 <div>
@@ -1098,14 +1101,14 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                     <span className={`text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded ${statusTheme.badgeBg}`}>
                       ● {localizedDisplay.severityLabel}
                     </span>
-                    <span className="text-[10px] font-mono text-[#8295A8]">
+                    <span className="text-[10px] font-mono text-[var(--m-text-muted)]">
                       {localizedDisplay.hazardLabel}
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#101F2E] border border-[#26394B] text-[#35C7E8]">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-accent)]">
                       {localizedDisplay.badgeLabel}
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#F3F6FA] mt-1 leading-snug">
+                  <h3 className="text-base sm:text-lg font-bold text-[var(--m-text-primary)] mt-1 leading-snug">
                     {localizedDisplay.headline}
                   </h3>
                 </div>
@@ -1114,7 +1117,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 type="button"
                 id="btn-close-warning-detail-modal"
                 onClick={() => setIsWarningDetailModalOpen(false)}
-                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] transition-colors cursor-pointer"
+                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer"
                 aria-label={getAlertLabel('close', effectiveLangCode)}
               >
                 <X className="w-5 h-5" />
@@ -1123,43 +1126,43 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
 
             <div className="flex flex-col gap-4 overflow-y-auto pr-1">
               {localizedDisplay.hasUntranslatedOriginal && (
-                <div className="p-3.5 rounded-xl bg-[#08131F] border border-[#26394B] text-xs text-[#8295A8]">
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8295A8] mb-1">
-                    <Info className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+                <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-muted)]">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)] mb-1">
+                    <Info className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                     <span>
                       {getAlertLabel('originalNotice', effectiveLangCode)} ({localizedDisplay.officialLanguageName}):
                     </span>
                   </div>
-                  <p className="italic text-[#F3F6FA] whitespace-pre-line text-xs sm:text-sm font-normal">
+                  <p className="italic text-[var(--m-text-primary)] whitespace-pre-line text-xs sm:text-sm font-normal">
                     &ldquo;{localizedDisplay.officialText}&rdquo;
                   </p>
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="p-3 rounded-lg bg-[#08131F] border border-[#26394B]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8] block">
+                <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)] block">
                     {getAlertLabel('affected', effectiveLangCode)} ({regionConfig.regionName})
                   </span>
-                  <span className="text-sm font-bold text-[#F3F6FA] mt-0.5 block">
+                  <span className="text-sm font-bold text-[var(--m-text-primary)] mt-0.5 block">
                     {localizedDisplay.stateOrRegionLabel}
                   </span>
                   {(selectedDetailWarning || locationResult?.primaryWarning)?.subdivision &&
                     (selectedDetailWarning || locationResult?.primaryWarning)?.subdivision !==
                       (selectedDetailWarning || locationResult?.primaryWarning)?.state && (
-                      <span className="text-xs text-[#8295A8] mt-0.5 block">
+                      <span className="text-xs text-[var(--m-text-muted)] mt-0.5 block">
                         Subdivision: {(selectedDetailWarning || locationResult?.primaryWarning)?.subdivision}
                       </span>
                     )}
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#08131F] border border-[#26394B]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8] block">
+                <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)] block">
                     {getAlertLabel('affectedRegionsDistricts', effectiveLangCode)}
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {localizedDisplay.affectedRegions.map((d, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-[#101F2E] border border-[#26394B] text-[#F3F6FA]">
+                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-primary)]">
                         {d}
                       </span>
                     ))}
@@ -1167,57 +1170,57 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#08131F] border border-[#26394B] flex flex-col gap-2.5">
+              <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#B5C3D1] flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-[#35C7E8]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--m-text-secondary)] flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-[var(--m-accent)]" />
                     {getAlertLabel('validityCountdown', effectiveLangCode)}
                   </span>
-                  <span className="text-xs font-mono tabular-nums font-bold text-[#F59E0B] px-2 py-0.5 rounded bg-[#F59E0B]/10 border border-[#F59E0B]/35">
+                  <span className="text-xs font-mono tabular-nums font-bold text-[var(--m-watch)] px-2 py-0.5 rounded bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35">
                     {countdownText || formatCountdownRemaining((selectedDetailWarning || locationResult?.primaryWarning)?.validUntil)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                  <div className="p-2 rounded bg-[#101F2E] border border-[#26394B]">
-                    <span className="text-[10px] text-[#8295A8] uppercase block">{getAlertLabel('issued', effectiveLangCode)}</span>
-                    <span className="font-semibold text-[#F3F6FA] mt-0.5 block font-mono tabular-nums">
+                  <div className="p-2 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)]">
+                    <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">{getAlertLabel('issued', effectiveLangCode)}</span>
+                    <span className="font-semibold text-[var(--m-text-primary)] mt-0.5 block font-mono tabular-nums">
                       {formatISTTime((selectedDetailWarning || locationResult?.primaryWarning)?.issuedAt) || currentData.metrics.issuedAtText}
                     </span>
                   </div>
-                  <div className="p-2 rounded bg-[#101F2E] border border-[#26394B]">
-                    <span className="text-[10px] text-[#8295A8] uppercase block">EFFECTIVE</span>
-                    <span className="font-semibold text-[#F3F6FA] mt-0.5 block font-mono tabular-nums">
+                  <div className="p-2 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)]">
+                    <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">EFFECTIVE</span>
+                    <span className="font-semibold text-[var(--m-text-primary)] mt-0.5 block font-mono tabular-nums">
                       {formatISTTime((selectedDetailWarning || locationResult?.primaryWarning)?.effectiveFrom || (selectedDetailWarning || locationResult?.primaryWarning)?.issuedAt)}
                     </span>
                   </div>
-                  <div className="p-2 rounded bg-[#101F2E] border border-[#26394B]">
-                    <span className="text-[10px] text-[#8295A8] uppercase block">{getAlertLabel('validUntil', effectiveLangCode)}</span>
-                    <span className="font-semibold text-[#FCD34D] mt-0.5 block font-mono tabular-nums">
+                  <div className="p-2 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)]">
+                    <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">{getAlertLabel('validUntil', effectiveLangCode)}</span>
+                    <span className="font-semibold text-[var(--m-watch)] mt-0.5 block font-mono tabular-nums">
                       {formatISTTime((selectedDetailWarning || locationResult?.primaryWarning)?.validUntil) || currentData.metrics.validUntilText}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#08131F] border border-[#26394B] flex flex-col gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8]">
+              <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)]">
                   {localizedDisplay.badgeLabel}
                 </span>
-                <p className="text-xs sm:text-sm text-[#F3F6FA] leading-relaxed whitespace-pre-line">
+                <p className="text-xs sm:text-sm text-[var(--m-text-primary)] leading-relaxed whitespace-pre-line">
                   {localizedDisplay.headline}
                 </p>
               </div>
 
               {localizedDisplay.safetyInstructions.length > 0 ? (
-                <div className="p-3.5 rounded-xl bg-[#08131F] border border-[#26394B] flex flex-col gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8]">
+                <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)]">
                     {getAlertLabel('safetyMeasuresTitle', effectiveLangCode)}
                   </span>
                   <div className="flex flex-col gap-1.5">
                     {localizedDisplay.safetyInstructions.map((inst, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-[#B5C3D1]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#22C7A0] shrink-0 mt-0.5" />
+                      <div key={idx} className="flex items-start gap-2 text-xs text-[var(--m-text-secondary)]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[var(--m-ok)] shrink-0 mt-0.5" />
                         <span>{inst}</span>
                       </div>
                     ))}
@@ -1225,33 +1228,33 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 </div>
               ) : null}
 
-              <div className="p-3.5 rounded-xl bg-[#08131F] border border-[#26394B] grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8] block">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)] block">
                     ISSUING AUTHORITY / SENDER
                   </span>
-                  <span className="font-semibold text-[#F3F6FA] block mt-0.5">
+                  <span className="font-semibold text-[var(--m-text-primary)] block mt-0.5">
                     {(selectedDetailWarning || locationResult?.primaryWarning)?.sender ||
                       ((selectedDetailWarning || locationResult?.primaryWarning)?.source === 'NDMA/SACHET'
                         ? 'National Disaster Management Authority'
                         : 'India Meteorological Department')}
                   </span>
-                  <span className="text-[11px] text-[#8295A8] block mt-0.5">
+                  <span className="text-[11px] text-[var(--m-text-muted)] block mt-0.5">
                     Source: {(selectedDetailWarning || locationResult?.primaryWarning)?.source || currentData.trust.source}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8295A8] block">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--m-text-muted)] block">
                     SOURCE IDENTIFIER &amp; VERIFICATION
                   </span>
                   <span
-                    className="font-mono text-[11px] text-[#8295A8] block mt-0.5 truncate"
+                    className="font-mono text-[11px] text-[var(--m-text-muted)] block mt-0.5 truncate"
                     title={(selectedDetailWarning || locationResult?.primaryWarning)?.rawSourceId || (selectedDetailWarning || locationResult?.primaryWarning)?.id || '—'}
                   >
                     ID: {(selectedDetailWarning || locationResult?.primaryWarning)?.rawSourceId || (selectedDetailWarning || locationResult?.primaryWarning)?.id || '—'}
                   </span>
-                  <span className="text-[11px] text-[#22C7A0] block mt-0.5 font-mono tabular-nums">
+                  <span className="text-[11px] text-[var(--m-ok)] block mt-0.5 font-mono tabular-nums">
                     Verified Sync: {formatISTTime(locationResult?.diagnostics.lastSuccessfulFetchAt || currentData.trust.updatedAt)}
                   </span>
                   {(selectedDetailWarning || locationResult?.primaryWarning)?.sourceUrl && (
@@ -1259,7 +1262,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                       href={(selectedDetailWarning || locationResult?.primaryWarning)!.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-[#35C7E8] hover:underline mt-1"
+                      className="inline-flex items-center gap-1 text-[11px] text-[var(--m-accent)] hover:underline mt-1"
                     >
                       <span>Official CAP Alert Record</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1269,11 +1272,11 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#26394B]">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setIsWarningDetailModalOpen(false)}
-                className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-xs font-semibold text-[#B5C3D1] transition-colors cursor-pointer"
+                className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-secondary)] transition-colors cursor-pointer"
               >
                 {getAlertLabel('close', effectiveLangCode)}
               </button>
@@ -1284,7 +1287,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   setIsWarningDetailModalOpen(false);
                   onNavigateToWarnings?.();
                 }}
-                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[#35C7E8] hover:opacity-95 text-xs font-bold text-[#07111D] transition-opacity cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-white transition-opacity cursor-pointer"
               >
                 <span>{getAlertLabel('viewInWarnings', effectiveLangCode)}</span>
                 <ChevronRight className="w-3.5 h-3.5 shrink-0" />
@@ -1304,15 +1307,15 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
           onClick={() => setIsAllWarningsModalOpen(false)}
         >
           <div
-            className="w-full max-w-xl rounded-2xl bg-[#0B1927] border border-[#26394B] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[#B5C3D1] max-h-[85vh]"
+            className="w-full max-w-xl rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col gap-4 text-[var(--m-text-secondary)] max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#26394B] pb-3">
+            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#F3F6FA]">
+                <h3 className="text-base font-bold text-[var(--m-text-primary)]">
                   Active Warnings for {selectedLocation?.city || selectedLocation?.district || selectedLocation?.state || 'Current Location'}
                 </h3>
-                <p className="text-xs text-[#8295A8] font-mono tabular-nums">
+                <p className="text-xs text-[var(--m-text-muted)] font-mono tabular-nums">
                   {(locationResult?.allLocationWarnings?.length ?? 1)} official meteorological warning{(locationResult?.allLocationWarnings?.length ?? 1) > 1 ? 's' : ''} in effect
                 </p>
               </div>
@@ -1320,7 +1323,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                 type="button"
                 onClick={() => setIsAllWarningsModalOpen(false)}
                 aria-label="Close all warnings modal"
-                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer"
+                className="min-w-[40px] min-h-[40px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1336,26 +1339,26 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                     setIsAllWarningsModalOpen(false);
                     setIsWarningDetailModalOpen(true);
                   }}
-                  className="w-full text-left p-3 rounded-xl bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] transition-colors flex flex-col gap-2 cursor-pointer"
+                  className="w-full text-left p-3 rounded-xl bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] transition-colors flex flex-col gap-2 cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-2 w-full">
                     <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
-                      w.severity === 'RED' ? 'bg-[#EF4444]/15 text-[#FCA5A5] border border-[#EF4444]/40' :
-                      w.severity === 'ORANGE' ? 'bg-[#F97316]/15 text-[#FDBA74] border border-[#F97316]/40' :
-                      'bg-[#F59E0B]/15 text-[#FCD34D] border border-[#F59E0B]/40'
+                      w.severity === 'RED' ? 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/40' :
+                      w.severity === 'ORANGE' ? 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border border-[var(--m-alert)]/40' :
+                      'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border border-[var(--m-watch)]/40'
                     }`}>
                       ● {w.severity} ALERT
                     </span>
-                    <span className="text-[11px] font-mono tabular-nums text-[#8295A8]">
+                    <span className="text-[11px] font-mono tabular-nums text-[var(--m-text-muted)]">
                       {formatCountdownRemaining(w.validUntil)}
                     </span>
                   </div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-[#F3F6FA] leading-snug">
+                  <h4 className="text-xs sm:text-sm font-semibold text-[var(--m-text-primary)] leading-snug">
                     {w.title}
                   </h4>
-                  <div className="flex items-center justify-between w-full text-[11px] text-[#8295A8]">
+                  <div className="flex items-center justify-between w-full text-[11px] text-[var(--m-text-muted)]">
                     <span>Subdivision: {w.subdivision || w.state}</span>
-                    <span className="text-[#35C7E8] flex items-center gap-0.5">
+                    <span className="text-[var(--m-accent)] flex items-center gap-0.5">
                       Inspect Notice <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
@@ -1363,11 +1366,11 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
               ))}
             </div>
 
-            <div className="flex items-center justify-end pt-2 border-t border-[#26394B]">
+            <div className="flex items-center justify-end pt-2 border-t border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setIsAllWarningsModalOpen(false)}
-                className="px-4 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#B5C3D1] cursor-pointer"
+                className="px-4 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-secondary)] cursor-pointer"
               >
                 {getAlertLabel('close', effectiveLangCode)}
               </button>

@@ -178,7 +178,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
         action={
           <div
             id="unit-system-toggle-group"
-            className="inline-flex p-0.5 bg-[#08131F] border border-[#26394B] rounded-lg"
+            className="inline-flex p-0.5 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg"
             role="group"
             aria-label="Unit system selection"
           >
@@ -187,7 +187,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
               id="unit-toggle-metric"
               onClick={() => handleUnitToggle('metric')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                isMetric ? 'bg-[#0B72B9] text-[#F3F6FA]' : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                isMetric ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]' : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
               aria-pressed={isMetric}
             >
@@ -198,7 +198,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
               id="unit-toggle-imperial"
               onClick={() => handleUnitToggle('imperial')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                !isMetric ? 'bg-[#0B72B9] text-[#F3F6FA]' : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                !isMetric ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]' : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
               aria-pressed={!isMetric}
             >
@@ -214,21 +214,21 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Sun className="w-4 h-4 text-[#F59E0B]" />
-                <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">UV Index</span>
+                <Sun className="w-4 h-4 text-[var(--m-watch)]" />
+                <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">UV Index</span>
               </div>
               <StatusBadge label={uvInfo.label} variant={uvInfo.variant} />
             </div>
 
             <div className="mt-2.5 flex items-baseline gap-2 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA] tracking-tight">
+              <span className="text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">
                 {rawUv !== null ? rawUv.toFixed(1) : '—'}
               </span>
-              <span className="text-xs text-[#8295A8]">{rawUv !== null ? '/ 11+ Max' : 'Unavailable'}</span>
+              <span className="text-xs text-[var(--m-text-muted)]">{rawUv !== null ? '/ 11+ Max' : 'Unavailable'}</span>
             </div>
 
             <div className="mt-2.5">
-              <div className="h-1.5 w-full bg-[#0B1927] border border-[#26394B] rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-full overflow-hidden">
                 <div
                   className="h-full transition-all duration-500 rounded-full"
                   style={{
@@ -237,7 +237,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
                   }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] font-mono text-[#8295A8] mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-[var(--m-text-muted)] mt-1">
                 <span>0 Low</span>
                 <span>6 High</span>
                 <span>11+ Ext</span>
@@ -245,7 +245,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
             </div>
           </div>
 
-          <p className="text-[11px] text-[#8295A8] mt-3 border-t border-[#26394B] pt-2 leading-relaxed">
+          <p className="text-[11px] text-[var(--m-text-muted)] mt-3 border-t border-[var(--m-border)] pt-2 leading-relaxed">
             {uvInfo.advice}
           </p>
         </div>
@@ -255,26 +255,26 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Droplets className="w-4 h-4 text-[#35C7E8]" />
-                <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">Humidity</span>
+                <Droplets className="w-4 h-4 text-[var(--m-accent)]" />
+                <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">Humidity</span>
               </div>
               <StatusBadge label={humidityInfo.label} variant={humidityInfo.variant} />
             </div>
 
             <div className="mt-2.5 flex items-baseline gap-2 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA] tracking-tight">
+              <span className="text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">
                 {rawHumidity !== null ? `${rawHumidity}%` : '—'}
               </span>
-              <span className="text-xs text-[#8295A8]">{rawHumidity !== null ? 'Relative' : 'Unavailable'}</span>
+              <span className="text-xs text-[var(--m-text-muted)]">{rawHumidity !== null ? 'Relative' : 'Unavailable'}</span>
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between text-xs bg-[#0B1927] px-2.5 py-1.5 rounded-md border border-[#26394B]">
-              <span className="text-[#8295A8]">Dew Point</span>
-              <strong className="text-[#F3F6FA] font-mono tabular-nums">{dewPointDisplay}</strong>
+            <div className="mt-2.5 flex items-center justify-between text-xs bg-[var(--m-surface-1)] px-2.5 py-1.5 rounded-md border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)]">Dew Point</span>
+              <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{dewPointDisplay}</strong>
             </div>
           </div>
 
-          <p className="text-[11px] text-[#8295A8] mt-3 border-t border-[#26394B] pt-2 leading-relaxed">
+          <p className="text-[11px] text-[var(--m-text-muted)] mt-3 border-t border-[var(--m-border)] pt-2 leading-relaxed">
             {humidityInfo.comfortDesc}
           </p>
         </div>
@@ -284,20 +284,20 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-[#22C7A0]" />
-                <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">Visibility</span>
+                <Eye className="w-4 h-4 text-[var(--m-ok)]" />
+                <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">Visibility</span>
               </div>
               <StatusBadge label={visInfo.label} variant={visInfo.variant} />
             </div>
 
             <div className="mt-2.5 flex items-baseline gap-2 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA] tracking-tight">{visibilityVal}</span>
-              <span className="text-xs text-[#8295A8]">{visibilityUnit || 'Unavailable'}</span>
+              <span className="text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">{visibilityVal}</span>
+              <span className="text-xs text-[var(--m-text-muted)]">{visibilityUnit || 'Unavailable'}</span>
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between text-xs bg-[#0B1927] px-2.5 py-1.5 rounded-md border border-[#26394B]">
-              <span className="text-[#8295A8]">Horizon State</span>
-              <span className="text-[#35C7E8] font-semibold text-[11px]">
+            <div className="mt-2.5 flex items-center justify-between text-xs bg-[var(--m-surface-1)] px-2.5 py-1.5 rounded-md border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)]">Horizon State</span>
+              <span className="text-[var(--m-accent)] font-semibold text-[11px]">
                 {rawVisibilityKm === null
                   ? '—'
                   : rawVisibilityKm >= 10
@@ -309,7 +309,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
             </div>
           </div>
 
-          <p className="text-[11px] text-[#8295A8] mt-3 border-t border-[#26394B] pt-2 leading-relaxed">
+          <p className="text-[11px] text-[var(--m-text-muted)] mt-3 border-t border-[var(--m-border)] pt-2 leading-relaxed">
             {visInfo.opticalDesc}
           </p>
         </div>
@@ -320,25 +320,25 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Gauge className="w-4 h-4 text-[#A78BFA]" />
-                <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">Pressure</span>
+                <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">Pressure</span>
               </div>
               <StatusBadge label={pressureInfo.label} variant={pressureInfo.variant} />
             </div>
 
             <div className="mt-2.5 flex items-baseline gap-2 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA] tracking-tight">{pressureVal}</span>
-              <span className="text-xs text-[#8295A8]">{pressureUnit || 'Unavailable'}</span>
+              <span className="text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">{pressureVal}</span>
+              <span className="text-xs text-[var(--m-text-muted)]">{pressureUnit || 'Unavailable'}</span>
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between text-xs bg-[#0B1927] px-2.5 py-1.5 rounded-md border border-[#26394B]">
-              <span className="text-[#8295A8]">ISA Sea Level</span>
-              <strong className="text-[#F3F6FA] font-mono tabular-nums">
+            <div className="mt-2.5 flex items-center justify-between text-xs bg-[var(--m-surface-1)] px-2.5 py-1.5 rounded-md border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)]">ISA Sea Level</span>
+              <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">
                 {isMetric ? '1013.2 hPa' : '29.92 inHg'}
               </strong>
             </div>
           </div>
 
-          <p className="text-[11px] text-[#8295A8] mt-3 border-t border-[#26394B] pt-2 leading-relaxed">
+          <p className="text-[11px] text-[var(--m-text-muted)] mt-3 border-t border-[var(--m-border)] pt-2 leading-relaxed">
             {pressureInfo.trendDesc}
           </p>
         </div>
@@ -348,51 +348,51 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div id="widget-wind-telemetry" className="m-panel-inset p-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
               <Wind className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold block">
                 Wind Velocity
               </span>
               <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
-                <span className="text-sm font-bold text-[#F3F6FA]">{windSpeedDisplay}</span>
+                <span className="text-sm font-bold text-[var(--m-text-primary)]">{windSpeedDisplay}</span>
                 {weather.windDirection && weather.windDirection !== '—' && (
-                  <span className="text-[11px] text-[#35C7E8] font-semibold">{weather.windDirection}</span>
+                  <span className="text-[11px] text-[var(--m-accent)] font-semibold">{weather.windDirection}</span>
                 )}
               </div>
             </div>
           </div>
-          <div className="text-right text-[11px] text-[#8295A8]">
+          <div className="text-right text-[11px] text-[var(--m-text-muted)]">
             <span>Gusts: </span>
-            <strong className="text-[#F3F6FA] font-mono tabular-nums">{windGustsDisplay}</strong>
+            <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{windGustsDisplay}</strong>
           </div>
         </div>
 
         <div id="widget-cloud-cover" className="m-panel-inset p-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#22C7A0] shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-ok)] shrink-0">
               <Cloud className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold block">
                 Cloud Fraction
               </span>
               <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
-                <span className="text-sm font-bold text-[#F3F6FA]">
+                <span className="text-sm font-bold text-[var(--m-text-primary)]">
                   {rawCloudCover !== null ? `${rawCloudCover}%` : '—'}
                 </span>
                 {rawCloudCover !== null && (
-                  <span className="text-[11px] text-[#8295A8] font-sans">
+                  <span className="text-[11px] text-[var(--m-text-muted)] font-sans">
                     {rawCloudCover < 20 ? 'Clear Sky' : rawCloudCover < 60 ? 'Scattered' : 'Overcast'}
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="text-right text-[11px] text-[#8295A8]">
+          <div className="text-right text-[11px] text-[var(--m-text-muted)]">
             <span>Precip: </span>
-            <strong className="text-[#F3F6FA] font-mono tabular-nums">
+            <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">
               {isFiniteNum(weather.precipitation) ? `${weather.precipitation.toFixed(1)} mm` : '—'}
             </strong>
           </div>
@@ -400,24 +400,24 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
 
         <div id="widget-solar-telemetry" className="m-panel-inset p-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0B1927] border border-[#26394B] flex items-center justify-center text-[#F59E0B] shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-watch)] shrink-0">
               <Sunrise className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] text-[#8295A8] uppercase font-semibold block">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold block">
                 Sunset &amp; Daylight
               </span>
               <div className="flex items-baseline gap-1.5 font-mono tabular-nums">
-                <span className="text-sm font-bold text-[#F3F6FA]">{weather.sunset || '—'}</span>
+                <span className="text-sm font-bold text-[var(--m-text-primary)]">{weather.sunset || '—'}</span>
                 {weather.daylightDuration && (
-                  <span className="text-[11px] text-[#FCD34D]">({weather.daylightDuration})</span>
+                  <span className="text-[11px] text-[var(--m-watch)]">({weather.daylightDuration})</span>
                 )}
               </div>
             </div>
           </div>
-          <div className="text-right text-[11px] text-[#8295A8]">
+          <div className="text-right text-[11px] text-[var(--m-text-muted)]">
             <span>Solar Noon: </span>
-            <strong className="text-[#F3F6FA] font-mono tabular-nums">{weather.solarNoon || '—'}</strong>
+            <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{weather.solarNoon || '—'}</strong>
           </div>
         </div>
       </div>

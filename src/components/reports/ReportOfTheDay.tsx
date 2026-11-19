@@ -24,52 +24,52 @@ export const ReportOfTheDay: React.FC<ReportOfTheDayProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-3 max-w-3xl min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F59E0B]/12 border border-[#F59E0B]/35 text-[#FCD34D] text-[10px] font-mono font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 text-[var(--m-watch)] text-[10px] font-mono font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-[var(--m-watch)]" />
               Report of the Day · Editorial Spotlight
             </span>
-            <span className="text-[11px] font-mono text-[#B5C3D1] tabular-nums">
+            <span className="text-[11px] font-mono text-[var(--m-text-secondary)] tabular-nums">
               {publication.date}
             </span>
-            <span className="text-[11px] font-mono text-[#35C7E8] tabular-nums">
+            <span className="text-[11px] font-mono text-[var(--m-accent)] tabular-nums">
               · {readingTime}
             </span>
           </div>
 
-          <h2 className="text-lg sm:text-xl font-bold text-[#F3F6FA] tracking-tight leading-snug">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--m-text-primary)] tracking-tight leading-snug">
             <button
               type="button"
               onClick={() => onOpenReport(publication)}
-              className="text-left hover:text-[#35C7E8] transition-colors cursor-pointer"
+              className="text-left hover:text-[var(--m-accent)] transition-colors cursor-pointer"
             >
               {publication.title}
             </button>
           </h2>
 
-          <div className="m-panel-inset p-3.5 text-xs leading-relaxed text-[#B5C3D1]">
-            <span className="text-[#35C7E8] font-bold font-mono uppercase text-[10px] block mb-1 tracking-wider">
+          <div className="m-panel-inset p-3.5 text-xs leading-relaxed text-[var(--m-text-secondary)]">
+            <span className="text-[var(--m-accent)] font-bold font-mono uppercase text-[10px] block mb-1 tracking-wider">
               Operational &amp; Research Relevance
             </span>
             <p className="line-clamp-3">{publication.abstract}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono text-[#8295A8] tabular-nums">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono text-[var(--m-text-muted)] tabular-nums">
             <span>
               Issuing Authority:{' '}
-              <strong className="text-[#F3F6FA]">{publication.issuingAuthority}</strong>
+              <strong className="text-[var(--m-text-primary)]">{publication.issuingAuthority}</strong>
             </span>
             <span>
-              Ref: <strong className="text-[#35C7E8]">{publication.documentNumber}</strong>
+              Ref: <strong className="text-[var(--m-accent)]">{publication.documentNumber}</strong>
             </span>
           </div>
         </div>
 
         {/* Action button cluster */}
-        <div className="flex flex-row md:flex-col items-stretch md:items-end justify-between sm:justify-start gap-2.5 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-[#26394B]">
+        <div className="flex flex-row md:flex-col items-stretch md:items-end justify-between sm:justify-start gap-2.5 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-[var(--m-border)]">
           <button
             type="button"
             onClick={() => onOpenReport(publication)}
-            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] font-bold text-xs font-mono transition-colors flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] text-white hover:text-[#07111D] font-bold text-xs font-mono transition-colors flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
           >
             <Eye className="w-4 h-4" />
             <span>Explore Report</span>
@@ -81,8 +81,8 @@ export const ReportOfTheDay: React.FC<ReportOfTheDayProps> = ({
             onClick={() => onBookmark(publication.id)}
             className={`min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg text-xs font-mono transition-colors flex items-center justify-center gap-1.5 border cursor-pointer m-focus-ring ${
               isSaved
-                ? 'bg-[#F59E0B]/15 text-[#FCD34D] border-[#F59E0B]/40'
-                : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] border-[#26394B] hover:border-[#38536A]'
+                ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/40'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
             }`}
             title="Bookmark Report"
           >

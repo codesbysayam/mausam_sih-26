@@ -10,10 +10,15 @@ import { resolveWeatherCondition } from '../src/services/weatherResolver';
 import { getWeatherCondition, getConditionLabel } from '../src/services/weatherConditions';
 import weatherHandler from '../api/weather';
 import cycloneHandler from '../api/cyclone';
-import { weatherService } from '../src/services/weatherService';
+import {
+  weatherService,
+  OpenMeteoPayloadError,
+} from '../src/services/weatherService';
+import { getMetricStatus } from '../src/types/dataProvenance';
 import { getAgrometBulletin } from '../src/services/agrometService';
 import { CycloneLiveDataService } from '../src/services/CycloneLiveDataService';
 import { calculateSolarAstronomicalData } from '../src/utils/astronomyCalculator';
+import { formatLocationTitle, formatLocationShort } from '../src/utils/formatLocation';
 import type { LocationRecord } from '../src/types';
 
 function createMockRes() {
@@ -354,4 +359,126 @@ test('calculateSolarAstronomicalData computes local sunrise, solar zenith, sunse
   assert.notEqual(guwahati.solarNoonStr, ahmedabad.solarNoonStr);
   assert.notEqual(guwahati.sunriseStr, ahmedabad.sunriseStr);
 });
+
+test('weatherService.parseOpenMeteoBundle preserves valid 0°C temp and 0 mm rainfall, keeps missing feelsLike null, and avoids fabricating isDay/Clear Sky', () => {
+  const nowIso = '2026-11-19T06:00:00Z';
+  const bundle = weatherService.parseOpenMeteoBundle(
+    SAMPLE_LOCATION,
+    {
+      current: {
+        time: nowIso,
+        temperature_2m: 0,
+        // apparent_temperature intentionally omitted
+        relative_humidity_2m: 0,
+        pressure_msl: 1013.2,
+        wind_speed_10m: 0,
+        precipitation: 0,
+        // weather_code and is_day intentionally omitted
+      },
+      hourly: {
+        time: [nowIso],
+        temperature_2m: [0],
+        precipitation: [0],
+        precipitation_probability: [0],
+      },
+      daily: {
+        time: ['2026-11-19'],
+        temperature_2m_max: [0],
+        temperature_2m_min: [-2],
+        precipitation_sum: [0],
+        precipitation_probability_max: [0],
+      },
+    },
+    null
+  );
+
+  assert.equal(bundle.current.temp, 0);
+  assert.equal(bundle.current.precipitation, 0);
+  assert.equal(bundle.current.rainfallLast1h, 0);
+  assert.equal(bundle.current.windSpeed, 0);
+  assert.equal(bundle.current.humidity, 0);
+  assert.equal(bundle.current.feelsLike, null);
+  assert.equal(bundle.current.isDay, undefined);
+  assert.equal(bundle.current.observedAt, new Date(nowIso).toISOString());
+  assert.equal(bundle.current.validAt, new Date(nowIso).toISOString());
+  assert.notEqual(bundle.current.condition, 'Clear Sky');
+  assert.equal(bundle.hourly[0].temp, 0);
+  assert.equal(bundle.hourly[0].feelsLike, null);
+  assert.equal(bundle.hourly[0].precipitation, 0);
+  assert.equal(bundle.daily[0].high, 0);
+  assert.equal(bundle.daily[0].precipMm, 0);
+});
+
+test('weatherService.parseOpenMeteoBundle rejects malformed {} payload with OpenMeteoPayloadError', () => {
+  assert.throws(
+    () => weatherService.parseOpenMeteoBundle(SAMPLE_LOCATION, {}, null),
+    (err: unknown) => {
+      assert.ok(err instanceof OpenMeteoPayloadError);
+      assert.equal(err.code, 'OPEN_METEO_INVALID_PAYLOAD');
+      return true;
+    }
+  );
+});
+
+test('getMetricStatus distinguishes all 6 truthful metric states including valid 0', () => {
+  assert.equal(getMetricStatus(0), 'available');
+  assert.equal(getMetricStatus(0, { isStale: true }), 'stale');
+  assert.equal(getMetricStatus(null), 'unavailable');
+  assert.equal(getMetricStatus(undefined), 'unavailable');
+  assert.equal(getMetricStatus(Number.NaN), 'unavailable');
+  assert.equal(getMetricStatus(null, { isLoading: true }), 'loading');
+  assert.equal(getMetricStatus(null, { hasError: true }), 'error');
+  assert.equal(getMetricStatus(null, { notApplicable: true }), 'not-applicable');
+});
+
+test('PersonaDataBundleSchema rejects malformed wrong-shape payloads', () => {
+  const bad = PersonaDataBundleSchema.safeParse({
+    location: { city: 'InvalidOnly' },
+    health: 'wrong-type',
+  });
+  assert.equal(bad.success, false);
+});
+
+test('formatLocationTitle and formatLocationShort deduplicate repeated administrative levels', () => {
+  assert.equal(
+    formatLocationTitle({ city: 'Bhubaneswar', district: 'Khordha', state: 'Odisha' }),
+    'Bhubaneswar, Khordha, Odisha'
+  );
+
+  assert.equal(
+    formatLocationTitle({
+      city: 'Bhubaneswar',
+      district: 'Khordha',
+      state: 'Odisha',
+      displayName: 'Bhubaneswar, Khordha, Odisha, Odisha',
+    }),
+    'Bhubaneswar, Khordha, Odisha'
+  );
+
+  assert.equal(
+    formatLocationTitle({
+      displayName: 'Bhubaneswar, Khordha, Odisha, odisha',
+    }),
+    'Bhubaneswar, Khordha, Odisha'
+  );
+
+  assert.equal(
+    formatLocationTitle({ city: 'New Delhi', district: 'New Delhi', state: 'Delhi', country: 'India' }),
+    'New Delhi, Delhi'
+  );
+
+  assert.equal(
+    formatLocationShort({ city: 'Bhubaneswar', district: 'Khordha', state: 'Odisha' }),
+    'Bhubaneswar, Odisha'
+  );
+
+  assert.equal(
+    formatLocationShort({ city: 'Delhi', district: 'Delhi', state: 'Delhi' }),
+    'Delhi'
+  );
+
+  assert.equal(formatLocationTitle(null), 'Selected location');
+});
+
+
 

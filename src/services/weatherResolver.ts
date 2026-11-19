@@ -323,15 +323,7 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
     const hasCloud =
       typeof input.cloudCover === 'number' && Number.isFinite(input.cloudCover);
 
-    if (!hasPrecip && !hasCloud) {
-      baseResolved = {
-        normalizedCondition: 'UNKNOWN',
-        conditionLabel: 'Condition Unavailable',
-        weatherType: 'sunny',
-        icon: 'cloud_off',
-        isRainingNow: false,
-      };
-    } else if (currentPrecip > 2.0) {
+    if (hasPrecip && currentPrecip > 2.0) {
       baseResolved = {
         normalizedCondition: 'RAIN',
         conditionLabel: 'Rain',
@@ -339,7 +331,7 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
         icon: 'rainy',
         isRainingNow: true,
       };
-    } else if (currentPrecip > 0.1) {
+    } else if (hasPrecip && currentPrecip > 0.1) {
       baseResolved = {
         normalizedCondition: 'DRIZZLE',
         conditionLabel: 'Light Drizzle',
@@ -347,28 +339,39 @@ export function resolveWeatherCondition(input: WeatherInput): ResolvedWeatherCon
         icon: 'grain',
         isRainingNow: true,
       };
-    } else if ((input.cloudCover ?? 0) > 70) {
-      baseResolved = {
-        normalizedCondition: 'OVERCAST',
-        conditionLabel: 'Overcast',
-        weatherType: 'sunny',
-        icon: 'cloud',
-        isRainingNow: false,
-      };
-    } else if ((input.cloudCover ?? 0) > 20) {
-      baseResolved = {
-        normalizedCondition: 'PARTLY_CLOUDY',
-        conditionLabel: 'Partly Cloudy',
-        weatherType: 'sunny',
-        icon: isDaytime ? 'partly_cloudy_day' : 'partly_cloudy_night',
-        isRainingNow: false,
-      };
+    } else if (hasCloud) {
+      const cloudVal = input.cloudCover as number;
+      if (cloudVal > 70) {
+        baseResolved = {
+          normalizedCondition: 'OVERCAST',
+          conditionLabel: 'Overcast',
+          weatherType: 'sunny',
+          icon: 'cloud',
+          isRainingNow: false,
+        };
+      } else if (cloudVal > 20) {
+        baseResolved = {
+          normalizedCondition: 'PARTLY_CLOUDY',
+          conditionLabel: 'Partly Cloudy',
+          weatherType: 'sunny',
+          icon: isDaytime ? 'partly_cloudy_day' : 'partly_cloudy_night',
+          isRainingNow: false,
+        };
+      } else {
+        baseResolved = {
+          normalizedCondition: 'CLEAR',
+          conditionLabel: isDaytime ? 'Clear Sky' : 'Clear Night',
+          weatherType: 'sunny',
+          icon: isDaytime ? 'sunny' : 'bedtime',
+          isRainingNow: false,
+        };
+      }
     } else {
       baseResolved = {
-        normalizedCondition: 'CLEAR',
-        conditionLabel: isDaytime ? 'Clear Sky' : 'Clear Night',
+        normalizedCondition: 'UNKNOWN',
+        conditionLabel: 'Condition Unavailable',
         weatherType: 'sunny',
-        icon: isDaytime ? 'sunny' : 'bedtime',
+        icon: 'cloud_off',
         isRainingNow: false,
       };
     }

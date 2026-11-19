@@ -127,10 +127,10 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
               key={topic.id}
               type="button"
               onClick={() => onSelectTopic(topic.query)}
-              className={`text-left p-4 rounded-xl bg-[#08131F] border transition-colors cursor-pointer flex flex-col justify-between group m-focus-ring ${
+              className={`text-left p-4 rounded-xl bg-[var(--m-surface-inset)] border transition-colors cursor-pointer flex flex-col justify-between group m-focus-ring ${
                 isMatching
-                  ? 'border-[#35C7E8] bg-[#101F2E]'
-                  : 'border-[#26394B] hover:border-[#38536A] hover:bg-[#101F2E]'
+                  ? 'border-[var(--m-accent)] bg-[var(--m-surface-2)]'
+                  : 'border-[var(--m-border)] hover:border-[var(--m-border-strong)] hover:bg-[var(--m-surface-2)]'
               }`}
             >
               <div className="w-full">
@@ -145,22 +145,22 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
                   >
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#0B1927] border border-[#26394B] text-[#B5C3D1] tabular-nums">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-secondary)] tabular-nums">
                     {count} {count === 1 ? 'pub' : 'pubs'}
                   </span>
                 </div>
 
-                <h4 className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider group-hover:text-[#35C7E8] transition-colors">
+                <h4 className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider group-hover:text-[var(--m-accent)] transition-colors">
                   {topic.title}
                 </h4>
 
-                <p className="text-xs text-[#8295A8] mt-1.5 leading-relaxed">
+                <p className="text-xs text-[var(--m-text-muted)] mt-1.5 leading-relaxed">
                   {topic.description}
                 </p>
               </div>
 
-              <div className="w-full mt-3.5 pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono">
-                <span className="text-[#8295A8]">Filter Library</span>
+              <div className="w-full mt-3.5 pt-2.5 border-t border-[var(--m-border)] flex items-center justify-between text-[11px] font-mono">
+                <span className="text-[var(--m-text-muted)]">Filter Library</span>
                 <span
                   className="flex items-center gap-1 font-bold"
                   style={{ color: topic.accentColor }}

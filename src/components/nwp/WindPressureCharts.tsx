@@ -78,9 +78,9 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
           subtitle="Surface flow, peak gusts, and directional azimuth"
           icon={<Wind className="w-4 h-4" />}
           action={
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#08131F] border border-[#26394B] text-xs font-mono tabular-nums">
-              <span className="text-[#8295A8]">DIRECTION:</span>
-              <span className="text-[#35C7E8] font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs font-mono tabular-nums">
+              <span className="text-[var(--m-text-muted)]">DIRECTION:</span>
+              <span className="text-[var(--m-accent)] font-bold">
                 {dirInfo ? `${dirInfo.arrow} ${dirInfo.deg}° (${dirInfo.cardinal})` : '—'}
               </span>
             </div>
@@ -104,7 +104,7 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
               value={currentPoint?.windGusts10m}
               unit="km/h"
               precision={1}
-              valueClassName="text-xl sm:text-2xl font-bold text-[#35C7E8]"
+              valueClassName="text-xl sm:text-2xl font-bold text-[var(--m-accent)]"
               hint="Turbulent gust potential"
             />
           </div>
@@ -115,27 +115,27 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
               value={currentPoint?.windDirection10m}
               unit="°"
               precision={0}
-              valueClassName="text-xl sm:text-2xl font-bold text-[#FCD34D]"
+              valueClassName="text-xl sm:text-2xl font-bold text-[var(--m-watch)]"
               hint="Meteorological origin bearing"
             />
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-1">
-            <span className="text-[11px] font-medium text-[#8295A8] uppercase tracking-wider">
+            <span className="text-[11px] font-medium text-[var(--m-text-muted)] uppercase tracking-wider">
               Gust Regime
             </span>
             <span
               className={`text-sm font-bold font-mono ${
                 gustStatus === 'MODERATE GUST RISK'
-                  ? 'text-[#FCD34D]'
+                  ? 'text-[var(--m-watch)]'
                   : gustStatus === 'NORMAL GRADIENT'
-                  ? 'text-[#6EE7B7]'
-                  : 'text-[#8295A8]'
+                  ? 'text-[var(--m-ok)]'
+                  : 'text-[var(--m-text-muted)]'
               }`}
             >
               {gustStatus}
             </span>
-            <span className="text-[11px] text-[#8295A8]">
+            <span className="text-[11px] text-[var(--m-text-muted)]">
               {typeof currentPoint?.windGusts10m === 'number' ? 'Synoptic pressure driven' : 'Gust telemetry unavailable'}
             </span>
           </div>
@@ -148,7 +148,7 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
             title="Sea Level Pressure (MSLP)"
             icon={<Gauge className="w-4 h-4" />}
             action={
-              <span className="text-xs font-mono font-bold text-[#35C7E8] tabular-nums">
+              <span className="text-xs font-mono font-bold text-[var(--m-accent)] tabular-nums">
                 {typeof currentPoint?.pressureMSL === 'number' ? `${currentPoint.pressureMSL} hPa` : '—'}
               </span>
             }
@@ -164,7 +164,7 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
                   <circle cx={pressCoords[0].x} cy={pressCoords[0].y} r="3.5" fill="#A78BFA" />
                 </svg>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+              <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">
                 <span>Range: {minPressure} – {maxPressure} hPa</span>
                 <span>24h Barometric Trend</span>
               </div>
@@ -182,7 +182,7 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
             title="Relative Humidity"
             icon={<Droplets className="w-4 h-4" />}
             action={
-              <span className="text-xs font-mono font-bold text-[#35C7E8] tabular-nums">
+              <span className="text-xs font-mono font-bold text-[var(--m-accent)] tabular-nums">
                 {typeof currentPoint?.relativeHumidity === 'number' ? `${currentPoint.relativeHumidity}%` : '—'}
               </span>
             }
@@ -198,7 +198,7 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
                   <circle cx={humidCoords[0].x} cy={humidCoords[0].y} r="3.5" fill="#35C7E8" />
                 </svg>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-mono text-[#8295A8] pt-2 border-t border-[#26394B] tabular-nums">
+              <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">
                 <span>Dew Point: {typeof currentPoint?.dewPoint2m === 'number' ? `${currentPoint.dewPoint2m}°C` : '—'}</span>
                 <span>Boundary Layer Moisture</span>
               </div>

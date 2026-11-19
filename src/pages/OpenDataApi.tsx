@@ -29,7 +29,7 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
   };
 
   return (
-    <div className="w-full max-w-[960px] mx-auto py-4 px-3 sm:px-4 text-[#B5C3D1] space-y-6">
+    <div className="w-full max-w-[960px] mx-auto py-4 px-3 sm:px-4 text-[var(--m-text-secondary)] space-y-6">
       <PageHeader
         eyebrow="MAUSAM Open Data Specification · v3.0"
         title="Open Data API"
@@ -43,7 +43,7 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               href="/docs/api_specification.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#0B72B9]/20 hover:bg-[#0B72B9]/35 border border-[#35C7E8]/40 text-[#35C7E8] hover:text-[#F3F6FA] px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-mono font-semibold transition-colors"
+              className="inline-flex items-center gap-2 bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] hover:text-white px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-mono font-semibold transition-colors"
               title="Open full interactive OpenAPI & WMO data interchange specification"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -52,9 +52,9 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
             <button
               type="button"
               onClick={onNavigateHome}
-              className="inline-flex items-center gap-2 text-xs font-semibold min-h-[44px] sm:min-h-[36px] px-3.5 rounded-lg bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-[#F3F6FA] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-semibold min-h-[44px] sm:min-h-[36px] px-3.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[var(--m-text-primary)] transition-colors cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <ArrowLeft className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>{t('returnToPortal', 'Return to Weather Portal')}</span>
             </button>
           </div>
@@ -86,7 +86,7 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               key={item.id}
               type="button"
               onClick={() => scrollToSection(item.id)}
-              className="text-left min-h-[38px] sm:min-h-[32px] px-2.5 rounded-lg hover:bg-[#101F2E] text-[#35C7E8] hover:text-[#F3F6FA] transition-colors cursor-pointer"
+              className="text-left min-h-[38px] sm:min-h-[32px] px-2.5 rounded-lg hover:bg-[var(--m-surface-2)] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer"
             >
               {item.title}
             </button>
@@ -97,14 +97,14 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
       {/* Main API Documentation Sections */}
       <DataPanel variant="surface-1" className="p-5 sm:p-7 space-y-8 leading-[1.75] text-sm">
         <section id="api-overview" className="scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2 flex items-center justify-between">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2 flex items-center justify-between">
             <span>1. API OVERVIEW</span>
-            <span className="text-[11px] font-mono text-[#8295A8]">REST / JSON</span>
+            <span className="text-[11px] font-mono text-[var(--m-text-muted)]">REST / JSON</span>
           </h2>
-          <p className="text-[#B5C3D1] leading-relaxed">
+          <p className="text-[var(--m-text-secondary)] leading-relaxed">
             The MAUSAM API architecture provides structured weather and environmental telemetry for client applications, spatial layers, and research workflows.
           </p>
-          <p className="text-[#B5C3D1] leading-relaxed mt-2">Exposed operational datasets include:</p>
+          <p className="text-[var(--m-text-secondary)] leading-relaxed mt-2">Exposed operational datasets include:</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 text-xs">
             {[
               'Current weather',
@@ -123,7 +123,7 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
             ].map((d, i) => (
               <div
                 key={i}
-                className="p-2.5 bg-[#08131F] rounded-lg border border-[#26394B] text-[#F3F6FA] font-medium"
+                className="p-2.5 bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] text-[var(--m-text-primary)] font-medium"
               >
                 • {d}
               </div>
@@ -131,30 +131,33 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
           </div>
         </section>
 
-        <section id="api-current" className="pt-6 border-t border-[#26394B] scroll-mt-6">
+        <section id="api-current" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-bold text-[#F3F6FA]">2. CURRENT WEATHER</h2>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#35C7E8]/15 text-[#35C7E8] border border-[#35C7E8]/35 font-mono">
+            <h2 className="text-base font-bold text-[var(--m-text-primary)]">2. CURRENT WEATHER</h2>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 font-mono">
               Schema Example
             </span>
           </div>
-          <p className="text-xs text-[#8295A8] mb-2">
+          <p className="text-xs text-[var(--m-text-muted)] mb-2">
             Retrieve surface observational parameters for an Indian coordinate or station:
           </p>
-          <div className="bg-[#08131F] rounded-lg border border-[#26394B] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
-            <span className="text-[#35C7E8] truncate">
+          <div className="bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
+            <span className="text-[var(--m-accent)] truncate">
               GET /api/weather?lat=20.2961&amp;lon=85.8245
             </span>
             <button
               type="button"
               onClick={() => handleCopy('GET /api/weather?lat=20.2961&lon=85.8245', 'cur-ep')}
-              className="text-[#8295A8] hover:text-[#F3F6FA] text-xs px-2 min-h-[32px] rounded bg-[#101F2E] border border-[#26394B] shrink-0 cursor-pointer"
+              className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs px-2 min-h-[32px] rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0 cursor-pointer"
             >
               {copiedSection === 'cur-ep' ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <span className="text-xs font-bold text-[#F3F6FA] block mb-1">Example Payload:</span>
-          <pre className="bg-[#08131F] rounded-lg border border-[#26394B] p-4 text-xs font-mono text-[#B5C3D1] overflow-x-auto leading-relaxed">
+          <span className="text-xs font-bold text-[var(--m-text-primary)] block mb-1">Example Payload:</span>
+          <pre
+            data-theme="dark-workspace"
+            className="bg-[var(--m-canvas)] rounded-lg border border-[var(--m-border)] p-4 text-xs font-mono text-[var(--m-text-secondary)] overflow-x-auto leading-relaxed"
+          >
 {`{
   "location": {
     "state": "Odisha",
@@ -172,18 +175,18 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
           </pre>
         </section>
 
-        <section id="api-aqi" className="pt-6 border-t border-[#26394B] scroll-mt-6">
+        <section id="api-aqi" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-bold text-[#F3F6FA]">3. AIR QUALITY</h2>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#35C7E8]/15 text-[#35C7E8] border border-[#35C7E8]/35 font-mono">
+            <h2 className="text-base font-bold text-[var(--m-text-primary)]">3. AIR QUALITY</h2>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 font-mono">
               Schema Example
             </span>
           </div>
-          <p className="text-xs text-[#8295A8] mb-2">
+          <p className="text-xs text-[var(--m-text-muted)] mb-2">
             Query National Air Quality Index (NAQI) and particulate channels:
           </p>
-          <div className="bg-[#08131F] rounded-lg border border-[#26394B] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
-            <span className="text-[#35C7E8] truncate">
+          <div className="bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
+            <span className="text-[var(--m-accent)] truncate">
               GET /api/weather?mode=air&amp;state=Odisha&amp;city=Bhubaneswar
             </span>
             <button
@@ -191,12 +194,15 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               onClick={() =>
                 handleCopy('GET /api/weather?mode=air&state=Odisha&city=Bhubaneswar', 'aqi-ep')
               }
-              className="text-[#8295A8] hover:text-[#F3F6FA] text-xs px-2 min-h-[32px] rounded bg-[#101F2E] border border-[#26394B] shrink-0 cursor-pointer"
+              className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs px-2 min-h-[32px] rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0 cursor-pointer"
             >
               {copiedSection === 'aqi-ep' ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <pre className="bg-[#08131F] rounded-lg border border-[#26394B] p-4 text-xs font-mono text-[#B5C3D1] overflow-x-auto leading-relaxed">
+          <pre
+            data-theme="dark-workspace"
+            className="bg-[var(--m-canvas)] rounded-lg border border-[var(--m-border)] p-4 text-xs font-mono text-[var(--m-text-secondary)] overflow-x-auto leading-relaxed"
+          >
 {`{
   "location": "Bhubaneswar",
   "aqi": 82,
@@ -207,18 +213,18 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
           </pre>
         </section>
 
-        <section id="api-pollen" className="pt-6 border-t border-[#26394B] scroll-mt-6">
+        <section id="api-pollen" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-bold text-[#F3F6FA]">4. POLLEN</h2>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#35C7E8]/15 text-[#35C7E8] border border-[#35C7E8]/35 font-mono">
+            <h2 className="text-base font-bold text-[var(--m-text-primary)]">4. POLLEN</h2>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 font-mono">
               Schema Example
             </span>
           </div>
-          <p className="text-xs text-[#8295A8] mb-2">
+          <p className="text-xs text-[var(--m-text-muted)] mb-2">
             Query aero-allergenic pollen distribution:
           </p>
-          <div className="bg-[#08131F] rounded-lg border border-[#26394B] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
-            <span className="text-[#35C7E8] truncate">
+          <div className="bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
+            <span className="text-[var(--m-accent)] truncate">
               GET /api/environment/pollen?location=Bhubaneswar
             </span>
             <button
@@ -226,12 +232,15 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               onClick={() =>
                 handleCopy('GET /api/environment/pollen?location=Bhubaneswar', 'pol-ep')
               }
-              className="text-[#8295A8] hover:text-[#F3F6FA] text-xs px-2 min-h-[32px] rounded bg-[#101F2E] border border-[#26394B] shrink-0 cursor-pointer"
+              className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs px-2 min-h-[32px] rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0 cursor-pointer"
             >
               {copiedSection === 'pol-ep' ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <pre className="bg-[#08131F] rounded-lg border border-[#26394B] p-4 text-xs font-mono text-[#B5C3D1] overflow-x-auto leading-relaxed">
+          <pre
+            data-theme="dark-workspace"
+            className="bg-[var(--m-canvas)] rounded-lg border border-[var(--m-border)] p-4 text-xs font-mono text-[var(--m-text-secondary)] overflow-x-auto leading-relaxed"
+          >
 {`{
   "location": "Bhubaneswar",
   "tree": 1,
@@ -242,14 +251,14 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
           </pre>
         </section>
 
-        <section id="api-forecast" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">5. FORECAST &amp; NWP</h2>
-          <p className="text-xs text-[#8295A8] mb-2">
-            Parameters: <code className="text-[#35C7E8]">model</code> (ALL | WRF | GEFS | ECMWF),{' '}
-            <code className="text-[#35C7E8]">lat</code>, <code className="text-[#35C7E8]">lon</code>
+        <section id="api-forecast" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">5. FORECAST &amp; NWP</h2>
+          <p className="text-xs text-[var(--m-text-muted)] mb-2">
+            Parameters: <code className="text-[var(--m-accent)]">model</code> (ALL | WRF | GEFS | ECMWF),{' '}
+            <code className="text-[var(--m-accent)]">lat</code>, <code className="text-[var(--m-accent)]">lon</code>
           </p>
-          <div className="bg-[#08131F] rounded-lg border border-[#26394B] p-3 font-mono text-xs flex items-center justify-between gap-2">
-            <span className="text-[#35C7E8] truncate">
+          <div className="bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] p-3 font-mono text-xs flex items-center justify-between gap-2">
+            <span className="text-[var(--m-accent)] truncate">
               GET /api/nwp?model=ALL&amp;lat=20.2961&amp;lon=85.8245
             </span>
             <button
@@ -257,29 +266,29 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               onClick={() =>
                 handleCopy('GET /api/nwp?model=ALL&lat=20.2961&lon=85.8245', 'fc-ep')
               }
-              className="text-[#8295A8] hover:text-[#F3F6FA] text-xs px-2 min-h-[32px] rounded bg-[#101F2E] border border-[#26394B] shrink-0 cursor-pointer"
+              className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs px-2 min-h-[32px] rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0 cursor-pointer"
             >
               {copiedSection === 'fc-ep' ? 'Copied' : 'Copy'}
             </button>
           </div>
         </section>
 
-        <section id="api-warnings" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">6. WEATHER WARNINGS</h2>
-          <p className="text-xs text-[#8295A8] mb-2">
+        <section id="api-warnings" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">6. WEATHER WARNINGS</h2>
+          <p className="text-xs text-[var(--m-text-muted)] mb-2">
             Official NDMA SACHET CAP and IMD severe weather alerts:
           </p>
-          <div className="bg-[#08131F] rounded-lg border border-[#26394B] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
-            <span className="text-[#35C7E8] truncate">GET /api/warnings</span>
+          <div className="bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] p-3 font-mono text-xs mb-3 flex items-center justify-between gap-2">
+            <span className="text-[var(--m-accent)] truncate">GET /api/warnings</span>
             <button
               type="button"
               onClick={() => handleCopy('GET /api/warnings', 'warn-ep')}
-              className="text-[#8295A8] hover:text-[#F3F6FA] text-xs px-2 min-h-[32px] rounded bg-[#101F2E] border border-[#26394B] shrink-0 cursor-pointer"
+              className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs px-2 min-h-[32px] rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0 cursor-pointer"
             >
               {copiedSection === 'warn-ep' ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <ul className="list-disc list-inside space-y-1 text-xs pl-2 text-[#B5C3D1]">
+          <ul className="list-disc list-inside space-y-1 text-xs pl-2 text-[var(--m-text-secondary)]">
             <li>Warning level (Green, Yellow, Orange, Red)</li>
             <li>Official title and description</li>
             <li>Affected states &amp; districts</li>
@@ -288,52 +297,52 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
           </ul>
         </section>
 
-        <section id="api-sources" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">7. DATA SOURCES</h2>
-          <p className="text-[#B5C3D1] leading-relaxed mb-3">
+        <section id="api-sources" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">7. DATA SOURCES</h2>
+          <p className="text-[var(--m-text-secondary)] leading-relaxed mb-3">
             MAUSAM integrates data from verified meteorological and environmental channels:
           </p>
-          <ul className="list-disc list-inside space-y-1.5 text-xs pl-2 text-[#B5C3D1]">
+          <ul className="list-disc list-inside space-y-1.5 text-xs pl-2 text-[var(--m-text-secondary)]">
             <li>India Meteorological Department (IMD) &amp; NDMA SACHET CAP</li>
             <li>CPCB Central Registry &amp; Open-Meteo Chemistry</li>
             <li>Open-Meteo NWP (ECMWF IFS, NOAA GFS/GEFS, DWD ICON)</li>
             <li>RainViewer Doppler Precipitation Mosaic &amp; JTWC / RSMC Cyclone feeds</li>
           </ul>
-          <p className="text-xs text-[#8295A8] mt-3 italic">
+          <p className="text-xs text-[var(--m-text-muted)] mt-3 italic">
             Each endpoint attaches explicit provider provenance and distinguishes live observations from modelled or unavailable feeds.
           </p>
         </section>
 
-        <section id="api-usage" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">8. API USAGE &amp; SECURITY</h2>
-          <p className="text-[#B5C3D1] leading-relaxed mb-3">
-            Upstream credentials remain server-side behind <code className="font-mono text-[#35C7E8]">/api/*</code> gateways with AbortController timeouts and response caching.
+        <section id="api-usage" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">8. API USAGE &amp; SECURITY</h2>
+          <p className="text-[var(--m-text-secondary)] leading-relaxed mb-3">
+            Upstream credentials remain server-side behind <code className="font-mono text-[var(--m-accent)]">/api/*</code> gateways with AbortController timeouts and response caching.
           </p>
-          <div className="p-3.5 bg-[#08131F] rounded-lg border border-[#26394B] text-xs font-mono text-[#B5C3D1]">
+          <div className="p-3.5 bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] text-xs font-mono text-[var(--m-text-secondary)]">
             Public read-only telemetry gateways do not expose server secrets to client code.
           </div>
         </section>
 
-        <section id="api-attribution" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">9. DATA ATTRIBUTION</h2>
+        <section id="api-attribution" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">9. DATA ATTRIBUTION</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             {[
-              { source: 'IMD', accent: 'text-[#F3F6FA]' },
-              { source: 'NDMA SACHET', accent: 'text-[#F3F6FA]' },
-              { source: 'CPCB', accent: 'text-[#F3F6FA]' },
-              { source: 'Open-Meteo', accent: 'text-[#35C7E8]' },
+              { source: 'IMD', accent: 'text-[var(--m-text-primary)]' },
+              { source: 'NDMA SACHET', accent: 'text-[var(--m-text-primary)]' },
+              { source: 'CPCB', accent: 'text-[var(--m-text-primary)]' },
+              { source: 'Open-Meteo', accent: 'text-[var(--m-accent)]' },
             ].map((item) => (
-              <div key={item.source} className="p-2.5 bg-[#08131F] rounded-lg border border-[#26394B]">
-                <span className="text-[10px] text-[#8295A8] block">Source</span>
+              <div key={item.source} className="p-2.5 bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)]">
+                <span className="text-[10px] text-[var(--m-text-muted)] block">Source</span>
                 <span className={`font-bold ${item.accent}`}>{item.source}</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="api-disclaimer" className="pt-6 border-t border-[#26394B] scroll-mt-6">
-          <h2 className="text-base font-bold text-[#F3F6FA] mb-2">10. DISCLAIMER</h2>
-          <div className="p-4 bg-[#08131F] rounded-lg border border-[#26394B] text-xs text-[#B5C3D1] leading-relaxed">
+        <section id="api-disclaimer" className="pt-6 border-t border-[var(--m-border)] scroll-mt-6">
+          <h2 className="text-base font-bold text-[var(--m-text-primary)] mb-2">10. DISCLAIMER</h2>
+          <div className="p-4 bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)] leading-relaxed">
             MAUSAM is a meteorological intelligence platform developed for observation and research purposes. Weather and environmental data should not be treated as a substitute for official emergency directives issued by NDMA, SDMA, or local civil authorities.
           </div>
         </section>

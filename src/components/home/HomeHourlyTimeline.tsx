@@ -36,14 +36,14 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
         icon={<Clock className="w-4 h-4" />}
         action={
           <div className="flex items-center gap-2">
-            <div className="flex bg-[#08131F] p-0.5 rounded-lg border border-[#26394B]">
+            <div className="flex bg-[var(--m-surface-inset)] p-0.5 rounded-lg border border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setRangeMode('8h')}
                 className={`px-3 min-h-[32px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   rangeMode === '8h'
                     ? 'bg-[#35C7E8] text-[#05101C]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 Next 8h
@@ -54,7 +54,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                 className={`px-3 min-h-[32px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   rangeMode === '24h'
                     ? 'bg-[#35C7E8] text-[#05101C]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 24-Hour
@@ -65,7 +65,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
               <button
                 type="button"
                 onClick={() => handleScroll('left')}
-                className="w-8 h-8 rounded-lg bg-[#08131F] border border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA] hover:border-[#38536A] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] flex items-center justify-center cursor-pointer"
                 aria-label="Scroll hourly timeline left"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -73,7 +73,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
               <button
                 type="button"
                 onClick={() => handleScroll('right')}
-                className="w-8 h-8 rounded-lg bg-[#08131F] border border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA] hover:border-[#38536A] flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] flex items-center justify-center cursor-pointer"
                 aria-label="Scroll hourly timeline right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -112,40 +112,40 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                 onClick={() => setSelectedHourIndex(idx)}
                 className={`min-w-[106px] sm:min-w-[114px] p-3 rounded-xl border flex flex-col justify-between items-center text-center cursor-pointer transition-colors shrink-0 m-focus-ring ${
                   isSelected
-                    ? 'bg-[#101F2E] border-[#35C7E8]'
-                    : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
+                    ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)]'
+                    : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <span className={`text-xs font-mono font-semibold ${isCurrent ? 'text-[#35C7E8]' : 'text-[#F3F6FA]'}`}>
+                  <span className={`text-xs font-mono font-semibold ${isCurrent ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-primary)]'}`}>
                     {isCurrent ? 'Now' : item.time || `${idx}:00`}
                   </span>
-                  <span className="text-[10px] font-mono text-[#8295A8] tabular-nums mt-0.5">
+                  <span className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums mt-0.5">
                     {humidity !== null ? `${humidity}% RH` : '— RH'}
                   </span>
                 </div>
 
-                <div className="my-2 p-2 rounded-lg bg-[#0B1927] border border-[#26394B]">
+                <div className="my-2 p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)]">
                   <Icon className={`w-5 h-5 ${visual.iconColor}`} />
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <span className="text-lg font-mono font-bold text-[#F3F6FA] tabular-nums">
+                  <span className="text-lg font-mono font-bold text-[var(--m-text-primary)] tabular-nums">
                     {temp !== null ? `${temp}°` : '—'}
                   </span>
-                  <span className="text-[10px] text-[#8295A8] truncate max-w-[92px]">
+                  <span className="text-[10px] text-[var(--m-text-muted)] truncate max-w-[92px]">
                     {item.condition || '—'}
                   </span>
                 </div>
 
-                <div className="w-full mt-2 pt-2 border-t border-[#26394B] flex flex-col items-center gap-1">
-                  <div className="flex items-center justify-between w-full text-[9px] font-mono text-[#8295A8] tabular-nums">
+                <div className="w-full mt-2 pt-2 border-t border-[var(--m-border)] flex flex-col items-center gap-1">
+                  <div className="flex items-center justify-between w-full text-[9px] font-mono text-[var(--m-text-muted)] tabular-nums">
                     <span>Rain</span>
-                    <span className={rain !== null && rain >= 40 ? 'text-[#35C7E8] font-semibold' : 'text-[#B5C3D1]'}>
+                    <span className={rain !== null && rain >= 40 ? 'text-[var(--m-accent)] font-semibold' : 'text-[var(--m-text-secondary)]'}>
                       {rain !== null ? `${rain}%` : '—'}
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-[#101F2E] rounded overflow-hidden">
+                  <div className="w-full h-1 bg-[var(--m-surface-2)] rounded overflow-hidden">
                     <div
                       className="h-full bg-[#35C7E8] rounded"
                       style={{ width: `${rain !== null ? Math.min(100, Math.max(0, rain)) : 0}%` }}
@@ -153,7 +153,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                   </div>
                 </div>
 
-                <div className="text-[10px] text-[#8295A8] mt-1 font-mono tabular-nums">
+                <div className="text-[10px] text-[var(--m-text-muted)] mt-1 font-mono tabular-nums">
                   {wind !== null ? `${wind} km/h` : '— km/h'}
                 </div>
               </button>
@@ -163,13 +163,13 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
       )}
 
       {/* Bottom Action Footer */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[#26394B] text-xs text-[#8295A8]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[var(--m-border)] text-xs text-[var(--m-text-muted)]">
         <span>Hourly guidance synchronized from Open-Meteo &amp; IMD multi-model feeds</span>
         {onNavigateToHourly && (
           <button
             type="button"
             onClick={onNavigateToHourly}
-            className="text-[#35C7E8] hover:text-[#7DD3FC] font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+            className="text-[var(--m-accent)] hover:text-[var(--m-accent)] font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
           >
             <span>Open Local Weather Detail</span>
             <ArrowRight className="w-3.5 h-3.5" />

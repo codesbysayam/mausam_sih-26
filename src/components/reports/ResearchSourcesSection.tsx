@@ -61,7 +61,7 @@ export const ResearchSourcesSection: React.FC = () => {
         subtitle="Institutional provenance for publications, synoptic baselines, and regulatory directives"
         icon={<Building2 className="w-4 h-4" />}
         action={
-          <div className="inline-flex items-center gap-2 text-xs font-mono text-[#6EE7B7] bg-[#22C7A0]/12 px-3 py-1.5 rounded-lg border border-[#22C7A0]/35">
+          <div className="inline-flex items-center gap-2 text-xs font-mono text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-3 py-1.5 rounded-lg border border-[var(--m-ok)]/35">
             <ShieldCheck className="w-4 h-4" />
             <span>Authenticated Institutional Registry</span>
           </div>
@@ -72,7 +72,7 @@ export const ResearchSourcesSection: React.FC = () => {
         {sources.map((src) => (
           <div
             key={src.id}
-            className="p-4 rounded-xl bg-[#08131F] border border-[#26394B] hover:border-[#38536A] transition-colors flex flex-col justify-between space-y-3"
+            className="p-4 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] transition-colors flex flex-col justify-between space-y-3"
           >
             <div>
               <span
@@ -86,21 +86,21 @@ export const ResearchSourcesSection: React.FC = () => {
                 {src.tag}
               </span>
 
-              <h4 className="text-sm font-bold text-[#F3F6FA] leading-snug">
+              <h4 className="text-sm font-bold text-[var(--m-text-primary)] leading-snug">
                 {src.name}
               </h4>
 
-              <p className="text-[11px] font-mono text-[#35C7E8] mt-0.5">
+              <p className="text-[11px] font-mono text-[var(--m-accent)] mt-0.5">
                 {src.ministry}
               </p>
 
-              <p className="text-xs text-[#B5C3D1] mt-2 leading-relaxed">
+              <p className="text-xs text-[var(--m-text-secondary)] mt-2 leading-relaxed">
                 {src.role}
               </p>
             </div>
 
-            <div className="pt-3 border-t border-[#26394B] flex items-center justify-between text-[10px] font-mono text-[#8295A8]">
-              <span className="flex items-center gap-1 text-[#22C7A0]">
+            <div className="pt-3 border-t border-[var(--m-border)] flex items-center justify-between text-[10px] font-mono text-[var(--m-text-muted)]">
+              <span className="flex items-center gap-1 text-[var(--m-ok)]">
                 <FileCheck className="w-3 h-3" /> Verified Authority
               </span>
               <span>Institutional Reference</span>

@@ -305,14 +305,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             <button
               type="button"
               onClick={() => handleOpenPublication(pub)}
-              className="text-left font-bold text-[#F3F6FA] text-xs hover:text-[#35C7E8] transition-colors cursor-pointer"
+              className="text-left font-bold text-[var(--m-text-primary)] text-xs hover:text-[var(--m-accent)] transition-colors cursor-pointer"
             >
               {pub.title}
             </button>
-            <div className="flex items-center gap-2 text-[10px] text-[#8295A8] font-mono tabular-nums">
+            <div className="flex items-center gap-2 text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums">
               <span>{pub.documentNumber}</span>
               <span>·</span>
-              <span className="text-[#B5C3D1] truncate">{pub.author}</span>
+              <span className="text-[var(--m-text-secondary)] truncate">{pub.author}</span>
             </div>
           </div>
         ),
@@ -322,8 +322,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         align: 'left',
         render: (pub) => (
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] font-semibold text-[#35C7E8]">{pub.category}</span>
-            <span className="text-[10px] text-[#8295A8]">{pub.type}</span>
+            <span className="text-[11px] font-semibold text-[var(--m-accent)]">{pub.category}</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">{pub.type}</span>
           </div>
         ),
       },
@@ -331,9 +331,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         header: 'Date & Size',
         align: 'left',
         render: (pub) => (
-          <div className="flex flex-col gap-0.5 text-[11px] font-mono tabular-nums text-[#B5C3D1]">
+          <div className="flex flex-col gap-0.5 text-[11px] font-mono tabular-nums text-[var(--m-text-secondary)]">
             <span>{pub.date}</span>
-            <span className="text-[10px] text-[#8295A8]">{pub.size}</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">{pub.size}</span>
           </div>
         ),
       },
@@ -347,18 +347,18 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
               onClick={() => toggleSaveReport(pub.id)}
               className={`min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer m-focus-ring ${
                 isReportSaved(pub.id)
-                  ? 'border-[#F59E0B]/40 bg-[#F59E0B]/12 text-[#F59E0B]'
-                  : 'border-[#26394B] bg-[#08131F] text-[#8295A8] hover:text-[#F3F6FA] hover:border-[#38536A]'
+                  ? 'border-[var(--m-watch)]/40 bg-[var(--m-watch-soft)] text-[var(--m-watch)]'
+                  : 'border-[var(--m-border)] bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
               title={isReportSaved(pub.id) ? 'Saved to library' : 'Save publication'}
               aria-label={isReportSaved(pub.id) ? 'Saved to library' : 'Save publication'}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${isReportSaved(pub.id) ? 'fill-[#F59E0B]' : ''}`} />
+              <Bookmark className={`w-3.5 h-3.5 ${isReportSaved(pub.id) ? 'fill-current' : ''}`} />
             </button>
             <button
               type="button"
               onClick={() => handleOpenPublication(pub)}
-              className="min-h-[40px] px-3 rounded-lg bg-[#101F2E] hover:bg-[#35C7E8] text-[#35C7E8] hover:text-[#07111D] border border-[#35C7E8]/40 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
+              className="min-h-[40px] px-3 rounded-lg bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] text-[var(--m-accent)] hover:text-white border border-[var(--m-accent)]/35 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
               <span>Read</span>
               <ExternalLink className="w-3 h-3" />
@@ -387,7 +387,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           <button
             type="button"
             onClick={() => handleOpenPublication(dynamicDistrictBulletin)}
-            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] border border-[#35C7E8]/40 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-2 m-focus-ring"
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-2 m-focus-ring"
           >
             <span>Open District Bulletin ({selectedLocation.city})</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -398,22 +398,22 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           <MetricValue
             label="Total Publications"
             value={libraryCounts.total}
-            valueClassName="text-lg font-bold text-[#F3F6FA]"
+            valueClassName="text-lg font-bold text-[var(--m-text-primary)]"
           />
           <MetricValue
             label="Research Papers"
             value={libraryCounts.research}
-            valueClassName="text-lg font-bold text-[#35C7E8]"
+            valueClassName="text-lg font-bold text-[var(--m-accent)]"
           />
           <MetricValue
             label="Official Bulletins"
             value={libraryCounts.official}
-            valueClassName="text-lg font-bold text-[#22C7A0]"
+            valueClassName="text-lg font-bold text-[var(--m-ok)]"
           />
           <MetricValue
             label="Technical Studies"
             value={libraryCounts.technical}
-            valueClassName="text-lg font-bold text-[#F59E0B]"
+            valueClassName="text-lg font-bold text-[var(--m-watch)]"
           />
         </div>
       </PageHeader>
@@ -482,13 +482,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         {/* Publication Results (List / Grid / Table View) */}
         {filteredPublications.length === 0 ? (
           <DataPanel variant="inset" className="text-center py-14 px-4 space-y-3">
-            <div className="w-11 h-11 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] mx-auto">
+            <div className="w-11 h-11 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] mx-auto">
               <Search className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-[#F3F6FA]">
+            <h3 className="text-base font-bold text-[var(--m-text-primary)]">
               No matching meteorological publications found
             </h3>
-            <p className="text-xs text-[#8295A8] max-w-md mx-auto">
+            <p className="text-xs text-[var(--m-text-muted)] max-w-md mx-auto">
               Try adjusting your search terms, exploring a different domain topic, or resetting your filter category.
             </p>
             <button
@@ -498,7 +498,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
                 setSelectedCategory('ALL');
                 setDateRange([null, null]);
               }}
-              className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
+              className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Library Filters</span>

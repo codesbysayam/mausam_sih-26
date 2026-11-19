@@ -52,31 +52,31 @@ export const ReportIntelligenceStrip: React.FC<ReportIntelligenceStripProps> = (
       label: 'LATEST RELEASE',
       value: summary.latestCycle,
       icon: Calendar,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
     },
     {
       label: 'MOST ACTIVE DOMAIN',
       value: summary.topDomain,
       icon: TrendingUp,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
     },
     {
       label: 'LATEST BULLETIN',
       value: summary.latestBulletin,
       icon: Radio,
-      accent: 'text-[#22C7A0]',
+      accent: 'text-[var(--m-ok)]',
     },
     {
       label: 'CORE RESEARCH FOCUS',
       value: 'Monsoon & Convection',
       icon: Sparkles,
-      accent: 'text-[#F59E0B]',
+      accent: 'text-[var(--m-watch)]',
     },
     {
       label: 'ARCHIVE PROVIDERS',
       value: 'IMD · CPCB · ISRO · NCMRWF',
       icon: Layers,
-      accent: 'text-[#35C7E8]',
+      accent: 'text-[var(--m-accent)]',
       spanFull: true,
     },
   ];
@@ -93,18 +93,18 @@ export const ReportIntelligenceStrip: React.FC<ReportIntelligenceStripProps> = (
             key={item.label}
             className={`${
               item.spanFull ? 'col-span-2 md:col-span-1 lg:col-span-1' : ''
-            } m-panel p-3.5 flex items-center gap-3 hover:border-[#38536A] transition-colors`}
+            } m-panel p-3.5 flex items-center gap-3 hover:border-[var(--m-border-strong)] transition-colors`}
           >
             <div
-              className={`w-9 h-9 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center ${item.accent} shrink-0`}
+              className={`w-9 h-9 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center ${item.accent} shrink-0`}
             >
               <Icon className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-mono uppercase font-semibold text-[#8295A8] block tracking-wider truncate">
+              <span className="text-[10px] font-mono uppercase font-semibold text-[var(--m-text-muted)] block tracking-wider truncate">
                 {item.label}
               </span>
-              <strong className="text-xs font-semibold text-[#F3F6FA] block truncate font-mono tabular-nums">
+              <strong className="text-xs font-semibold text-[var(--m-text-primary)] block truncate font-mono tabular-nums">
                 {item.value}
               </strong>
             </div>

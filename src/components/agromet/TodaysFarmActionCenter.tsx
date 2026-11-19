@@ -53,28 +53,28 @@ export const TodaysFarmActionCenter: React.FC<TodaysFarmActionCenterProps> = ({
     switch (status) {
       case 'RECOMMENDED':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#22C7A0]/12 border border-[#22C7A0]/35 text-[#6EE7B7] text-[10px] font-mono font-semibold uppercase">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 text-[var(--m-ok)] text-[10px] font-mono font-semibold uppercase">
             <CheckCircle2 className="w-3 h-3" />
             RECOMMENDED
           </span>
         );
       case 'CAUTION':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F59E0B]/12 border border-[#F59E0B]/35 text-[#FCD34D] text-[10px] font-mono font-semibold uppercase">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 text-[var(--m-watch)] text-[10px] font-mono font-semibold uppercase">
             <AlertTriangle className="w-3 h-3" />
             CAUTION
           </span>
         );
       case 'DEFER':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-[#7DD3FC] text-[10px] font-mono font-semibold uppercase">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 text-[var(--m-accent)] text-[10px] font-mono font-semibold uppercase">
             <Clock className="w-3 h-3" />
             DEFER
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EF4444]/12 border border-[#EF4444]/35 text-[#FCA5A5] text-[10px] font-mono font-semibold uppercase">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/35 text-[var(--m-danger)] text-[10px] font-mono font-semibold uppercase">
             <XCircle className="w-3 h-3" />
             HOLD
           </span>
@@ -84,12 +84,12 @@ export const TodaysFarmActionCenter: React.FC<TodaysFarmActionCenterProps> = ({
 
   const overallBadgeStyle =
     evaluation.overallStatus === 'OPTIMAL'
-      ? 'bg-[#22C7A0]/12 border-[#22C7A0]/35 text-[#6EE7B7]'
+      ? 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35 text-[var(--m-ok)]'
       : evaluation.overallStatus === 'CAUTION'
-      ? 'bg-[#F59E0B]/12 border-[#F59E0B]/35 text-[#FCD34D]'
+      ? 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35 text-[var(--m-watch)]'
       : evaluation.overallStatus === 'RESTRICTED'
-      ? 'bg-[#EF4444]/12 border-[#EF4444]/35 text-[#FCA5A5]'
-      : 'bg-[#101F2E] border-[#38536A] text-[#B5C3D1]';
+      ? 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35 text-[var(--m-danger)]'
+      : 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)] text-[var(--m-text-secondary)]';
 
   const OverallIcon =
     evaluation.overallStatus === 'OPTIMAL'
@@ -121,7 +121,7 @@ export const TodaysFarmActionCenter: React.FC<TodaysFarmActionCenterProps> = ({
               <div className="text-xs font-mono font-bold uppercase tracking-wider">
                 Field Operations: {evaluation.overallStatus}
               </div>
-              <p className="text-xs text-[#B5C3D1] mt-0.5 leading-snug">
+              <p className="text-xs text-[var(--m-text-secondary)] mt-0.5 leading-snug">
                 {evaluation.overallReason}
               </p>
             </div>
@@ -139,29 +139,29 @@ export const TodaysFarmActionCenter: React.FC<TodaysFarmActionCenterProps> = ({
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
                         <Icon className="w-4 h-4" />
                       </div>
                       {getStatusBadge(op.status)}
                     </div>
 
                     <div>
-                      <h3 className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider">
+                      <h3 className="text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
                         {op.name}
                       </h3>
-                      <div className="text-[11px] font-mono text-[#35C7E8] mt-1 flex items-center gap-1.5">
+                      <div className="text-[11px] font-mono text-[var(--m-accent)] mt-1 flex items-center gap-1.5">
                         <Clock className="w-3 h-3 shrink-0" />
                         <span>{op.recommendedWindow}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2.5 border-t border-[#26394B] text-xs">
-                    <p className="text-[#B5C3D1] leading-relaxed text-[11px]">{op.reason}</p>
-                    <div className="bg-[#07111D] border border-[#26394B] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[#8295A8] flex items-start gap-1.5">
-                      <Info className="w-3 h-3 text-[#F59E0B] shrink-0 mt-0.5" />
+                  <div className="space-y-2 pt-2.5 border-t border-[var(--m-border)] text-xs">
+                    <p className="text-[var(--m-text-secondary)] leading-relaxed text-[11px]">{op.reason}</p>
+                    <div className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg px-2.5 py-2 text-[10px] font-mono text-[var(--m-text-muted)] flex items-start gap-1.5">
+                      <Info className="w-3 h-3 text-[var(--m-watch)] shrink-0 mt-0.5" />
                       <span>
-                        <strong className="text-[#F3F6FA]">Trigger:</strong> {op.weatherTrigger}
+                        <strong className="text-[var(--m-text-primary)]">Trigger:</strong> {op.weatherTrigger}
                       </span>
                     </div>
                   </div>

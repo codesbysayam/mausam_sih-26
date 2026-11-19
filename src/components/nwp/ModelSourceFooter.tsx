@@ -31,8 +31,8 @@ export const ModelSourceFooter: React.FC<ModelSourceFooterProps> = ({ lastFetche
   ];
 
   return (
-    <div className="flex flex-col gap-3 bg-[#080E18] border border-[#1E2E40] rounded-2xl p-4 sm:p-5 text-xs font-mono text-slate-400">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#1E2E40]">
+    <div className="flex flex-col gap-3 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-2xl p-4 sm:p-5 text-xs font-mono text-slate-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[var(--m-border)]">
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4 text-sky-400" />
           <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
@@ -46,7 +46,7 @@ export const ModelSourceFooter: React.FC<ModelSourceFooterProps> = ({ lastFetche
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {sources.map((s, idx) => (
-          <div key={idx} className="p-3 rounded-xl bg-[#0B1523] border border-[#1A2E44] flex flex-col justify-between gap-1.5">
+          <div key={idx} className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between gap-1.5">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-white font-bold text-xs">{s.model}</span>

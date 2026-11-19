@@ -142,11 +142,11 @@ export const SunCycle: React.FC<SunCycleProps> = ({
           <Sunrise className="w-4 h-4" />
           <span>{solarCalculations.sunriseStr}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[#FF8C42]">
+        <div className="flex items-center gap-1.5 text-[var(--m-alert)]">
           <Sunset className="w-4 h-4" />
           <span>{solarCalculations.sunsetStr}</span>
         </div>
-        <div className="text-[#93A4B8] text-[11px]">
+        <div className="text-[var(--m-text-muted)] text-[11px]">
           Day: {solarCalculations.dayLengthStr}
         </div>
       </div>
@@ -156,19 +156,19 @@ export const SunCycle: React.FC<SunCycleProps> = ({
   return (
     <section
       id="sun-cycle-component"
-      className={`rounded-2xl bg-[#0B141E] border border-[#162331] p-5 flex flex-col justify-between gap-4 ${className}`}
+      className={`rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-4 ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#162331]">
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-[#FFC857]/15 text-[#FFC857] flex items-center justify-center">
             {solarCalculations.isDay ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#F4F7FA]">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--m-text-primary)]">
               Sun Cycle &amp; Solar Ephemeris
             </h2>
-            <p className="text-xs text-[#93A4B8]">
+            <p className="text-xs text-[var(--m-text-muted)]">
               {location?.city ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})` : 'Real-time Astronomical Calculation'}
             </p>
           </div>
@@ -232,55 +232,55 @@ export const SunCycle: React.FC<SunCycleProps> = ({
         {/* Sunrise & Sunset text beneath arc */}
         <div className="w-full max-w-sm flex items-center justify-between px-3 text-xs -mt-1">
           <div className="flex flex-col items-start">
-            <span className="text-[10px] uppercase font-bold text-[#93A4B8] flex items-center gap-1">
-              <Sunrise className="w-3 h-3 text-[#FF8C42]" /> Sunrise
+            <span className="text-[10px] uppercase font-bold text-[var(--m-text-muted)] flex items-center gap-1">
+              <Sunrise className="w-3 h-3 text-[var(--m-alert)]" /> Sunrise
             </span>
-            <span className="font-bold text-[#F4F7FA] font-mono text-xs">
+            <span className="font-bold text-[var(--m-text-primary)] font-mono text-xs">
               {solarCalculations.sunriseStr}
             </span>
-            <span className="text-[9px] text-[#93A4B8]">Dawn {solarCalculations.dawnStr}</span>
+            <span className="text-[9px] text-[var(--m-text-muted)]">Dawn {solarCalculations.dawnStr}</span>
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] uppercase font-bold text-[#43C7F4]">Solar Noon</span>
-            <span className="font-bold text-[#F4F7FA] font-mono text-xs">
+            <span className="text-[10px] uppercase font-bold text-[var(--m-accent)]">Solar Noon</span>
+            <span className="font-bold text-[var(--m-text-primary)] font-mono text-xs">
               {solarCalculations.solarNoonStr}
             </span>
-            <span className="text-[9px] text-[#22C7A0]">Day {solarCalculations.dayLengthStr}</span>
+            <span className="text-[9px] text-[var(--m-ok)]">Day {solarCalculations.dayLengthStr}</span>
           </div>
 
           <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase font-bold text-[#93A4B8] flex items-center gap-1">
-              <Sunset className="w-3 h-3 text-[#FF8C42]" /> Sunset
+            <span className="text-[10px] uppercase font-bold text-[var(--m-text-muted)] flex items-center gap-1">
+              <Sunset className="w-3 h-3 text-[var(--m-alert)]" /> Sunset
             </span>
-            <span className="font-bold text-[#F4F7FA] font-mono text-xs">
+            <span className="font-bold text-[var(--m-text-primary)] font-mono text-xs">
               {solarCalculations.sunsetStr}
             </span>
-            <span className="text-[9px] text-[#93A4B8]">Dusk {solarCalculations.duskStr}</span>
+            <span className="text-[9px] text-[var(--m-text-muted)]">Dusk {solarCalculations.duskStr}</span>
           </div>
         </div>
       </div>
 
       {/* Solar metrics grid */}
-      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#162331] text-xs">
-        <div className="p-2 rounded-lg bg-[#071018] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Sun Altitude</span>
+      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--m-border)] text-xs">
+        <div className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Sun Altitude</span>
           <span className="text-xs font-bold text-[#FFC857] font-mono">
             {solarCalculations.altitudeDeg > 0 ? `+${solarCalculations.altitudeDeg.toFixed(1)}°` : `${solarCalculations.altitudeDeg.toFixed(1)}°`}
           </span>
         </div>
 
-        <div className="p-2 rounded-lg bg-[#071018] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Sun Azimuth</span>
-          <span className="text-xs font-bold text-[#43C7F4] font-mono flex items-center gap-1">
+        <div className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Sun Azimuth</span>
+          <span className="text-xs font-bold text-[var(--m-accent)] font-mono flex items-center gap-1">
             <Compass className="w-3 h-3 inline" />
             {solarCalculations.compassAzimuth.toFixed(0)}° {solarCalculations.azimuthCardinal}
           </span>
         </div>
 
-        <div className="p-2 rounded-lg bg-[#071018] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Daylight State</span>
-          <span className={`text-xs font-bold uppercase ${solarCalculations.isDay ? 'text-[#22C7A0]' : 'text-[#93A4B8]'}`}>
+        <div className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Daylight State</span>
+          <span className={`text-xs font-bold uppercase ${solarCalculations.isDay ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}`}>
             {solarCalculations.isDay ? 'Sun Above Horizon' : 'Night Horizon'}
           </span>
         </div>

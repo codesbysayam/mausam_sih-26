@@ -26,7 +26,7 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
           subtitle="Non-hydrostatic mesoscale configuration"
           icon={<Mountain className="w-4 h-4" />}
           badge={
-            <span className="text-[10px] font-mono text-[#B5C3D1] bg-[#08131F] px-2 py-0.5 rounded border border-[#26394B]">
+            <span className="text-[10px] font-mono text-[var(--m-text-secondary)] bg-[var(--m-surface-inset)] px-2 py-0.5 rounded border border-[var(--m-border)]">
               MESOSCALE CORE
             </span>
           }
@@ -34,34 +34,34 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="m-panel-inset p-3 flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Domain Coverage</span>
-            <span className="text-sm font-bold text-[#F3F6FA]">South Asia / India</span>
-            <span className="text-[11px] text-[#8295A8]">Non-hydrostatic terrain matching</span>
+            <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Domain Coverage</span>
+            <span className="text-sm font-bold text-[var(--m-text-primary)]">South Asia / India</span>
+            <span className="text-[11px] text-[var(--m-text-muted)]">Non-hydrostatic terrain matching</span>
           </div>
 
           <div className="m-panel-inset p-3 flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Mesoscale Grid</span>
-            <span className="text-sm font-bold text-[#F3F6FA]">3 km &amp; 9 km Nested</span>
-            <span className="text-[11px] text-[#8295A8]">Explicit convection physics</span>
+            <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Mesoscale Grid</span>
+            <span className="text-sm font-bold text-[var(--m-text-primary)]">3 km &amp; 9 km Nested</span>
+            <span className="text-[11px] text-[var(--m-text-muted)]">Explicit convection physics</span>
           </div>
 
           <div className="m-panel-inset p-3 flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Horizon</span>
-            <span className="text-sm font-bold text-[#F3F6FA]">0–72 Hours (3 Days)</span>
-            <span className="text-[11px] text-[#8295A8]">Rapid-update mesoscale cycle</span>
+            <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Horizon</span>
+            <span className="text-sm font-bold text-[var(--m-text-primary)]">0–72 Hours (3 Days)</span>
+            <span className="text-[11px] text-[var(--m-text-muted)]">Rapid-update mesoscale cycle</span>
           </div>
 
           <div className="m-panel-inset p-3 flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-mono text-[#8295A8]">Feed Status</span>
-            <span className="text-sm font-bold text-[#B5C3D1]">
+            <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Feed Status</span>
+            <span className="text-sm font-bold text-[var(--m-text-secondary)]">
               {isUnavailable ? 'Gateway Unconfigured' : 'Operational Feed Synced'}
             </span>
-            <span className="text-[11px] text-[#8295A8]">IMD HPC ARW output</span>
+            <span className="text-[11px] text-[var(--m-text-muted)]">IMD HPC ARW output</span>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-[#26394B]">
-          <span className="text-[11px] font-semibold text-[#B5C3D1] block mb-2">
+        <div className="pt-2 border-t border-[var(--m-border)]">
+          <span className="text-[11px] font-semibold text-[var(--m-text-secondary)] block mb-2">
             Primary Regional Focus:
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
@@ -74,9 +74,9 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
             ].map((pill) => (
               <div
                 key={pill}
-                className="p-2 rounded-lg bg-[#08131F] border border-[#26394B] text-[#7DD3FC] font-medium flex items-center gap-1.5"
+                className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-accent)] font-medium flex items-center gap-1.5"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#35C7E8]" />
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[var(--m-accent)]" />
                 <span>{pill}</span>
               </div>
             ))}
@@ -99,7 +99,7 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
           icon={<Activity className="w-4 h-4" />}
           badge={
             members ? (
-              <span className="text-[10px] font-mono text-[#6EE7B7] bg-[#22C7A0]/12 px-2 py-0.5 rounded border border-[#22C7A0]/35">
+              <span className="text-[10px] font-mono text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2 py-0.5 rounded border border-[var(--m-ok)]/35">
                 {members} MEMBERS
               </span>
             ) : undefined
@@ -122,19 +122,19 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
               value={tempSpread?.mean ?? firstPoint?.temperature2m}
               unit="°C"
               precision={1}
-              valueClassName="text-xl sm:text-2xl font-bold text-[#FCD34D]"
+              valueClassName="text-xl sm:text-2xl font-bold text-[var(--m-watch)]"
               hint="Mean member trajectory"
             />
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col gap-0.5">
-            <span className="text-[11px] font-medium text-[#8295A8] uppercase tracking-wider">
+            <span className="text-[11px] font-medium text-[var(--m-text-muted)] uppercase tracking-wider">
               24h Temp Spread
             </span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-[#35C7E8] tabular-nums">
+            <span className="text-xl sm:text-2xl font-bold font-mono text-[var(--m-accent)] tabular-nums">
               {tempSpread ? `${tempSpread.min}° – ${tempSpread.max}°C` : '—'}
             </span>
-            <span className="text-[11px] text-[#8295A8]">
+            <span className="text-[11px] text-[var(--m-text-muted)]">
               {tempSpread ? '24h uncertainty envelope' : 'Unavailable'}
             </span>
           </div>
@@ -144,13 +144,13 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
               label="Rain Probability"
               value={firstPoint?.precipitationProbability}
               unit="%"
-              valueClassName="text-xl sm:text-2xl font-bold text-[#6EE7B7]"
+              valueClassName="text-xl sm:text-2xl font-bold text-[var(--m-ok)]"
               hint="Members exceeding 0.1 mm"
             />
           </div>
         </div>
 
-        <p className="text-xs text-[#B5C3D1] leading-relaxed">
+        <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
           GEFS executes multiple concurrent simulations initialized with small atmospheric perturbations. Narrow member convergence signals high confidence; divergence signals chaotic uncertainty.
         </p>
       </DataPanel>
@@ -164,7 +164,7 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
         subtitle="Global deterministic synoptic core"
         icon={<Compass className="w-4 h-4" />}
         badge={
-          <span className="text-[10px] font-mono text-[#6EE7B7] bg-[#22C7A0]/12 px-2 py-0.5 rounded border border-[#22C7A0]/35">
+          <span className="text-[10px] font-mono text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2 py-0.5 rounded border border-[var(--m-ok)]/35">
             GLOBAL 4D-VAR
           </span>
         }
@@ -172,31 +172,31 @@ export const ModelSpecificAnalysis: React.FC<ModelSpecificAnalysisProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="m-panel-inset p-3 flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Spatial Resolution</span>
-          <span className="text-base font-bold font-mono text-[#F3F6FA]">9 km Native Grid</span>
-          <span className="text-[11px] text-[#8295A8]">0.1° / 0.25° Delivery Matrix</span>
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Spatial Resolution</span>
+          <span className="text-base font-bold font-mono text-[var(--m-text-primary)]">9 km Native Grid</span>
+          <span className="text-[11px] text-[var(--m-text-muted)]">0.1° / 0.25° Delivery Matrix</span>
         </div>
 
         <div className="m-panel-inset p-3 flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Forecast Horizon</span>
-          <span className="text-base font-bold font-mono text-[#F3F6FA]">0–360h (15 Days)</span>
-          <span className="text-[11px] text-[#8295A8]">Medium-range evolution</span>
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Forecast Horizon</span>
+          <span className="text-base font-bold font-mono text-[var(--m-text-primary)]">0–360h (15 Days)</span>
+          <span className="text-[11px] text-[var(--m-text-muted)]">Medium-range evolution</span>
         </div>
 
         <div className="m-panel-inset p-3 flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Data Assimilation</span>
-          <span className="text-base font-bold font-mono text-[#35C7E8]">Continuous 4D-Var</span>
-          <span className="text-[11px] text-[#8295A8]">Global satellite radiances</span>
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Data Assimilation</span>
+          <span className="text-base font-bold font-mono text-[var(--m-accent)]">Continuous 4D-Var</span>
+          <span className="text-[11px] text-[var(--m-text-muted)]">Global satellite radiances</span>
         </div>
 
         <div className="m-panel-inset p-3 flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-mono text-[#8295A8]">Synoptic Focus</span>
-          <span className="text-base font-bold font-mono text-[#6EE7B7]">Planetary &amp; Trough</span>
-          <span className="text-[11px] text-[#8295A8]">500 hPa wave &amp; pressure skill</span>
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Synoptic Focus</span>
+          <span className="text-base font-bold font-mono text-[var(--m-ok)]">Planetary &amp; Trough</span>
+          <span className="text-[11px] text-[var(--m-text-muted)]">500 hPa wave &amp; pressure skill</span>
         </div>
       </div>
 
-      <p className="text-xs text-[#B5C3D1] leading-relaxed">
+      <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
         The ECMWF Integrated Forecasting System (IFS) tracks synoptic low-pressure systems, western disturbances, monsoon troughs, and planetary jet streams across medium-range horizons.
       </p>
     </DataPanel>

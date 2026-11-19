@@ -42,13 +42,13 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
 
   const renderChangeCell = (delta: AtmosphericDelta) => {
     if (delta.direction === 'unavailable' || !hasValidComparison) {
-      return <span className="text-[11px] font-mono text-[#8295A8]">—</span>;
+      return <span className="text-[11px] font-mono text-[var(--m-text-muted)]">—</span>;
     }
 
     if (delta.direction === 'stable') {
       return (
-        <div className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-[#B5C3D1] tabular-nums">
-          <Minus className="w-3 h-3 text-[#8295A8]" />
+        <div className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--m-text-secondary)] tabular-nums">
+          <Minus className="w-3 h-3 text-[var(--m-text-muted)]" />
           <span>{delta.displayDiff}</span>
         </div>
       );
@@ -58,12 +58,12 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
     const isWarmOrRain = delta.parameter === 'Temperature' || delta.parameter === 'Rainfall';
     const colorClass =
       delta.severity === 'warning'
-        ? 'text-[#EF4444]'
+        ? 'text-[var(--m-danger)]'
         : delta.severity === 'caution'
-        ? 'text-[#F59E0B]'
+        ? 'text-[var(--m-watch)]'
         : isUp
-        ? (isWarmOrRain ? 'text-[#F59E0B]' : 'text-[#35C7E8]')
-        : (isWarmOrRain ? 'text-[#35C7E8]' : 'text-[#22C7A0]');
+        ? (isWarmOrRain ? 'text-[var(--m-watch)]' : 'text-[var(--m-accent)]')
+        : (isWarmOrRain ? 'text-[var(--m-accent)]' : 'text-[var(--m-ok)]');
 
     return (
       <div className={`inline-flex items-center gap-1 text-[11px] font-mono font-semibold tabular-nums ${colorClass}`}>
@@ -80,28 +80,28 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
   const metricRows = [
     {
       icon: Thermometer,
-      iconColor: 'text-[#F59E0B]',
+      iconColor: 'text-[var(--m-watch)]',
       delta: deltas.temperature,
     },
     {
       icon: Droplets,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       delta: deltas.humidity,
     },
     {
       icon: Wind,
-      iconColor: 'text-[#22C7A0]',
+      iconColor: 'text-[var(--m-ok)]',
       delta: deltas.wind,
     },
     {
       icon: Gauge,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       delta: deltas.pressure,
       extra: deltas.pressure.trendLabel || undefined,
     },
     {
       icon: CloudRain,
-      iconColor: 'text-[#35C7E8]',
+      iconColor: 'text-[var(--m-accent)]',
       delta: deltas.rainfall,
       extra:
         typeof current?.rainfallLast1h === 'number' && Number.isFinite(current.rainfallLast1h)
@@ -129,37 +129,37 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
         <div className="table-wrapper m-panel-inset">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#26394B] text-[10px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <tr className="border-b border-[var(--m-border)] text-[10px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 <th className="py-2 px-3">Parameter</th>
                 <th className="py-2 px-2 text-right">Current</th>
                 <th className="py-2 px-2 text-right hidden sm:table-cell">Previous</th>
                 <th className="py-2 px-3 text-right">Delta</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#26394B]">
+            <tbody className="divide-y divide-[var(--m-border)]">
               {metricRows.map((row) => {
                 const IconComponent = row.icon;
                 const { delta } = row;
 
                 return (
-                  <tr key={delta.parameter} className="hover:bg-[#101F2E]/70 transition-colors">
+                  <tr key={delta.parameter} className="hover:bg-[var(--m-surface-2)]/70 transition-colors">
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2 min-w-0">
                         <IconComponent className={`w-3.5 h-3.5 ${row.iconColor} shrink-0`} />
                         <div className="min-w-0">
-                          <span className="font-medium text-[#F3F6FA] block">{delta.parameter}</span>
+                          <span className="font-medium text-[var(--m-text-primary)] block">{delta.parameter}</span>
                           {row.extra && (
-                            <span className="text-[10px] text-[#8295A8] block font-mono truncate">
+                            <span className="text-[10px] text-[var(--m-text-muted)] block font-mono truncate">
                               {row.extra}
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-[#F3F6FA] tabular-nums">
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
                       {delta.currentVal}
                     </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-[#8295A8] tabular-nums hidden sm:table-cell">
+                    <td className="py-2.5 px-2 text-right font-mono text-[var(--m-text-muted)] tabular-nums hidden sm:table-cell">
                       {hasValidComparison ? delta.previousVal : '—'}
                     </td>
                     <td className="py-2.5 px-3 text-right">
@@ -173,13 +173,13 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
         </div>
 
         {!hasValidComparison && (
-          <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] flex items-start gap-2 text-xs text-[#8295A8]">
-            <Info className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+          <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-start gap-2 text-xs text-[var(--m-text-muted)]">
+            <Info className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
             <div>
-              <span className="text-[#F3F6FA] font-medium block">
+              <span className="text-[var(--m-text-primary)] font-medium block">
                 Baseline recorded for {selectedLocation.city}
               </span>
-              <p className="text-[11px] text-[#8295A8] mt-0.5 leading-snug">
+              <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5 leading-snug">
                 Differentials populate after two distinct observation timestamps are captured for this station.
               </p>
             </div>
@@ -188,12 +188,12 @@ export const HomeAtmosphericChangeDetector: React.FC<HomeAtmosphericChangeDetect
       </div>
 
       {/* Footer / Status Info */}
-      <div className="pt-2.5 border-t border-[#26394B] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8295A8]">
+      <div className="pt-2.5 border-t border-[var(--m-border)] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--m-text-muted)]">
         <div className="flex items-center gap-1.5 truncate max-w-[300px]" title={sourceText}>
-          <Navigation className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+          <Navigation className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
           <span className="truncate">Source: {sourceText}</span>
         </div>
-        <span className="font-mono text-[10px] text-[#8295A8]">Δ = Current − Previous</span>
+        <span className="font-mono text-[10px] text-[var(--m-text-muted)]">Δ = Current − Previous</span>
       </div>
     </DataPanel>
   );

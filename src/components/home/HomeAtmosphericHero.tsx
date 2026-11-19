@@ -15,6 +15,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { DataPanel, SourceStatus, ProvenanceStatus } from '../ui/ObservatoryPrimitives';
+import { MetricValue } from '../common/MetricValue';
+import { getMetricStatus } from '../../types/dataProvenance';
+import { formatLocationTitle } from '../../utils/formatLocation';
 
 interface HomeAtmosphericHeroProps {
   weather: CurrentWeather;
@@ -67,6 +70,9 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
     (isOfficialImd ? 'IMD Ground Station Telemetry' : 'Open-Meteo Numerical Model Feed');
   const shortSourceLabel = isOfficialImd ? 'IMD Station' : weather.dataSource || 'Open-Meteo';
 
+  const isLoading = weather.observationStatus === 'LOADING';
+  const isStale = weather.observationStatus === 'STALE';
+
   const hasTemp = typeof weather.temp === 'number' && Number.isFinite(weather.temp);
   const currentTemp = hasTemp ? Math.round(weather.temp as number) : null;
   const feelsLike =
@@ -94,34 +100,24 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       : typeof weather.rainfall === 'number' && Number.isFinite(weather.rainfall)
       ? weather.rainfall
       : null;
-  const rainfall =
-    precipVal !== null && precipVal > 0
-      ? `${precipVal.toFixed(1)} mm`
-      : typeof weather.precipitationProbability === 'number' && Number.isFinite(weather.precipitationProbability)
-      ? `${Math.round(weather.precipitationProbability)}% prob`
-      : precipVal !== null
-      ? '0.0 mm'
-      : 'Not available';
   const visKm =
     typeof weather.visibilityKm === 'number' && Number.isFinite(weather.visibilityKm)
-      ? weather.visibilityKm
+      ? Number(weather.visibilityKm.toFixed(1))
       : typeof weather.visibility === 'number' && Number.isFinite(weather.visibility)
-      ? weather.visibility / 1000
+      ? Number((weather.visibility / 1000).toFixed(1))
       : null;
-  const visibility = visKm !== null ? `${visKm.toFixed(1)} km` : 'Not available';
 
-  const obsTime = lastUpdated || weather.lastUpdated || null;
+  const obsTime = weather.observedAt || weather.validAt || lastUpdated || weather.lastUpdated || null;
 
-  const provenanceStatus: ProvenanceStatus =
-    weather.observationStatus === 'LOADING'
-      ? 'LOADING'
-      : !hasTemp
-      ? 'UNAVAILABLE'
-      : isOfficialImd
-      ? 'OBSERVED'
-      : weather.observationStatus === 'STALE'
-      ? 'STALE'
-      : 'MODEL_DERIVED';
+  const provenanceStatus: ProvenanceStatus = isLoading
+    ? 'LOADING'
+    : !hasTemp
+    ? 'UNAVAILABLE'
+    : isOfficialImd
+    ? 'OBSERVED'
+    : isStale
+    ? 'STALE'
+    : 'MODEL_DERIVED';
 
   const nearestObs =
     location.weatherStation ||
@@ -132,14 +128,13 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
   const dewPoint =
     typeof weather.dewPoint === 'number' && Number.isFinite(weather.dewPoint)
       ? `${Math.round(weather.dewPoint)}°C`
-      : currentTemp !== null && humidity !== null
-      ? `${Math.round(currentTemp - (100 - humidity) / 5)}°C`
       : null;
 
   const metrics = [
     {
       label: 'FEELS LIKE',
-      value: feelsLike !== null ? `${feelsLike}°C` : 'Not available',
+      raw: feelsLike,
+      unit: '°C',
       sub:
         currentTemp !== null && feelsLike !== null
           ? currentTemp === feelsLike
@@ -147,25 +142,28 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : `${feelsLike > currentTemp ? '+' : ''}${feelsLike - currentTemp}°C apparent delta`
           : 'Apparent temperature',
       icon: Thermometer,
-      color: '#2C7BE5',
+      colorVar: 'var(--m-accent)',
     },
     {
       label: 'HUMIDITY',
-      value: humidity !== null ? `${humidity}%` : 'Not available',
-      sub: dewPoint ? `Dew point ~${dewPoint}` : 'Relative moisture',
+      raw: humidity,
+      unit: '%',
+      sub: dewPoint ? `Dew point ${dewPoint}` : 'Relative moisture',
       icon: Droplets,
-      color: '#2C7BE5',
+      colorVar: 'var(--m-accent)',
     },
     {
       label: 'WIND',
-      value: windSpeed !== null ? `${windSpeed} km/h` : 'Not available',
+      raw: windSpeed,
+      unit: 'km/h',
       sub: windDir && windDir !== '—' ? `${windDir} surface flow` : 'Surface vector',
       icon: Wind,
-      color: '#2E7D5B',
+      colorVar: 'var(--m-ok)',
     },
     {
       label: 'PRESSURE',
-      value: pressure !== null ? `${pressure} hPa` : 'Not available',
+      raw: pressure,
+      unit: 'hPa',
       sub:
         pressure !== null
           ? pressure >= 1013
@@ -173,42 +171,44 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : 'Barometric normal'
           : 'Mean sea level',
       icon: Gauge,
-      color: '#D98A2B',
+      colorVar: 'var(--m-watch)',
     },
     {
       label: 'RAINFALL',
-      value: rainfall,
+      raw: precipVal !== null ? Number(precipVal.toFixed(1)) : null,
+      unit: 'mm',
       sub:
         typeof weather.precipitationProbability === 'number' && Number.isFinite(weather.precipitationProbability)
           ? `${Math.round(weather.precipitationProbability)}% probability`
           : 'Hourly accumulation',
       icon: CloudRain,
-      color: '#1E90B8',
+      colorVar: 'var(--m-accent)',
     },
     {
       label: 'VISIBILITY',
-      value: visibility,
+      raw: visKm,
+      unit: 'km',
       sub: 'Horizontal atmospheric range',
       icon: Eye,
-      color: '#2E7D5B',
+      colorVar: 'var(--m-ok)',
     },
   ];
 
   const verifiedConditionLabel =
     !hasTemp
-      ? weather.observationStatus === 'LOADING'
+      ? isLoading
         ? 'Synchronizing atmospheric feed…'
-        : 'Current condition not available'
+        : 'Current condition not reported by source'
       : weather.condition && weather.condition !== '—'
       ? weather.condition
-      : 'Condition not available';
+      : 'Condition not reported by source';
 
   return (
     <DataPanel id="current-conditions-hero" className="p-4 sm:p-6">
       {/* Header bar with authentic provenance */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[var(--m-border)] pb-3 mb-5">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#2C7BE5]">
+          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[var(--m-accent)]">
             Today&apos;s Atmosphere
           </span>
           <span className="text-[var(--m-text-muted)]">·</span>
@@ -239,8 +239,8 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                     </span>
                   </>
                 ) : (
-                  <span className="text-xl sm:text-2xl font-mono font-semibold text-[var(--m-text-muted)]">
-                    Not available
+                  <span className="text-lg sm:text-xl font-mono font-semibold text-[var(--m-text-muted)]">
+                    {isLoading ? 'Fetching…' : 'Not reported'}
                   </span>
                 )}
               </div>
@@ -250,16 +250,16 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-[#26394B] space-y-1">
-            <div className="text-sm font-semibold text-[#F3F6FA]">
-              {location.city || location.district || location.name}, {location.state}
+          <div className="mt-4 pt-4 border-t border-[var(--m-border)] space-y-1">
+            <div className="text-sm font-semibold text-[var(--m-text-primary)]">
+              {formatLocationTitle(location)}
             </div>
-            <div className="text-xs text-[#B5C3D1] flex items-center gap-1.5">
+            <div className="text-xs text-[var(--m-text-secondary)] flex items-center gap-1.5">
               <span>Reference station:</span>
-              <strong className="text-[#35C7E8] font-medium">{nearestObs}</strong>
+              <strong className="text-[var(--m-accent)] font-medium">{nearestObs}</strong>
             </div>
             {(location.imdStation || location.elevation) && (
-              <div className="text-[11px] text-[#8295A8] font-mono tabular-nums">
+              <div className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
                 {location.imdStation ? `Station ID ${location.imdStation}` : ''}
                 {location.imdStation && location.elevation ? ' · ' : ''}
                 {location.elevation ? `Elev: ${location.elevation}` : ''}
@@ -267,14 +267,14 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             )}
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col gap-2.5">
+          <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex flex-col gap-2.5">
             {onDetectLocation && (
               <button
                 type="button"
                 id="hero-primary-location-cta"
                 onClick={handleDetectLocation}
                 disabled={isLocating}
-                className="w-full min-h-[44px] py-2.5 px-4 rounded-lg bg-[#0B72B9] hover:bg-[#0D82D1] text-white font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed m-focus-ring"
+                className="w-full min-h-[44px] py-2.5 px-4 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed m-focus-ring"
               >
                 {isLocating ? (
                   <>
@@ -299,8 +299,11 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             )}
 
             {locationError && (
-              <div className="flex items-start gap-1.5 text-[11px] text-[#FCA5A5] bg-[#EF4444]/10 border border-[#EF4444]/35 p-2 rounded-lg" role="alert">
-                <AlertCircle className="w-3.5 h-3.5 text-[#EF4444] shrink-0 mt-0.5" aria-hidden="true" />
+              <div
+                className="flex items-start gap-1.5 text-[11px] text-[var(--m-danger)] bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/35 p-2 rounded-lg"
+                role="alert"
+              >
+                <AlertCircle className="w-3.5 h-3.5 text-[var(--m-danger)] shrink-0 mt-0.5" aria-hidden="true" />
                 <span>{locationError}</span>
               </div>
             )}
@@ -310,7 +313,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                 <button
                   type="button"
                   onClick={onExploreMap}
-                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] text-xs font-medium text-center transition-colors cursor-pointer m-focus-ring"
+                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-medium text-center transition-colors cursor-pointer m-focus-ring"
                 >
                   Doppler Radar
                 </button>
@@ -320,10 +323,10 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                   type="button"
                   id="hero-explore-weather-btn"
                   onClick={onExploreWeather}
-                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
+                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
                 >
                   <span>Local Detail</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#8295A8]" aria-hidden="true" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[var(--m-text-muted)]" aria-hidden="true" />
                 </button>
               )}
               {onExploreForecast && (
@@ -331,7 +334,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                   type="button"
                   id="hero-explore-forecast-btn"
                   onClick={onExploreForecast}
-                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] text-xs font-medium text-center transition-colors cursor-pointer m-focus-ring"
+                  className="flex-1 min-h-[40px] py-1.5 px-3 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-medium text-center transition-colors cursor-pointer m-focus-ring"
                 >
                   7-Day Outlook
                 </button>
@@ -344,30 +347,37 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
         <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
           {metrics.map((m) => {
             const Icon = m.icon;
+            const state = getMetricStatus(m.raw, { isLoading, isStale });
             return (
               <div
                 key={m.label}
                 className="m-panel-inset p-3.5 flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between text-[#8295A8] mb-1">
+                <div className="flex items-center justify-between text-[var(--m-text-muted)] mb-1">
                   <span className="text-[10px] font-semibold tracking-wider uppercase">
                     {m.label}
                   </span>
-                  <Icon className="w-3.5 h-3.5" style={{ color: m.color }} />
+                  <Icon className="w-3.5 h-3.5" style={{ color: m.colorVar }} />
                 </div>
 
                 <div className="my-1">
-                  <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-[#F3F6FA]">
-                    {m.value}
-                  </div>
-                  <div className="text-[11px] text-[#8295A8] truncate mt-0.5">
+                  <MetricValue
+                    label={m.label}
+                    value={m.raw}
+                    unit={m.unit}
+                    state={state}
+                    source={shortSourceLabel}
+                    observedAt={obsTime}
+                    className="[&_.metric-value__label]:sr-only [&_.metric-value__reading]:text-xl sm:[&_.metric-value__reading]:text-2xl [&_.metric-value__meta]:hidden"
+                  />
+                  <div className="text-[11px] text-[var(--m-text-muted)] truncate mt-0.5">
                     {m.sub}
                   </div>
                 </div>
 
-                <div className="mt-2 pt-1.5 border-t border-[#26394B] flex items-center justify-between text-[10px] text-[#8295A8] font-mono">
+                <div className="mt-2 pt-1.5 border-t border-[var(--m-border)] flex items-center justify-between text-[10px] text-[var(--m-text-muted)] font-mono">
                   <span className="truncate">{shortSourceLabel}</span>
-                  <span className="text-[#35C7E8] font-medium">{isOfficialImd ? 'OBS' : 'FEED'}</span>
+                  <span className="text-[var(--m-accent)] font-medium">{isOfficialImd ? 'OBS' : 'FEED'}</span>
                 </div>
               </div>
             );
@@ -377,5 +387,6 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
     </DataPanel>
   );
 };
+
 
 

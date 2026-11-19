@@ -23,7 +23,7 @@ export const HomeQuickActionBar: React.FC<HomeQuickActionBarProps> = ({
     <nav
       id="homepage-quick-action-bar"
       aria-label="Mausam Quick Action Bar"
-      className="bg-[#17212B] border border-[#334155] rounded-xl p-2 sm:p-2.5 shadow-md"
+      className="bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-xl p-2 sm:p-2.5 shadow-md"
     >
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {QUICK_ACTIONS.map((item) => {
@@ -37,8 +37,8 @@ export const HomeQuickActionBar: React.FC<HomeQuickActionBarProps> = ({
               onClick={() => onNavigate(item.id)}
               className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer select-none ${
                 isActive
-                  ? 'bg-[#0B72B9] text-white border-[#0B72B9] shadow-md'
-                  : `bg-[#1E2733] text-[#D7DEE8] border-[#334155] ${item.bgHover} hover:text-white`
+                  ? 'bg-[var(--m-accent)] text-white border-[#0B72B9] shadow-md'
+                  : `bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border-[var(--m-border-strong)] ${item.bgHover} hover:text-[var(--m-text-primary)]`
               }`}
             >
               <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : item.color}`} />

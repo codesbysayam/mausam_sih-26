@@ -37,7 +37,7 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
         subtitle="Citizen preparedness protocols by National Disaster Management Authority (NDMA)"
         icon={<ShieldCheck className="w-4 h-4" />}
         badge={
-          <span className="text-[10px] font-mono font-bold text-[#B5C3D1] uppercase tracking-wider bg-[#08131F] px-2 py-0.5 rounded border border-[#26394B]">
+          <span className="text-[10px] font-mono font-bold text-[var(--m-text-secondary)] uppercase tracking-wider bg-[var(--m-surface-inset)] px-2 py-0.5 rounded border border-[var(--m-border)]">
             NDMA Protocol
           </span>
         }
@@ -59,8 +59,8 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
               onClick={() => setSelectedCategory(cat.hazard)}
               className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 isSelected
-                  ? 'bg-[#0B72B9] text-white border-[#35C7E8]'
-                  : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B]'
+                  ? 'bg-[var(--m-accent)] text-white border-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] border-[var(--m-border)]'
               }`}
             >
               {renderHazardIcon(cat.icon, 'w-3.5 h-3.5')}
@@ -70,44 +70,44 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
         })}
       </div>
 
-      <div className="bg-[#08131F] border border-[#26394B] rounded-xl p-4 space-y-4">
-        <div className="pb-3 border-b border-[#26394B] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-[#35C7E8]">
+      <div className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-xl p-4 space-y-4">
+        <div className="pb-3 border-b border-[var(--m-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-[var(--m-accent)]">
             {renderHazardIcon(activeGuidance.icon, 'w-5 h-5')}
-            <h4 className="text-sm sm:text-base font-bold text-[#F3F6FA]">
+            <h4 className="text-sm sm:text-base font-bold text-[var(--m-text-primary)]">
               {activeGuidance.title}
             </h4>
           </div>
-          <span className="text-xs text-[#8295A8]">{activeGuidance.summary}</span>
+          <span className="text-xs text-[var(--m-text-muted)]">{activeGuidance.summary}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#0B1927] border border-[#22C7A0]/35 rounded-lg p-3.5 space-y-2">
-            <div className="text-xs font-mono font-bold text-[#6EE7B7] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="bg-[var(--m-surface-1)] border border-[var(--m-ok)]/35 rounded-lg p-3.5 space-y-2">
+            <div className="text-xs font-mono font-bold text-[var(--m-ok)] uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" />
               <span>Mandatory Actions (DOs)</span>
             </div>
 
-            <ul className="space-y-2 text-xs text-[#B5C3D1]">
+            <ul className="space-y-2 text-xs text-[var(--m-text-secondary)]">
               {activeGuidance.dos.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-[#6EE7B7] font-bold mt-0.5">·</span>
+                  <span className="text-[var(--m-ok)] font-bold mt-0.5">·</span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-[#0B1927] border border-[#EF4444]/35 rounded-lg p-3.5 space-y-2">
-            <div className="text-xs font-mono font-bold text-[#FCA5A5] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="bg-[var(--m-surface-1)] border border-[var(--m-danger)]/35 rounded-lg p-3.5 space-y-2">
+            <div className="text-xs font-mono font-bold text-[var(--m-danger)] uppercase tracking-wider flex items-center gap-1.5">
               <XCircle className="w-4 h-4" />
               <span>Prohibited Actions (DONTs)</span>
             </div>
 
-            <ul className="space-y-2 text-xs text-[#B5C3D1]">
+            <ul className="space-y-2 text-xs text-[var(--m-text-secondary)]">
               {activeGuidance.donts.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-[#FCA5A5] font-bold mt-0.5">·</span>
+                  <span className="text-[var(--m-danger)] font-bold mt-0.5">·</span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
               ))}
@@ -116,8 +116,8 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
         </div>
 
         {activeGuidance.emergencyKitList && activeGuidance.emergencyKitList.length > 0 && (
-          <div className="pt-3 border-t border-[#26394B]">
-            <div className="text-xs font-mono font-bold text-[#FDE047] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="pt-3 border-t border-[var(--m-border)]">
+            <div className="text-xs font-mono font-bold text-[var(--m-watch)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <BriefcaseMedical className="w-4 h-4" />
               <span>Essential Emergency Kit Checklist</span>
             </div>
@@ -126,9 +126,9 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
               {activeGuidance.emergencyKitList.map((kitItem, idx) => (
                 <div
                   key={idx}
-                  className="bg-[#0B1927] border border-[#26394B] rounded-lg px-2.5 py-2 text-[11px] text-[#B5C3D1] flex items-center gap-2"
+                  className="bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg px-2.5 py-2 text-[11px] text-[var(--m-text-secondary)] flex items-center gap-2"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                   <span className="truncate">{kitItem}</span>
                 </div>
               ))}

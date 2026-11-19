@@ -24,7 +24,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#1E2733] card-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(225,230,235,0.12)]"
+        className="bg-[var(--m-surface-2)] card-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(225,230,235,0.12)]"
         style={{ borderColor: alert.color || (isSevere ? '#E74C3C' : '#FFB703') }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -54,11 +54,11 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
                 >
                   {alert.agency}
                 </span>
-                <span className="text-xs text-[#8A94A6] capitalize font-medium">
+                <span className="text-xs text-[var(--m-text-secondary)] capitalize font-medium">
                   {alert.severity} Severity
                 </span>
               </div>
-              <h3 className="font-h3 text-base font-bold text-[#FFFFFF] mt-1.5">
+              <h3 className="font-h3 text-base font-bold text-[var(--m-text-primary)] mt-1.5">
                 {alert.title}
               </h3>
             </div>
@@ -66,30 +66,30 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[#0F141A] card-border flex items-center justify-center text-[#8A94A6] hover:text-white hover:border-[#0B72B9] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] card-border flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[#0B72B9] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
         {/* Timestamps */}
-        <div className="grid grid-cols-2 gap-3 bg-[#0F141A] p-3.5 rounded-xl card-border text-xs">
+        <div className="grid grid-cols-2 gap-3 bg-[var(--m-surface-1)] p-3.5 rounded-xl card-border text-xs">
           <div>
-            <span className="text-[#8A94A6] block text-xs font-medium mb-0.5">Issued Time</span>
-            <span className="font-semibold text-[#FFFFFF]">{alert.issuedAt}</span>
+            <span className="text-[var(--m-text-secondary)] block text-xs font-medium mb-0.5">Issued Time</span>
+            <span className="font-semibold text-[var(--m-text-primary)]">{alert.issuedAt}</span>
           </div>
           <div>
-            <span className="text-[#8A94A6] block text-xs font-medium mb-0.5">Valid Until</span>
+            <span className="text-[var(--m-text-secondary)] block text-xs font-medium mb-0.5">Valid Until</span>
             <span className="font-semibold text-[#4FA8E0]">{alert.validUntil}</span>
           </div>
         </div>
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-[#8A94A6] font-semibold">
+          <span className="text-xs text-[var(--m-text-secondary)] font-semibold">
             Synoptic Meteorological Advisory
           </span>
-          <p className="text-xs text-[#F4F7FA] leading-relaxed bg-[#0F141A] p-4 rounded-xl card-border">
+          <p className="text-xs text-[var(--m-text-primary)] leading-relaxed bg-[var(--m-surface-1)] p-4 rounded-xl card-border">
             {alert.description}
           </p>
         </div>
@@ -97,14 +97,14 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
         {/* Affected Districts */}
         {alert.affectedDistricts && alert.affectedDistricts.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-[#8A94A6] font-semibold">
+            <span className="text-xs text-[var(--m-text-secondary)] font-semibold">
               Affected Districts / Agro-Ecological Zones
             </span>
             <div className="flex flex-wrap gap-1.5">
               {alert.affectedDistricts.map((district, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 rounded-lg bg-[#0F141A] border border-[rgba(225,230,235,0.12)] text-xs text-[#FFFFFF]"
+                  className="px-3 py-1 rounded-lg bg-[var(--m-surface-1)] border border-[rgba(225,230,235,0.12)] text-xs text-[var(--m-text-primary)]"
                 >
                   📍 {district}
                 </span>
@@ -123,7 +123,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
               <span className="text-xs text-[#E74C3C] font-semibold block">
                 Recommended Action Directive
               </span>
-              <p className="text-xs text-[#FFFFFF] mt-1 leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] mt-1 leading-relaxed">
                 {alert.actionItem}
               </p>
             </div>
@@ -138,7 +138,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
                 onDismissAlert(alert.id);
                 onClose();
               }}
-              className="text-xs text-[#8A94A6] hover:text-[#FFFFFF] underline cursor-pointer"
+              className="text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] underline cursor-pointer"
             >
               Acknowledge &amp; Dismiss
             </button>
@@ -162,7 +162,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
                   onClose();
                   if (onNavigateTab) onNavigateTab('radar');
                 }}
-                className="px-4 py-2 rounded-xl bg-[#0B72B9] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">radar</span>
                 <span>Track on Radar</span>

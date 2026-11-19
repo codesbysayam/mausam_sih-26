@@ -25,13 +25,13 @@ function getBadgeConfig(status: GpsStatus) {
   switch (status) {
     case 'GPS ACTIVE':
       return {
-        badgeBg: 'bg-[#064E3B]/80 text-[#34D399] border-[#059669]/50',
+        badgeBg: 'bg-[#064E3B]/80 text-[var(--m-ok)] border-[#059669]/50',
         dotBg: 'bg-[#10B981]',
         animateDot: true,
       };
     case 'REQUESTING LOCATION':
       return {
-        badgeBg: 'bg-[#451A03]/80 text-[#FDBA74] border-[#D97706]/50',
+        badgeBg: 'bg-[#451A03]/80 text-[var(--m-alert)] border-[#D97706]/50',
         dotBg: 'bg-[#F59E0B]',
         animateDot: true,
       };
@@ -43,14 +43,14 @@ function getBadgeConfig(status: GpsStatus) {
       };
     case 'LOCATION UNAVAILABLE':
       return {
-        badgeBg: 'bg-[#1E293B]/80 text-[#94A3B8] border-[#475569]/50',
+        badgeBg: 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border-[#475569]/50',
         dotBg: 'bg-[#64748B]',
         animateDot: false,
       };
     case 'LOCATION DETECTED':
     default:
       return {
-        badgeBg: 'bg-[#0C2D48]/80 text-[#38BDF8] border-[#0284C7]/50',
+        badgeBg: 'bg-[#0C2D48]/80 text-[var(--m-accent)] border-[#0284C7]/50',
         dotBg: 'bg-[#38BDF8]',
         animateDot: false,
       };
@@ -127,13 +127,13 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
   return (
     <div
       id={id}
-      className={`w-full rounded-xl border border-[#1E3852] bg-[#101E2C] px-3.5 py-2.5 sm:px-4 sm:py-2.5 lg:px-5 shadow-xs transition-colors overflow-hidden ${className}`}
+      className={`w-full rounded-xl border border-[var(--m-border-strong)] bg-[var(--m-surface-2)] px-3.5 py-2.5 sm:px-4 sm:py-2.5 lg:px-5 shadow-xs transition-colors overflow-hidden ${className}`}
     >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 min-w-0">
         {/* Left Section: Icon + Structured Information */}
         <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           {/* Location Pin Icon Container */}
-          <div className="w-8 h-8 rounded-lg bg-[#0B3D91]/25 border border-[#1565C0]/40 text-[#38BDF8] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+          <div className="w-8 h-8 rounded-lg bg-[#0B3D91]/25 border border-[#1565C0]/40 text-[var(--m-accent)] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
             <MapPin className="w-4 h-4" />
           </div>
 
@@ -157,7 +157,7 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
               {/* Primary Location Name */}
               <span
                 id="location-primary-name"
-                className="font-bold text-sm sm:text-[15px] text-[#F8FAFC] tracking-tight truncate max-w-[200px] sm:max-w-xs"
+                className="font-bold text-sm sm:text-[15px] text-[var(--m-text-primary)] tracking-tight truncate max-w-[200px] sm:max-w-xs"
               >
                 {placeName}, {state}
               </span>
@@ -167,16 +167,16 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
             <span className="hidden sm:inline text-[#2A435E] select-none">•</span>
 
             {/* Secondary: Nearest Observation Station */}
-            <span className="text-xs text-[#94A3B8] truncate max-w-[220px] sm:max-w-xs lg:max-w-sm xl:max-w-none">
+            <span className="text-xs text-[var(--m-text-muted)] truncate max-w-[220px] sm:max-w-xs lg:max-w-sm xl:max-w-none">
               Nearest Observation:{' '}
-              <strong className="text-[#CBD5E1] font-semibold">{nearestObservation}</strong>
+              <strong className="text-[var(--m-text-secondary)] font-semibold">{nearestObservation}</strong>
             </span>
 
             {/* Separator on large desktop */}
             <span className="hidden xl:inline text-[#2A435E] select-none">•</span>
 
             {/* Small metadata: Coordinates */}
-            <span className="hidden xl:inline font-mono text-[11px] text-[#64748B] shrink-0">
+            <span className="hidden xl:inline font-mono text-[11px] text-[var(--m-text-muted)] shrink-0">
               {coordsFormatted}
             </span>
           </div>
@@ -191,12 +191,12 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
             onClick={handleRefresh}
             disabled={locating}
             title="Refresh current location and weather telemetry"
-            className="h-8 px-3 rounded-lg bg-[#172738] hover:bg-[#1E354F] text-[#38BDF8] border border-[#1E3852] hover:border-[#38BDF8]/40 text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap shrink-0"
+            className="h-8 px-3 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-accent)] border border-[var(--m-border-strong)] hover:border-[var(--m-accent)]/40 text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap shrink-0"
           >
             {locating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#38BDF8]" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--m-accent)]" />
             ) : (
-              <RefreshCw className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <RefreshCw className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             )}
             <span>Refresh</span>
           </button>
@@ -206,7 +206,7 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
             type="button"
             id="btn-location-change"
             onClick={handleChangeLocation}
-            className="h-8 px-3 rounded-lg bg-[#0B3D91] hover:bg-[#1565C0] text-white border border-[#1565C0] hover:border-[#38BDF8] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0"
+            className="h-8 px-3 rounded-lg bg-[#0B3D91] hover:bg-[#1565C0] text-white border border-[#1565C0] hover:border-[var(--m-accent)] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             title="Search or select a different observation location"
           >
             <Search className="w-3.5 h-3.5" />

@@ -44,7 +44,7 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
   return (
     <header
       id="agromet-intelligence-hero"
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B131D] via-[#080E16] to-[#04080D] border border-[#1E2E40] shadow-2xl p-6 sm:p-8 lg:p-10"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--m-surface-inset)] via-[var(--m-surface-inset)] to-[var(--m-surface-inset)] border border-[var(--m-border)] shadow-2xl p-6 sm:p-8 lg:p-10"
     >
       {/* Background Subtle Coordinate & Field Grid SVG */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -70,16 +70,16 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
         <div className="lg:col-span-7 space-y-5">
           {/* Top Label & Protocol Tag */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-xs font-mono font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--m-ok-soft)] border border-[#10B981]/30 text-[var(--m-ok)] text-xs font-mono font-bold uppercase tracking-wider">
               <Sprout className="w-3.5 h-3.5" />
               <span>Agromet Intelligence</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/10 border border-[#38BDF8]/25 text-[#38BDF8] text-xs font-mono">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/25 text-[var(--m-accent)] text-xs font-mono">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>GKMS • IMD • ICAR</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1E2E40]/60 text-[#94A3B8] text-[11px] font-mono">
-              <Clock className="w-3 h-3 text-[#38BDF8]" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--m-surface-2)] text-[var(--m-text-muted)] text-[11px] font-mono">
+              <Clock className="w-3 h-3 text-[var(--m-accent)]" />
               <span>Cycle: August 2026</span>
             </div>
           </div>
@@ -92,33 +92,33 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
                 Decision Intelligence
               </span>
             </h1>
-            <p className="text-sm sm:text-base text-[#94A3B8] font-medium leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base text-[var(--m-text-muted)] font-medium leading-relaxed max-w-xl">
               Turn real-time atmospheric telemetry, soil hydrology, and numerical weather models into timely, actionable field decisions.
             </p>
           </div>
 
           {/* Location & AMFU Node Card */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#0F1926]/90 border border-[#1E2E40] shadow-inner space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#1E2E40]">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] shadow-inner space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--m-border)]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#38BDF8]/15 border border-[#38BDF8]/30 flex items-center justify-center text-[#38BDF8]">
+                <div className="w-8 h-8 rounded-xl bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)]">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
                   <h2 className="text-base sm:text-lg font-bold text-white leading-tight">
                     {selectedDistrict}, {selectedState}
                   </h2>
-                  <span className="text-xs font-mono text-[#38BDF8]">
+                  <span className="text-xs font-mono text-[var(--m-accent)]">
                     {bulletin.amfuUnit || `AMFU ${selectedDistrict} • State Agricultural University`}
                   </span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
+                <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">
                   Bulletin Reference
                 </span>
-                <span className="text-xs font-mono font-bold text-[#E2E8F0]">
+                <span className="text-xs font-mono font-bold text-[var(--m-text-primary)]">
                   {bulletin.bulletinNo || 'IMD/GKMS/2026/68'}
                 </span>
               </div>
@@ -126,29 +126,29 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
 
             {/* Micro Flow: Weather -> Soil -> Crop -> Risk -> Action */}
             <div className="pt-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-text-muted)] block mb-2">
                 Integrated Agronomic Decision Architecture
               </span>
               <div className="grid grid-cols-5 gap-1.5 text-center font-mono">
-                <div className="p-1.5 rounded-lg bg-[#38BDF8]/10 border border-[#38BDF8]/20">
-                  <span className="text-[10px] font-bold text-[#38BDF8] block">WEATHER</span>
-                  <span className="text-[9px] text-[#94A3B8]">31°C / Rain</span>
+                <div className="p-1.5 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/20">
+                  <span className="text-[10px] font-bold text-[var(--m-accent)] block">WEATHER</span>
+                  <span className="text-[9px] text-[var(--m-text-muted)]">31°C / Rain</span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/20">
-                  <span className="text-[10px] font-bold text-[#10B981] block">SOIL</span>
-                  <span className="text-[9px] text-[#94A3B8]">{topsoil}% Moist</span>
+                <div className="p-1.5 rounded-lg bg-[var(--m-ok-soft)] border border-[#10B981]/20">
+                  <span className="text-[10px] font-bold text-[var(--m-ok)] block">SOIL</span>
+                  <span className="text-[9px] text-[var(--m-text-muted)]">{topsoil}% Moist</span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20">
-                  <span className="text-[10px] font-bold text-[#F59E0B] block">CROP</span>
-                  <span className="text-[9px] text-[#94A3B8] truncate">{selectedCropName.split(' ')[0]}</span>
+                <div className="p-1.5 rounded-lg bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/20">
+                  <span className="text-[10px] font-bold text-[var(--m-watch)] block">CROP</span>
+                  <span className="text-[9px] text-[var(--m-text-muted)] truncate">{selectedCropName.split(' ')[0]}</span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20">
-                  <span className="text-[10px] font-bold text-[#EF4444] block">RISK</span>
-                  <span className="text-[9px] text-[#94A3B8]">Foliar Blast</span>
+                <div className="p-1.5 rounded-lg bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/20">
+                  <span className="text-[10px] font-bold text-[var(--m-danger)] block">RISK</span>
+                  <span className="text-[9px] text-[var(--m-text-muted)]">Foliar Blast</span>
                 </div>
                 <div className="p-1.5 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
                   <span className="text-[10px] font-bold text-[#A78BFA] block">ACTION</span>
-                  <span className="text-[9px] text-[#94A3B8]">Delay Water</span>
+                  <span className="text-[9px] text-[var(--m-text-muted)]">Delay Water</span>
                 </div>
               </div>
             </div>
@@ -157,16 +157,16 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
 
         {/* RIGHT COLUMN: Environmental, Crop Canopy & Multi-Tier Soil Profile Visualization */}
         <div className="lg:col-span-5">
-          <div className="relative rounded-2xl bg-[#09101A] border border-[#1E2E40] p-5 shadow-xl overflow-hidden space-y-4">
+          <div className="relative rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-5 shadow-xl overflow-hidden space-y-4">
             {/* Header / Field State summary */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#10B981]" />
+                <Layers className="w-4 h-4 text-[var(--m-ok)]" />
                 <span className="text-xs font-mono font-bold text-white">
                   Field Environment Cross-Section
                 </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--m-ok-soft)] text-[var(--m-ok)] border border-[#10B981]/30">
                 Live Sensor Feed
               </span>
             </div>
@@ -174,19 +174,19 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
             {/* Visual Cross-Section Graphic */}
             <div className="space-y-3">
               {/* Atmospheric Canopy Layer */}
-              <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#38BDF8]/10 to-[#10B981]/5 border border-[#38BDF8]/20">
+              <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#38BDF8]/10 to-[#10B981]/5 border border-[var(--m-accent)]/20">
                 <div className="flex items-center justify-between text-xs mb-2">
-                  <div className="flex items-center gap-1.5 text-[#38BDF8] font-mono font-bold">
+                  <div className="flex items-center gap-1.5 text-[var(--m-accent)] font-mono font-bold">
                     <Sun className="w-3.5 h-3.5" />
                     <span>Atmospheric Boundary Layer</span>
                   </div>
-                  <span className="text-[11px] font-mono text-[#E2E8F0]">
+                  <span className="text-[11px] font-mono text-[var(--m-text-primary)]">
                     Max 31.4°C • RH 78%
                   </span>
                 </div>
 
                 {/* SVG Silhouette of Clouds, Light Showers, Crop Heads */}
-                <div className="h-16 w-full relative overflow-hidden rounded-lg bg-[#071018]/80 border border-[#1E2E40] flex items-end justify-between px-3 pb-1">
+                <div className="h-16 w-full relative overflow-hidden rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-end justify-between px-3 pb-1">
                   {/* Rain drops simulation vector */}
                   <div className="absolute inset-0 flex justify-around opacity-40">
                     <div className="w-0.5 h-3 bg-[#38BDF8] animate-pulse self-start mt-2"></div>
@@ -207,7 +207,7 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
                       </div>
                     ))}
                   </div>
-                  <span className="absolute bottom-1 right-2 text-[9px] font-mono text-[#64748B]">
+                  <span className="absolute bottom-1 right-2 text-[9px] font-mono text-[var(--m-text-muted)]">
                     Active Growth Stage: Tillering
                   </span>
                 </div>
@@ -215,58 +215,58 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
 
               {/* Multi-Tier Soil Horizon Profile */}
               <div className="space-y-2">
-                <span className="text-[11px] font-mono font-bold text-[#94A3B8] flex items-center gap-1.5">
-                  <Droplets className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span className="text-[11px] font-mono font-bold text-[var(--m-text-muted)] flex items-center gap-1.5">
+                  <Droplets className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                   <span>Soil Hydrology Profile</span>
                 </span>
 
                 {/* Layer 1: Topsoil (0-15 cm) */}
-                <div className="p-2.5 rounded-xl bg-[#131D28] border border-[#1E2E40] flex items-center justify-between text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-between text-xs font-mono">
                   <div>
                     <span className="text-white font-bold block">Topsoil (0–15 cm)</span>
-                    <span className="text-[10px] text-[#64748B]">Seedbed &amp; Active Tiller Zone</span>
+                    <span className="text-[10px] text-[var(--m-text-muted)]">Seedbed &amp; Active Tiller Zone</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-black text-[#10B981]">{topsoil}%</span>
+                    <span className="text-sm font-black text-[var(--m-ok)]">{topsoil}%</span>
                     <span className="text-[9px] text-[#2ECC71] block">Adequate Moisture</span>
                   </div>
                 </div>
 
                 {/* Layer 2: Root-Zone (15-45 cm) */}
-                <div className="p-2.5 rounded-xl bg-[#111923] border border-[#1E2E40] flex items-center justify-between text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-between text-xs font-mono">
                   <div>
                     <span className="text-white font-bold block">Root-Zone (15–45 cm)</span>
-                    <span className="text-[10px] text-[#64748B]">Primary Water Uptake Zone</span>
+                    <span className="text-[10px] text-[var(--m-text-muted)]">Primary Water Uptake Zone</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-black text-[#38BDF8]">{rootZone}%</span>
-                    <span className="text-[9px] text-[#38BDF8] block">Optimal Capacity</span>
+                    <span className="text-sm font-black text-[var(--m-accent)]">{rootZone}%</span>
+                    <span className="text-[9px] text-[var(--m-accent)] block">Optimal Capacity</span>
                   </div>
                 </div>
 
                 {/* Layer 3: Subsoil (45-100 cm) */}
-                <div className="p-2.5 rounded-xl bg-[#0D141C] border border-[#1E2E40] flex items-center justify-between text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-between text-xs font-mono">
                   <div>
                     <span className="text-white font-bold block">Deep Subsoil (45–100 cm)</span>
-                    <span className="text-[10px] text-[#64748B]">Water Table &amp; Base Recharge</span>
+                    <span className="text-[10px] text-[var(--m-text-muted)]">Water Table &amp; Base Recharge</span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-black text-[#A78BFA]">{subsoil}%</span>
-                    <span className="text-[9px] text-[#94A3B8] block">Perched Reservoir</span>
+                    <span className="text-[9px] text-[var(--m-text-muted)] block">Perched Reservoir</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Quick Micro Stat Bar */}
-            <div className="pt-2 border-t border-[#1E2E40] grid grid-cols-2 gap-2 text-center text-[10px] font-mono">
-              <div className="p-1.5 rounded-lg bg-[#0F1722] border border-[#1E2E40]">
-                <span className="text-[#64748B] block">5-Day Expected Rain</span>
-                <span className="text-xs font-bold text-[#38BDF8]">{cumulativeRain} mm</span>
+            <div className="pt-2 border-t border-[var(--m-border)] grid grid-cols-2 gap-2 text-center text-[10px] font-mono">
+              <div className="p-1.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+                <span className="text-[var(--m-text-muted)] block">5-Day Expected Rain</span>
+                <span className="text-xs font-bold text-[var(--m-accent)]">{cumulativeRain} mm</span>
               </div>
-              <div className="p-1.5 rounded-lg bg-[#0F1722] border border-[#1E2E40]">
-                <span className="text-[#64748B] block">Daily ET₀ Loss</span>
-                <span className="text-xs font-bold text-[#10B981]">4.2 mm/day</span>
+              <div className="p-1.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+                <span className="text-[var(--m-text-muted)] block">Daily ET₀ Loss</span>
+                <span className="text-xs font-bold text-[var(--m-ok)]">4.2 mm/day</span>
               </div>
             </div>
           </div>

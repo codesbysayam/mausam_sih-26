@@ -179,7 +179,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
         icon={<Clock className="w-4 h-4" />}
         action={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-[#08131F] p-0.5 rounded-lg border border-[#26394B] text-xs">
+            <div className="flex items-center bg-[var(--m-surface-inset)] p-0.5 rounded-lg border border-[var(--m-border)] text-xs">
               {(['temp', 'rain', 'wind', 'humidity'] as ChartMetric[]).map((m) => (
                 <button
                   key={m}
@@ -187,8 +187,8 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                   onClick={() => setActiveMetric(m)}
                   className={`px-2.5 py-1 rounded-md transition-colors text-[11px] font-semibold cursor-pointer ${
                     activeMetric === m
-                      ? 'bg-[#0B72B9] text-[#F3F6FA]'
-                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]'
+                      : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   {m === 'temp' ? 'Temp' : m === 'rain' ? 'Rain %' : m === 'wind' ? 'Wind' : 'Humidity'}
@@ -199,7 +199,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
             <button
               type="button"
               onClick={() => setShowChart(!showChart)}
-              className="px-2.5 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-[11px] text-[#35C7E8] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded-lg text-[11px] text-[var(--m-accent)] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <ChartIcon className="w-3.5 h-3.5" />
               <span>{showChart ? 'Hide Trend' : 'Show Trend'}</span>
@@ -208,7 +208,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
             <button
               type="button"
               onClick={() => setShowTable(!showTable)}
-              className="px-2.5 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-[11px] text-[#35C7E8] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded-lg text-[11px] text-[var(--m-accent)] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <Table className="w-3.5 h-3.5" />
               <span>{showTable ? 'Hide Table' : 'Expand Table'}</span>
@@ -221,60 +221,60 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       {/* Highlights Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#FCA5A5] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/30 text-[var(--m-danger)] flex items-center justify-center shrink-0">
             <Flame className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Peak Temp</div>
-            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+            <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Peak Temp</div>
+            <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
               {highlights.maxTemp ? `${highlights.maxTemp.val}°C (${highlights.maxTemp.time})` : '—'}
             </div>
           </div>
         </div>
 
         <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#35C7E8]/12 border border-[#35C7E8]/30 text-[#35C7E8] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 text-[var(--m-accent)] flex items-center justify-center shrink-0">
             <Thermometer className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Lowest Temp</div>
-            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+            <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Lowest Temp</div>
+            <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
               {highlights.minTemp ? `${highlights.minTemp.val}°C (${highlights.minTemp.time})` : '—'}
             </div>
           </div>
         </div>
 
         <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#0B72B9]/15 border border-[#0B72B9]/35 text-[#7DD3FC] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-accent-soft)] border border-[#0B72B9]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
             <CloudRain className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Max Rain Prob</div>
-            <div className="text-xs font-bold text-[#35C7E8] font-mono tabular-nums truncate">
+            <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Max Rain Prob</div>
+            <div className="text-xs font-bold text-[var(--m-accent)] font-mono tabular-nums truncate">
               {highlights.maxRain ? `${highlights.maxRain.val}% (${highlights.maxRain.time})` : '—'}
             </div>
           </div>
         </div>
 
         <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/30 text-[var(--m-ok)] flex items-center justify-center shrink-0">
             <Wind className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Peak Wind</div>
-            <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+            <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Peak Wind</div>
+            <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
               {highlights.maxWind ? `${highlights.maxWind.val} km/h (${highlights.maxWind.time})` : '—'}
             </div>
           </div>
         </div>
 
         <div className="col-span-2 sm:col-span-1 m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#F59E0B]/12 border border-[#F59E0B]/30 text-[#FCD34D] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/30 text-[var(--m-watch)] flex items-center justify-center shrink-0">
             <Droplets className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Rain Window</div>
-            <div className="text-xs font-semibold text-[#FCD34D] truncate" title={highlights.rainPeriod}>
+            <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Rain Window</div>
+            <div className="text-xs font-semibold text-[var(--m-watch)] truncate" title={highlights.rainPeriod}>
               {highlights.rainPeriod}
             </div>
           </div>
@@ -307,21 +307,21 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 id={`hourly-card-${idx}`}
                 className={`p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-colors min-w-[112px] w-[116px] ${
                   item.isNow
-                    ? 'bg-[#101F2E] border-[#35C7E8]'
-                    : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
+                    ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)]'
+                    : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
                 }`}
               >
-                <div className="w-full pb-1.5 border-b border-[#26394B]/60 flex flex-col items-center">
-                  <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums">
+                <div className="w-full pb-1.5 border-b border-[var(--m-border)]/60 flex flex-col items-center">
+                  <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums">
                     {item.time}
                   </div>
                   <span
                     className={`text-[9px] font-mono font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded mt-0.5 ${
                       item.isNow
-                        ? 'bg-[#0B72B9] text-[#F3F6FA]'
+                        ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]'
                         : phase === 'Observed'
-                        ? 'bg-[#0B1927] text-[#8295A8]'
-                        : 'bg-[#0B1927] text-[#35C7E8]'
+                        ? 'bg-[var(--m-surface-1)] text-[var(--m-text-muted)]'
+                        : 'bg-[var(--m-surface-1)] text-[var(--m-accent)]'
                     }`}
                   >
                     {phase}
@@ -329,38 +329,38 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 </div>
 
                 <div className="my-2 flex flex-col items-center">
-                  <div className="p-2 rounded-lg bg-[#0B1927] border border-[#26394B] mb-1.5">
+                  <div className="p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] mb-1.5">
                     <IconComponent className={`w-5 h-5 ${visual.iconColor}`} />
                   </div>
-                  <div className="text-base font-bold text-[#F3F6FA] font-mono tabular-nums leading-none">
+                  <div className="text-base font-bold text-[var(--m-text-primary)] font-mono tabular-nums leading-none">
                     {tempVal !== null ? `${tempVal}°` : '—'}
                   </div>
-                  <div className="text-[10px] text-[#8295A8] font-mono tabular-nums mt-0.5">
+                  <div className="text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums mt-0.5">
                     {feelsLikeVal !== null ? `Feels ${feelsLikeVal}°` : 'Feels —'}
                   </div>
-                  <span className="text-[10px] text-[#B5C3D1] truncate max-w-[96px] mt-1">
+                  <span className="text-[10px] text-[var(--m-text-secondary)] truncate max-w-[96px] mt-1">
                     {item.condition || '—'}
                   </span>
                 </div>
 
-                <div className="w-full pt-1.5 border-t border-[#26394B]/60 flex flex-col gap-1 text-[10px] text-[#8295A8] font-mono tabular-nums">
+                <div className="w-full pt-1.5 border-t border-[var(--m-border)]/60 flex flex-col gap-1 text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-0.5 font-sans">
-                      <Droplets className="w-2.5 h-2.5 text-[#35C7E8]" />
+                      <Droplets className="w-2.5 h-2.5 text-[var(--m-accent)]" />
                       Rain
                     </span>
-                    <strong className="text-[#35C7E8]">{rainProb !== null ? `${rainProb}%` : '—'}</strong>
+                    <strong className="text-[var(--m-accent)]">{rainProb !== null ? `${rainProb}%` : '—'}</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-0.5 font-sans">
-                      <Wind className="w-2.5 h-2.5 text-[#22C7A0]" />
+                      <Wind className="w-2.5 h-2.5 text-[var(--m-ok)]" />
                       Wind
                     </span>
-                    <strong className="text-[#F3F6FA]">{windSpd !== null ? `${windSpd}k` : '—'}</strong>
+                    <strong className="text-[var(--m-text-primary)]">{windSpd !== null ? `${windSpd}k` : '—'}</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-sans">RH</span>
-                    <strong className="text-[#B5C3D1]">{rh !== null ? `${rh}%` : '—'}</strong>
+                    <strong className="text-[var(--m-text-secondary)]">{rh !== null ? `${rh}%` : '—'}</strong>
                   </div>
                 </div>
               </div>
@@ -372,9 +372,9 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       {/* Trend Curve */}
       {showChart && chartData.length > 0 && (
         <div id="hourly-trend-chart-panel" className="m-panel-inset p-4">
-          <div className="flex items-center justify-between text-xs text-[#8295A8] mb-2">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#F3F6FA] flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <div className="flex items-center justify-between text-xs text-[var(--m-text-muted)] mb-2">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[var(--m-text-primary)] flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               {currentConf.label} Curve ({currentConf.unit})
             </span>
             <span className="font-mono text-[10px]">24-Hour Continuous Trace</span>
@@ -429,17 +429,17 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       {/* Detailed Numerical Table */}
       {showTable && (
         <div id="hourly-detailed-table-container" className="m-panel-inset p-3 overflow-x-auto">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#26394B] text-xs">
-            <span className="font-bold text-[#F3F6FA] uppercase text-[11px] flex items-center gap-1.5">
-              <Table className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--m-border)] text-xs">
+            <span className="font-bold text-[var(--m-text-primary)] uppercase text-[11px] flex items-center gap-1.5">
+              <Table className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               24-Hour Numerical Schedule
             </span>
-            <span className="text-[10px] text-[#8295A8]">Direct upstream model &amp; observation rows</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">Direct upstream model &amp; observation rows</span>
           </div>
 
           <table className="w-full text-left text-xs font-mono tabular-nums border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#26394B] text-[10px] text-[#8295A8] uppercase tracking-wider bg-[#0B1927]">
+              <tr className="border-b border-[var(--m-border)] text-[10px] text-[var(--m-text-muted)] uppercase tracking-wider bg-[var(--m-surface-1)]">
                 <th className="py-2 px-2.5">Time</th>
                 <th className="py-2 px-2">Phase</th>
                 <th className="py-2 px-2">Condition</th>
@@ -453,7 +453,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 <th className="py-2 px-2">Cloud</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#26394B]/60 text-[#B5C3D1]">
+            <tbody className="divide-y divide-[var(--m-border-strong)] text-[var(--m-text-secondary)]">
               {displayItems.map((item, idx) => {
                 const phase = getHourPhase(idx, item.isNow);
                 const tempVal = isFiniteNum(item.temp) ? `${Math.round(item.temp)}°C` : '—';
@@ -474,20 +474,20 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 return (
                   <tr
                     key={idx}
-                    className={`hover:bg-[#101F2E] transition-colors ${
-                      item.isNow ? 'bg-[#0B72B9]/12 font-semibold text-[#F3F6FA]' : ''
+                    className={`hover:bg-[var(--m-surface-2)] transition-colors ${
+                      item.isNow ? 'bg-[var(--m-accent-soft)] font-semibold text-[var(--m-text-primary)]' : ''
                     }`}
                   >
-                    <td className="py-2 px-2.5 font-bold text-[#F3F6FA]">{item.time}</td>
+                    <td className="py-2 px-2.5 font-bold text-[var(--m-text-primary)]">{item.time}</td>
                     <td className="py-2 px-2">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B1927] border border-[#26394B] text-[#7DD3FC]">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-accent)]">
                         {phase}
                       </span>
                     </td>
-                    <td className="py-2 px-2 font-sans text-[11px] text-[#F3F6FA]">{item.condition || '—'}</td>
-                    <td className="py-2 px-2 font-bold text-[#F3F6FA]">{tempVal}</td>
+                    <td className="py-2 px-2 font-sans text-[11px] text-[var(--m-text-primary)]">{item.condition || '—'}</td>
+                    <td className="py-2 px-2 font-bold text-[var(--m-text-primary)]">{tempVal}</td>
                     <td className="py-2 px-2">{feelsVal}</td>
-                    <td className="py-2 px-2 text-[#35C7E8] font-semibold">{rainProb}</td>
+                    <td className="py-2 px-2 text-[var(--m-accent)] font-semibold">{rainProb}</td>
                     <td className="py-2 px-2">{precipMm}</td>
                     <td className="py-2 px-2">{wind}</td>
                     <td className="py-2 px-2">{rh}</td>

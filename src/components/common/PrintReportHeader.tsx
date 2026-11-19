@@ -59,7 +59,7 @@ export const PrintReportHeader: React.FC<PrintReportHeaderProps> = ({
           <div>
             <strong className="text-[#0F172A]">Station ID:</strong> {location.id || location.imdStation || 'AWS-IND-01'}
           </div>
-          <div className="text-[8pt] text-[#64748B] mt-1 pt-1 border-t border-[#E2E8F0]">
+          <div className="text-[8pt] text-[var(--m-text-muted)] mt-1 pt-1 border-t border-[#E2E8F0]">
             Generated: {formattedDate} IST
           </div>
         </div>

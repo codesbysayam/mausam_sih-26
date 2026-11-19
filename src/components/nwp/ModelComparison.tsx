@@ -103,7 +103,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
           subtitle="Side-by-side evaluation of WRF (Regional), GEFS (Ensemble), and ECMWF (Global)"
           icon={<GitCompare className="w-4 h-4" />}
           action={
-            <div className="flex items-center gap-1 bg-[#08131F] p-1 rounded-lg border border-[#26394B] text-xs font-mono">
+            <div className="flex items-center gap-1 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)] text-xs font-mono">
               {comparisonHours.map((opt) => (
                 <button
                   key={opt.lead}
@@ -111,8 +111,8 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
                   onClick={() => setSelectedLeadHour(opt.lead)}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                     selectedLeadHour === opt.lead
-                      ? 'bg-[#0B72B9] text-white font-semibold'
-                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      ? 'bg-[var(--m-accent)] text-white font-semibold'
+                      : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   {opt.label}
@@ -122,9 +122,9 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
           }
         />
 
-        <div className="w-full overflow-x-auto rounded-xl border border-[#26394B] bg-[#08131F] no-scrollbar">
+        <div className="w-full overflow-x-auto rounded-xl border border-[var(--m-border)] bg-[var(--m-surface-inset)] no-scrollbar">
           <table className="w-full text-left text-xs border-collapse font-mono tabular-nums">
-            <thead className="bg-[#0B1927] text-[10px] uppercase tracking-wider text-[#8295A8] border-b border-[#26394B]">
+            <thead className="bg-[var(--m-surface-1)] text-[10px] uppercase tracking-wider text-[var(--m-text-muted)] border-b border-[var(--m-border)]">
               <tr>
                 <th className="py-2.5 px-4">Parameter</th>
                 <th className="py-2.5 px-4 text-center">WRF (Regional)</th>
@@ -133,49 +133,49 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#26394B]/60 text-[#B5C3D1]">
-              <tr className="hover:bg-[#172A3B]/50 transition-colors">
-                <td className="py-3 px-4 font-semibold text-[#F3F6FA]">Temperature</td>
-                <td className="py-3 px-4 text-center font-bold text-[#8295A8]">
+            <tbody className="divide-y divide-[var(--m-border-strong)] text-[var(--m-text-secondary)]">
+              <tr className="hover:bg-[var(--m-surface-3)]/50 transition-colors">
+                <td className="py-3 px-4 font-semibold text-[var(--m-text-primary)]">Temperature</td>
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-text-muted)]">
                   {currentRow?.wrf?.temperature2m !== undefined ? `${currentRow.wrf.temperature2m}°C` : '—'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#FCD34D]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-watch)]">
                   {currentRow?.gefs?.temperature2m !== undefined ? `${currentRow.gefs.temperature2m}°C` : 'Unavailable'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#FCD34D]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-watch)]">
                   {currentRow?.ecmwf?.temperature2m !== undefined ? `${currentRow.ecmwf.temperature2m}°C` : 'Unavailable'}
                 </td>
               </tr>
 
-              <tr className="hover:bg-[#172A3B]/50 transition-colors">
-                <td className="py-3 px-4 font-semibold text-[#F3F6FA]">Rainfall</td>
-                <td className="py-3 px-4 text-center font-bold text-[#8295A8]">
+              <tr className="hover:bg-[var(--m-surface-3)]/50 transition-colors">
+                <td className="py-3 px-4 font-semibold text-[var(--m-text-primary)]">Rainfall</td>
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-text-muted)]">
                   {currentRow?.wrf?.precipitation !== undefined ? `${currentRow.wrf.precipitation} mm` : '—'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#6EE7B7]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-ok)]">
                   {currentRow?.gefs?.precipitation !== undefined ? `${currentRow.gefs.precipitation} mm` : 'Unavailable'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#6EE7B7]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-ok)]">
                   {currentRow?.ecmwf?.precipitation !== undefined ? `${currentRow.ecmwf.precipitation} mm` : 'Unavailable'}
                 </td>
               </tr>
 
-              <tr className="hover:bg-[#172A3B]/50 transition-colors">
-                <td className="py-3 px-4 font-semibold text-[#F3F6FA]">Wind (10m)</td>
-                <td className="py-3 px-4 text-center font-bold text-[#8295A8]">
+              <tr className="hover:bg-[var(--m-surface-3)]/50 transition-colors">
+                <td className="py-3 px-4 font-semibold text-[var(--m-text-primary)]">Wind (10m)</td>
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-text-muted)]">
                   {currentRow?.wrf?.windSpeed10m !== undefined ? `${currentRow.wrf.windSpeed10m} km/h` : '—'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#35C7E8]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-accent)]">
                   {currentRow?.gefs?.windSpeed10m !== undefined ? `${currentRow.gefs.windSpeed10m} km/h` : 'Unavailable'}
                 </td>
-                <td className="py-3 px-4 text-center font-bold text-[#35C7E8]">
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-accent)]">
                   {currentRow?.ecmwf?.windSpeed10m !== undefined ? `${currentRow.ecmwf.windSpeed10m} km/h` : 'Unavailable'}
                 </td>
               </tr>
 
-              <tr className="hover:bg-[#172A3B]/50 transition-colors">
-                <td className="py-3 px-4 font-semibold text-[#F3F6FA]">Pressure (MSL)</td>
-                <td className="py-3 px-4 text-center font-bold text-[#8295A8]">
+              <tr className="hover:bg-[var(--m-surface-3)]/50 transition-colors">
+                <td className="py-3 px-4 font-semibold text-[var(--m-text-primary)]">Pressure (MSL)</td>
+                <td className="py-3 px-4 text-center font-bold text-[var(--m-text-muted)]">
                   {currentRow?.wrf?.pressureMSL !== undefined ? `${currentRow.wrf.pressureMSL} hPa` : '—'}
                 </td>
                 <td className="py-3 px-4 text-center font-bold text-[#C4B5FD]">
@@ -203,12 +203,12 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
               agreements.map((ag) => {
                 const badgeClass =
                   ag.level === 'HIGH'
-                    ? 'bg-[#22C7A0]/12 border-[#22C7A0]/35 text-[#6EE7B7]'
+                    ? 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35 text-[var(--m-ok)]'
                     : ag.level === 'MODERATE'
-                    ? 'bg-[#F59E0B]/12 border-[#F59E0B]/35 text-[#FCD34D]'
+                    ? 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35 text-[var(--m-watch)]'
                     : ag.level === 'LOW'
-                    ? 'bg-[#EF4444]/12 border-[#EF4444]/35 text-[#FCA5A5]'
-                    : 'bg-[#8295A8]/12 border-[#38536A] text-[#B5C3D1]';
+                    ? 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35 text-[var(--m-danger)]'
+                    : 'bg-[#8295A8]/12 border-[var(--m-border-strong)] text-[var(--m-text-secondary)]';
 
                 return (
                   <div
@@ -216,8 +216,8 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
                     className="m-panel-inset p-3 flex items-center justify-between gap-3"
                   >
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-[#F3F6FA]">{ag.variable}</span>
-                      <span className="text-[11px] text-[#8295A8] font-mono tabular-nums">
+                      <span className="text-xs font-bold text-[var(--m-text-primary)]">{ag.variable}</span>
+                      <span className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
                         {ag.spread !== null
                           ? `Spread: ${ag.spread} ${ag.variable === 'Temperature' ? '°C' : ag.variable === 'Rainfall' ? 'mm' : 'km/h'} (${ag.availableModels.join(' vs ')})`
                           : `Single model only (${ag.availableModels.join(', ') || 'None'})`}
@@ -238,7 +238,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
             )}
           </div>
 
-          <p className="text-[11px] text-[#8295A8]">
+          <p className="text-[11px] text-[var(--m-text-muted)]">
             Agreement requires at least two active models reporting valid output at the chosen lead hour.
           </p>
         </DataPanel>
@@ -253,21 +253,21 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
           {tempSpread ? (
             <div className="flex flex-col gap-3">
               <div className="grid grid-cols-4 gap-2 font-mono tabular-nums">
-                <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-center">
-                  <span className="text-[10px] uppercase text-[#8295A8] block">Mean</span>
-                  <span className="text-sm font-bold text-[#F3F6FA]">{tempSpread.mean}°C</span>
+                <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-center">
+                  <span className="text-[10px] uppercase text-[var(--m-text-muted)] block">Mean</span>
+                  <span className="text-sm font-bold text-[var(--m-text-primary)]">{tempSpread.mean}°C</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-center">
-                  <span className="text-[10px] uppercase text-[#8295A8] block">Min</span>
-                  <span className="text-sm font-bold text-[#35C7E8]">{tempSpread.min}°C</span>
+                <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-center">
+                  <span className="text-[10px] uppercase text-[var(--m-text-muted)] block">Min</span>
+                  <span className="text-sm font-bold text-[var(--m-accent)]">{tempSpread.min}°C</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-center">
-                  <span className="text-[10px] uppercase text-[#8295A8] block">Max</span>
-                  <span className="text-sm font-bold text-[#FCD34D]">{tempSpread.max}°C</span>
+                <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-center">
+                  <span className="text-[10px] uppercase text-[var(--m-text-muted)] block">Max</span>
+                  <span className="text-sm font-bold text-[var(--m-watch)]">{tempSpread.max}°C</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-center">
-                  <span className="text-[10px] uppercase text-[#8295A8] block">Spread</span>
-                  <span className="text-sm font-bold text-[#6EE7B7]">
+                <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-center">
+                  <span className="text-[10px] uppercase text-[var(--m-text-muted)] block">Spread</span>
+                  <span className="text-sm font-bold text-[var(--m-ok)]">
                     {Math.round((tempSpread.max - tempSpread.min) * 10) / 10}°C
                   </span>
                 </div>
@@ -275,12 +275,12 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
 
               <div className="m-panel-inset p-3 flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-[11px] font-mono tabular-nums">
-                  <span className="text-[#B5C3D1]">24h Thermal Dispersion:</span>
-                  <span className="text-[#F3F6FA] font-bold">
+                  <span className="text-[var(--m-text-secondary)]">24h Thermal Dispersion:</span>
+                  <span className="text-[var(--m-text-primary)] font-bold">
                     {Math.round((tempSpread.max - tempSpread.min) * 10) / 10}°C Spread
                   </span>
                 </div>
-                <div className="w-full h-2.5 rounded-md bg-[#0B1927] border border-[#26394B] overflow-hidden">
+                <div className="w-full h-2.5 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-[#35C7E8] via-[#22C7A0] to-[#F59E0B]"
                     style={{ width: `${Math.min(Math.max((tempSpread.max - tempSpread.min) * 12, 16), 100)}%` }}
@@ -295,7 +295,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
             />
           )}
 
-          <p className="text-[11px] text-[#8295A8]">
+          <p className="text-[11px] text-[var(--m-text-muted)]">
             Low ensemble spread indicates higher synoptic predictability across perturbed trajectories.
           </p>
         </DataPanel>

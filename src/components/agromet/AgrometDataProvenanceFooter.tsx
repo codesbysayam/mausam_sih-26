@@ -42,11 +42,11 @@ export const AgrometDataProvenanceFooter: React.FC<AgrometDataProvenanceFooterPr
           subtitle={`Institutional integrations and agronomic reference models (${stationName})`}
           icon={<Database className="w-4 h-4" />}
           action={
-            <div className="text-[11px] font-mono text-[#8295A8] flex items-center gap-1.5 tabular-nums">
-              <Clock className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <div className="text-[11px] font-mono text-[var(--m-text-muted)] flex items-center gap-1.5 tabular-nums">
+              <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>
                 Observation Time:{' '}
-                <strong className="text-[#F3F6FA]">
+                <strong className="text-[var(--m-text-primary)]">
                   {lastUpdatedStr ? lastUpdatedStr : 'Pending Sync'}
                 </strong>
               </span>
@@ -61,20 +61,20 @@ export const AgrometDataProvenanceFooter: React.FC<AgrometDataProvenanceFooterPr
               className="m-panel-inset p-4 space-y-2 flex flex-col justify-between"
             >
               <div className="space-y-1.5">
-                <span className="text-[9px] font-mono font-bold text-[#6EE7B7] bg-[#22C7A0]/12 px-2 py-0.5 rounded border border-[#22C7A0]/30 inline-block">
+                <span className="text-[9px] font-mono font-bold text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2 py-0.5 rounded border border-[var(--m-ok)]/30 inline-block">
                   {src.badge}
                 </span>
-                <h3 className="text-xs font-mono font-bold text-[#F3F6FA]">{src.name}</h3>
+                <h3 className="text-xs font-mono font-bold text-[var(--m-text-primary)]">{src.name}</h3>
               </div>
-              <p className="text-[11px] text-[#8295A8] leading-relaxed">{src.role}</p>
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">{src.role}</p>
             </div>
           ))}
         </div>
 
-        <div className="m-panel-inset p-4 flex items-start gap-3 text-[11px] font-mono text-[#8295A8] leading-relaxed">
-          <Info className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+        <div className="m-panel-inset p-4 flex items-start gap-3 text-[11px] font-mono text-[var(--m-text-muted)] leading-relaxed">
+          <Info className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
           <span>
-            <strong className="text-[#F3F6FA]">Notice:</strong> Agromet advisories combine live weather observations with ICAR/AMFU reference thresholds. Verify local soil moisture, irrigation canal supply, and crop scouting before capital-intensive field operations.
+            <strong className="text-[var(--m-text-primary)]">Notice:</strong> Agromet advisories combine live weather observations with ICAR/AMFU reference thresholds. Verify local soil moisture, irrigation canal supply, and crop scouting before capital-intensive field operations.
           </span>
         </div>
       </DataPanel>

@@ -12,6 +12,51 @@ import { resolveWeatherCondition } from './weatherResolver';
 import { getWeatherCondition } from './weatherConditions';
 import { calculateLunarEphemeris, calculateNightDuration } from '../utils/astronomyCalculator';
 import { crossTabSync } from './crossTabSync';
+import type { DataProvenance } from '../types/dataProvenance';
+
+export class OpenMeteoPayloadError extends Error {
+  public readonly code = 'OPEN_METEO_INVALID_PAYLOAD';
+  constructor(message: string) {
+    super(message);
+    this.name = 'OpenMeteoPayloadError';
+  }
+}
+
+export function validateOpenMeteoPayload(value: unknown): Record<string, any> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new OpenMeteoPayloadError('Open-Meteo response must be a JSON object.');
+  }
+
+  const candidate = value as Record<string, any>;
+  const omWeather =
+    candidate.raw &&
+    typeof candidate.raw === 'object' &&
+    !Array.isArray(candidate.raw) &&
+    (candidate.raw.current || candidate.raw.hourly || candidate.raw.daily)
+      ? (candidate.raw as Record<string, any>)
+      : candidate;
+
+  const hasCurrent = Boolean(omWeather.current && typeof omWeather.current === 'object' && !Array.isArray(omWeather.current));
+  const hasHourly = Boolean(omWeather.hourly && typeof omWeather.hourly === 'object' && !Array.isArray(omWeather.hourly));
+  const hasDaily = Boolean(omWeather.daily && typeof omWeather.daily === 'object' && !Array.isArray(omWeather.daily));
+
+  if (!hasCurrent && !hasHourly && !hasDaily) {
+    throw new OpenMeteoPayloadError(
+      'Open-Meteo payload is missing required current, hourly, or daily meteorological blocks.'
+    );
+  }
+
+  if (hasCurrent && omWeather.current.time !== undefined && omWeather.current.time !== null) {
+    const parsedTime = new Date(omWeather.current.time);
+    if (!Number.isFinite(parsedTime.getTime())) {
+      throw new OpenMeteoPayloadError(
+        `Open-Meteo payload contains invalid current.time value: ${String(omWeather.current.time)}`
+      );
+    }
+  }
+
+  return omWeather;
+}
 
 export interface WeatherDataBundle {
   current: CurrentWeather;
@@ -21,6 +66,7 @@ export interface WeatherDataBundle {
   alerts?: WeatherAlert[];
   lastFetchedAt: Date;
   isLive: boolean;
+  provenance?: DataProvenance;
   error?: string | null;
 }
 
@@ -416,6 +462,17 @@ class WeatherService {
   }
 
   /**
+   * Public validated entry point for transforming raw Open-Meteo payloads (used by fetch & contract tests).
+   */
+  public parseOpenMeteoBundle(
+    location: LocationRecord,
+    raw: unknown,
+    airRawJson?: unknown
+  ): WeatherDataBundle {
+    return this.transformOpenMeteoResponse(location, raw, airRawJson);
+  }
+
+  /**
    * Transforms raw Open-Meteo JSON and Air Quality JSON into normalized application state
    * without substituting fabricated defaults for missing fields.
    */
@@ -424,8 +481,7 @@ class WeatherService {
     raw: any,
     airRawJson?: any
   ): WeatherDataBundle {
-    const omWeather =
-      raw?.raw && (raw.raw.current || raw.raw.hourly || raw.raw.daily) ? raw.raw : raw;
+    const omWeather = validateOpenMeteoPayload(raw);
     const omAir = airRawJson?.raw?.current
       ? airRawJson.raw
       : airRawJson?.current
@@ -452,7 +508,8 @@ class WeatherService {
     const windDirDeg = numOrNull(currentRaw.wind_direction_10m);
     const precip = numOrNull(currentRaw.precipitation);
     const wmoCode = numOrNull(currentRaw.weather_code);
-    const isDay = typeof currentRaw.is_day === 'number' ? currentRaw.is_day === 1 : true;
+    const rawIsDay = numOrNull(currentRaw.is_day);
+    const isDay = rawIsDay === null ? undefined : rawIsDay === 1;
     const cloudCover = numOrNull(currentRaw.cloud_cover);
     const hasPrimaryTelemetry =
       temp !== null && (humidity !== null || windSpeed !== null || pressure !== null);
@@ -477,7 +534,7 @@ class WeatherService {
     });
 
     const rawFeelsLike = numOrNull(currentRaw.apparent_temperature);
-    const feelsLike = rawFeelsLike !== null ? Math.round(rawFeelsLike * 10) / 10 : temp;
+    const feelsLike = rawFeelsLike !== null ? Math.round(rawFeelsLike * 10) / 10 : null;
     const rawGusts = numOrNull(currentRaw.wind_gusts_10m);
     const windGusts = rawGusts !== null ? Math.round(rawGusts) : null;
     const rawVisibility = numOrNull(currentRaw.visibility);
@@ -676,8 +733,41 @@ class WeatherService {
       ? 'STALE'
       : 'LIVE';
     const isLive = hasPrimaryTelemetry && !gatewayStale;
+
+    const providerTimeDate =
+      currentRaw.time !== undefined && currentRaw.time !== null
+        ? new Date(currentRaw.time)
+        : null;
+    const validAtIso =
+      providerTimeDate && Number.isFinite(providerTimeDate.getTime())
+        ? providerTimeDate.toISOString()
+        : null;
+    const fetchedAtIso = now.toISOString();
+    const validTimeLabel =
+      providerTimeDate && Number.isFinite(providerTimeDate.getTime())
+        ? `${this.formatIstTime(providerTimeDate)} IST`
+        : null;
+
+    const provenance: DataProvenance = {
+      provider: 'Open-Meteo',
+      product: 'Surface Analysis & Forecast Grid',
+      isModelData: true,
+      isStationObservation: false,
+      observedAt: validAtIso,
+      validAt: validAtIso,
+      fetchedAt: fetchedAtIso,
+      status: !hasPrimaryTelemetry
+        ? 'unavailable'
+        : gatewayStale
+        ? 'stale'
+        : 'live',
+      errorMessage: hasPrimaryTelemetry
+        ? null
+        : 'Primary atmospheric measurements unavailable from upstream feed.',
+    };
+
     const resolvedLastUpdated = hasPrimaryTelemetry
-      ? `${this.formatIstTime(now)} IST (${gatewayStale ? 'Cached Open-Meteo Grid' : 'Open-Meteo Analysis'})`
+      ? `${validTimeLabel ?? `${this.formatIstTime(now)} IST`} (${gatewayStale ? 'Cached Open-Meteo Grid' : 'Open-Meteo Model Grid'})`
       : `${this.formatIstTime(now)} IST (Feed Unavailable)`;
 
     const currentWeather: CurrentWeather = {
@@ -754,17 +844,23 @@ class WeatherService {
       locationId: location.id,
       lastUpdated: resolvedLastUpdated,
       lastUpdatedTimestamp: now.getTime(),
+      observedAt: validAtIso,
+      validAt: validAtIso,
+      fetchedAt: fetchedAtIso,
+      provenance,
       source: hasPrimaryTelemetry
-        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        ? 'Open-Meteo Surface Analysis (Model Grid)'
         : 'Meteorological Feed Unavailable',
       dataSource: hasPrimaryTelemetry
-        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        ? 'Open-Meteo Surface Analysis (Model Grid)'
         : 'Unavailable',
       observationStatus,
       observationSource: hasPrimaryTelemetry
-        ? 'Open-Meteo Surface Analysis (Forecast Grid)'
+        ? 'Open-Meteo Surface Analysis (Model Grid)'
         : 'Upstream telemetry incomplete',
-      observationTimeFormatted: `${this.formatIstDate(now)} • ${this.formatIstTime(now)} IST`,
+      observationTimeFormatted: validTimeLabel
+        ? `${this.formatIstDate(providerTimeDate!)} • ${validTimeLabel}`
+        : `${this.formatIstDate(now)} • Provider timestamp unavailable`,
       previousHourTelemetry: startIdx > 0 ? {
         temp: hourlyRaw.temperature_2m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.temperature_2m[startIdx - 1] * 10) / 10 : undefined,
         humidity: hourlyRaw.relative_humidity_2m?.[startIdx - 1] !== undefined ? Math.round(hourlyRaw.relative_humidity_2m[startIdx - 1]) : undefined,
@@ -822,7 +918,7 @@ class WeatherService {
 
       const hTemp = Math.round(hTempVal);
       const hFeelsVal = numOrNull(hourlyApparentTemps[i]);
-      const hFeelsLike = hFeelsVal !== null ? Math.round(hFeelsVal) : hTemp;
+      const hFeelsLike = hFeelsVal !== null ? Math.round(hFeelsVal) : null;
       const hVisRaw = numOrNull(hourlyVis[i]);
       const hVisKm = hVisRaw !== null ? Math.round(hVisRaw / 100) / 10 : null;
       const hGustRaw = numOrNull(hourlyGusts[i]);
@@ -946,6 +1042,7 @@ class WeatherService {
       trends,
       lastFetchedAt: now,
       isLive,
+      provenance,
       error: hasPrimaryTelemetry ? null : 'Primary atmospheric measurements unavailable from upstream feed.',
     };
   }

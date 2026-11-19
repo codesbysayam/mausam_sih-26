@@ -155,12 +155,12 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
   return (
     <div
       id="weather-page-header-banner"
-      className="bg-[#151D26] border border-[#314255] rounded-lg p-4 sm:p-5 shadow-md flex flex-col gap-4 relative overflow-hidden"
+      className="bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] rounded-lg p-4 sm:p-5 shadow-md flex flex-col gap-4 relative overflow-hidden"
     >
       {/* Top Bar: Title, Dynamic Station Time Display, Search & Refresh Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-3 border-b border-[#314255]/70">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-3 border-b border-[var(--m-border-strong)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#0B72B9]/20 border border-[#0B72B9]/40 flex items-center justify-center text-[#4FA8E0] shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/40 flex items-center justify-center text-[#4FA8E0] shrink-0">
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
@@ -173,7 +173,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                 {isLive ? 'LIVE TELEMETRY' : 'VERIFIED OBSERVATION'}
               </span>
             </div>
-            <p className="text-xs text-[#8A94A6] mt-0.5">
+            <p className="text-xs text-[var(--m-text-secondary)] mt-0.5">
               Official Indian Meteorological Department (IMD) Ground Station Telemetry Grid
             </p>
           </div>
@@ -184,10 +184,10 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
           {/* Dynamic Station Local Time & Solar Meridian Widget */}
           <div
             id="station-dynamic-time-widget"
-            className="flex items-center gap-2.5 bg-[#1E2733] border border-[#314255] hover:border-[#4FA8E0]/60 px-3 py-1.5 rounded-md transition-colors shadow-inner"
+            className="flex items-center gap-2.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0]/60 px-3 py-1.5 rounded-md transition-colors shadow-inner"
             title={`Station Coordinates: ${formatCoordinatePair(stationTimeDetails.lat, stationTimeDetails.lng, 2)} • Local Solar Time: ${stationTimeDetails.formattedSolarTime}`}
           >
-            <div className="p-1.5 rounded bg-[#151D26] border border-[#314255] text-[#4FA8E0] shrink-0">
+            <div className="p-1.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[#4FA8E0] shrink-0">
               <Clock className="w-4 h-4" />
             </div>
 
@@ -196,11 +196,11 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                 <span className="text-xs font-black font-mono text-white tracking-tight">
                   {stationTimeDetails.clockTime}
                 </span>
-                <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded bg-[#0B72B9]/20 text-[#4FA8E0] border border-[#0B72B9]/40">
+                <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded bg-[var(--m-accent-soft)] text-[#4FA8E0] border border-[#0B72B9]/40">
                   {stationTimeDetails.timeZoneLabel}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-[#8A94A6]">
+              <div className="flex items-center gap-1.5 text-[10px] text-[var(--m-text-secondary)]">
                 <span>{stationTimeDetails.dateStr}</span>
                 <span className="text-[#314255]">•</span>
                 <span className="text-[#F1C40F] font-mono font-medium flex items-center gap-0.5">
@@ -214,7 +214,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
           {/* Quick Location Search Bar */}
           <div ref={searchRef} className="relative flex-1 sm:w-64">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8A94A6]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--m-text-secondary)]" />
               <input
                 id="weather-quick-station-search"
                 type="text"
@@ -225,13 +225,13 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                   setIsSearchOpen(true);
                 }}
                 placeholder="Search station or city..."
-                className="w-full pl-9 pr-8 py-1.5 bg-[#1E2733] border border-[#314255] rounded-md text-xs text-white placeholder-[#8A94A6] focus:outline-none focus:border-[#4FA8E0] transition-colors"
+                className="w-full pl-9 pr-8 py-1.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-md text-xs text-[var(--m-text-primary)] placeholder-[#8A94A6] focus:outline-none focus:border-[#4FA8E0] transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8A94A6] hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -241,12 +241,12 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
 
             {/* Autocomplete Dropdown */}
             {isSearchOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#1E2733] border border-[#4FA8E0]/60 rounded-md shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[#314255]/60">
-                <div className="p-2 text-[10px] font-bold text-[#8A94A6] uppercase tracking-wider bg-[#151D26]">
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--m-surface-2)] border border-[#4FA8E0]/60 rounded-md shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[var(--m-border-strong)]">
+                <div className="p-2 text-[10px] font-bold text-[var(--m-text-secondary)] uppercase tracking-wider bg-[var(--m-surface-1)]">
                   {searchQuery ? `Matching Stations (${searchResults.length})` : 'Popular Weather Stations'}
                 </div>
                 {searchResults.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-[#8A94A6]">
+                  <div className="p-3 text-center text-xs text-[var(--m-text-secondary)]">
                     No weather stations found. Try another city or district.
                   </div>
                 ) : (
@@ -255,16 +255,16 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                       key={loc.id}
                       type="button"
                       onClick={() => handleLocationPick(loc)}
-                      className={`w-full p-2.5 text-left hover:bg-[#151D26] transition-colors flex items-center justify-between gap-2 text-xs ${
-                        loc.id === selectedLocation.id ? 'bg-[#0B72B9]/15 border-l-2 border-[#4FA8E0]' : ''
+                      className={`w-full p-2.5 text-left hover:bg-[var(--m-surface-2)] transition-colors flex items-center justify-between gap-2 text-xs ${
+                        loc.id === selectedLocation.id ? 'bg-[var(--m-accent-soft)] border-l-2 border-[#4FA8E0]' : ''
                       }`}
                     >
                       <div>
                         <div className="font-bold text-white flex items-center gap-1.5">
                           <span>{loc.city}</span>
-                          <span className="text-[11px] text-[#8A94A6] font-normal">({loc.state})</span>
+                          <span className="text-[11px] text-[var(--m-text-secondary)] font-normal">({loc.state})</span>
                         </div>
-                        <div className="text-[10px] text-[#8A94A6]">
+                        <div className="text-[10px] text-[var(--m-text-secondary)]">
                           Station: {loc.imdStation || loc.id} • {loc.elevation || 'ASL'}
                         </div>
                       </div>
@@ -286,7 +286,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
             type="button"
             onClick={handleTriggerRefresh}
             disabled={isLoading}
-            className="px-3 py-1.5 bg-[#1E2733] hover:bg-[#314255] border border-[#314255] hover:border-[#4FA8E0] text-white rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shrink-0"
+            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shrink-0"
             title="Fetch real-time calibrated observation data"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-[#4FA8E0] ${isLoading ? 'animate-spin' : ''}`} />
@@ -298,7 +298,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
             id="btn-print-weather-report"
             type="button"
             onClick={() => window.print()}
-            className="px-3 py-1.5 bg-[#1E2733] hover:bg-[#314255] border border-[#314255] hover:border-[#4FA8E0] text-white rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
             title="Print current weather observation report"
           >
             <Printer className="w-3.5 h-3.5 text-[#4FA8E0]" />
@@ -308,7 +308,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
       </div>
 
       {/* Bottom Bar: Active Observatory Metadata */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#8A94A6]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--m-text-secondary)]">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 text-white font-semibold">
             <MapPin className="w-3.5 h-3.5 text-[#4FA8E0]" />
@@ -316,20 +316,20 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
               {selectedLocation.city}, {selectedLocation.state}
             </span>
             {selectedLocation.district && selectedLocation.district !== selectedLocation.city && (
-              <span className="text-[#8A94A6] font-normal">({selectedLocation.district} Dist.)</span>
+              <span className="text-[var(--m-text-secondary)] font-normal">({selectedLocation.district} Dist.)</span>
             )}
           </div>
 
           <span className="text-[#314255]">|</span>
 
-          <span className="font-mono bg-[#1E2733] px-2 py-0.5 rounded border border-[#314255] text-[11px] text-[#DCE3EB]">
+          <span className="font-mono bg-[var(--m-surface-2)] px-2 py-0.5 rounded border border-[var(--m-border-strong)] text-[11px] text-[#DCE3EB]">
             Station: <strong className="text-[#4FA8E0]">{selectedLocation.imdStation || 'AWS-IND-01'}</strong>
           </span>
 
           <span className="text-[#314255]">|</span>
 
           <span className="text-[11px] flex items-center gap-1">
-            <Compass className="w-3 h-3 text-[#8A94A6]" />
+            <Compass className="w-3 h-3 text-[var(--m-text-secondary)]" />
             {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
           </span>
 
@@ -341,7 +341,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-          <Clock className="w-3.5 h-3.5 text-[#8A94A6]" />
+          <Clock className="w-3.5 h-3.5 text-[var(--m-text-secondary)]" />
           <span className="text-[11px]">
             Observation: <strong className="text-white font-mono">{lastUpdated}</strong>
           </span>

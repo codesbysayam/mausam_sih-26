@@ -147,7 +147,7 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
       <SectionHeading
         title="Sector & Persona Atmospheric Intelligence"
         subtitle={`Calibrated air quality, marine, transit, and agromet feeds for ${selectedLocation.displayName || selectedLocation.city}`}
-        icon={<ShieldCheck className="w-4 h-4 text-[#22C7A0]" />}
+        icon={<ShieldCheck className="w-4 h-4 text-[var(--m-ok)]" />}
         badge={
           <SourceStatus
             status={isLoading && !bundle ? 'LOADING' : fetchError && !bundle ? 'UNAVAILABLE' : 'LIVE'}
@@ -159,7 +159,7 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
             type="button"
             onClick={() => loadPersonaData(true)}
             disabled={isRefreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-xs text-[#35C7E8] border border-[#26394B] transition-colors font-semibold disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-xs text-[var(--m-accent)] border border-[var(--m-border)] transition-colors font-semibold disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>{isRefreshing ? 'Syncing...' : 'Sync Feeds'}</span>
@@ -168,7 +168,7 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
       />
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-[#26394B]">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-[var(--m-border)]">
         {filterTabs.map(({ id, label, Icon }) => {
           const isActive = activeFilter === id;
           return (
@@ -178,8 +178,8 @@ export const PersonaWeatherHub: React.FC<PersonaWeatherHubProps> = ({
               onClick={() => setActiveFilter(id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border cursor-pointer ${
                 isActive
-                  ? 'bg-[#0B72B9] text-[#F3F6FA] border-[#35C7E8]'
-                  : 'bg-[#08131F] hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA] border-[#26394B]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)] border-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] border-[var(--m-border)]'
               }`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />

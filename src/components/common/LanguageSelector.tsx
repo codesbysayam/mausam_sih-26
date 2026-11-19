@@ -178,7 +178,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     <div
       role="group"
       aria-label="Language options"
-      className={`inline-flex items-center p-0.5 rounded-lg bg-[#07111C]/90 border border-[#1E2E40] shadow-inner shrink-0 ${className}`}
+      className={`inline-flex items-center p-0.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] shrink-0 ${className}`}
     >
       {/* English Option */}
       <button
@@ -188,13 +188,13 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         aria-label="Switch display language to English"
         aria-pressed={activeMode === 'en'}
         onClick={() => handleSelect('en')}
-        className={`px-2.5 py-1 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+        className={`px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide transition-colors cursor-pointer flex items-center gap-1 shrink-0 m-focus-ring ${
           activeMode === 'en'
-            ? 'bg-[#1E293B] text-white shadow-xs border border-[#38BDF8]/60 font-bold'
-            : 'text-[#94A3B8] hover:text-white hover:bg-[#131E2C]'
+            ? 'bg-[var(--m-surface-1)] text-[var(--m-text-primary)] shadow-xs border border-[var(--m-accent)]/55 font-bold'
+            : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-transparent'
         }`}
       >
-        <span className="text-[10px] text-[#38BDF8] font-mono select-none">文A</span>
+        <span className="text-[10px] text-[var(--m-accent)] font-mono select-none">文A</span>
         <span>English</span>
       </button>
 
@@ -206,10 +206,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         aria-label="हिंदी में आधिकारिक चेतावनी और परामर्श देखें"
         aria-pressed={activeMode === 'hi'}
         onClick={() => handleSelect('hi')}
-        className={`px-2.5 py-1 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+        className={`px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide transition-colors cursor-pointer flex items-center gap-1 shrink-0 m-focus-ring ${
           activeMode === 'hi'
-            ? 'bg-[#1E293B] text-white shadow-xs border border-[#38BDF8]/60 font-bold'
-            : 'text-[#94A3B8] hover:text-white hover:bg-[#131E2C]'
+            ? 'bg-[var(--m-surface-1)] text-[var(--m-text-primary)] shadow-xs border border-[var(--m-accent)]/55 font-bold'
+            : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-transparent'
         }`}
       >
         <span>हिन्दी</span>
@@ -224,17 +224,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         aria-pressed={activeMode === 'regional'}
         onClick={() => handleSelect('regional')}
         title={`${resolvedRegionConfig.regionName} Official Language: ${regionalEnglishName} (${regionalNativeName})`}
-        className={`px-2.5 py-1 rounded text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+        className={`px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide transition-colors cursor-pointer flex items-center gap-1 shrink-0 m-focus-ring ${
           activeMode === 'regional'
-            ? 'bg-[#1E293B] text-white shadow-xs border border-[#38BDF8]/60 font-bold'
-            : 'text-[#94A3B8] hover:text-white hover:bg-[#131E2C]'
+            ? 'bg-[var(--m-surface-1)] text-[var(--m-text-primary)] shadow-xs border border-[var(--m-accent)]/55 font-bold'
+            : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-transparent'
         }`}
       >
-        <span
-          className={`w-1.5 h-1.5 rounded-full ${
-            activeMode === 'regional' ? 'bg-[#38BDF8]' : 'bg-[#64748B]'
-          }`}
-        />
         <span>{regionalButtonLabel}</span>
       </button>
     </div>

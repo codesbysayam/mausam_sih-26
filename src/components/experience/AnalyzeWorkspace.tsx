@@ -1,8 +1,7 @@
 // ====================================================================
-// MAUSAM Analyze Workspace (Scientific Workstation Mode)
-// Streams the full meteorological suite (Weather, NWP Ensemble Forecasts,
-// Doppler Radar, SACHET Warnings, Cyclone Tracker, AQI, Agromet, Reports,
-// and Provider Diagnostics) beneath the single FloatingBrandBar.
+// MAUSAM Analyze Workspace (Editorial Atmospheric Workstation)
+// Serves the editorial overview (/) and every scientific meteorological
+// route on the warm paper default canvas (or user-selected theme).
 // ====================================================================
 
 import React from 'react';
@@ -13,12 +12,13 @@ import type { StateWeatherData } from '../map/IndiaWeatherMap';
 import { MainNavTab } from '../layout/MainNavigation';
 import { PageContainer } from '../layout/PageContainer';
 import { SkeletonPage } from '../common/Skeletons';
+import { HomePage } from '../../pages/Home';
 import { WeatherPage } from '../../pages/Weather';
 import { NotFoundPage } from '../../pages/NotFoundPage';
 import { useExperience, AnalyzeOrFooterView } from '../../context/ExperienceContext';
 import { useProviderStore } from '../../store/providerStore';
 import { getProviderStatusVisual } from '../../services/providers/providerStatus';
-import { Globe, ArrowLeft } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 function lazyWithRetry<T extends React.ComponentType<any>>(
   factory: () => Promise<any>,
@@ -72,15 +72,16 @@ const DocsPage = lazyWithRetry(() => import('../../pages/DocsPage'), 'DocsPage')
 const CycloneTrackerPage = lazyWithRetry(() => import('../../pages/CycloneTracker'), 'CycloneTrackerPage');
 
 const ANALYZE_TABS: Array<{ id: MainNavTab; label: string }> = [
-  { id: 'weather', label: 'Weather Detail' },
-  { id: 'forecast', label: 'Forecast & NWP' },
-  { id: 'radar', label: 'Doppler Radar' },
+  { id: 'home', label: 'Overview' },
+  { id: 'weather', label: 'Weather' },
+  { id: 'forecast', label: 'Forecast' },
+  { id: 'radar', label: 'Radar' },
   { id: 'warnings', label: 'Warnings' },
-  { id: 'cyclone-tracker', label: 'Cyclone Tracker' },
-  { id: 'aqi', label: 'AQI & Air' },
+  { id: 'cyclone-tracker', label: 'Cyclones' },
+  { id: 'aqi', label: 'AQI' },
   { id: 'agromet', label: 'Agromet' },
   { id: 'reports', label: 'Reports' },
-  { id: 'debug', label: 'Data & Sources' },
+  { id: 'debug', label: 'Sources' },
 ];
 
 interface AnalyzeWorkspaceProps {
@@ -124,26 +125,20 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
 }) => {
   const { setMode } = useExperience();
   const { providers } = useProviderStore();
-  const effectiveTab: AnalyzeOrFooterView = activeTab === 'home' ? 'weather' : activeTab;
+  const effectiveTab: AnalyzeOrFooterView = activeTab;
 
   return (
-    <div id="mausam-analyze-workspace" className="pt-[68px] sm:pt-[64px] pb-8 min-h-screen w-full bg-[#07111D]">
-      {/* Compact Scientific Workstation Strip */}
-      <div className="max-w-[1560px] mx-auto px-3 lg:px-6 mb-4">
-        <div className="m-panel px-2.5 py-2 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none min-w-0 flex-1">
-            <button
-              type="button"
-              onClick={() => setMode('explore')}
-              className="px-2.5 min-h-[36px] rounded-lg bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-xs font-semibold text-[#7DD3FC] hover:bg-[#35C7E8]/20 flex items-center gap-1.5 shrink-0 cursor-pointer m-focus-ring"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">3D Explore</span>
-            </button>
-
-            <div className="h-4 w-px bg-[#26394B] mx-1 shrink-0" />
-
+    <div
+      id="mausam-analyze-workspace"
+      className="pb-12 min-h-screen w-full bg-[var(--m-canvas)] text-[var(--m-text-primary)]"
+    >
+      {/* Editorial Domain Navigation Strip */}
+      <div className="w-full bg-[var(--m-surface-1)] border-b border-[var(--m-border)]">
+        <div className="mausam-page py-2 flex items-center justify-between gap-3">
+          <nav
+            aria-label="Primary Meteorological Sections"
+            className="flex items-center gap-1 overflow-x-auto scrollbar-none min-w-0 flex-1"
+          >
             {ANALYZE_TABS.map((t) => {
               const isActive = effectiveTab === t.id;
               return (
@@ -152,35 +147,80 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   type="button"
                   onClick={() => onNavigateTab(t.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`px-3 min-h-[36px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer m-focus-ring ${
+                  className={`relative px-3 min-h-[38px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer m-focus-ring ${
                     isActive
-                      ? 'bg-[#35C7E8] text-[#05101C] font-semibold'
-                      : 'text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E]'
+                      ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] font-semibold'
+                      : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]/60'
                   }`}
                 >
                   {t.label}
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-3 right-3 -bottom-2 h-[2px] bg-[var(--m-accent)] rounded-full"
+                    />
+                  )}
                 </button>
               );
             })}
-          </div>
+          </nav>
 
-          {/* Real Provider Health Strip */}
-          <div className="hidden xl:flex items-center gap-2.5 text-[10px] font-mono text-[#8295A8] shrink-0 pl-2 border-l border-[#26394B]">
-            {(['SACHET', 'IMD', 'RADAR', 'NWP'] as const).map((pid) => {
-              const vis = getProviderStatusVisual(providers[pid].status);
-              return (
-                <span key={pid} className="inline-flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${vis.dotClass}`} />
-                  <span className="text-[#B5C3D1]">{pid}</span>
-                </span>
-              );
-            })}
+          {/* Compact Provider Status & Spatial Map Trigger */}
+          <div className="hidden xl:flex items-center gap-3 shrink-0 pl-3 border-l border-[var(--m-border)]">
+            <button
+              type="button"
+              onClick={() => onNavigateTab('debug')}
+              className="flex items-center gap-2 text-[11px] font-mono text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer"
+              title="Inspect live provider status and telemetry provenance"
+            >
+              {(['WEATHER', 'RADAR', 'SACHET'] as const).map((pid) => {
+                const vis = getProviderStatusVisual(providers[pid].status);
+                const statusColor =
+                  vis.tone === 'live'
+                    ? 'text-[var(--m-ok)]'
+                    : vis.tone === 'stale' || vis.tone === 'unavailable'
+                    ? 'text-[var(--m-watch)]'
+                    : vis.tone === 'error'
+                    ? 'text-[var(--m-danger)]'
+                    : 'text-[var(--m-accent)]';
+                return (
+                  <span key={pid} className="inline-flex items-center gap-1">
+                    <span>{pid}:</span>
+                    <span className={`font-semibold ${statusColor}`}>{vis.label}</span>
+                  </span>
+                );
+              })}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode('explore')}
+              className="px-2.5 min-h-[34px] rounded-lg border border-[var(--m-border-strong)] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-xs font-semibold text-[var(--m-text-primary)] inline-flex items-center gap-1.5 cursor-pointer m-focus-ring transition-colors"
+            >
+              <Globe className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+              <span>3D Map</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Scientific Domain View */}
+      {/* Active Route View */}
       <PageContainer id="mausam-main-page-container" fluid={effectiveTab === 'radar'}>
+        {effectiveTab === 'home' && (
+          <HomePage
+            weatherBundle={weatherBundle}
+            selectedLocation={selectedLocation}
+            onNavigateToTab={(tab) => onNavigateTab(tab)}
+            onSelectLocation={onSelectLocation}
+            onStateSelect={onStateSelect}
+            onDetectLocation={onDetectLocation}
+            isLocating={isLocating}
+            locatePhase={locatePhase}
+            locationSource={locationSource}
+            onOpenLocationCenter={onOpenLocationCenter}
+          />
+        )}
+
         {effectiveTab === 'weather' && (
           <WeatherPage
             weatherBundle={weatherBundle}
@@ -270,26 +310,26 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           )}
 
           {effectiveTab === 'privacy' && (
-            <PrivacyPolicy onNavigateHome={() => setMode('explore')} />
+            <PrivacyPolicy onNavigateHome={() => onNavigateTab('home')} />
           )}
 
           {effectiveTab === 'api' && (
-            <OpenDataApi onNavigateHome={() => setMode('explore')} />
+            <OpenDataApi onNavigateHome={() => onNavigateTab('home')} />
           )}
 
           {effectiveTab === 'terms' && (
-            <TermsOfObservation onNavigateHome={() => setMode('explore')} />
+            <TermsOfObservation onNavigateHome={() => onNavigateTab('home')} />
           )}
 
           {effectiveTab === 'docs' && (
-            <DocsPage onNavigateHome={() => setMode('explore')} />
+            <DocsPage onNavigateHome={() => onNavigateTab('home')} />
           )}
 
           {effectiveTab === 'debug' && <ApiDebugPage />}
 
           {effectiveTab === 'not-found' && (
             <NotFoundPage
-              onNavigateHome={() => setMode('explore')}
+              onNavigateHome={() => onNavigateTab('home')}
               onNavigateTab={(tab) => onNavigateTab(tab)}
             />
           )}

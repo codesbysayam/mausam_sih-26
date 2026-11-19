@@ -100,7 +100,7 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
           <button
             type="button"
             onClick={() => setShowDetailedTable(!showDetailedTable)}
-            className="px-3 py-1.5 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#38536A] text-xs font-semibold text-[#35C7E8] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-1.5 bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-accent)] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Table className="w-3.5 h-3.5" />
             <span>{showDetailedTable ? 'Hide Matrix Table' : 'Numerical Matrix'}</span>
@@ -112,60 +112,60 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
       {weeklySummary && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
           <div className="m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#FCA5A5] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/30 text-[var(--m-danger)] flex items-center justify-center shrink-0">
               <Flame className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Warmest Day</div>
-              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Warmest Day</div>
+              <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
                 {weeklySummary.hottestDay}
               </div>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#35C7E8]/12 border border-[#35C7E8]/30 text-[#35C7E8] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 text-[var(--m-accent)] flex items-center justify-center shrink-0">
               <Thermometer className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Coolest Night</div>
-              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Coolest Night</div>
+              <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
                 {weeklySummary.coolestDay}
               </div>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#0B72B9]/15 border border-[#0B72B9]/35 text-[#7DD3FC] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-accent-soft)] border border-[#0B72B9]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
               <CloudRain className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Wettest Day</div>
-              <div className="text-xs font-bold text-[#35C7E8] font-mono tabular-nums truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Wettest Day</div>
+              <div className="text-xs font-bold text-[var(--m-accent)] font-mono tabular-nums truncate">
                 {weeklySummary.wettestDay}
               </div>
             </div>
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/30 text-[var(--m-ok)] flex items-center justify-center shrink-0">
               <Wind className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Windiest Day</div>
-              <div className="text-xs font-bold text-[#F3F6FA] font-mono tabular-nums truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Windiest Day</div>
+              <div className="text-xs font-bold text-[var(--m-text-primary)] font-mono tabular-nums truncate">
                 {weeklySummary.windiestDay}
               </div>
             </div>
           </div>
 
           <div className="col-span-2 sm:col-span-1 m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#22C7A0]/12 border border-[#22C7A0]/30 text-[#6EE7B7] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/30 text-[var(--m-ok)] flex items-center justify-center shrink-0">
               <Sun className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] text-[#8295A8] uppercase font-semibold">Best Window</div>
-              <div className="text-xs font-bold text-[#6EE7B7] truncate">{weeklySummary.bestOutdoorDay}</div>
+              <div className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold">Best Window</div>
+              <div className="text-xs font-bold text-[var(--m-ok)] truncate">{weeklySummary.bestOutdoorDay}</div>
             </div>
           </div>
         </div>
@@ -200,22 +200,22 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
               id={`daily-forecast-card-${idx}`}
               className={`p-3 rounded-lg border flex flex-col justify-between gap-2.5 transition-colors ${
                 isToday
-                  ? 'bg-[#101F2E] border-[#35C7E8]'
-                  : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
+                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
             >
               <div className="flex items-center justify-between gap-1">
                 <div>
-                  <div className="text-xs font-bold text-[#F3F6FA] uppercase tracking-tight">
+                  <div className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-tight">
                     {isToday ? 'Today' : item.day}
                   </div>
-                  <div className="text-[10px] font-mono text-[#8295A8]">{item.date}</div>
+                  <div className="text-[10px] font-mono text-[var(--m-text-muted)]">{item.date}</div>
                 </div>
                 <span
                   className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border ${
                     hasWarning
-                      ? 'bg-[#F59E0B]/12 border-[#F59E0B]/40 text-[#FCD34D]'
-                      : 'bg-[#22C7A0]/12 border-[#22C7A0]/30 text-[#6EE7B7]'
+                      ? 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/40 text-[var(--m-watch)]'
+                      : 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/30 text-[var(--m-ok)]'
                   }`}
                 >
                   {hasWarning ? 'Watch' : 'Normal'}
@@ -223,14 +223,14 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
               </div>
 
               <div className="flex items-center gap-2.5 my-0.5">
-                <div className="p-2 rounded-lg bg-[#0B1927] border border-[#26394B] shrink-0">
+                <div className="p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] shrink-0">
                   <IconComp className={`w-5 h-5 ${visual.iconColor}`} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-semibold text-[#F3F6FA] truncate">
+                  <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
                     {item.condition || '—'}
                   </div>
-                  <div className="text-[10px] text-[#8295A8] truncate">
+                  <div className="text-[10px] text-[var(--m-text-muted)] truncate">
                     {rainProb !== null ? `${rainProb}% Rain Prob` : 'PoP unavailable'}
                   </div>
                 </div>
@@ -238,15 +238,15 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
 
               <div className="flex flex-col gap-1">
                 <div className="flex items-baseline justify-between text-xs font-mono tabular-nums">
-                  <span className="text-[#8295A8] font-semibold">
+                  <span className="text-[var(--m-text-muted)] font-semibold">
                     {lowVal !== null ? `${lowVal}°` : '—'}
                   </span>
-                  <span className="text-[#F3F6FA] font-bold">
+                  <span className="text-[var(--m-text-primary)] font-bold">
                     {highVal !== null ? `${highVal}°` : '—'}
                   </span>
                 </div>
 
-                <div className="relative w-full h-1.5 bg-[#0B1927] border border-[#26394B] rounded-full overflow-hidden">
+                <div className="relative w-full h-1.5 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-full overflow-hidden">
                   {widthPercent > 0 && (
                     <div
                       className="absolute h-full rounded-full bg-gradient-to-r from-[#35C7E8] to-[#EF4444]"
@@ -256,32 +256,32 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#26394B]/70 flex flex-col gap-1 text-[10px] text-[#8295A8] font-mono tabular-nums">
+              <div className="pt-2 border-t border-[var(--m-border)]/70 flex flex-col gap-1 text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums">
                 <div className="flex items-center justify-between">
                   <span className="font-sans flex items-center gap-1">
-                    <Droplets className="w-3 h-3 text-[#35C7E8]" />
+                    <Droplets className="w-3 h-3 text-[var(--m-accent)]" />
                     PoP
                   </span>
-                  <span className="text-[#35C7E8] font-bold">
+                  <span className="text-[var(--m-accent)] font-bold">
                     {rainProb !== null ? `${rainProb}%` : '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-sans flex items-center gap-1">
-                    <Wind className="w-3 h-3 text-[#22C7A0]" />
+                    <Wind className="w-3 h-3 text-[var(--m-ok)]" />
                     Wind
                   </span>
-                  <span className="text-[#B5C3D1] truncate max-w-[85px]">{item.wind || '—'}</span>
+                  <span className="text-[var(--m-text-secondary)] truncate max-w-[85px]">{item.wind || '—'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-sans">Humidity</span>
-                  <span className="text-[#B5C3D1]">
+                  <span className="text-[var(--m-text-secondary)]">
                     {isFiniteNum(item.humidity) ? `${Math.round(item.humidity)}%` : '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-sans">UV Index</span>
-                  <span className="text-[#FCD34D]">
+                  <span className="text-[var(--m-watch)]">
                     {isFiniteNum(item.uv) ? item.uv.toFixed(1) : '—'}
                   </span>
                 </div>
@@ -294,17 +294,17 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
       {/* Expandable Numerical Matrix */}
       {showDetailedTable && (
         <div id="detailed-synoptic-table-container" className="m-panel-inset p-3 overflow-x-auto">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#26394B] text-xs">
-            <span className="font-bold text-[#F3F6FA] uppercase text-[11px] flex items-center gap-1.5">
-              <Table className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--m-border)] text-xs">
+            <span className="font-bold text-[var(--m-text-primary)] uppercase text-[11px] flex items-center gap-1.5">
+              <Table className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               7-Day Numerical Forecast Matrix
             </span>
-            <span className="text-[10px] text-[#8295A8]">Upstream NWP / Daily Ensemble</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">Upstream NWP / Daily Ensemble</span>
           </div>
 
           <table className="w-full text-left text-xs border-collapse min-w-[750px]">
             <thead>
-              <tr className="border-b border-[#26394B] text-[#8295A8] uppercase text-[10px] tracking-wider bg-[#0B1927]">
+              <tr className="border-b border-[var(--m-border)] text-[var(--m-text-muted)] uppercase text-[10px] tracking-wider bg-[var(--m-surface-1)]">
                 <th className="p-2.5">Date &amp; Day</th>
                 <th className="p-2.5">Condition</th>
                 <th className="p-2.5">Max / Min Temp</th>
@@ -315,30 +315,30 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
                 <th className="p-2.5">Advisory</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#26394B]/60 font-mono tabular-nums text-[#B5C3D1]">
+            <tbody className="divide-y divide-[var(--m-border-strong)] font-mono tabular-nums text-[var(--m-text-secondary)]">
               {daily.map((item, idx) => {
                 const rainProb = isFiniteNum(item.rainProb) ? Math.round(item.rainProb) : null;
                 const hasWarning =
                   (rainProb !== null && rainProb >= 70) ||
                   (item.condition || '').toLowerCase().includes('thunder');
                 return (
-                  <tr key={idx} className="hover:bg-[#101F2E] transition-colors">
+                  <tr key={idx} className="hover:bg-[var(--m-surface-2)] transition-colors">
                     <td className="p-2.5 font-sans">
-                      <span className="font-bold text-[#F3F6FA] block">{item.day}</span>
-                      <span className="text-[10px] font-mono text-[#8295A8]">{item.date}</span>
+                      <span className="font-bold text-[var(--m-text-primary)] block">{item.day}</span>
+                      <span className="text-[10px] font-mono text-[var(--m-text-muted)]">{item.date}</span>
                     </td>
-                    <td className="p-2.5 font-sans text-[#F3F6FA]">{item.condition || '—'}</td>
+                    <td className="p-2.5 font-sans text-[var(--m-text-primary)]">{item.condition || '—'}</td>
                     <td className="p-2.5">
-                      <span className="text-[#F3F6FA] font-bold">
+                      <span className="text-[var(--m-text-primary)] font-bold">
                         {isFiniteNum(item.high) ? `${Math.round(item.high)}°C` : '—'}
                       </span>{' '}
                       /{' '}
-                      <span className="text-[#8295A8]">
+                      <span className="text-[var(--m-text-muted)]">
                         {isFiniteNum(item.low) ? `${Math.round(item.low)}°C` : '—'}
                       </span>
                     </td>
                     <td className="p-2.5">
-                      <span className={`font-bold ${rainProb !== null && rainProb > 40 ? 'text-[#35C7E8]' : 'text-[#8295A8]'}`}>
+                      <span className={`font-bold ${rainProb !== null && rainProb > 40 ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]'}`}>
                         {rainProb !== null ? `${rainProb}%` : '—'}
                       </span>
                     </td>
@@ -346,15 +346,15 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
                       {isFiniteNum(item.humidity) ? `${Math.round(item.humidity)}%` : '—'}
                     </td>
                     <td className="p-2.5">{item.wind || '—'}</td>
-                    <td className="p-2.5 text-[#FCD34D]">
+                    <td className="p-2.5 text-[var(--m-watch)]">
                       {isFiniteNum(item.uv) ? item.uv.toFixed(1) : '—'}
                     </td>
                     <td className="p-2.5 font-sans">
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
                           hasWarning
-                            ? 'bg-[#F59E0B]/12 border-[#F59E0B]/40 text-[#FCD34D]'
-                            : 'bg-[#22C7A0]/12 border-[#22C7A0]/30 text-[#6EE7B7]'
+                            ? 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/40 text-[var(--m-watch)]'
+                            : 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/30 text-[var(--m-ok)]'
                         }`}
                       >
                         {hasWarning ? 'Watch' : 'Normal'}

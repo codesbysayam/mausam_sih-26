@@ -134,7 +134,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
 
   const aqiCategory =
     rawAqi === null
-      ? 'Unavailable'
+      ? 'Not reported'
       : rawAqi <= 50
       ? 'Good'
       : rawAqi <= 100
@@ -149,14 +149,14 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
 
   const aqiBadgeColor =
     rawAqi === null
-      ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
+      ? 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border-[var(--m-border)]'
       : rawAqi <= 100
-      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
+      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30'
       : rawAqi <= 200
-      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/30'
       : rawAqi <= 300
-      ? 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35'
-      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
+      ? 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border-[var(--m-alert)]/30'
+      : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35';
 
   const rawPm25 =
     typeof aqiProvider.data?.pm25 === 'number' && Number.isFinite(aqiProvider.data.pm25)
@@ -218,7 +218,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             {/* Inline Quick Station Search */}
             <div ref={searchRef} className="relative w-full sm:w-56">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8295A8]" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)]" />
               <input
                 id="weather-quick-station-search"
                 type="text"
@@ -229,13 +229,13 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                   setIsSearchOpen(true);
                 }}
                 placeholder="Switch station..."
-                className="w-full pl-8 pr-7 py-2 min-h-[38px] bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8]"
+                className="w-full pl-8 pr-7 py-2 min-h-[38px] bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded-lg text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)]"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA]"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -243,12 +243,12 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
               )}
 
               {isSearchOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#0B1927] border border-[#38536A] rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[#26394B]">
-                  <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[#8295A8] bg-[#08131F]">
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[var(--m-border)]">
+                  <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--m-text-muted)] bg-[var(--m-surface-2)]">
                     {searchQuery ? `Matches (${searchResults.length})` : 'Quick Stations'}
                   </div>
                   {searchResults.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-[#8295A8]">No matching stations</div>
+                    <div className="p-3 text-center text-xs text-[var(--m-text-muted)]">No matching stations</div>
                   ) : (
                     searchResults.map((loc) => (
                       <button
@@ -259,16 +259,16 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                           setIsSearchOpen(false);
                           setSearchQuery('');
                         }}
-                        className={`w-full px-3 py-2 text-left hover:bg-[#101F2E] transition-colors flex items-center justify-between gap-2 text-xs cursor-pointer ${
-                          loc.id === selectedLocation.id ? 'bg-[#101F2E] text-[#35C7E8]' : 'text-[#F3F6FA]'
+                        className={`w-full px-3 py-2 text-left hover:bg-[var(--m-surface-2)] transition-colors flex items-center justify-between gap-2 text-xs cursor-pointer ${
+                          loc.id === selectedLocation.id ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-semibold' : 'text-[var(--m-text-primary)]'
                         }`}
                       >
                         <div className="min-w-0">
                           <div className="font-semibold truncate">{loc.city}</div>
-                          <div className="text-[10px] text-[#8295A8] truncate">{loc.state}</div>
+                          <div className="text-[10px] text-[var(--m-text-muted)] truncate">{loc.state}</div>
                         </div>
                         {loc.imdStation && (
-                          <span className="text-[10px] font-mono text-[#8295A8] shrink-0">
+                          <span className="text-[10px] font-mono text-[var(--m-text-muted)] shrink-0">
                             {loc.imdStation}
                           </span>
                         )}
@@ -284,10 +284,10 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                 type="button"
                 onClick={() => onDetectLocation(true)}
                 disabled={isLocating}
-                className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-2 min-h-[38px] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] rounded-lg text-xs font-semibold text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Navigation className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
-                <span>{isLocating ? 'Locating...' : 'Use GPS'}</span>
+                <Navigation className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating…' : 'Use GPS'}</span>
               </button>
             )}
 
@@ -295,9 +295,9 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter || onChangeLocationClick}
-                className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-2 min-h-[38px] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] rounded-lg text-xs font-semibold text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span>Directory</span>
               </button>
             )}
@@ -307,20 +307,20 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="px-3 py-2 min-h-[38px] bg-[#0B72B9] hover:bg-[#0D82D1] text-xs font-semibold text-[#F3F6FA] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              className="px-3 py-2 min-h-[38px] bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-white rounded-lg flex items-center gap-1.5 transition-opacity cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+              <span>{isRefreshing ? 'Syncing…' : 'Refresh'}</span>
             </button>
 
             <button
               id="btn-print-weather-report"
               type="button"
               onClick={() => window.print()}
-              className="px-3 py-2 min-h-[38px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] rounded-lg text-xs font-semibold text-[#B5C3D1] hover:text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-2 min-h-[38px] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] rounded-lg text-xs font-semibold text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Print current observation report"
             >
-              <Printer className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <Printer className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span className="hidden sm:inline">Print</span>
             </button>
           </div>
@@ -333,16 +333,16 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
       {/* Narrative Summary Banner */}
       <DataPanel className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#35C7E8] block">
+            <span className="mausam-eyebrow block">
               Synoptic Context &amp; Guidance
             </span>
-            <p className="text-sm text-[#F3F6FA] font-medium mt-0.5">{weatherStory.whatIsHappening}</p>
-            <p className="text-xs text-[#8295A8] mt-1">
-              Outlook: {weatherStory.whatWillHappen} • Action: {weatherStory.recommendedAction}
+            <p className="text-sm text-[var(--m-text-primary)] font-medium mt-1">{weatherStory.whatIsHappening}</p>
+            <p className="text-xs text-[var(--m-text-secondary)] mt-1">
+              Outlook: {weatherStory.whatWillHappen} · Action: {weatherStory.recommendedAction}
             </p>
           </div>
         </div>
@@ -351,7 +351,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
           <button
             type="button"
             onClick={() => onNavigateToTab('forecast')}
-            className="px-3.5 py-2 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs font-semibold text-[#35C7E8] flex items-center gap-1.5 whitespace-nowrap self-start sm:self-center cursor-pointer"
+            className="px-3.5 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-accent)] flex items-center gap-1.5 whitespace-nowrap self-start sm:self-center cursor-pointer"
           >
             <span>NWP 7-Day Models</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -374,12 +374,12 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
         <div className="lg:col-span-3 flex flex-col gap-4">
           <DataPanel id="station-radar-metadata-card" className="flex flex-col justify-between gap-4 h-full">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-[#26394B]">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8]">
+                  <div className="w-7 h-7 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)]">
                     <Radio className="w-3.5 h-3.5" />
                   </div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#F3F6FA]">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--m-text-primary)]">
                     Radar Link
                   </h3>
                 </div>
@@ -388,35 +388,35 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
 
               <div className="mt-3 space-y-3">
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-[#8295A8] block">Coverage Sector</span>
-                  <strong className="text-xs text-[#35C7E8]">
+                  <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">Coverage Sector</span>
+                  <strong className="text-xs text-[var(--m-accent)]">
                     {selectedLocation.radarCoverage || 'Regional S-Band DWR Network'}
                   </strong>
                 </div>
 
-                <div className="space-y-1.5 text-[11px] text-[#8295A8] font-mono tabular-nums m-panel-inset p-3">
+                <div className="space-y-1.5 text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums m-panel-inset p-3">
                   <div className="flex justify-between">
                     <span className="font-sans">Scan Cadence</span>
-                    <span className="text-[#F3F6FA]">10 min composite</span>
+                    <span className="text-[var(--m-text-primary)]">10 min composite</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-sans">Active Provider</span>
-                    <span className="text-[#F3F6FA]">{radarProvider.source || 'RainViewer'}</span>
+                    <span className="text-[var(--m-text-primary)]">{radarProvider.source || 'RainViewer'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-sans">Station ID</span>
-                    <span className="text-[#22C7A0]">{selectedLocation.imdStation || selectedLocation.id}</span>
+                    <span className="text-[var(--m-ok)]">{selectedLocation.imdStation || selectedLocation.id}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {onNavigateToTab && (
-              <div className="pt-3 border-t border-[#26394B] flex flex-col gap-2">
+              <div className="pt-3 border-t border-[var(--m-border)] flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => onNavigateToTab('radar')}
-                  className="w-full py-2 px-3 rounded-lg bg-[#0B72B9] hover:bg-[#0D82D1] text-xs text-[#F3F6FA] font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Open Doppler Radar</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -424,7 +424,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateToTab('reports')}
-                  className="w-full py-2 px-3 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-xs text-[#B5C3D1] hover:text-[#F3F6FA] font-semibold transition-colors cursor-pointer"
+                  className="w-full py-2 px-3 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] font-semibold transition-colors cursor-pointer"
                 >
                   Submit Ground Observation
                 </button>
@@ -444,13 +444,13 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
         <SectionHeading
           title="Environment, Air Quality & Pollen"
           subtitle={`Particulate and radiation telemetry for ${selectedLocation.city}`}
-          icon={<Activity className="w-4 h-4 text-[#22C7A0]" />}
+          icon={<Activity className="w-4 h-4 text-[var(--m-ok)]" />}
           action={
             onNavigateToTab ? (
               <button
                 type="button"
                 onClick={() => onNavigateToTab('aqi')}
-                className="text-xs font-semibold text-[#35C7E8] hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-[var(--m-accent)] hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Open Full AQI Grid</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -462,65 +462,65 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">National AQI</span>
+              <span className="text-[11px] text-[var(--m-text-muted)] uppercase font-semibold">National AQI</span>
               <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${aqiBadgeColor}`}>
                 {aqiCategory}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA]">
-                {rawAqi !== null ? rawAqi : '—'}
+              <span className="text-3xl font-bold text-[var(--m-text-primary)]">
+                {rawAqi !== null ? rawAqi : 'Not reported'}
               </span>
-              <span className="text-xs text-[#8295A8]">{rawAqi !== null ? 'NAQI Index' : 'Unavailable'}</span>
+              {rawAqi !== null && <span className="text-xs text-[var(--m-text-muted)]">NAQI</span>}
             </div>
-            <span className="text-[11px] text-[#8295A8]">
-              {rawAqi !== null ? 'Open-Meteo Air Quality Feed' : 'AQI feed currently unavailable'}
+            <span className="text-[11px] text-[var(--m-text-muted)]">
+              {rawAqi !== null ? 'Open-Meteo Air Quality Feed' : 'AQI not reported by source'}
             </span>
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
-            <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Particulate Concentrations</span>
+            <span className="text-[11px] text-[var(--m-text-muted)] uppercase font-semibold">Particulate Concentrations</span>
             <div className="grid grid-cols-2 gap-2 my-1 font-mono tabular-nums">
-              <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
-                <span className="text-[10px] text-[#8295A8] block">PM2.5</span>
-                <span className="text-base font-bold text-[#F3F6FA]">
-                  {rawPm25 !== null ? rawPm25 : '—'}{' '}
-                  <span className="text-[10px] text-[#8295A8] font-normal">µg/m³</span>
+              <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
+                <span className="text-[10px] text-[var(--m-text-muted)] block">PM2.5</span>
+                <span className="text-base font-bold text-[var(--m-text-primary)]">
+                  {rawPm25 !== null ? rawPm25 : 'Not reported'}{' '}
+                  {rawPm25 !== null && <span className="text-[10px] text-[var(--m-text-muted)] font-normal">µg/m³</span>}
                 </span>
               </div>
-              <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
-                <span className="text-[10px] text-[#8295A8] block">PM10</span>
-                <span className="text-base font-bold text-[#F3F6FA]">
-                  {rawPm10 !== null ? rawPm10 : '—'}{' '}
-                  <span className="text-[10px] text-[#8295A8] font-normal">µg/m³</span>
+              <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
+                <span className="text-[10px] text-[var(--m-text-muted)] block">PM10</span>
+                <span className="text-base font-bold text-[var(--m-text-primary)]">
+                  {rawPm10 !== null ? rawPm10 : 'Not reported'}{' '}
+                  {rawPm10 !== null && <span className="text-[10px] text-[var(--m-text-muted)] font-normal">µg/m³</span>}
                 </span>
               </div>
             </div>
-            <span className="text-[10px] text-[#8295A8]">Open-Meteo Particulates</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">Open-Meteo Particulates</span>
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Aero-Allergen Pollen</span>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#0B1927] text-[#B5C3D1] border border-[#26394B]">
-                {current.pollen || 'Unavailable'}
+              <span className="text-[11px] text-[var(--m-text-muted)] uppercase font-semibold">Aero-Allergen Pollen</span>
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] border border-[var(--m-border)]">
+                {current.pollen || 'Not reported'}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA]">
-                {rawPollenCount !== null ? rawPollenCount : '—'}
+              <span className="text-3xl font-bold text-[var(--m-text-primary)]">
+                {rawPollenCount !== null ? rawPollenCount : 'Not reported'}
               </span>
-              <span className="text-xs text-[#8295A8]">grains/m³</span>
+              {rawPollenCount !== null && <span className="text-xs text-[var(--m-text-muted)]">grains/m³</span>}
             </div>
-            <span className="text-[11px] text-[#8295A8] font-mono tabular-nums">
-              Tree: {current.treePollen ?? '—'} • Grass: {current.grassPollen ?? '—'}
+            <span className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
+              Tree: {current.treePollen ?? 'N/A'} · Grass: {current.grassPollen ?? 'N/A'}
             </span>
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-[#8295A8] uppercase font-semibold">Solar UV Index</span>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#F59E0B]/12 text-[#FCD34D] border border-[#F59E0B]/35">
+              <span className="text-[11px] text-[var(--m-text-muted)] uppercase font-semibold">Solar UV Index</span>
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--m-watch-soft)] text-[var(--m-watch)] border border-[var(--m-watch)]/30">
                 {rawUv !== null
                   ? rawUv >= 8
                     ? 'Very High'
@@ -529,17 +529,17 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                     : rawUv >= 3
                     ? 'Moderate'
                     : 'Low'
-                  : 'Unavailable'}
+                  : 'Not reported'}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5 my-1 font-mono tabular-nums">
-              <span className="text-3xl font-bold text-[#F3F6FA]">
-                {rawUv !== null ? rawUv.toFixed(1) : '—'}
+              <span className="text-3xl font-bold text-[var(--m-text-primary)]">
+                {rawUv !== null ? rawUv.toFixed(1) : 'Not reported'}
               </span>
-              <span className="text-xs text-[#8295A8]">/ 11+ Index</span>
+              {rawUv !== null && <span className="text-xs text-[var(--m-text-muted)]">/ 11+ Index</span>}
             </div>
-            <span className="text-[11px] text-[#8295A8]">
-              {rawUv !== null ? 'Peak UV exposure occurs around solar noon' : 'UV telemetry unavailable'}
+            <span className="text-[11px] text-[var(--m-text-muted)]">
+              {rawUv !== null ? 'Peak UV exposure occurs around solar noon' : 'UV index not reported by source'}
             </span>
           </div>
         </div>

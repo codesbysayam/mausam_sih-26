@@ -133,9 +133,9 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] font-mono text-[#8295A8]">
+          <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)]">
             <span>AUDIO LANGUAGE</span>
-            <span className="text-[#35C7E8] font-semibold">
+            <span className="text-[var(--m-accent)] font-semibold">
               {ttsStatus === 'SPEAKING'
                 ? `Speaking (${selectedLanguage === 'en' ? 'ENGLISH' : 'हिन्दी'})`
                 : ttsStatus === 'PREPARING'
@@ -153,8 +153,8 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
               }}
               className={`py-2 px-3 min-h-[40px] rounded-lg border text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 m-focus-ring ${
                 selectedLanguage === 'en'
-                  ? 'bg-[#0B72B9] border-[#35C7E8] text-white font-semibold'
-                  : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A]'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white font-semibold'
+                  : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
               <span>ENGLISH</span>
@@ -168,8 +168,8 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
               }}
               className={`py-2 px-3 min-h-[40px] rounded-lg border text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 m-focus-ring ${
                 selectedLanguage === 'hi'
-                  ? 'bg-[#0B72B9] border-[#35C7E8] text-white font-semibold'
-                  : 'bg-[#08131F] border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A]'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white font-semibold'
+                  : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
               <span>हिन्दी</span>
@@ -177,7 +177,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
           </div>
 
           {voiceNote && (
-            <div className="flex items-center gap-2 text-[11px] text-[#FCD34D] bg-[#F59E0B]/10 px-3 py-2 rounded-lg border border-[#F59E0B]/30 font-mono">
+            <div className="flex items-center gap-2 text-[11px] text-[var(--m-watch)] bg-[var(--m-watch-soft)] px-3 py-2 rounded-lg border border-[var(--m-watch)]/30 font-mono">
               <Info className="w-3.5 h-3.5 shrink-0" />
               <span>{voiceNote}</span>
             </div>
@@ -195,8 +195,8 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
                 : ttsStatus === 'PREPARING'
                 ? 'bg-[#D97706] border-[#F59E0B] text-white'
                 : !hasNativeVoice
-                ? 'bg-[#08131F] text-[#8295A8] cursor-not-allowed border-[#26394B]'
-                : 'bg-[#0B72B9] hover:bg-[#095C96] border-[#35C7E8]/50 text-white'
+                ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] cursor-not-allowed border-[var(--m-border)]'
+                : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-white'
             }`}
           >
             {ttsStatus === 'SPEAKING' ? (
@@ -218,14 +218,14 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
           </button>
 
           {ttsStatus === 'SPEAKING' && chunkInfo && (
-            <div className="flex items-center justify-between text-[11px] font-mono text-[#7DD3FC] bg-[#08131F] px-3 py-2 rounded-lg border border-[#26394B] tabular-nums">
+            <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-accent)] bg-[var(--m-surface-inset)] px-3 py-2 rounded-lg border border-[var(--m-border)] tabular-nums">
               <div className="flex items-center gap-1.5 truncate">
-                <Volume2 className="w-3.5 h-3.5 shrink-0 text-[#35C7E8]" />
+                <Volume2 className="w-3.5 h-3.5 shrink-0 text-[var(--m-accent)]" />
                 <span className="truncate">
                   Section {chunkInfo.current}/{chunkInfo.total} ({chunkInfo.label})
                 </span>
               </div>
-              <span className="text-[10px] text-[#B5C3D1] shrink-0 ml-1 font-semibold">
+              <span className="text-[10px] text-[var(--m-text-secondary)] shrink-0 ml-1 font-semibold">
                 {Math.round((chunkInfo.current / chunkInfo.total) * 100)}%
               </span>
             </div>
@@ -242,13 +242,13 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
             icon={<FileText className="w-4 h-4" />}
             badge={<SourceStatus status="REFERENCE" labelOverride="RSMC VERIFIED" />}
           />
-          <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[var(--m-text-secondary)] leading-relaxed">
             {marineBulletinText ||
               'No active cyclone bulletin summary is loaded for this coastal sector. Refer to IMD RSMC New Delhi synoptic cycle bulletins.'}
           </p>
         </div>
 
-        <div className="pt-3 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono text-[#8295A8]">
+        <div className="pt-3 border-t border-[var(--m-border)] flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)]">
           <span>Grounded in IMD RSMC New Delhi</span>
           <span>Synoptic cycle</span>
         </div>
@@ -260,17 +260,17 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
           <SectionHeading
             title="Emergency Control Rooms"
             subtitle="Verified Indian Civil Defence & Maritime Helplines"
-            icon={<PhoneCall className="w-4 h-4 text-[#F97316]" />}
+            icon={<PhoneCall className="w-4 h-4 text-[var(--m-alert)]" />}
             badge={<SourceStatus status="REFERENCE" labelOverride="24x7 TOLL FREE" />}
           />
 
           <div className="grid grid-cols-2 gap-2.5 text-xs">
             {HELPLINES.map((item) => (
               <div key={item.number} className="m-panel-inset p-3 flex flex-col gap-0.5">
-                <span className="text-[10px] text-[#8295A8] truncate" title={item.label}>
+                <span className="text-[10px] text-[var(--m-text-muted)] truncate" title={item.label}>
                   {item.label}
                 </span>
-                <strong className="text-[#F3F6FA] text-base font-mono font-bold tabular-nums">
+                <strong className="text-[var(--m-text-primary)] text-base font-mono font-bold tabular-nums">
                   {item.number}
                 </strong>
               </div>
@@ -278,7 +278,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
           </div>
         </div>
 
-        <div className="pt-3 border-t border-[#26394B] text-[11px] font-mono text-[#8295A8]">
+        <div className="pt-3 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-muted)]">
           Verified Government Emergency Contacts (India)
         </div>
       </DataPanel>

@@ -271,8 +271,8 @@ export const RadarPage: React.FC<RadarPageProps> = ({
     : undefined;
 
   return (
-    <div className="flex flex-col gap-5 w-full text-[#F3F6FA]">
-      {/* Unified Observatory PageHeader (consolidates page title, provenance, location & radar controls) */}
+    <div className="flex flex-col gap-5 w-full text-[var(--m-text-primary)]">
+      {/* Unified Observatory PageHeader */}
       <PageHeader
         eyebrow="Doppler Surveillance & Synoptic Map"
         title="Weather Map & Doppler Radar"
@@ -296,15 +296,15 @@ export const RadarPage: React.FC<RadarPageProps> = ({
                 type="button"
                 onClick={() => onDetectLocation(true)}
                 disabled={isLocating}
-                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
                 title={
                   locationSource === 'DEVICE_GPS'
                     ? 'Active device GPS lock — click to re-sync coordinates'
                     : 'Detect current device coordinates via GPS'
                 }
               >
-                <Navigation className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
-                <span>{isLocating ? 'Locating...' : 'Detect GPS'}</span>
+                <Navigation className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
+                <span>{isLocating ? 'Locating…' : 'Detect GPS'}</span>
               </button>
             )}
 
@@ -312,9 +312,9 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-semibold text-[var(--m-text-primary)] flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span>Switch Location</span>
               </button>
             )}
@@ -323,10 +323,10 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               type="button"
               onClick={() => refreshRadarProvider(true)}
               disabled={isLoadingRadar}
-              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#095c96] border border-[#35C7E8]/40 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRadar ? 'animate-spin' : ''}`} />
-              <span>{isLoadingRadar ? 'Syncing...' : 'Refresh Radar'}</span>
+              <span>{isLoadingRadar ? 'Syncing…' : 'Refresh Radar'}</span>
             </button>
           </div>
         }
@@ -342,7 +342,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
             <button
               type="button"
               onClick={() => refreshRadarProvider(true)}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 border border-[#F59E0B]/40 text-xs font-semibold text-[#FCD34D] transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-watch-soft)] hover:opacity-90 border border-[var(--m-watch)]/35 text-xs font-semibold text-[var(--m-watch)] transition-opacity cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
             >
               Retry Sync
             </button>
@@ -350,8 +350,12 @@ export const RadarPage: React.FC<RadarPageProps> = ({
         />
       )}
 
-      {/* Map-First Workstation: Layer Rail + Map Canvas + Point Inspector */}
-      <section ref={mapWorkspaceRef} className="flex flex-col gap-3">
+      {/* Map-First Workstation: Dark Spatial Scope for Cartographic / Doppler Contrast */}
+      <section
+        ref={mapWorkspaceRef}
+        data-theme="dark-workspace"
+        className="flex flex-col gap-3 p-3 rounded-2xl bg-[var(--m-canvas)] border border-[var(--m-border)] text-[var(--m-text-primary)]"
+      >
         <div className="flex flex-col lg:flex-row gap-3 items-stretch">
           {/* Left Layer Rail (horizontal scroll bar on mobile/tablet, grouped rail on desktop) */}
           <MapLayerRail
@@ -379,7 +383,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               hideMetricSelector={true}
             />
 
-            <div className="relative border-x border-[#26394B] bg-[#07111D] flex-1 min-h-[440px] md:min-h-[540px] lg:min-h-[640px]">
+            <div className="relative border-x border-[var(--m-border)] bg-[var(--m-surface-inset)] flex-1 min-h-[440px] md:min-h-[540px] lg:min-h-[640px]">
               <MausamMap
                 viewMode={viewMode}
                 activeMetric={activeMetric}

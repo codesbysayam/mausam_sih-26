@@ -68,11 +68,11 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
   return (
     <section id="best-field-windows-section" className="space-y-4">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#1E2E40]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#38BDF8]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
+            <Clock className="w-4 h-4 text-[var(--m-accent)]" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-accent)]">
               Diurnal Operations Calibration
             </span>
           </div>
@@ -80,7 +80,7 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
             Best Field-Work Windows
           </h2>
         </div>
-        <span className="text-xs font-mono text-[#94A3B8]">
+        <span className="text-xs font-mono text-[var(--m-text-muted)]">
           Hourly spraying, fertilization &amp; machinery recommendations
         </span>
       </div>
@@ -91,7 +91,7 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
           return (
             <div
               key={w.id}
-              className="p-5 rounded-3xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#38BDF8]/40 transition-all flex flex-col justify-between space-y-4 shadow-xl"
+              className="p-5 rounded-3xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/40 transition-all flex flex-col justify-between space-y-4 shadow-xl"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -109,7 +109,7 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
                       <h4 className="text-xs font-mono font-bold text-white uppercase">
                         {w.title}
                       </h4>
-                      <span className="text-xs font-mono text-[#38BDF8]">
+                      <span className="text-xs font-mono text-[var(--m-accent)]">
                         {w.time}
                       </span>
                     </div>
@@ -127,25 +127,25 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-[#080E16] border border-[#1E2E40] text-[11px] font-mono text-[#94A3B8] mb-3">
+                <div className="p-2.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-muted)] mb-3">
                   {w.weatherSummary}
                 </div>
 
-                <p className="text-xs text-[#D7DEE8] leading-relaxed">
+                <p className="text-xs text-[var(--m-text-primary)] leading-relaxed">
                   {w.reason}
                 </p>
               </div>
 
-              <div className="space-y-1.5 pt-3 border-t border-[#1E2E40] text-[11px] font-mono">
-                <div className="flex items-center justify-between text-[#94A3B8]">
+              <div className="space-y-1.5 pt-3 border-t border-[var(--m-border)] text-[11px] font-mono">
+                <div className="flex items-center justify-between text-[var(--m-text-muted)]">
                   <span>Foliar Spraying:</span>
                   <span className="text-white font-bold">{w.spraying}</span>
                 </div>
-                <div className="flex items-center justify-between text-[#94A3B8]">
+                <div className="flex items-center justify-between text-[var(--m-text-muted)]">
                   <span>Fertilizer Broadcast:</span>
                   <span className="text-white font-bold">{w.fertilizer}</span>
                 </div>
-                <div className="flex items-center justify-between text-[#94A3B8]">
+                <div className="flex items-center justify-between text-[var(--m-text-muted)]">
                   <span>Tractor / Machinery:</span>
                   <span className="text-white font-bold">{w.machinery}</span>
                 </div>

@@ -25,14 +25,14 @@ export const ActivitiesView: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-[1400px] mx-auto select-none font-sans">
       {/* Sport Selection & Fitness Profile (Span 8) */}
-      <section className="col-span-1 md:col-span-8 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col gap-6">
+      <section className="col-span-1 md:col-span-8 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="font-h3 text-base font-bold text-[#FFFFFF] flex items-center gap-2">
+            <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)] flex items-center gap-2">
               <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">cardio_load</span>
               Fitness &amp; Outdoor Physiological Intelligence
             </h2>
-            <p className="text-xs text-[#8A94A6] mt-0.5">
+            <p className="text-xs text-[var(--m-text-secondary)] mt-0.5">
               Thermoregulation, bio-aerosol inhalation risk &amp; hydration models
             </p>
           </div>
@@ -54,8 +54,8 @@ export const ActivitiesView: React.FC = () => {
                 onClick={() => setSelectedSportKey(sport.key)}
                 className={`p-3 rounded-lg flex flex-col items-center gap-2 card-border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#0B72B9]/20 border-[#0B72B9] text-[#FFFFFF] shadow-md'
-                    : 'bg-[#0F141A] text-[#8A94A6] hover:bg-[#242F3D]'
+                    ? 'bg-[var(--m-accent-soft)] border-[#0B72B9] text-[var(--m-text-primary)] shadow-md'
+                    : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
                 }`}
               >
                 <span
@@ -73,20 +73,20 @@ export const ActivitiesView: React.FC = () => {
         </div>
 
         {/* Actionable Windows Banner */}
-        <div className="bg-[#0F141A] card-border rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-[var(--m-surface-1)] card-border rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <span className="text-xs uppercase text-[#2ECC71] font-bold">
               Recommended Training Window
             </span>
-            <h3 className="font-h3 text-2xl md:text-3xl font-bold text-[#FFFFFF] mt-1">
+            <h3 className="font-h3 text-2xl md:text-3xl font-bold text-[var(--m-text-primary)] mt-1">
               {profile.optimalWindow}
             </h3>
-            <p className="text-xs text-[#8A94A6] mt-1">
+            <p className="text-xs text-[var(--m-text-secondary)] mt-1">
               {profile.recommendation}
             </p>
           </div>
-          <div className="bg-[#1E2733] p-3 rounded-lg card-border text-right shrink-0">
-            <span className="text-[10px] uppercase text-[#8A94A6]">
+          <div className="bg-[var(--m-surface-2)] p-3 rounded-lg card-border text-right shrink-0">
+            <span className="text-[10px] uppercase text-[var(--m-text-secondary)]">
               Thermal Stress
             </span>
             <p className="text-lg text-[#2ECC71] font-bold">
@@ -97,7 +97,7 @@ export const ActivitiesView: React.FC = () => {
 
         {/* Hour-by-Hour Suitability Timeline */}
         <div>
-          <h4 className="font-h4 text-xs uppercase text-[#8A94A6] tracking-wider font-bold mb-3">
+          <h4 className="font-h4 text-xs uppercase text-[var(--m-text-secondary)] tracking-wider font-bold mb-3">
             Hour-by-Hour Outdoor Training Score
           </h4>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
@@ -112,16 +112,16 @@ export const ActivitiesView: React.FC = () => {
               return (
                 <div
                   key={h.time}
-                  className="bg-[#0F141A] card-border rounded-lg p-2.5 flex flex-col items-center text-center gap-1"
+                  className="bg-[var(--m-surface-1)] card-border rounded-lg p-2.5 flex flex-col items-center text-center gap-1"
                 >
-                  <span className="text-[11px] text-[#8A94A6]">{h.time}</span>
+                  <span className="text-[11px] text-[var(--m-text-secondary)]">{h.time}</span>
                   <span
                     className="text-sm font-bold"
                     style={{ color: isGood ? '#2ECC71' : isFair ? '#FFB703' : '#E74C3C' }}
                   >
                     {score}
                   </span>
-                  <span className="text-[10px] text-[#8A94A6]">
+                  <span className="text-[10px] text-[var(--m-text-secondary)]">
                     AQI {h.aqi}
                   </span>
                 </div>
@@ -132,13 +132,13 @@ export const ActivitiesView: React.FC = () => {
       </section>
 
       {/* Real-time Hydration & Physiological Calculator (Span 4) */}
-      <section className="col-span-1 md:col-span-4 bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
+      <section className="col-span-1 md:col-span-4 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
         <div>
-          <div className="p-4 card-header-divider bg-[#0F141A] rounded-t-xl -m-6 mb-6">
+          <div className="p-4 card-header-divider bg-[var(--m-surface-1)] rounded-t-xl -m-6 mb-6">
             <span className="text-xs uppercase text-[#4FA8E0] font-bold">
               Metabolic Hydration Planner
             </span>
-            <h3 className="font-h3 text-base font-bold text-[#FFFFFF] mt-1">
+            <h3 className="font-h3 text-base font-bold text-[var(--m-text-primary)] mt-1">
               Physiological Fluid Replenishment
             </h3>
           </div>
@@ -146,7 +146,7 @@ export const ActivitiesView: React.FC = () => {
           {/* User Parameters */}
           <div className="flex flex-col gap-4">
             <div>
-              <div className="flex justify-between text-xs text-[#8A94A6] mb-1">
+              <div className="flex justify-between text-xs text-[var(--m-text-secondary)] mb-1">
                 <span>Body Weight</span>
                 <span className="font-bold text-[#4FA8E0]">{userWeightKg} kg</span>
               </div>
@@ -161,18 +161,18 @@ export const ActivitiesView: React.FC = () => {
             </div>
 
             <div>
-              <span className="text-xs uppercase text-[#8A94A6] font-bold block mb-1.5">
+              <span className="text-xs uppercase text-[var(--m-text-secondary)] font-bold block mb-1.5">
                 Exertion Intensity
               </span>
-              <div className="flex gap-1.5 p-1 bg-[#0F141A] rounded-lg card-border">
+              <div className="flex gap-1.5 p-1 bg-[var(--m-surface-1)] rounded-lg card-border">
                 {(['moderate', 'tempo', 'threshold'] as const).map((lvl) => (
                   <button
                     key={lvl}
                     onClick={() => setIntensity(lvl)}
                     className={`flex-1 py-1 text-xs uppercase font-semibold rounded-md transition-all cursor-pointer ${
                       intensity === lvl
-                        ? 'bg-[#0B72B9] text-[#FFFFFF] shadow-sm'
-                        : 'text-[#8A94A6] hover:text-[#FFFFFF]'
+                        ? 'bg-[var(--m-accent)] text-[#FFFFFF] shadow-sm'
+                        : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                     }`}
                   >
                     {lvl}
@@ -182,15 +182,15 @@ export const ActivitiesView: React.FC = () => {
             </div>
 
             {/* Calculated Output Card */}
-            <div className="bg-[#0F141A] p-4 rounded-xl card-border mt-2 flex flex-col items-center text-center">
+            <div className="bg-[var(--m-surface-1)] p-4 rounded-xl card-border mt-2 flex flex-col items-center text-center">
               <span className="text-xs uppercase text-[#4FA8E0] font-bold">
                 Target Hourly Intake
               </span>
-              <span className="text-4xl font-bold text-[#FFFFFF] my-1">
+              <span className="text-4xl font-bold text-[var(--m-text-primary)] my-1">
                 {calculatedHydration}
                 <span className="text-xl font-normal text-[#4FA8E0] ml-1">mL/h</span>
               </span>
-              <p className="text-xs text-[#8A94A6] mt-1 leading-relaxed">
+              <p className="text-xs text-[var(--m-text-secondary)] mt-1 leading-relaxed">
                 Includes electrolytes (450mg Sodium/L) to prevent hyponatremia at 24.8°C with 64% ambient RH.
               </p>
             </div>
@@ -198,7 +198,7 @@ export const ActivitiesView: React.FC = () => {
         </div>
 
         {/* Sunscreen & Protective Gear Recommendation */}
-        <div className="bg-[#0F141A] card-border p-3.5 rounded-xl flex items-start gap-3">
+        <div className="bg-[var(--m-surface-1)] card-border p-3.5 rounded-xl flex items-start gap-3">
           <span className="material-symbols-outlined text-[#FFB703] text-[22px] shrink-0">
             wb_sunny
           </span>
@@ -206,7 +206,7 @@ export const ActivitiesView: React.FC = () => {
             <p className="text-xs uppercase text-[#FFB703] font-bold">
               Solar Protection Advisory
             </p>
-            <p className="text-xs text-[#8A94A6] mt-0.5 leading-relaxed">
+            <p className="text-xs text-[var(--m-text-secondary)] mt-0.5 leading-relaxed">
               Peak UV Index 8 expected midday. Reapply broad-spectrum SPF 50+ every 90 minutes during sweat exposure.
             </p>
           </div>

@@ -29,7 +29,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (isUser) {
     return (
       <div className="flex justify-end mb-3">
-        <div className="max-w-[85%] rounded-xl rounded-tr-sm bg-[#0B72B9] border border-[#35C7E8]/35 text-[#F3F6FA] px-3.5 py-2.5">
+        <div className="max-w-[85%] rounded-xl rounded-tr-sm bg-[var(--m-accent)] border border-[var(--m-accent)]/35 text-[var(--m-text-primary)] px-3.5 py-2.5">
           <p className="text-xs sm:text-sm leading-relaxed">{message.text}</p>
           <span className="block text-[10px] text-[#F3F6FA]/75 text-right mt-1 font-mono tabular-nums">
             {time}
@@ -58,30 +58,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   return (
     <div className="flex flex-col gap-1.5 mb-4">
       {/* Sender Header */}
-      <div className="flex items-center justify-between text-xs text-[#8295A8] px-1">
+      <div className="flex items-center justify-between text-xs text-[var(--m-text-muted)] px-1">
         <div className="flex items-center gap-1.5 min-w-0">
           <span
             className={`w-2 h-2 rounded-full shrink-0 ${
               isKnowledgeResponse ? 'bg-[#22C7A0]' : 'bg-[#35C7E8]'
             }`}
           />
-          <span className="font-semibold text-[#F3F6FA] tracking-wide">Ask MAUSAM</span>
+          <span className="font-semibold text-[var(--m-text-primary)] tracking-wide">Ask MAUSAM</span>
           <span>·</span>
-          <span className="text-[10px] font-mono text-[#B5C3D1] truncate max-w-[180px]">
+          <span className="text-[10px] font-mono text-[var(--m-text-secondary)] truncate max-w-[180px]">
             {isKnowledgeResponse ? 'Knowledge Base' : sourceName}
           </span>
         </div>
-        <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">{time}</span>
+        <span className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums shrink-0">{time}</span>
       </div>
 
       {/* Main Bubble Content */}
-      <div className="rounded-xl rounded-tl-sm bg-[#0B1927] border border-[#26394B] p-3.5 sm:p-4 text-[#B5C3D1] flex flex-col gap-3">
+      <div className="rounded-xl rounded-tl-sm bg-[var(--m-surface-1)] border border-[var(--m-border)] p-3.5 sm:p-4 text-[var(--m-text-secondary)] flex flex-col gap-3">
         {isKnowledgeResponse && structured?.knowledge && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold tracking-wider uppercase bg-[#35C7E8]/12 text-[#35C7E8] border border-[#35C7E8]/35">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold tracking-wider uppercase bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35">
               {structured.knowledge.category}
             </span>
-            <span className="text-xs text-[#8295A8] font-medium truncate">
+            <span className="text-xs text-[var(--m-text-muted)] font-medium truncate">
               {structured.knowledge.title}
             </span>
           </div>
@@ -90,19 +90,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <MarkdownRenderer content={message.text} />
 
         {intent === 'MULTI_LOCATION_COMPARISON' && structured?.comparison && (
-          <div className="pt-2 border-t border-[#26394B]">
+          <div className="pt-2 border-t border-[var(--m-border)]">
             <ComparisonAnswer comparison={structured.comparison} />
           </div>
         )}
 
         {!isKnowledgeResponse && facts.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#26394B]">
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[var(--m-border)]">
             {facts.map((fact, idx) => (
               <span
                 key={idx}
-                className="px-2 py-1 rounded-md bg-[#08131F] border border-[#26394B] text-[11px] font-mono text-[#B5C3D1] tabular-nums"
+                className="px-2 py-1 rounded-md bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] tabular-nums"
               >
-                <strong className="text-[#F3F6FA] font-semibold">{fact.label}:</strong> {fact.value}
+                <strong className="text-[var(--m-text-primary)] font-semibold">{fact.label}:</strong> {fact.value}
               </span>
             ))}
           </div>
@@ -112,14 +112,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           context?.location &&
           onSelectLocation &&
           !structured?.debug?.locationIsContextOnly && (
-            <div className="flex items-center justify-between pt-2 border-t border-[#26394B] text-[11px]">
-              <span className="text-[#8295A8] truncate">
+            <div className="flex items-center justify-between pt-2 border-t border-[var(--m-border)] text-[11px]">
+              <span className="text-[var(--m-text-muted)] truncate">
                 Grounded in: {context.location.name}
               </span>
               <button
                 type="button"
                 onClick={() => onSelectLocation(context.location.name)}
-                className="min-h-[36px] px-2 text-[#35C7E8] hover:underline font-mono font-semibold shrink-0 ml-2 cursor-pointer"
+                className="min-h-[36px] px-2 text-[var(--m-accent)] hover:underline font-mono font-semibold shrink-0 ml-2 cursor-pointer"
               >
                 Switch Location
               </button>
@@ -127,8 +127,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
 
         {followUps.length > 0 && (
-          <div className="pt-2 border-t border-[#26394B] flex flex-col gap-2">
-            <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-[#8295A8]">
+          <div className="pt-2 border-t border-[var(--m-border)] flex flex-col gap-2">
+            <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-[var(--m-text-muted)]">
               Suggested Inquiries
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -137,7 +137,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   key={i}
                   type="button"
                   onClick={() => onSelectPrompt(promptText)}
-                  className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] transition-colors text-left cursor-pointer m-focus-ring"
+                  className="min-h-[40px] px-3 py-1.5 rounded-lg text-xs bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] transition-colors text-left cursor-pointer m-focus-ring"
                 >
                   {promptText}
                 </button>

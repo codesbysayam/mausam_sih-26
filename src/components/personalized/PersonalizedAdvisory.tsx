@@ -83,10 +83,10 @@ export const PersonalizedAdvisory: React.FC<PersonalizedAdvisoryProps> = ({ weat
         {advisories.map((adv, idx) => (
           <div
             key={idx}
-            className="p-3.5 bg-[#1E2733] border border-[#334155] rounded flex flex-col justify-between"
+            className="p-3.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded flex flex-col justify-between"
           >
             <div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#334155]">
+              <div className="flex justify-between items-center pb-2 border-b border-[var(--m-border-strong)]">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[20px] text-[#4FA8E0]">
                     {adv.icon}
@@ -98,12 +98,12 @@ export const PersonalizedAdvisory: React.FC<PersonalizedAdvisoryProps> = ({ weat
                 <StatusBadge label={adv.status.label} variant={adv.status.variant} />
               </div>
 
-              <p className="text-xs text-[#D7DEE8] my-2.5 leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] my-2.5 leading-relaxed">
                 {adv.guidance}
               </p>
             </div>
 
-            <div className="pt-2 border-t border-[#334155] text-[11px] text-[#8A94A6] font-mono">
+            <div className="pt-2 border-t border-[var(--m-border-strong)] text-[11px] text-[var(--m-text-secondary)] font-mono">
               {adv.metrics}
             </div>
           </div>

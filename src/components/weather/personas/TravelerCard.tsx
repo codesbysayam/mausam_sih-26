@@ -59,12 +59,12 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
 
   const ratingBadgeColor =
     travelSafetyRating === 'Favorable'
-      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35'
+      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
       : travelSafetyRating === 'Minor Delays Expected'
-      ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+      ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35'
       : travelSafetyRating === 'Caution Advised'
-      ? 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35'
-      : 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35';
+      ? 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border-[var(--m-alert)]/35'
+      : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35';
 
   const isCurrentBookmarked = destinations.some(
     (d) =>
@@ -75,16 +75,16 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
   return (
     <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#26394B]">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[var(--m-border)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0B1927] text-[#A78BFA] flex items-center justify-center border border-[#26394B]">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] text-[#A78BFA] flex items-center justify-center border border-[var(--m-border)]">
               <Luggage className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#F3F6FA] uppercase tracking-wide">
+              <h3 className="text-sm font-bold text-[var(--m-text-primary)] uppercase tracking-wide">
                 Travelers &amp; Destination Intel
               </h3>
-              <p className="text-[11px] text-[#8295A8]">
+              <p className="text-[11px] text-[var(--m-text-muted)]">
                 En-Route Bulletins &amp; Packing Guide • {city}
               </p>
             </div>
@@ -96,8 +96,8 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
               disabled={isCurrentBookmarked}
               className={`text-[11px] px-2.5 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 border cursor-pointer ${
                 isCurrentBookmarked
-                  ? 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35 cursor-default'
-                  : 'bg-[#0B1927] hover:bg-[#101F2E] text-[#35C7E8] border-[#26394B]'
+                  ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35 cursor-default'
+                  : 'bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] text-[var(--m-accent)] border-[var(--m-border)]'
               }`}
             >
               {isCurrentBookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
@@ -109,17 +109,17 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-4 p-3.5 rounded-lg bg-[#0B1927] border border-[#26394B]">
+        <div className="mt-4 p-3.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wide">
+            <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wide">
               Packing Checklist ({city})
             </span>
-            <span className="text-[10px] text-[#8295A8]">Forecast Derived</span>
+            <span className="text-[10px] text-[var(--m-text-muted)]">Forecast Derived</span>
           </div>
-          <ul className="space-y-1.5 text-xs text-[#B5C3D1]">
+          <ul className="space-y-1.5 text-xs text-[var(--m-text-secondary)]">
             {packingSuggestions.map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#22C7A0] shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--m-ok)] shrink-0 mt-0.5" />
                 <span>{tip}</span>
               </li>
             ))}
@@ -128,14 +128,14 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
 
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wide flex items-center gap-1.5">
-              <PlaneTakeoff className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wide flex items-center gap-1.5">
+              <PlaneTakeoff className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               Saved Destinations
             </span>
             <button
               type="button"
               onClick={() => setShowAddModal(!showAddModal)}
-              className="text-[11px] text-[#35C7E8] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-[11px] text-[var(--m-accent)] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Add Destination</span>
@@ -143,17 +143,17 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
           </div>
 
           {showAddModal && (
-            <form onSubmit={handleAddCustom} className="mb-3 p-2 bg-[#0B1927] rounded-lg border border-[#26394B] flex gap-2">
+            <form onSubmit={handleAddCustom} className="mb-3 p-2 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)] flex gap-2">
               <input
                 type="text"
                 value={newCityName}
                 onChange={(e) => setNewCityName(e.target.value)}
                 placeholder="Enter city (e.g., Bengaluru, Jaipur)..."
-                className="flex-1 bg-[#08131F] text-[#F3F6FA] text-xs px-2.5 py-1.5 rounded border border-[#26394B] focus:outline-none focus:border-[#35C7E8]"
+                className="flex-1 bg-[var(--m-surface-inset)] text-[var(--m-text-primary)] text-xs px-2.5 py-1.5 rounded border border-[var(--m-border)] focus:outline-none focus:border-[var(--m-accent)]"
               />
               <button
                 type="submit"
-                className="bg-[#0B72B9] hover:bg-[#0D82D1] text-[#F3F6FA] text-xs px-3 py-1.5 rounded font-semibold cursor-pointer"
+                className="bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-text-primary)] text-xs px-3 py-1.5 rounded font-semibold cursor-pointer"
               >
                 Add
               </button>
@@ -164,21 +164,21 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
             {destinations.map((dest) => (
               <div
                 key={dest.id}
-                className="p-2.5 bg-[#0B1927] hover:bg-[#101F2E] rounded-lg border border-[#26394B] flex items-center justify-between text-xs transition-colors"
+                className="p-2.5 bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] rounded-lg border border-[var(--m-border)] flex items-center justify-between text-xs transition-colors"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <strong className="text-[#F3F6FA] truncate">{dest.name}</strong>
-                    <span className="text-[10px] text-[#8295A8] truncate">{dest.state}</span>
+                    <strong className="text-[var(--m-text-primary)] truncate">{dest.name}</strong>
+                    <span className="text-[10px] text-[var(--m-text-muted)] truncate">{dest.state}</span>
                     {typeof dest.temp === 'number' && (
-                      <span className="text-[11px] font-mono tabular-nums text-[#35C7E8] font-bold">
+                      <span className="text-[11px] font-mono tabular-nums text-[var(--m-accent)] font-bold">
                         {dest.temp}°C
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-[#8295A8] mt-0.5 truncate flex items-center gap-1.5">
+                  <div className="text-[11px] text-[var(--m-text-muted)] mt-0.5 truncate flex items-center gap-1.5">
                     {dest.activeAlert ? (
-                      <span className="text-[#FCD34D] flex items-center gap-1">
+                      <span className="text-[var(--m-watch)] flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         {dest.activeAlert}
                       </span>
@@ -190,7 +190,7 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
                 <button
                   type="button"
                   onClick={() => handleRemove(dest.id)}
-                  className="text-[#8295A8] hover:text-[#FCA5A5] p-1.5 transition-colors ml-2 cursor-pointer"
+                  className="text-[var(--m-text-muted)] hover:text-[var(--m-danger)] p-1.5 transition-colors ml-2 cursor-pointer"
                   title="Remove saved destination"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -201,20 +201,20 @@ export const TravelerCard: React.FC<TravelerCardProps> = ({
         </div>
 
         {activeAlerts.length > 0 && (
-          <div className="mt-3 p-3 rounded-lg bg-[#EF4444]/12 border border-[#EF4444]/35 text-xs">
-            <div className="flex items-center gap-1.5 text-[#FCA5A5] font-bold">
+          <div className="mt-3 p-3 rounded-lg bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/35 text-xs">
+            <div className="flex items-center gap-1.5 text-[var(--m-danger)] font-bold">
               <AlertTriangle className="w-4 h-4" />
               <span>Active Travel Alert: {activeAlerts[0].title}</span>
             </div>
-            <p className="text-[11px] text-[#B5C3D1] mt-1">
+            <p className="text-[11px] text-[var(--m-text-secondary)] mt-1">
               {activeAlerts[0].description} ({activeAlerts[0].actionItem})
             </p>
           </div>
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-[#26394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[#8295A8]">
-        <span>Source: <strong className="text-[#B5C3D1]">SACHET CAP Alerts &amp; Synoptic Outlook</strong></span>
+      <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] text-[var(--m-text-muted)]">
+        <span>Source: <strong className="text-[var(--m-text-secondary)]">SACHET CAP Alerts &amp; Synoptic Outlook</strong></span>
         <span>Client Bookmarks</span>
       </div>
     </div>

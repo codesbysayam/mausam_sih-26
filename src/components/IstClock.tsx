@@ -71,9 +71,9 @@ export const IstClock: React.FC<IstClockProps> = ({
   if (compact) {
     return (
       <div className={`flex items-center gap-2 font-mono text-xs text-[#dae2fd] ${className}`}>
-        <span className="material-symbols-outlined text-[16px] text-[#38bdf8]">schedule</span>
+        <span className="material-symbols-outlined text-[16px] text-[var(--m-accent)]">schedule</span>
         <span className="font-bold">{istTimeString}</span>
-        <span className="px-1.5 py-0.5 text-[10px] bg-[#38bdf8]/15 text-[#38bdf8] font-bold rounded border border-[#38bdf8]/30">
+        <span className="px-1.5 py-0.5 text-[10px] bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-bold rounded border border-[var(--m-accent)]/30">
           IST
         </span>
       </div>
@@ -82,12 +82,12 @@ export const IstClock: React.FC<IstClockProps> = ({
 
   return (
     <div
-      className={`bg-[#0b1326]/90 card-border rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md ${className}`}
+      className={`bg-[var(--m-surface-1)] card-border rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md ${className}`}
     >
       <div className="flex items-center gap-3">
         {/* Analog / Digital Mini Toggle Visual */}
         {clockMode === 'analog' ? (
-          <div className="relative w-12 h-12 rounded-full border-2 border-[#38bdf8]/40 bg-[#131b2e] flex items-center justify-center shrink-0 shadow-inner">
+          <div className="relative w-12 h-12 rounded-full border-2 border-[var(--m-accent)]/40 bg-[var(--m-surface-1)] flex items-center justify-center shrink-0 shadow-inner">
             {/* Hour tick markers */}
             <div className="absolute top-1 w-0.5 h-1.5 bg-[#87929a] rounded"></div>
             <div className="absolute bottom-1 w-0.5 h-1.5 bg-[#87929a] rounded"></div>
@@ -130,7 +130,7 @@ export const IstClock: React.FC<IstClockProps> = ({
             <div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b] z-10"></div>
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-lg bg-[#38bdf8]/15 border border-[#38bdf8]/30 flex items-center justify-center text-[#38bdf8] shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <span className="material-symbols-outlined text-[22px]">schedule</span>
           </div>
         )}
@@ -140,12 +140,12 @@ export const IstClock: React.FC<IstClockProps> = ({
             <span className="text-sm sm:text-base font-bold text-[#dae2fd] tracking-tight font-mono">
               {istTimeString}
             </span>
-            <span className="px-1.5 py-0.5 text-[10px] bg-[#38bdf8]/20 text-[#38bdf8] font-bold rounded border border-[#38bdf8]/40">
+            <span className="px-1.5 py-0.5 text-[10px] bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-bold rounded border border-[var(--m-accent)]/40">
               IST (UTC+05:30)
             </span>
           </div>
           {showDate && (
-            <p className="text-xs text-[#bdc8d1] font-medium mt-0.5">
+            <p className="text-xs text-[var(--m-text-secondary)] font-medium mt-0.5">
               {istDateString} • Indian Standard Time
             </p>
           )}
@@ -153,7 +153,7 @@ export const IstClock: React.FC<IstClockProps> = ({
       </div>
 
       {allowAnalogToggle && (
-        <div className="flex items-center gap-1 bg-[#131b2e] p-1 rounded-lg border border-[#3e484f]">
+        <div className="flex items-center gap-1 bg-[var(--m-surface-1)] p-1 rounded-lg border border-[var(--m-border-strong)]">
           <button
             type="button"
             onClick={() => setClockMode('digital')}
@@ -161,7 +161,7 @@ export const IstClock: React.FC<IstClockProps> = ({
             className={`px-2 py-1 text-xs rounded transition-all cursor-pointer ${
               clockMode === 'digital'
                 ? 'bg-[#38bdf8] text-[#00354a] font-bold shadow'
-                : 'text-[#bdc8d1] hover:text-[#dae2fd]'
+                : 'text-[var(--m-text-secondary)] hover:text-[#dae2fd]'
             }`}
           >
             Digital
@@ -173,7 +173,7 @@ export const IstClock: React.FC<IstClockProps> = ({
             className={`px-2 py-1 text-xs rounded transition-all cursor-pointer ${
               clockMode === 'analog'
                 ? 'bg-[#38bdf8] text-[#00354a] font-bold shadow'
-                : 'text-[#bdc8d1] hover:text-[#dae2fd]'
+                : 'text-[var(--m-text-secondary)] hover:text-[#dae2fd]'
             }`}
           >
             Analog

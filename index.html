@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>MAUSAM — Atmospheric Intelligence</title>
     <meta name="description" content="National meteorological observation, radar nowcasting, and environmental intelligence platform." />
     <meta name="application-name" content="MAUSAM" />
-    <meta name="theme-color" content="#0B1219" />
+    <meta name="theme-color" content="#F7F6F1" />
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
@@ -41,11 +41,11 @@
     <!-- Critical Editorial Atmospheric Intelligence Shell (Zero Flash) -->
     <style>
       :root {
-        color-scheme: dark;
+        color-scheme: light dark;
       }
       html, body {
-        background-color: #101820;
-        color: #F5F3ED;
+        background-color: #F7F6F1;
+        color: #14212B;
         margin: 0;
         padding: 0;
         min-height: 100vh;
@@ -67,13 +67,13 @@
         width: auto !important;
         height: auto !important;
         z-index: 99999 !important;
-        background: #2C7BE5 !important;
-        color: #F5F3ED !important;
+        background: #1678B8 !important;
+        color: #FFFEFA !important;
         padding: 8px 16px !important;
         border-radius: 6px !important;
         text-decoration: none !important;
         font-weight: 600 !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 14px rgba(16, 26, 36, 0.22);
       }
       @keyframes mausamSpin {
         to { transform: rotate(360deg); }
@@ -92,22 +92,22 @@
     <script src="/js/formValidation.js" defer></script>
     <script src="/js/seo.js" defer></script>
   </head>
-  <body class="bg-[#101820] text-[#F5F3ED] antialiased selection:bg-[#2C7BE5]/30 selection:text-[#F5F3ED]">
+  <body class="bg-[#F7F6F1] text-[#14212B] antialiased selection:bg-[#1678B8]/20 selection:text-[#14212B]">
     <!-- Accessible Skip to Main Content Link -->
     <a
       href="#main-content"
       id="skip-link"
-      class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#0B72B9] focus:text-white focus:font-semibold focus:text-sm focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#38BDF8]"
+      class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#1678B8] focus:text-white focus:font-semibold focus:text-sm focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#1678B8]"
     >
       Skip to main content
     </a>
 
     <div id="root">
-      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0B1219; color: #F4F7FA; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 16px;">
-        <div style="width: 40px; height: 40px; border: 2px solid rgba(56, 189, 248, 0.2); border-top-color: #38BDF8; border-radius: 50%; animation: mausamSpin 0.9s linear infinite;"></div>
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #F7F6F1; color: #14212B; font-family: 'DM Sans', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 16px;">
+        <div style="width: 36px; height: 36px; border: 2px solid rgba(20, 33, 43, 0.14); border-top-color: #1678B8; border-radius: 50%; animation: mausamSpin 0.9s linear infinite;"></div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
-          <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #F4F7FA;">MAUSAM</div>
-          <div style="font-size: 11px; color: #8EA3B8; font-family: 'IBM Plex Mono', monospace;">Initializing meteorological workspace...</div>
+          <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #14212B;">MAUSAM</div>
+          <div style="font-size: 12px; color: #5D6C77; font-family: 'IBM Plex Mono', monospace;">Initializing atmospheric intelligence...</div>
         </div>
       </div>
     </div>

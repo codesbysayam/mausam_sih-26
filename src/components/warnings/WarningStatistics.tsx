@@ -13,7 +13,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5"
     >
       {/* 1. Total Active Warnings */}
-      <div className="bg-[#0B2239] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
         <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
           Active Warnings
         </span>
@@ -29,7 +29,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       </div>
 
       {/* 2. States / UTs Under Watch */}
-      <div className="bg-[#0B2239] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
         <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
           States Affected
         </span>
@@ -45,7 +45,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       </div>
 
       {/* 3. Severe Alerts (Red) */}
-      <div className="bg-[#0B2239] border border-[#FF0000]/40 bg-gradient-to-b from-[#0B2239] to-[#FF0000]/10 rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#FF0000]/40 bg-gradient-to-b from-[var(--m-surface-1)] to-[#FF0000]/10 rounded p-3 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold text-[#FF4D4D] uppercase tracking-wider">
             Red Alerts
@@ -64,7 +64,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       </div>
 
       {/* 4. Moderate Alerts (Orange) */}
-      <div className="bg-[#0B2239] border border-[#FFA500]/40 bg-gradient-to-b from-[#0B2239] to-[#FFA500]/10 rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#FFA500]/40 bg-gradient-to-b from-[var(--m-surface-1)] to-[#FFA500]/10 rounded p-3 flex flex-col justify-between shadow-sm">
         <span className="text-[10px] font-bold text-[#FFA500] uppercase tracking-wider">
           Orange Alerts
         </span>
@@ -80,7 +80,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       </div>
 
       {/* 5. Advisories (Yellow/Purple) */}
-      <div className="bg-[#0B2239] border border-[#FFFF00]/40 rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#FFFF00]/40 rounded p-3 flex flex-col justify-between shadow-sm">
         <span className="text-[10px] font-bold text-[#FFFF00] uppercase tracking-wider">
           Advisories
         </span>
@@ -96,11 +96,11 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       </div>
 
       {/* 6. Synoptic Telemetry Sync */}
-      <div className="bg-[#0B2239] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
+      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
         <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
           Last Synoptic Sync
         </span>
-        <div className="text-xs font-mono font-bold text-[#D7DEE8] mt-1 truncate">
+        <div className="text-xs font-mono font-bold text-[var(--m-text-primary)] mt-1 truncate">
           {stats.lastUpdatedIst}
         </div>
         <div className="flex items-center gap-1 text-[10px] text-[#E3F2FD] mt-1">

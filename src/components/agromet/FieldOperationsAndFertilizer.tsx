@@ -50,7 +50,7 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
         return {
           window: 'HOLD / POSTPONE 24H',
           status: 'POSTPONE',
-          statusColor: 'text-[#38BDF8] bg-[#38BDF8]/15 border-[#38BDF8]/40',
+          statusColor: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/40',
           advice: 'Convective rainfall expected within next 24 hours. Hold supplemental canal or tubewell irrigation to avoid root hypoxia and nitrogen leaching.',
           constraints: 'Soil moisture currently adequate at 68%',
         };
@@ -66,7 +66,7 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
         return {
           window: '10:00 AM – 03:00 PM',
           status: 'FAVORABLE',
-          statusColor: 'text-[#F59E0B] bg-[#F59E0B]/15 border-[#F59E0B]/40',
+          statusColor: 'text-[var(--m-watch)] bg-[var(--m-watch-soft)] border-[var(--m-watch)]/40',
           advice: 'Harvest mature crop during peak thermal hours when canopy moisture is at lowest. Immediately transfer threshed produce to covered shelters.',
           constraints: 'Grain moisture threshold < 14% • Store before evening shower',
         };
@@ -89,20 +89,20 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
       case 'EXCELLENT':
         return 'bg-[#2ECC71]/20 text-[#2ECC71] border-[#2ECC71]/40';
       case 'GOOD':
-        return 'bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/40';
+        return 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/40';
       case 'MODERATE':
-        return 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40';
+        return 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/40';
       case 'POOR':
       case 'AVOID':
       default:
-        return 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/40';
+        return 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/40';
     }
   };
 
   return (
-    <section className="rounded-3xl bg-gradient-to-b from-[#101A26] to-[#0A1017] border border-[#1E2E40] p-6 sm:p-8 shadow-xl space-y-6">
+    <section className="rounded-3xl bg-gradient-to-b from-[var(--m-surface-1)] to-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 sm:p-8 shadow-xl space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#1E2E40] gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--m-border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <Tractor className="w-5 h-5 text-[#A855F7]" />
@@ -110,12 +110,12 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
               Best Field Work Windows
             </h3>
           </div>
-          <p className="text-xs text-[#94A3B8] mt-0.5">
+          <p className="text-xs text-[var(--m-text-muted)] mt-0.5">
             Hourly operational suitability computed from atmospheric humidity, rainfall probability, temperature, and wind drift.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#182635] text-xs font-mono text-[#38BDF8] border border-[#263C52] self-start sm:self-auto">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--m-surface-2)] text-xs font-mono text-[var(--m-accent)] border border-[var(--m-border-strong)] self-start sm:self-auto">
           <Clock className="w-3.5 h-3.5" />
           <span>Prime Operation Window: 08:00 – 11:30 AM</span>
         </div>
@@ -126,7 +126,7 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
         {operations.map((slot) => (
           <div
             key={slot.timeLabel}
-            className="rounded-2xl bg-[#0B131C] border border-[#1E2E40] p-4 flex flex-col justify-between hover:border-[#A855F7]/40 transition-all text-center shadow-inner"
+            className="rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-4 flex flex-col justify-between hover:border-[#A855F7]/40 transition-all text-center shadow-inner"
           >
             <div>
               <span className="text-xs font-mono font-black text-white block">
@@ -139,18 +139,18 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
               </div>
             </div>
 
-            <div className="mt-2 pt-2 border-t border-[#1E2E40]/60 text-[10px] text-[#94A3B8] space-y-0.5 font-mono">
+            <div className="mt-2 pt-2 border-t border-[var(--m-border)] text-[10px] text-[var(--m-text-muted)] space-y-0.5 font-mono">
               <div>{slot.tempC}°C • {slot.rhPct}% RH</div>
-              <div className="text-[#64748B]">{slot.windKmh} km/h wind</div>
+              <div className="text-[var(--m-text-muted)]">{slot.windKmh} km/h wind</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* 2. Interactive Selectable Activities Directive */}
-      <div className="p-6 rounded-2xl bg-[#0B131C] border border-[#1E2E40] space-y-4 shadow-inner">
+      <div className="p-6 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] space-y-4 shadow-inner">
         <div>
-          <span className="text-xs font-bold text-[#94A3B8] font-mono uppercase tracking-wider block mb-3">
+          <span className="text-xs font-bold text-[var(--m-text-muted)] font-mono uppercase tracking-wider block mb-3">
             Select an Activity to View Specific Advisory Window:
           </span>
 
@@ -166,7 +166,7 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
                   className={`px-4 py-2.5 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer focus:outline-none flex items-center gap-2 ${
                     isSelected
                       ? 'bg-[#38BDF8] text-[#0A1017] shadow-lg shadow-[#38BDF8]/20 scale-[1.02]'
-                      : 'bg-[#14202E] text-[#94A3B8] hover:text-white hover:bg-[#1A2A3D] border border-[#1E2E40]'
+                      : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)]'
                   }`}
                 >
                   <span className="text-sm">{act.icon}</span>
@@ -178,23 +178,23 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
         </div>
 
         {/* Dynamic Activity Recommendation Card */}
-        <div className="p-4 rounded-xl bg-[#121E2C] border border-[#23384E] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-bold text-white">
-                Recommended Window: <strong className="text-[#38BDF8] font-mono">{currentAdvice.window}</strong>
+                Recommended Window: <strong className="text-[var(--m-accent)] font-mono">{currentAdvice.window}</strong>
               </span>
               <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-bold uppercase font-mono ${currentAdvice.statusColor}`}>
                 {currentAdvice.status}
               </span>
             </div>
-            <p className="text-xs text-[#CBD5E1] leading-relaxed pt-1">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed pt-1">
               {currentAdvice.advice}
             </p>
           </div>
 
-          <div className="text-right shrink-0 text-xs border-t md:border-t-0 md:border-l border-[#1E2E40] pt-2 md:pt-0 md:pl-4">
-            <span className="text-[10px] text-[#64748B] font-mono uppercase block">Target Constraints</span>
+          <div className="text-right shrink-0 text-xs border-t md:border-t-0 md:border-l border-[var(--m-border)] pt-2 md:pt-0 md:pl-4">
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">Target Constraints</span>
             <span className="font-mono text-[#2ECC71] text-[11px] font-semibold">{currentAdvice.constraints}</span>
           </div>
         </div>

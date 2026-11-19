@@ -84,14 +84,14 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
         icon={<CloudRain className="w-4 h-4" />}
         action={
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#08131F] border border-[#26394B] text-xs font-mono tabular-nums">
-              <span className="text-[#8295A8]">TOTAL:</span>
-              <span className="text-[#22C7A0] font-bold">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs font-mono tabular-nums">
+              <span className="text-[var(--m-text-muted)]">TOTAL:</span>
+              <span className="text-[var(--m-ok)] font-bold">
                 {totalExpectedMm !== null ? `${totalExpectedMm} mm` : '—'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#08131F] p-1 rounded-lg border border-[#26394B] text-xs font-mono">
+            <div className="flex items-center gap-1 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)] text-xs font-mono">
               {([24, 48, 72] as const).map((h) => (
                 <button
                   key={h}
@@ -99,8 +99,8 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                   onClick={() => setHorizonFilter(h)}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                     horizonFilter === h
-                      ? 'bg-[#0B72B9] text-white font-semibold'
-                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      ? 'bg-[var(--m-accent)] text-white font-semibold'
+                      : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   {h}H
@@ -113,29 +113,29 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
 
       <div className="flex flex-wrap items-center justify-between gap-2 min-h-[26px] text-xs font-mono tabular-nums px-1">
         {activePoint ? (
-          <div className="flex items-center gap-2 bg-[#08131F] border border-[#26394B] px-2.5 py-0.5 rounded-lg text-[#F3F6FA]">
-            <span className="text-[#35C7E8] font-bold">{formatHour(activePoint.validTime)}</span>
+          <div className="flex items-center gap-2 bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-2.5 py-0.5 rounded-lg text-[var(--m-text-primary)]">
+            <span className="text-[var(--m-accent)] font-bold">{formatHour(activePoint.validTime)}</span>
             <span className="text-[#26394B]">·</span>
-            <span className="text-[#6EE7B7] font-bold">
+            <span className="text-[var(--m-ok)] font-bold">
               Rain: {typeof activePoint.precipitation === 'number' ? `${activePoint.precipitation} mm` : '—'}
             </span>
             <span className="text-[#26394B]">·</span>
-            <span className="text-[#FCD34D]">
+            <span className="text-[var(--m-watch)]">
               Prob: {typeof activePoint.precipitationProbability === 'number' ? `${activePoint.precipitationProbability}%` : '—'}
             </span>
           </div>
         ) : (
-          <span className="text-[11px] text-[#8295A8] font-sans">
+          <span className="text-[11px] text-[var(--m-text-muted)] font-sans">
             Bars = Hourly Rainfall (mm) · Dashed Line = Probability (%)
           </span>
         )}
 
         <div className="flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1.5 text-[#6EE7B7]">
+          <span className="flex items-center gap-1.5 text-[var(--m-ok)]">
             <span className="w-2.5 h-2.5 rounded-xs bg-[#22C7A0]" />
             <span>Rain (mm)</span>
           </span>
-          <span className="flex items-center gap-1.5 text-[#FCD34D]">
+          <span className="flex items-center gap-1.5 text-[var(--m-watch)]">
             <span className="w-3 h-0.5 bg-[#F59E0B]" />
             <span>Probability (%)</span>
           </span>

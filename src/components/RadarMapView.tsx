@@ -51,7 +51,7 @@ export const RadarMapView: React.FC<RadarMapViewProps> = ({
       {/* Banner */}
       <div className="bg-[#1E2733] card-border rounded-xl p-5 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-lg bg-[#0B72B9]/20 border border-[#0B72B9]/40 flex items-center justify-center text-[#4FA8E0]">
+          <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/40 flex items-center justify-center text-[#4FA8E0]">
             <span className="material-symbols-outlined text-[24px]">
               public
             </span>
@@ -75,7 +75,7 @@ export const RadarMapView: React.FC<RadarMapViewProps> = ({
             href="https://mausam.imd.gov.in/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B72B9]/15 border border-[#0B72B9]/30 text-[#4FA8E0] text-xs font-semibold hover:bg-[#0B72B9] hover:text-[#FFFFFF] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/30 text-[#4FA8E0] text-xs font-semibold hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] transition-colors"
           >
             <span>Official IMD Portal</span>
             <span className="material-symbols-outlined text-[14px]">open_in_new</span>

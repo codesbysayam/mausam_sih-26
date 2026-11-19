@@ -72,8 +72,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     <section id="nwp-model-selector-workspace" className="flex flex-col gap-3 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-0.5">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-[#35C7E8]" />
-          <h2 className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider">
+          <Layers className="w-4 h-4 text-[var(--m-accent)]" />
+          <h2 className="text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
             Operational Model Matrix
           </h2>
         </div>
@@ -84,20 +84,20 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             onClick={onToggleCompareMode}
             className={`min-h-[38px] px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring ${
               isCompareMode
-                ? 'bg-[#0B72B9] border-[#35C7E8] text-white'
-                : 'bg-[#0B1927] border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A]'
+                ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+                : 'bg-[var(--m-surface-1)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
             }`}
           >
-            <GitCompare className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <GitCompare className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span>{isCompareMode ? 'Exit Comparison' : 'Compare Models'}</span>
           </button>
 
           <button
             type="button"
             onClick={onOpenExplanation}
-            className="min-h-[38px] px-3 py-1.5 rounded-lg border border-[#26394B] bg-[#0B1927] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] transition-colors flex items-center gap-1.5 text-xs cursor-pointer m-focus-ring"
+            className="min-h-[38px] px-3 py-1.5 rounded-lg border border-[var(--m-border)] bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors flex items-center gap-1.5 text-xs cursor-pointer m-focus-ring"
           >
-            <HelpCircle className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <HelpCircle className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span className="hidden md:inline">Model Guide</span>
           </button>
         </div>
@@ -124,14 +124,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               onClick={() => onSelectModel(m.id)}
               className={`group relative text-left rounded-xl p-4 transition-colors cursor-pointer flex flex-col justify-between gap-3 border m-focus-ring ${
                 isSelected
-                  ? 'bg-[#101F2E] border-[#35C7E8] shadow-[inset_0_2px_0_0_#35C7E8]'
-                  : 'bg-[#0B1927] hover:bg-[#101F2E] border-[#26394B] hover:border-[#38536A]'
+                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-[inset_0_2px_0_0_#35C7E8]'
+                  : 'bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
             >
               <div className="flex items-center justify-between gap-2 w-full">
                 <span
                   className={`text-[10px] font-mono tracking-wider uppercase font-semibold truncate ${
-                    isSelected ? 'text-[#35C7E8]' : 'text-[#8295A8]'
+                    isSelected ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]'
                   }`}
                 >
                   {m.classification}
@@ -146,48 +146,48 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               <div className="flex items-baseline justify-between gap-2 w-full">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold tracking-tight text-[#F3F6FA]">
+                    <span className="text-xl font-bold tracking-tight text-[var(--m-text-primary)]">
                       {m.title}
                     </span>
                     {isSelected && (
-                      <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#0B72B9] text-white uppercase tracking-wider">
+                      <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[var(--m-accent)] text-white uppercase tracking-wider">
                         Active
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#B5C3D1] mt-0.5">{m.subTitle}</p>
+                  <p className="text-xs text-[var(--m-text-secondary)] mt-0.5">{m.subTitle}</p>
                 </div>
 
-                <span className="text-[11px] font-mono text-[#B5C3D1] bg-[#08131F] px-2 py-1 rounded border border-[#26394B] shrink-0">
+                <span className="text-[11px] font-mono text-[var(--m-text-secondary)] bg-[var(--m-surface-inset)] px-2 py-1 rounded border border-[var(--m-border)] shrink-0">
                   {m.resolution}
                 </span>
               </div>
 
-              <div className="pt-2 border-t border-[#26394B] flex items-center justify-between w-full text-xs">
+              <div className="pt-2 border-t border-[var(--m-border)] flex items-center justify-between w-full text-xs">
                 {m.id === 'WRF' && prov === 'UNAVAILABLE' ? (
-                  <span className="text-[11px] text-[#8295A8]">
+                  <span className="text-[11px] text-[var(--m-text-muted)]">
                     IMD gateway credentials unconfigured · Zero fallback
                   </span>
                 ) : firstPoint && typeof firstPoint.temperature2m === 'number' ? (
                   <div className="w-full flex items-center justify-between font-mono tabular-nums">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#F3F6FA]">
+                      <span className="font-bold text-sm text-[var(--m-text-primary)]">
                         {firstPoint.temperature2m.toFixed(1)}°C
                       </span>
-                      <span className="text-[11px] text-[#8295A8]">
+                      <span className="text-[11px] text-[var(--m-text-muted)]">
                         {typeof firstPoint.precipitation === 'number'
                           ? `${firstPoint.precipitation.toFixed(1)} mm`
                           : '—'}
                       </span>
                     </div>
-                    <span className="text-[11px] text-[#35C7E8]">
+                    <span className="text-[11px] text-[var(--m-accent)]">
                       {m.forecastHorizon}
                     </span>
                   </div>
                 ) : (
-                  <div className="w-full flex items-center justify-between font-mono text-[11px] text-[#8295A8]">
+                  <div className="w-full flex items-center justify-between font-mono text-[11px] text-[var(--m-text-muted)]">
                     <span className="truncate">{m.provider}</span>
-                    <span className="text-[#35C7E8] shrink-0">{m.forecastHorizon}</span>
+                    <span className="text-[var(--m-accent)] shrink-0">{m.forecastHorizon}</span>
                   </div>
                 )}
               </div>

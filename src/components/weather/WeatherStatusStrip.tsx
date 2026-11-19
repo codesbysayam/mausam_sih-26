@@ -168,7 +168,7 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
       className="m-panel px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
     >
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[10px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider bg-[#08131F] px-2.5 py-1 rounded-md border border-[#26394B]">
+        <span className="text-[10px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider bg-[var(--m-surface-inset)] px-2.5 py-1 rounded-md border border-[var(--m-border)]">
           SYNOPTIC STATUS
         </span>
       </div>
@@ -178,12 +178,12 @@ export const WeatherStatusStrip: React.FC<WeatherStatusStripProps> = ({
           const Icon = item.icon;
           const badgeClass =
             item.severity === 'warning'
-              ? 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35'
+              ? 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35'
               : item.severity === 'info'
-              ? 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35'
+              ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35'
               : item.severity === 'muted'
-              ? 'bg-[#08131F] text-[#8295A8] border-[#26394B]'
-              : 'bg-[#22C7A0]/10 text-[#6EE7B7] border-[#22C7A0]/30';
+              ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]'
+              : 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30';
 
           return (
             <div

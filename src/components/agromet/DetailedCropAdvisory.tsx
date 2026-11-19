@@ -71,11 +71,11 @@ export const DetailedCropAdvisory: React.FC<DetailedCropAdvisoryProps> = ({
   return (
     <section id="detailed-crop-advisory-section" className="space-y-6">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#1E2E40]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
-            <Sprout className="w-4 h-4 text-[#10B981]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#10B981]">
+            <Sprout className="w-4 h-4 text-[var(--m-ok)]" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-ok)]">
               Agronomic Management Matrix
             </span>
           </div>
@@ -83,126 +83,126 @@ export const DetailedCropAdvisory: React.FC<DetailedCropAdvisoryProps> = ({
             Detailed Crop Advisory: {cropData.cropName}
           </h2>
         </div>
-        <span className="text-xs font-mono text-[#38BDF8] bg-[#38BDF8]/10 px-3 py-1 rounded-xl border border-[#38BDF8]/30">
+        <span className="text-xs font-mono text-[var(--m-accent)] bg-[var(--m-accent-soft)] px-3 py-1 rounded-xl border border-[var(--m-accent)]/30">
           Stage: {cropData.stage}
         </span>
       </div>
 
       {/* 1. FIELD PRIORITIES (01 WATER, 02 NUTRIENTS, 03 DISEASE, 04 OPERATIONS) */}
       <div className="space-y-3">
-        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#94A3B8] block">
+        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-text-muted)] block">
           Core Field Priorities
         </span>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Priority 01: Water */}
-          <div className="p-5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#38BDF8]/50 transition-all flex flex-col justify-between space-y-3">
+          <div className="p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 transition-all flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-black text-[#38BDF8] bg-[#38BDF8]/15 px-2 py-0.5 rounded">
+                  <span className="text-xs font-mono font-black text-[var(--m-accent)] bg-[var(--m-accent-soft)] px-2 py-0.5 rounded">
                     01
                   </span>
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                     Water Management
                   </h4>
                 </div>
-                <Droplets className="w-4 h-4 text-[#38BDF8]" />
+                <Droplets className="w-4 h-4 text-[var(--m-accent)]" />
               </div>
-              <p className="text-xs text-[#D7DEE8] leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] leading-relaxed">
                 {cropData.irrigationAdvice}
               </p>
             </div>
-            <div className="pt-2 border-t border-[#1E2E40] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
+            <div className="pt-2 border-t border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
               <span>Goal: Root Aeration &amp; Water Conservation</span>
-              <span className="text-[#38BDF8]">Calibrated</span>
+              <span className="text-[var(--m-accent)]">Calibrated</span>
             </div>
           </div>
 
           {/* Priority 02: Nutrients */}
-          <div className="p-5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-3">
+          <div className="p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-black text-[#10B981] bg-[#10B981]/15 px-2 py-0.5 rounded">
+                  <span className="text-xs font-mono font-black text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2 py-0.5 rounded">
                     02
                   </span>
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                     Nutrient &amp; Fertilizer Management
                   </h4>
                 </div>
-                <Sprout className="w-4 h-4 text-[#10B981]" />
+                <Sprout className="w-4 h-4 text-[var(--m-ok)]" />
               </div>
-              <p className="text-xs text-[#D7DEE8] leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] leading-relaxed">
                 {cropData.fertilizerAdvice}
               </p>
             </div>
-            <div className="pt-2 border-t border-[#1E2E40] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
+            <div className="pt-2 border-t border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
               <span>Goal: Optimal Assimilation &amp; Zero Leaching</span>
-              <span className="text-[#10B981]">Calibrated</span>
+              <span className="text-[var(--m-ok)]">Calibrated</span>
             </div>
           </div>
 
           {/* Priority 03: Pest & Disease */}
-          <div className="p-5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#EF4444]/50 transition-all flex flex-col justify-between space-y-3">
+          <div className="p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-danger)]/50 transition-all flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-black text-[#EF4444] bg-[#EF4444]/15 px-2 py-0.5 rounded">
+                  <span className="text-xs font-mono font-black text-[var(--m-danger)] bg-[var(--m-danger-soft)] px-2 py-0.5 rounded">
                     03
                   </span>
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                     Disease Watch &amp; Biosecurity
                   </h4>
                 </div>
-                <Bug className="w-4 h-4 text-[#EF4444]" />
+                <Bug className="w-4 h-4 text-[var(--m-danger)]" />
               </div>
-              <p className="text-xs text-[#D7DEE8] leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] leading-relaxed">
                 {cropData.pestDiseaseAdvice}
               </p>
             </div>
-            <div className="pt-2 border-t border-[#1E2E40] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
+            <div className="pt-2 border-t border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
               <span>Goal: Integrated Pest Management (IPM)</span>
-              <span className="text-[#EF4444]">High Vigilance</span>
+              <span className="text-[var(--m-danger)]">High Vigilance</span>
             </div>
           </div>
 
           {/* Priority 04: Operations & Harvest */}
-          <div className="p-5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#F59E0B]/50 transition-all flex flex-col justify-between space-y-3">
+          <div className="p-5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-watch)]/50 transition-all flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-black text-[#F59E0B] bg-[#F59E0B]/15 px-2 py-0.5 rounded">
+                  <span className="text-xs font-mono font-black text-[var(--m-watch)] bg-[var(--m-watch-soft)] px-2 py-0.5 rounded">
                     04
                   </span>
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                     Field Operations &amp; Harvest Readiness
                   </h4>
                 </div>
-                <Tractor className="w-4 h-4 text-[#F59E0B]" />
+                <Tractor className="w-4 h-4 text-[var(--m-watch)]" />
               </div>
-              <p className="text-xs text-[#D7DEE8] leading-relaxed">
+              <p className="text-xs text-[var(--m-text-primary)] leading-relaxed">
                 {cropData.harvestingAdvice}
               </p>
             </div>
-            <div className="pt-2 border-t border-[#1E2E40] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
+            <div className="pt-2 border-t border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
               <span>Goal: Yield Protection &amp; Soil Health</span>
-              <span className="text-[#F59E0B]">Scheduled</span>
+              <span className="text-[var(--m-watch)]">Scheduled</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. NEXT 72 HOURS ACTION TIMELINE (NOW -> 24H -> 48H -> 72H) */}
-      <div className="rounded-3xl bg-[#080E16] border border-[#1E2E40] p-6 shadow-xl space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#1E2E40]">
+      <div className="rounded-3xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#38BDF8]" />
+            <Clock className="w-4 h-4 text-[var(--m-accent)]" />
             <h3 className="text-base font-bold text-white">
               Next 72-Hour Sequential Execution Timeline
             </h3>
           </div>
-          <span className="text-xs font-mono text-[#10B981] bg-[#10B981]/15 px-2.5 py-0.5 rounded border border-[#10B981]/30">
+          <span className="text-xs font-mono text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2.5 py-0.5 rounded border border-[#10B981]/30">
             Step-by-Step Action
           </span>
         </div>
@@ -211,10 +211,10 @@ export const DetailedCropAdvisory: React.FC<DetailedCropAdvisoryProps> = ({
           {timeline72Hours.map((step, idx) => (
             <div
               key={step.timeLabel}
-              className="p-4 rounded-2xl bg-[#0B131D] border border-[#1E2E40] space-y-2.5 relative"
+              className="p-4 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] space-y-2.5 relative"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-[#38BDF8]">
+                <span className="text-[10px] font-mono font-bold text-[var(--m-accent)]">
                   {step.timeLabel}
                 </span>
                 <span
@@ -232,7 +232,7 @@ export const DetailedCropAdvisory: React.FC<DetailedCropAdvisoryProps> = ({
                 {step.action}
               </h4>
 
-              <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
                 {step.detail}
               </p>
             </div>

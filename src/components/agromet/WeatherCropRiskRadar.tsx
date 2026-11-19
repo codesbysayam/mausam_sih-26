@@ -54,7 +54,7 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
   const getLevelBadge = (level: RiskFactorItem['level']) => {
     if (level === 'CRITICAL') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EF4444]/12 border border-[#EF4444]/35 text-[#FCA5A5] text-[10px] font-mono font-semibold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/35 text-[var(--m-danger)] text-[10px] font-mono font-semibold">
           <ShieldAlert className="w-3 h-3" />
           CRITICAL
         </span>
@@ -62,7 +62,7 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
     }
     if (level === 'HIGH') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F97316]/12 border border-[#F97316]/35 text-[#FDBA74] text-[10px] font-mono font-semibold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-alert-soft)] border border-[var(--m-alert)]/35 text-[var(--m-alert)] text-[10px] font-mono font-semibold">
           <AlertTriangle className="w-3 h-3" />
           HIGH
         </span>
@@ -70,7 +70,7 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
     }
     if (level === 'MODERATE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F59E0B]/12 border border-[#F59E0B]/35 text-[#FCD34D] text-[10px] font-mono font-semibold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 text-[var(--m-watch)] text-[10px] font-mono font-semibold">
           <AlertTriangle className="w-3 h-3" />
           MODERATE
         </span>
@@ -78,14 +78,14 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
     }
     if (level === 'UNAVAILABLE') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#101F2E] border border-[#26394B] text-[#8295A8] text-[10px] font-mono font-semibold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-muted)] text-[10px] font-mono font-semibold">
           <WifiOff className="w-3 h-3" />
           UNAVAILABLE
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#22C7A0]/12 border border-[#22C7A0]/35 text-[#6EE7B7] text-[10px] font-mono font-semibold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 text-[var(--m-ok)] text-[10px] font-mono font-semibold">
         <CheckCircle2 className="w-3 h-3" />
         LOW
       </span>
@@ -129,29 +129,29 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
                       <Icon className="w-4 h-4" />
                     </div>
                     {getLevelBadge(item.level)}
                   </div>
                   <div>
-                    <h3 className="text-xs font-mono font-bold text-[#F3F6FA] uppercase tracking-wider">
+                    <h3 className="text-xs font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
                       {item.name}
                     </h3>
-                    <div className="text-[11px] font-mono text-[#8295A8] mt-0.5 truncate" title={item.driver}>
+                    <div className="text-[11px] font-mono text-[var(--m-text-muted)] mt-0.5 truncate" title={item.driver}>
                       {item.driver}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono tabular-nums text-[#8295A8]">
+                  <div className="flex items-center justify-between text-[10px] font-mono tabular-nums text-[var(--m-text-muted)]">
                     <span>Vulnerability Index</span>
-                    <span className="text-[#F3F6FA] font-bold">
+                    <span className="text-[var(--m-text-primary)] font-bold">
                       {item.score !== null ? `${item.score}/100` : '—'}
                     </span>
                   </div>
-                  <div className="w-full bg-[#101F2E] rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-[var(--m-surface-2)] rounded-full h-1.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${barColor}`}
                       style={{ width: `${item.score ?? 0}%` }}
@@ -159,8 +159,8 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2.5 border-t border-[#26394B] text-[11px] text-[#B5C3D1] leading-relaxed">
-                  <strong className="text-[#35C7E8] font-mono text-[10px] block uppercase mb-0.5">
+                <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] leading-relaxed">
+                  <strong className="text-[var(--m-accent)] font-mono text-[10px] block uppercase mb-0.5">
                     Management Action
                   </strong>
                   {item.managementAction}

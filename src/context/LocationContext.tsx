@@ -54,7 +54,7 @@ export interface LocationContextType {
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
-function formatCoordinates(lat?: number, lng?: number): string {
+export function formatCoordinates(lat?: number, lng?: number): string {
   return formatCoordinatePair(lat, lng, 2);
 }
 

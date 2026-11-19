@@ -67,7 +67,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
     <DataPanel id="warning-filter-bar-container" className="flex flex-col gap-3.5">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8295A8] pointer-events-none" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)] pointer-events-none" />
           <input
             id="input-warning-search"
             type="text"
@@ -75,7 +75,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onChange={(e) => handleUpdate('searchQuery', e.target.value)}
             placeholder="Search by state, district, hazard keyword, or bulletin ID..."
             aria-label="Search weather warnings"
-            className="w-full min-h-[42px] pl-9 pr-9 py-2 bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8] transition-colors"
+            className="w-full min-h-[42px] pl-9 pr-9 py-2 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)] transition-colors"
           />
           {filter.searchQuery && (
             <button
@@ -83,7 +83,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
               type="button"
               onClick={() => handleUpdate('searchQuery', '')}
               aria-label="Clear search input"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8295A8] hover:text-[#F3F6FA] cursor-pointer p-1"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] cursor-pointer p-1"
             >
               <X className="w-4 h-4" />
             </button>
@@ -91,10 +91,10 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-          <div className="text-xs text-[#B5C3D1] font-mono tabular-nums px-3 py-2 rounded-lg bg-[#08131F] border border-[#26394B]">
+          <div className="text-xs text-[var(--m-text-secondary)] font-mono tabular-nums px-3 py-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
             <span>Showing </span>
-            <strong className="text-[#F3F6FA]">{isUnavailable ? '—' : activeCount}</strong>
-            <span className="text-[#8295A8]"> / {isUnavailable ? '—' : totalCount}</span>
+            <strong className="text-[var(--m-text-primary)]">{isUnavailable ? '—' : activeCount}</strong>
+            <span className="text-[var(--m-text-muted)]"> / {isUnavailable ? '—' : totalCount}</span>
           </div>
 
           {isFiltered && (
@@ -102,16 +102,16 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
               id="btn-reset-filters"
               type="button"
               onClick={onResetFilters}
-              className="px-3 py-2 min-h-[40px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <FilterX className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <FilterX className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>Reset</span>
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-[#26394B]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-[var(--m-border)]">
         <div
           id="severity-filter-pills"
           role="tablist"
@@ -124,8 +124,8 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onClick={() => handleUpdate('severity', 'all')}
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'all'
-                ? 'bg-[#0B72B9] text-white border-[#35C7E8]'
-                : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] border-[#26394B]'
+                ? 'bg-[var(--m-accent)] text-white border-[var(--m-accent)]'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border-[var(--m-border)]'
             }`}
           >
             All Warnings
@@ -138,7 +138,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'red'
                 ? 'bg-[#EF4444] text-white border-[#FCA5A5]'
-                : 'bg-[#08131F] text-[#FCA5A5] hover:bg-[#EF4444]/10 border-[#EF4444]/35'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-danger)] hover:bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35'
             }`}
           >
             Red Alert
@@ -151,7 +151,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'orange'
                 ? 'bg-[#F97316] text-white border-[#FDBA74]'
-                : 'bg-[#08131F] text-[#FDBA74] hover:bg-[#F97316]/10 border-[#F97316]/35'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-alert)] hover:bg-[var(--m-alert-soft)] border-[var(--m-alert)]/35'
             }`}
           >
             Orange Alert
@@ -164,7 +164,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'yellow'
                 ? 'bg-[#EAB308] text-[#07111D] border-[#FDE047]'
-                : 'bg-[#08131F] text-[#FDE047] hover:bg-[#EAB308]/10 border-[#EAB308]/35'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-watch)] hover:bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35'
             }`}
           >
             Yellow Watch
@@ -177,7 +177,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'green'
                 ? 'bg-[#22C7A0] text-[#07111D] border-[#6EE7B7]'
-                : 'bg-[#08131F] text-[#6EE7B7] hover:bg-[#22C7A0]/10 border-[#22C7A0]/35'
+                : 'bg-[var(--m-surface-inset)] text-[var(--m-ok)] hover:bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35'
             }`}
           >
             Normal / Green
@@ -187,16 +187,16 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <label
             htmlFor="select-met-region"
-            className="text-xs text-[#B5C3D1] font-semibold flex items-center gap-1"
+            className="text-xs text-[var(--m-text-secondary)] font-semibold flex items-center gap-1"
           >
-            <Globe2 className="w-4 h-4 text-[#35C7E8]" />
+            <Globe2 className="w-4 h-4 text-[var(--m-accent)]" />
             <span className="hidden sm:inline">Region:</span>
           </label>
           <select
             id="select-met-region"
             value={filter.region}
             onChange={(e) => handleUpdate('region', e.target.value as IndiaMetRegion)}
-            className="min-h-[38px] bg-[#08131F] border border-[#26394B] text-[#F3F6FA] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+            className="min-h-[38px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-primary)] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer"
           >
             {REGION_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -211,7 +211,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
         id="hazard-category-pills-row"
         role="tablist"
         aria-label="Filter warnings by hazard category"
-        className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-[#26394B] scrollbar-none"
+        className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-[var(--m-border)] scrollbar-none"
       >
         {HAZARD_TABS.map((tab) => {
           const isActive = filter.hazard === tab.id;
@@ -225,11 +225,11 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
               onClick={() => handleUpdate('hazard', tab.id)}
               className={`px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer border whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#101F2E] text-[#F3F6FA] border-[#35C7E8]'
-                  : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B]'
+                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] border-[var(--m-border)]'
               }`}
             >
-              <span className="text-[#35C7E8]">
+              <span className="text-[var(--m-accent)]">
                 {renderHazardIcon(tab.icon, 'w-3.5 h-3.5')}
               </span>
               <span>{tab.label}</span>

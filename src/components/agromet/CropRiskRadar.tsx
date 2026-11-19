@@ -79,11 +79,11 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
   return (
     <section id="crop-risk-monitor-section" className="space-y-4">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#1E2E40]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#EF4444]">
+            <ShieldAlert className="w-4 h-4 text-[var(--m-danger)]" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-danger)]">
               Biotic &amp; Abiotic Vulnerability Radar
             </span>
           </div>
@@ -91,7 +91,7 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
             Crop Risk &amp; Pest Monitor
           </h2>
         </div>
-        <span className="text-xs font-mono text-[#94A3B8]">
+        <span className="text-xs font-mono text-[var(--m-text-muted)]">
           Multi-hazard agronomic risk index for {selectedCrop}
         </span>
       </div>
@@ -104,7 +104,7 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
             return (
               <div
                 key={factor.id}
-                className="p-4 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#EF4444]/40 transition-all space-y-2.5"
+                className="p-4 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-danger)]/40 transition-all space-y-2.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -140,7 +140,7 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-1.5 w-full rounded-full bg-[#1E2E40] overflow-hidden">
+                <div className="h-1.5 w-full rounded-full bg-[var(--m-surface-2)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
@@ -150,13 +150,13 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
                   ></div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-[#94A3B8] gap-1">
-                  <span className="text-[#64748B] font-mono">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-[var(--m-text-muted)] gap-1">
+                  <span className="text-[var(--m-text-muted)] font-mono">
                     Driver: {factor.driver}
                   </span>
                 </div>
 
-                <p className="text-[11px] text-[#D7DEE8] bg-[#080E16] p-2.5 rounded-xl border border-[#1E2E40]">
+                <p className="text-[11px] text-[var(--m-text-primary)] bg-[var(--m-surface-inset)] p-2.5 rounded-xl border border-[var(--m-border)]">
                   <strong className="text-white font-mono">Action: </strong>
                   {factor.recommendation}
                 </p>
@@ -166,57 +166,57 @@ export const CropRiskRadar: React.FC<CropRiskRadarProps> = ({
         </div>
 
         {/* Selected Crop Specific Bio-Control Prescription (5 cols) */}
-        <div className="lg:col-span-5 rounded-3xl bg-[#0B131D] border border-[#1E2E40] p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 rounded-3xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-6 shadow-xl space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E2E40]">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
               <span className="text-xs font-mono font-bold text-white uppercase">
                 Plant Protection Rx for {selectedCrop.split(' ')[0]}
               </span>
-              <span className="text-[10px] font-mono text-[#EF4444] bg-[#EF4444]/15 px-2 py-0.5 rounded border border-[#EF4444]/30 font-bold">
+              <span className="text-[10px] font-mono text-[var(--m-danger)] bg-[var(--m-danger-soft)] px-2 py-0.5 rounded border border-[var(--m-danger)]/30 font-bold">
                 ETL Active
               </span>
             </div>
 
             {/* Pathogen Detail */}
-            <div className="p-3.5 rounded-2xl bg-[#080E16] border border-[#1E2E40] space-y-1.5 text-xs">
-              <div className="flex items-center gap-1.5 text-[#EF4444] font-mono font-bold">
+            <div className="p-3.5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] space-y-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[var(--m-danger)] font-mono font-bold">
                 <ShieldAlert className="w-3.5 h-3.5" />
                 <span>Primary Target Pathogen</span>
               </div>
               <p className="text-white font-bold">
                 Bacterial Leaf Blight &amp; Sheath Rot (Rhizoctonia solani)
               </p>
-              <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
                 Symptoms: Greyish-green water-soaked lesions expanding on lower leaf sheaths above water line.
               </p>
             </div>
 
             {/* Organic Remedy */}
-            <div className="p-3.5 rounded-2xl bg-[#080E16] border border-[#10B981]/30 space-y-1.5 text-xs">
-              <div className="flex items-center gap-1.5 text-[#10B981] font-mono font-bold">
+            <div className="p-3.5 rounded-2xl bg-[var(--m-surface-inset)] border border-[#10B981]/30 space-y-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[var(--m-ok)] font-mono font-bold">
                 <Leaf className="w-3.5 h-3.5" />
                 <span>Organic &amp; Biological Defense</span>
               </div>
-              <p className="text-[#E2E8F0] leading-relaxed">
+              <p className="text-[var(--m-text-primary)] leading-relaxed">
                 Spray Pseudomonas fluorescens @ 10g/L or Trichoderma viride @ 5g/L during cloudy morning intervals.
               </p>
             </div>
 
             {/* Chemical Control */}
-            <div className="p-3.5 rounded-2xl bg-[#080E16] border border-[#38BDF8]/30 space-y-1.5 text-xs">
-              <div className="flex items-center gap-1.5 text-[#38BDF8] font-mono font-bold">
+            <div className="p-3.5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-accent)]/30 space-y-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[var(--m-accent)] font-mono font-bold">
                 <Pill className="w-3.5 h-3.5" />
                 <span>Chemical Intervention (If ETL &gt; 10% tillers)</span>
               </div>
-              <p className="text-[#E2E8F0] leading-relaxed">
+              <p className="text-[var(--m-text-primary)] leading-relaxed">
                 Hexaconazole 5% EC @ 2ml/L water or Streptocycline 30g + Copper Oxychloride 500g per 200L water.
               </p>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#1E2E40] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
+          <div className="pt-3 border-t border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] flex items-center justify-between">
             <span>Protocol: ICAR-CRRI IPM Guidelines</span>
-            <span className="text-[#10B981]">Verified</span>
+            <span className="text-[var(--m-ok)]">Verified</span>
           </div>
         </div>
       </div>

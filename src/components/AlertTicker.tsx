@@ -42,7 +42,7 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onClick={() => onSelectAlert(currentAlert)}
-      className="w-full bg-[#170e1a] border-b border-[#ffb4ab]/30 py-1.5 px-3 sm:px-4 flex items-center justify-between gap-2.5 transition-colors cursor-pointer group hover:bg-[#201323] select-none font-sans"
+      className="w-full bg-[var(--m-surface-inset)] border-b border-[#ffb4ab]/30 py-1.5 px-3 sm:px-4 flex items-center justify-between gap-2.5 transition-colors cursor-pointer group hover:bg-[var(--m-surface-2)] select-none font-sans"
     >
       <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between gap-3 overflow-hidden">
         {/* Left Alert Badge & Title */}
@@ -69,7 +69,7 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
             <span className="font-h3 text-sm font-semibold text-[#ffdad6] truncate">
               {currentAlert.title}
             </span>
-            <span className="hidden md:inline font-body-md text-xs text-[#bdc8d1] truncate">
+            <span className="hidden md:inline font-body-md text-xs text-[var(--m-text-secondary)] truncate">
               — {currentAlert.description}
             </span>
             <span className="hidden lg:inline font-body-md text-xs text-[#ffb4ab] shrink-0 font-medium">
@@ -91,7 +91,7 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
                 type="button"
                 onClick={handlePrev}
                 title="Previous Advisory"
-                className="w-6 h-6 rounded flex items-center justify-center text-[#bdc8d1] hover:text-white hover:bg-[#3e484f] transition-colors cursor-pointer"
+                className="w-6 h-6 rounded flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
               </button>
@@ -99,14 +99,14 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
                 type="button"
                 onClick={handleNext}
                 title="Next Advisory"
-                className="w-6 h-6 rounded flex items-center justify-center text-[#bdc8d1] hover:text-white hover:bg-[#3e484f] transition-colors cursor-pointer"
+                className="w-6 h-6 rounded flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               </button>
             </div>
           )}
 
-          <span className="text-xs font-semibold text-[#38bdf8] group-hover:underline flex items-center gap-1">
+          <span className="text-xs font-semibold text-[var(--m-accent)] group-hover:underline flex items-center gap-1">
             <span>View Advisory</span>
             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
           </span>

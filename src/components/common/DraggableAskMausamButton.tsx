@@ -256,20 +256,20 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
       }}
     >
       <div
-        className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-full bg-[#101B26]/95 hover:bg-[#162331] text-[#F4F7FA] border border-[#38BDF8]/40 shadow-xl backdrop-blur-md transition-all select-none min-h-[40px] ${
+        className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-full bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 shadow-xl backdrop-blur-md transition-all select-none min-h-[40px] ${
           isDragging
             ? 'scale-105 ring-2 ring-[#38BDF8] cursor-grabbing'
             : 'cursor-grab'
         }`}
       >
         <span
-          className="text-[#8EA3B8] group-hover:text-[#B6C7D8] transition-colors hidden sm:flex items-center"
+          className="text-[#8EA3B8] group-hover:text-[var(--m-text-secondary)] transition-colors hidden sm:flex items-center"
           title="Drag to adjust position"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
         </span>
 
-        <Sparkles className="w-4 h-4 text-[#38BDF8] shrink-0" aria-hidden="true" />
+        <Sparkles className="w-4 h-4 text-[var(--m-accent)] shrink-0" aria-hidden="true" />
 
         <span className="font-semibold tracking-wide text-xs whitespace-nowrap hidden sm:inline">
           Ask MAUSAM
@@ -281,7 +281,7 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
 
       {isHovered && !isDragging && (
         <div
-          className="hidden sm:block absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[#101B26] border border-white/15 text-[10px] text-[#B6C7D8] whitespace-nowrap shadow pointer-events-none"
+          className="hidden sm:block absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[10px] text-[var(--m-text-secondary)] whitespace-nowrap shadow pointer-events-none"
           aria-hidden="true"
         >
           Ask MAUSAM

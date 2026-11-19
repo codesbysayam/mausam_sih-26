@@ -48,26 +48,26 @@ export const HowToReadNWP: React.FC = () => {
         className="w-full flex items-center justify-between gap-3 text-left cursor-pointer m-focus-ring rounded-lg"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <BookOpen className="w-4 h-4" />
           </div>
-          <h3 className="text-sm sm:text-base font-bold text-[#F3F6FA] tracking-tight">
+          <h3 className="text-sm sm:text-base font-bold text-[var(--m-text-primary)] tracking-tight">
             How to Read Model Forecasts
           </h3>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-[#35C7E8] font-mono">
+        <div className="flex items-center gap-1.5 text-xs text-[var(--m-accent)] font-mono">
           <span>{isOpen ? 'Collapse Guide' : 'Expand Guide (8 Topics)'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
 
       {isOpen && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-[#26394B] text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-[var(--m-border)] text-xs">
           {sections.map((sec) => (
             <div key={sec.q} className="m-panel-inset p-3 flex flex-col gap-1">
-              <span className="font-bold text-[#F3F6FA] text-xs">{sec.q}</span>
-              <p className="text-[#B5C3D1] leading-relaxed text-[11px]">{sec.a}</p>
+              <span className="font-bold text-[var(--m-text-primary)] text-xs">{sec.q}</span>
+              <p className="text-[var(--m-text-secondary)] leading-relaxed text-[11px]">{sec.a}</p>
             </div>
           ))}
         </div>

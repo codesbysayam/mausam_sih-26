@@ -98,9 +98,9 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
                 type="button"
                 onClick={onDetectLocation}
                 disabled={isLocating}
-                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer disabled:opacity-60 m-focus-ring"
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-text-primary)] transition-colors cursor-pointer disabled:opacity-60 m-focus-ring"
               >
-                <Crosshair className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <Crosshair className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
                 <span>{isLocating ? 'Locating…' : 'Use GPS'}</span>
               </button>
             )}
@@ -108,9 +108,9 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#38536A] text-xs font-semibold text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] text-xs font-semibold text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring"
               >
-                <Search className="w-3.5 h-3.5 text-[#B5C3D1]" />
+                <Search className="w-3.5 h-3.5 text-[var(--m-text-secondary)]" />
                 <span>Change Station</span>
               </button>
             )}
@@ -118,7 +118,7 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
               href="/agromet_bulletin.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[#22C7A0]/12 hover:bg-[#22C7A0]/20 border border-[#22C7A0]/35 text-xs font-semibold text-[#6EE7B7] transition-colors m-focus-ring"
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-[40px] rounded-lg bg-[var(--m-ok-soft)] hover:bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 text-xs font-semibold text-[var(--m-ok)] transition-colors m-focus-ring"
               title="Open Printable IMD-ICAR GKMS District Agromet Bulletin"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -127,13 +127,13 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           </div>
         }
       >
-        <div className="flex items-center gap-2 text-xs font-mono tabular-nums text-[#B5C3D1]">
-          <Sprout className="w-3.5 h-3.5 text-[#22C7A0]" />
+        <div className="flex items-center gap-2 text-xs font-mono tabular-nums text-[var(--m-text-secondary)]">
+          <Sprout className="w-3.5 h-3.5 text-[var(--m-ok)]" />
           <span>Crop Age:</span>
-          <strong className="text-[#F3F6FA]">{cropAgeDays} DAS</strong>
+          <strong className="text-[var(--m-text-primary)]">{cropAgeDays} DAS</strong>
           <span className="text-[#38536A]">|</span>
           <span>Stage:</span>
-          <strong className="text-[#35C7E8]">{selectedStage}</strong>
+          <strong className="text-[var(--m-accent)]">{selectedStage}</strong>
         </div>
       </PageHeader>
 
@@ -143,7 +143,7 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           subtitle="Select state, district AMFU node, crop variety, phenological phase, and sowing date"
           icon={<MapPin className="w-4 h-4" />}
           badge={
-            <span className="text-[11px] font-mono text-[#8295A8] px-2 py-0.5 rounded bg-[#08131F] border border-[#26394B]">
+            <span className="text-[11px] font-mono text-[var(--m-text-muted)] px-2 py-0.5 rounded bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
               {states.length} Regions
             </span>
           }
@@ -151,17 +151,17 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
           <div className="space-y-1">
-            <label htmlFor="agromet-state-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+            <label htmlFor="agromet-state-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               State / UT
             </label>
             <select
               id="agromet-state-selector"
               value={selectedState}
               onChange={(e) => onStateChange(e.target.value)}
-              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[var(--m-surface-inset)] text-xs font-mono font-semibold text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer"
             >
               {states.map((s) => (
-                <option key={s} value={s} className="bg-[#0B1927] text-[#F3F6FA]">
+                <option key={s} value={s} className="bg-[var(--m-surface-1)] text-[var(--m-text-primary)]">
                   {s}
                 </option>
               ))}
@@ -169,17 +169,17 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="agromet-district-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+            <label htmlFor="agromet-district-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               District AMFU
             </label>
             <select
               id="agromet-district-selector"
               value={selectedDistrict}
               onChange={(e) => onDistrictChange(e.target.value)}
-              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#F3F6FA] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[var(--m-surface-inset)] text-xs font-mono font-semibold text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer"
             >
               {districts.map((d) => (
-                <option key={d} value={d} className="bg-[#0B1927] text-[#F3F6FA]">
+                <option key={d} value={d} className="bg-[var(--m-surface-1)] text-[var(--m-text-primary)]">
                   {d}
                 </option>
               ))}
@@ -187,17 +187,17 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="agromet-crop-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+            <label htmlFor="agromet-crop-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Agricultural Crop
             </label>
             <select
               id="agromet-crop-selector"
               value={selectedCrop}
               onChange={(e) => onCropChange(e.target.value as CropType)}
-              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#6EE7B7] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[var(--m-surface-inset)] text-xs font-mono font-semibold text-[var(--m-ok)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer"
             >
               {ALL_CROPS.map((c) => (
-                <option key={c} value={c} className="bg-[#0B1927] text-[#F3F6FA]">
+                <option key={c} value={c} className="bg-[var(--m-surface-1)] text-[var(--m-text-primary)]">
                   {c}
                 </option>
               ))}
@@ -205,17 +205,17 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="agromet-stage-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+            <label htmlFor="agromet-stage-selector" className="block text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Phenological Stage
             </label>
             <select
               id="agromet-stage-selector"
               value={selectedStage}
               onChange={(e) => onStageChange(e.target.value as PhenologicalStage)}
-              className="w-full min-h-[44px] sm:min-h-[40px] bg-[#08131F] text-xs font-mono font-semibold text-[#35C7E8] border border-[#26394B] hover:border-[#38536A] rounded-lg px-3 py-2 focus:outline-none focus:border-[#35C7E8] cursor-pointer"
+              className="w-full min-h-[44px] sm:min-h-[40px] bg-[var(--m-surface-inset)] text-xs font-mono font-semibold text-[var(--m-accent)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer"
             >
               {CROP_STAGES.map((st) => (
-                <option key={st} value={st} className="bg-[#0B1927] text-[#F3F6FA]">
+                <option key={st} value={st} className="bg-[var(--m-surface-1)] text-[var(--m-text-primary)]">
                   {st}
                 </option>
               ))}
@@ -224,30 +224,30 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
 
           {onSowingDateChange && (
             <div className="space-y-1 relative" ref={calendarRef}>
-              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
                 Sowing Date
               </label>
               <button
                 type="button"
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="w-full min-h-[44px] sm:min-h-[40px] px-3 py-2 rounded-lg bg-[#08131F] border border-[#26394B] hover:border-[#38536A] text-xs font-mono text-[#F3F6FA] transition-colors flex items-center justify-between gap-2 cursor-pointer m-focus-ring"
+                className="w-full min-h-[44px] sm:min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] text-xs font-mono text-[var(--m-text-primary)] transition-colors flex items-center justify-between gap-2 cursor-pointer m-focus-ring"
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <CalendarIcon className="w-3.5 h-3.5 text-[#22C7A0] shrink-0" />
+                  <CalendarIcon className="w-3.5 h-3.5 text-[var(--m-ok)] shrink-0" />
                   <span className="font-semibold tabular-nums">{formatDateShort(sowingDate)}</span>
-                  <span className="text-[#8295A8] text-[10px]">({cropAgeDays}d)</span>
+                  <span className="text-[var(--m-text-muted)] text-[10px]">({cropAgeDays}d)</span>
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-[#8295A8] transition-transform shrink-0 ${showCalendar ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-[var(--m-text-muted)] transition-transform shrink-0 ${showCalendar ? 'rotate-180' : ''}`} />
               </button>
 
               {showCalendar && (
-                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[#101F2E] border border-[#38536A] rounded-xl shadow-2xl">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#26394B] mb-2 text-xs">
-                    <span className="text-[#F3F6FA] font-semibold">Select Sowing Date</span>
+                <div className="absolute right-0 top-full mt-2 z-50 p-2 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-xl shadow-2xl">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--m-border)] mb-2 text-xs">
+                    <span className="text-[var(--m-text-primary)] font-semibold">Select Sowing Date</span>
                     <button
                       type="button"
                       onClick={() => setShowCalendar(false)}
-                      className="text-[#8295A8] hover:text-[#F3F6FA] p-1 cursor-pointer"
+                      className="text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] p-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

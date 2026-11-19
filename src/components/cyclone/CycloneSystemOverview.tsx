@@ -32,7 +32,7 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
           subtitle="National Weather Forecasting Centre (NWFC) escalation stages"
           icon={<Radio className="w-4 h-4" />}
           badge={
-            <span className="text-[11px] font-mono text-[#6EE7B7] inline-flex items-center gap-1.5">
+            <span className="text-[11px] font-mono text-[var(--m-ok)] inline-flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               {hasActiveMarineCyclone
                 ? 'CYCLONIC STORM PROTOCOL ACTIVE'
@@ -40,7 +40,7 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
             </span>
           }
           action={
-            <span className="text-[11px] font-mono text-[#8295A8]">
+            <span className="text-[11px] font-mono text-[var(--m-text-muted)]">
               {isInland
                 ? 'Inland Synoptic Disturbance'
                 : isDissipated
@@ -51,22 +51,22 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
-            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+          <div className="p-3 rounded-lg border border-[var(--m-border)] bg-[var(--m-surface-inset)] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[var(--m-text-muted)] uppercase">
               Stage 1 (T-72h)
             </span>
-            <span className="text-xs font-semibold text-[#F3F6FA]">Pre-Cyclone Watch</span>
-            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+            <span className="text-xs font-semibold text-[var(--m-text-primary)]">Pre-Cyclone Watch</span>
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono mt-1">
               {hasActiveMarineCyclone ? 'Active' : 'Standby'}
             </span>
           </div>
 
-          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
-            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+          <div className="p-3 rounded-lg border border-[var(--m-border)] bg-[var(--m-surface-inset)] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[var(--m-text-muted)] uppercase">
               Stage 2 (T-48h)
             </span>
-            <span className="text-xs font-semibold text-[#F3F6FA]">Cyclone Alert (Yellow)</span>
-            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+            <span className="text-xs font-semibold text-[var(--m-text-primary)]">Cyclone Alert (Yellow)</span>
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono mt-1">
               {hasActiveMarineCyclone ? 'Active' : 'Standby'}
             </span>
           </div>
@@ -74,29 +74,29 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
           <div
             className={`p-3 rounded-lg border flex flex-col gap-0.5 ${
               hasActiveMarineCyclone
-                ? 'border-[#EF4444]/50 bg-[#EF4444]/10'
-                : 'border-[#26394B] bg-[#08131F]'
+                ? 'border-[var(--m-danger)]/50 bg-[var(--m-danger-soft)]'
+                : 'border-[var(--m-border)] bg-[var(--m-surface-inset)]'
             }`}
           >
-            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+            <span className="text-[10px] font-mono font-bold text-[var(--m-text-muted)] uppercase">
               Stage 3 (T-24h)
             </span>
-            <span className="text-xs font-semibold text-[#F3F6FA]">Cyclone Warning (Orange)</span>
+            <span className="text-xs font-semibold text-[var(--m-text-primary)]">Cyclone Warning (Orange)</span>
             <span
               className={`text-[10px] font-mono mt-1 ${
-                hasActiveMarineCyclone ? 'text-[#FCA5A5] font-bold' : 'text-[#8295A8]'
+                hasActiveMarineCyclone ? 'text-[var(--m-danger)] font-bold' : 'text-[var(--m-text-muted)]'
               }`}
             >
               {hasActiveMarineCyclone ? 'ACTIVE' : 'Standby'}
             </span>
           </div>
 
-          <div className="p-3 rounded-lg border border-[#26394B] bg-[#08131F] flex flex-col gap-0.5">
-            <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase">
+          <div className="p-3 rounded-lg border border-[var(--m-border)] bg-[var(--m-surface-inset)] flex flex-col gap-0.5">
+            <span className="text-[10px] font-mono font-bold text-[var(--m-text-muted)] uppercase">
               Stage 4 (T-12h)
             </span>
-            <span className="text-xs font-semibold text-[#F3F6FA]">Post-Landfall Outlook</span>
-            <span className="text-[10px] text-[#8295A8] font-mono mt-1">
+            <span className="text-xs font-semibold text-[var(--m-text-primary)]">Post-Landfall Outlook</span>
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono mt-1">
               {isDissipated ? 'Concluded' : 'Standby'}
             </span>
           </div>
@@ -105,8 +105,8 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <DataPanel className="flex flex-col justify-between gap-2">
-          <div className="flex items-center justify-between text-[#35C7E8]">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+          <div className="flex items-center justify-between text-[var(--m-accent)]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Position Fix
             </span>
             <MapPin className="w-4 h-4" />
@@ -115,13 +115,13 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
             label="Estimated Center"
             value={formatCoordinatePair(activeSystem.latitude, activeSystem.longitude, 1)}
             hint={activeSystem.currentLocation}
-            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+            valueClassName="text-base sm:text-lg font-bold text-[var(--m-text-primary)]"
           />
         </DataPanel>
 
         <DataPanel className="flex flex-col justify-between gap-2">
-          <div className="flex items-center justify-between text-[#FDBA74]">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+          <div className="flex items-center justify-between text-[var(--m-alert)]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Wind Field
             </span>
             <Wind className="w-4 h-4" />
@@ -130,13 +130,13 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
             label="Sustained Wind Speed"
             value={activeSystem.maxSustainedWind || null}
             hint={`Peak gusts: ${activeSystem.windGust || '—'}`}
-            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+            valueClassName="text-base sm:text-lg font-bold text-[var(--m-text-primary)]"
           />
         </DataPanel>
 
         <DataPanel className="flex flex-col justify-between gap-2">
-          <div className="flex items-center justify-between text-[#7DD3FC]">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+          <div className="flex items-center justify-between text-[var(--m-accent)]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Barometry
             </span>
             <Gauge className="w-4 h-4" />
@@ -145,13 +145,13 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
             label="Central Pressure"
             value={activeSystem.pressure || null}
             hint={`Movement: ${activeSystem.movementDirection} at ${activeSystem.movementSpeed}`}
-            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+            valueClassName="text-base sm:text-lg font-bold text-[var(--m-text-primary)]"
           />
         </DataPanel>
 
         <DataPanel className="flex flex-col justify-between gap-2">
-          <div className="flex items-center justify-between text-[#6EE7B7]">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#8295A8]">
+          <div className="flex items-center justify-between text-[var(--m-ok)]">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
               Classification
             </span>
             <Compass className="w-4 h-4" />
@@ -160,16 +160,16 @@ export const CycloneSystemOverview: React.FC<CycloneSystemOverviewProps> = ({
             label="System Grade"
             value={activeSystem.classification}
             hint={activeSystem.expectedLandfall}
-            valueClassName="text-base sm:text-lg font-bold text-[#F3F6FA]"
+            valueClassName="text-base sm:text-lg font-bold text-[var(--m-text-primary)]"
           />
         </DataPanel>
       </div>
 
       {activeSystem.advisoryText && (
-        <DataPanel variant="inset" className="flex items-start gap-2.5 text-xs text-[#B5C3D1]">
-          <Info className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+        <DataPanel variant="inset" className="flex items-start gap-2.5 text-xs text-[var(--m-text-secondary)]">
+          <Info className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong className="text-[#F3F6FA] font-mono uppercase mr-1.5">
+            <strong className="text-[var(--m-text-primary)] font-mono uppercase mr-1.5">
               Official IMD Advisory:
             </strong>
             {activeSystem.advisoryText}

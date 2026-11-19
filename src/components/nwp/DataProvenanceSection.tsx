@@ -34,36 +34,36 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="m-panel-inset p-3.5 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <Radio className="w-4 h-4 text-[#22C7A0]" />
-              <span className="text-xs font-bold font-mono text-[#6EE7B7] uppercase tracking-wide">
+              <Radio className="w-4 h-4 text-[var(--m-ok)]" />
+              <span className="text-xs font-bold font-mono text-[var(--m-ok)] uppercase tracking-wide">
                 Current Observation
               </span>
             </div>
-            <p className="text-xs text-[#B5C3D1] leading-relaxed">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
               Ground instruments, automatic weather stations (AWS), radar reflectivity, and satellite telemetry recorded near real-time.
             </p>
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#35C7E8]" />
-              <span className="text-xs font-bold font-mono text-[#7DD3FC] uppercase tracking-wide">
+              <Cpu className="w-4 h-4 text-[var(--m-accent)]" />
+              <span className="text-xs font-bold font-mono text-[var(--m-accent)] uppercase tracking-wide">
                 Model Forecast
               </span>
             </div>
-            <p className="text-xs text-[#B5C3D1] leading-relaxed">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
               Numerical fluid-dynamics simulations calculated forward in time. Curves evolve with each initialization cycle.
             </p>
           </div>
 
           <div className="m-panel-inset p-3.5 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
-              <span className="text-xs font-bold font-mono text-[#FCA5A5] uppercase tracking-wide">
+              <AlertTriangle className="w-4 h-4 text-[var(--m-danger)]" />
+              <span className="text-xs font-bold font-mono text-[var(--m-danger)] uppercase tracking-wide">
                 Official Warning
               </span>
             </div>
-            <p className="text-xs text-[#B5C3D1] leading-relaxed">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
               Statutory advisories issued by authorized authorities (IMD, NDMA, SDMAs) to protect life and property.
             </p>
           </div>
@@ -76,7 +76,7 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
           icon={<Database className="w-4 h-4" />}
           action={
             lastFetchedAt ? (
-              <span className="text-[11px] font-mono text-[#8295A8] tabular-nums">
+              <span className="text-[11px] font-mono text-[var(--m-text-muted)] tabular-nums">
                 Synchronized: {lastFetchedAt}
               </span>
             ) : undefined
@@ -87,17 +87,17 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
           <div className="m-panel-inset p-4 flex flex-col justify-between gap-3">
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold font-mono text-[#F3F6FA]">WRF-ARW</span>
+                <span className="text-sm font-bold font-mono text-[var(--m-text-primary)]">WRF-ARW</span>
                 <SourceStatus
                   status={toStatus(wrf?.status)}
                   labelOverride={!wrf || wrf.status === 'UNAVAILABLE' ? 'NOT CONFIGURED' : undefined}
                 />
               </div>
-              <div className="text-xs text-[#B5C3D1] mt-2.5 flex flex-col gap-1">
-                <div><strong className="text-[#F3F6FA]">Source:</strong> IMD / NCMRWF / ARW Core</div>
-                <div><strong className="text-[#F3F6FA]">Resolution:</strong> 3 km &amp; 9 km Dual Nest</div>
-                <div><strong className="text-[#F3F6FA]">Range:</strong> 72 Hours (3 Days)</div>
-                <div><strong className="text-[#F3F6FA]">Cadence:</strong> 00 &amp; 12 UTC cycles</div>
+              <div className="text-xs text-[var(--m-text-secondary)] mt-2.5 flex flex-col gap-1">
+                <div><strong className="text-[var(--m-text-primary)]">Source:</strong> IMD / NCMRWF / ARW Core</div>
+                <div><strong className="text-[var(--m-text-primary)]">Resolution:</strong> 3 km &amp; 9 km Dual Nest</div>
+                <div><strong className="text-[var(--m-text-primary)]">Range:</strong> 72 Hours (3 Days)</div>
+                <div><strong className="text-[var(--m-text-primary)]">Cadence:</strong> 00 &amp; 12 UTC cycles</div>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
               href="https://internal.imd.gov.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-[#35C7E8] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[#26394B]"
+              className="text-[11px] text-[var(--m-accent)] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[var(--m-border)]"
             >
               <span>IMD Gateway Specs</span>
               <ExternalLink className="w-3 h-3" />
@@ -115,14 +115,14 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
           <div className="m-panel-inset p-4 flex flex-col justify-between gap-3">
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold font-mono text-[#F3F6FA]">NOAA GEFS v12</span>
+                <span className="text-sm font-bold font-mono text-[var(--m-text-primary)]">NOAA GEFS v12</span>
                 <SourceStatus status={toStatus(gefs?.status)} />
               </div>
-              <div className="text-xs text-[#B5C3D1] mt-2.5 flex flex-col gap-1">
-                <div><strong className="text-[#F3F6FA]">Source:</strong> NOAA / NCEP / NOMADS</div>
-                <div><strong className="text-[#F3F6FA]">Resolution:</strong> 25 km (~0.25° Grid)</div>
-                <div><strong className="text-[#F3F6FA]">Range:</strong> 16 Days (384 Hours)</div>
-                <div><strong className="text-[#F3F6FA]">Ensemble:</strong> 31 Perturbed Members</div>
+              <div className="text-xs text-[var(--m-text-secondary)] mt-2.5 flex flex-col gap-1">
+                <div><strong className="text-[var(--m-text-primary)]">Source:</strong> NOAA / NCEP / NOMADS</div>
+                <div><strong className="text-[var(--m-text-primary)]">Resolution:</strong> 25 km (~0.25° Grid)</div>
+                <div><strong className="text-[var(--m-text-primary)]">Range:</strong> 16 Days (384 Hours)</div>
+                <div><strong className="text-[var(--m-text-primary)]">Ensemble:</strong> 31 Perturbed Members</div>
               </div>
             </div>
 
@@ -130,7 +130,7 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
               href="https://www.emc.ncep.noaa.gov/emc/pages/numerical_forecast_systems/gefs.php"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-[#35C7E8] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[#26394B]"
+              className="text-[11px] text-[var(--m-accent)] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[var(--m-border)]"
             >
               <span>NOAA GEFS Technical Docs</span>
               <ExternalLink className="w-3 h-3" />
@@ -140,14 +140,14 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
           <div className="m-panel-inset p-4 flex flex-col justify-between gap-3">
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold font-mono text-[#F3F6FA]">ECMWF IFS HRES</span>
+                <span className="text-sm font-bold font-mono text-[var(--m-text-primary)]">ECMWF IFS HRES</span>
                 <SourceStatus status={toStatus(ecmwf?.status)} />
               </div>
-              <div className="text-xs text-[#B5C3D1] mt-2.5 flex flex-col gap-1">
-                <div><strong className="text-[#F3F6FA]">Source:</strong> Open-Meteo → ECMWF IFS HRES</div>
-                <div><strong className="text-[#F3F6FA]">Resolution:</strong> 9 km Native / 0.1° Grid</div>
-                <div><strong className="text-[#F3F6FA]">Range:</strong> 15 Days (360 Hours)</div>
-                <div><strong className="text-[#F3F6FA]">Assimilation:</strong> Continuous 4D-Var</div>
+              <div className="text-xs text-[var(--m-text-secondary)] mt-2.5 flex flex-col gap-1">
+                <div><strong className="text-[var(--m-text-primary)]">Source:</strong> Open-Meteo → ECMWF IFS HRES</div>
+                <div><strong className="text-[var(--m-text-primary)]">Resolution:</strong> 9 km Native / 0.1° Grid</div>
+                <div><strong className="text-[var(--m-text-primary)]">Range:</strong> 15 Days (360 Hours)</div>
+                <div><strong className="text-[var(--m-text-primary)]">Assimilation:</strong> Continuous 4D-Var</div>
               </div>
             </div>
 
@@ -155,7 +155,7 @@ export const DataProvenanceSection: React.FC<DataProvenanceSectionProps> = ({
               href="https://www.ecmwf.int/en/forecasts/datasets/open-data"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-[#35C7E8] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[#26394B]"
+              className="text-[11px] text-[var(--m-accent)] hover:underline flex items-center gap-1 font-mono pt-2 border-t border-[var(--m-border)]"
             >
               <span>ECMWF Open Data Portal</span>
               <ExternalLink className="w-3 h-3" />

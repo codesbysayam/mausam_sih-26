@@ -79,48 +79,48 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
     if (val === null || Number.isNaN(val)) {
       return {
         category: 'Unavailable',
-        badgeClass: 'bg-[#08131F] text-[#8295A8] border-[#26394B]',
+        badgeClass: 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]',
         description: 'Ambient particulate telemetry is currently unavailable from the upstream AQI feed.',
       };
     }
     if (val <= 50) {
       return {
         category: 'Good',
-        badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
+        badgeClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35',
         description: 'Minimal health impact. Air quality meets ambient cleanliness standards.',
       };
     }
     if (val <= 100) {
       return {
         category: 'Satisfactory',
-        badgeClass: 'bg-[#22C7A0]/12 text-[#6EE7B7] border-[#22C7A0]/35',
+        badgeClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35',
         description: 'Acceptable ambient air quality; minor discomfort possible for highly sensitive groups.',
       };
     }
     if (val <= 200) {
       return {
         category: 'Moderate',
-        badgeClass: 'bg-[#F59E0B]/12 text-[#FCD34D] border-[#F59E0B]/35',
+        badgeClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
         description: 'Breathing discomfort possible for people with lung disease, asthma, or heart conditions.',
       };
     }
     if (val <= 300) {
       return {
         category: 'Poor',
-        badgeClass: 'bg-[#F97316]/12 text-[#FDBA74] border-[#F97316]/35',
+        badgeClass: 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border-[var(--m-alert)]/35',
         description: 'Breathing discomfort on prolonged outdoor exposure.',
       };
     }
     if (val <= 400) {
       return {
         category: 'Very Poor',
-        badgeClass: 'bg-[#EF4444]/12 text-[#FCA5A5] border-[#EF4444]/35',
+        badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35',
         description: 'Respiratory illness risk on prolonged exposure.',
       };
     }
     return {
       category: 'Severe',
-      badgeClass: 'bg-[#EF4444]/20 text-[#FCA5A5] border-[#EF4444]/50',
+      badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/50',
       description: 'Health warning: avoid prolonged outdoor exertion.',
     };
   };
@@ -171,7 +171,7 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
             <div className="m-panel-inset p-4 flex flex-col justify-between gap-3">
               <div>
                 <div className="flex justify-between items-center gap-2">
-                  <span className="text-[11px] font-mono text-[#8295A8] uppercase font-semibold tracking-wider">
+                  <span className="text-[11px] font-mono text-[var(--m-text-muted)] uppercase font-semibold tracking-wider">
                     Overall AQI
                   </span>
                   <span
@@ -182,14 +182,14 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
                 </div>
 
                 <div className="my-3 flex items-baseline gap-2 tabular-nums">
-                  <span className="text-4xl font-bold text-[#F3F6FA] font-mono">
+                  <span className="text-4xl font-bold text-[var(--m-text-primary)] font-mono">
                     {aqi !== null ? aqi : '—'}
                   </span>
-                  <span className="text-xs text-[#8295A8] font-mono">NAQI (0–500)</span>
+                  <span className="text-xs text-[var(--m-text-muted)] font-mono">NAQI (0–500)</span>
                 </div>
               </div>
 
-              <p className="text-xs text-[#B5C3D1] border-t border-[#26394B] pt-2.5 leading-relaxed">
+              <p className="text-xs text-[var(--m-text-secondary)] border-t border-[var(--m-border)] pt-2.5 leading-relaxed">
                 {details.description}
               </p>
             </div>
@@ -197,21 +197,21 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
             {/* Health Advisory & Recommendations */}
             <div className="md:col-span-2 m-panel-inset p-4 flex flex-col justify-between gap-3">
               <div>
-                <h3 className="text-[#F3F6FA] font-semibold text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5 font-mono">
-                  <ShieldCheck className="w-4 h-4 text-[#35C7E8]" />
+                <h3 className="text-[var(--m-text-primary)] font-semibold text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5 font-mono">
+                  <ShieldCheck className="w-4 h-4 text-[var(--m-accent)]" />
                   <span>Health Guidance</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#B5C3D1]">
-                  <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
-                    <strong className="text-[#F3F6FA] block mb-1">General Public</strong>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[var(--m-text-secondary)]">
+                  <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
+                    <strong className="text-[var(--m-text-primary)] block mb-1">General Public</strong>
                     {aqi === null
                       ? 'Awaiting verified particulate measurement.'
                       : aqi > 150
                       ? 'Reduce intense outdoor exertion and consider respiratory protection near traffic corridors.'
                       : 'Air quality is suitable for routine outdoor activities.'}
                   </div>
-                  <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B]">
-                    <strong className="text-[#F3F6FA] block mb-1">Sensitive Groups (Asthma / Elderly)</strong>
+                  <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
+                    <strong className="text-[var(--m-text-primary)] block mb-1">Sensitive Groups (Asthma / Elderly)</strong>
                     {aqi === null
                       ? 'Monitor local station telemetry before strenuous activity.'
                       : aqi > 100
@@ -221,16 +221,16 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
                 </div>
               </div>
 
-              <div className="text-[11px] font-mono text-[#8295A8] pt-2.5 border-t border-[#26394B] flex flex-wrap justify-between gap-2">
+              <div className="text-[11px] font-mono text-[var(--m-text-muted)] pt-2.5 border-t border-[var(--m-border)] flex flex-wrap justify-between gap-2">
                 <span>
                   Primary Pollutant:{' '}
-                  <strong className="text-[#F3F6FA]">
+                  <strong className="text-[var(--m-text-primary)]">
                     {pm25Value !== null ? 'PM2.5' : pm10Value !== null ? 'PM10' : '—'}
                   </strong>
                 </span>
                 <span>
                   Provenance:{' '}
-                  <strong className="text-[#35C7E8]">
+                  <strong className="text-[var(--m-accent)]">
                     {aqiState.source || 'Open-Meteo Air Quality'}
                   </strong>
                 </span>
@@ -249,7 +249,7 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
                   precision={p.precision}
                   hint={p.std}
                   unavailableLabel="—"
-                  valueClassName="text-lg font-bold text-[#F3F6FA]"
+                  valueClassName="text-lg font-bold text-[var(--m-text-primary)]"
                 />
               </div>
             ))}

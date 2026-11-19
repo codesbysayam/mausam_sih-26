@@ -51,16 +51,16 @@ interface MobileNavItem {
 }
 
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [
-  { id: 'home', labelKey: 'home', defaultLabel: 'Overview', icon: Home, color: 'text-[#38BDF8]' },
-  { id: 'radar', labelKey: 'radar', defaultLabel: 'Weather Map', icon: Radio, color: 'text-[#22C7A0]' },
+  { id: 'home', labelKey: 'home', defaultLabel: 'Overview', icon: Home, color: 'text-[var(--m-accent)]' },
+  { id: 'radar', labelKey: 'radar', defaultLabel: 'Weather Map', icon: Radio, color: 'text-[var(--m-ok)]' },
   { id: 'forecast', labelKey: 'forecast', defaultLabel: 'Forecast & NWP', icon: TrendingUp, color: 'text-[#60A5FA]' },
-  { id: 'warnings', labelKey: 'warnings', defaultLabel: 'Alerts', icon: AlertTriangle, color: 'text-[#EF4444]' },
-  { id: 'aqi', labelKey: 'airQuality', defaultLabel: 'Air Quality', icon: Activity, color: 'text-[#F59E0B]' },
-  { id: 'agromet', labelKey: 'agromet', defaultLabel: 'Agromet', icon: Wheat, color: 'text-[#22C7A0]' },
-  { id: 'cyclone-tracker', labelKey: 'cycloneTracker', defaultLabel: 'Cyclones', icon: Disc, color: 'text-[#38BDF8]' },
+  { id: 'warnings', labelKey: 'warnings', defaultLabel: 'Alerts', icon: AlertTriangle, color: 'text-[var(--m-danger)]' },
+  { id: 'aqi', labelKey: 'airQuality', defaultLabel: 'Air Quality', icon: Activity, color: 'text-[var(--m-watch)]' },
+  { id: 'agromet', labelKey: 'agromet', defaultLabel: 'Agromet', icon: Wheat, color: 'text-[var(--m-ok)]' },
+  { id: 'cyclone-tracker', labelKey: 'cycloneTracker', defaultLabel: 'Cyclones', icon: Disc, color: 'text-[var(--m-accent)]' },
   { id: 'weather', labelKey: 'weather', defaultLabel: 'Local Detail', icon: ThermometerSun, color: 'text-[#FB923C]' },
-  { id: 'reports', labelKey: 'reports', defaultLabel: 'Reports', icon: FileText, color: 'text-[#B6C7D8]' },
-  { id: 'debug', labelKey: 'apiDebug', defaultLabel: 'Data & Sources', icon: Database, color: 'text-[#38BDF8]' },
+  { id: 'reports', labelKey: 'reports', defaultLabel: 'Reports', icon: FileText, color: 'text-[var(--m-text-secondary)]' },
+  { id: 'debug', labelKey: 'apiDebug', defaultLabel: 'Data & Sources', icon: Database, color: 'text-[var(--m-accent)]' },
 ];
 
 export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
@@ -121,12 +121,12 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 
       <div
         ref={drawerRef}
-        className="relative z-10 w-[86%] max-w-[340px] h-full bg-[#0B1219] border-l border-white/15 shadow-2xl flex flex-col justify-between overflow-y-auto"
+        className="relative z-10 w-[86%] max-w-[340px] h-full bg-[var(--m-surface-inset)] border-l border-[var(--m-border)] shadow-2xl flex flex-col justify-between overflow-y-auto"
       >
         <div>
-          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#101B26]">
+          <div className="p-4 border-b border-[var(--m-border)] flex items-center justify-between bg-[var(--m-surface-1)]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-[#162331] border border-white/10 p-1 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] p-1 flex items-center justify-center shrink-0">
                 <img
                   src="/assets/imd-logo.svg"
                   alt="IMD Logo"
@@ -135,9 +135,9 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                 />
               </div>
               <div>
-                <div className="text-[#F4F7FA] font-bold text-sm leading-none flex items-center gap-1.5">
+                <div className="text-[var(--m-text-primary)] font-bold text-sm leading-none flex items-center gap-1.5">
                   <span>MAUSAM</span>
-                  <span className="text-[10px] font-mono text-[#38BDF8]">IN</span>
+                  <span className="text-[10px] font-mono text-[var(--m-accent)]">IN</span>
                 </div>
                 <div className="text-[#8EA3B8] text-[11px] mt-0.5">Atmospheric Intelligence</div>
               </div>
@@ -146,25 +146,25 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-11 h-11 rounded-lg bg-[#162331] border border-white/12 text-[#B6C7D8] hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+              className="w-11 h-11 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center justify-center cursor-pointer transition-colors"
               aria-label="Close menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <div className="p-3 bg-[#101B26]/70 border-b border-white/10 flex items-center justify-between text-xs gap-2">
+          <div className="p-3 bg-[var(--m-surface-1)] border-b border-[var(--m-border)] flex items-center justify-between text-xs gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="material-symbols-outlined text-[#38BDF8] text-[16px] shrink-0">
+              <span className="material-symbols-outlined text-[var(--m-accent)] text-[16px] shrink-0">
                 location_on
               </span>
               <div className="truncate">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-[#F4F7FA] truncate">
+                  <span className="font-semibold text-[var(--m-text-primary)] truncate">
                     {selectedLocation.city}, {selectedLocation.state}
                   </span>
                   {locationSource === 'DEVICE_GPS' && (
-                    <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#22C7A0]/15 text-[#22C7A0]">
+                    <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[var(--m-ok-soft)] text-[var(--m-ok)]">
                       GPS
                     </span>
                   )}
@@ -181,7 +181,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   onClose();
                   onOpenLocationCenter();
                 }}
-                className="text-xs text-[#38BDF8] font-semibold hover:underline shrink-0 px-2 py-2 min-h-[44px] cursor-pointer"
+                className="text-xs text-[var(--m-accent)] font-semibold hover:underline shrink-0 px-2 py-2 min-h-[44px] cursor-pointer"
               >
                 Change
               </button>
@@ -189,7 +189,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           </div>
 
           {onDetectLocation && (
-            <div className="p-3 border-b border-white/10">
+            <div className="p-3 border-b border-[var(--m-border)]">
               <UseMyLocationButton
                 onDetect={handleDetect}
                 isLocating={isLocating}
@@ -201,22 +201,22 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           )}
 
           {onOpenAskMausam && (
-            <div className="p-3 border-b border-white/10">
+            <div className="p-3 border-b border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => {
                   onClose();
                   onOpenAskMausam();
                 }}
-                className="w-full min-h-[44px] px-3 rounded-lg bg-[#101B26] border border-white/14 hover:border-[#38BDF8]/40 text-[#F4F7FA] flex items-center justify-between text-xs font-semibold cursor-pointer transition-colors"
+                className="w-full min-h-[44px] px-3 rounded-lg bg-[var(--m-surface-1)] border border-white/14 hover:border-[var(--m-accent)]/40 text-[var(--m-text-primary)] flex items-center justify-between text-xs font-semibold cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#38BDF8] text-[18px]">
+                  <span className="material-symbols-outlined text-[var(--m-accent)] text-[18px]">
                     auto_awesome
                   </span>
                   <span>Ask MAUSAM</span>
                 </div>
-                <span className="text-[11px] text-[#38BDF8]">Open →</span>
+                <span className="text-[11px] text-[var(--m-accent)]">Open →</span>
               </button>
             </div>
           )}
@@ -239,8 +239,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer min-h-[44px] ${
                     isActive
-                      ? 'bg-[#162331] text-[#F4F7FA] font-semibold border border-[#38BDF8]/30'
-                      : 'text-[#B6C7D8] hover:bg-[#101B26] hover:text-[#F4F7FA]'
+                      ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] font-semibold border border-[var(--m-accent)]/30'
+                      : 'text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -249,7 +249,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   </div>
 
                   {badgeCount && badgeCount > 0 ? (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums font-semibold bg-[#EF4444]/20 text-[#FCA5A5]">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums font-semibold bg-[var(--m-danger-soft)] text-[var(--m-danger)]">
                       {badgeCount}
                     </span>
                   ) : (
@@ -261,10 +261,10 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           </div>
         </div>
 
-        <div className="p-4 border-t border-white/10 bg-[#101B26] flex flex-col gap-3">
+        <div className="p-4 border-t border-[var(--m-border)] bg-[var(--m-surface-1)] flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-[#F4F7FA]">Severe Audio Alert</span>
+              <span className="text-xs font-semibold text-[var(--m-text-primary)]">Severe Audio Alert</span>
               <span className="text-[11px] text-[#8EA3B8]">Chime when warnings increase</span>
             </div>
             <AudioAlertToggle variant="compact" showLabel={true} />
@@ -277,13 +277,13 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             <LanguageSelector />
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--m-border)] text-xs">
             <span className="text-[11px] text-[#8EA3B8]">Text Size</span>
-            <div className="flex items-center gap-1 bg-[#162331] border border-white/10 rounded px-1 h-9">
+            <div className="flex items-center gap-1 bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded px-1 h-9">
               <button
                 type="button"
                 onClick={() => onAdjustFontSize(-0.05)}
-                className="px-2.5 text-xs text-[#B6C7D8] hover:text-white font-semibold h-full"
+                className="px-2.5 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] font-semibold h-full"
                 aria-label="Decrease font size"
               >
                 A-
@@ -292,7 +292,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
               <button
                 type="button"
                 onClick={onResetFontSize}
-                className="px-2.5 text-xs text-[#B6C7D8] hover:text-white font-semibold h-full"
+                className="px-2.5 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] font-semibold h-full"
                 aria-label="Reset font size"
               >
                 A
@@ -301,7 +301,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => onAdjustFontSize(0.05)}
-                className="px-2.5 text-xs text-[#B6C7D8] hover:text-white font-semibold h-full"
+                className="px-2.5 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] font-semibold h-full"
                 aria-label="Increase font size"
               >
                 A+
@@ -309,20 +309,20 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/10 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#8EA3B8]">
-            <button type="button" onClick={() => { onNavigateTab('terms'); onClose(); }} className="hover:text-[#38BDF8] py-1">
+          <div className="pt-2 border-t border-[var(--m-border)] flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#8EA3B8]">
+            <button type="button" onClick={() => { onNavigateTab('terms'); onClose(); }} className="hover:text-[var(--m-accent)] py-1">
               Terms
             </button>
             <span>•</span>
-            <button type="button" onClick={() => { onNavigateTab('privacy'); onClose(); }} className="hover:text-[#38BDF8] py-1">
+            <button type="button" onClick={() => { onNavigateTab('privacy'); onClose(); }} className="hover:text-[var(--m-accent)] py-1">
               Privacy
             </button>
             <span>•</span>
-            <button type="button" onClick={() => { onNavigateTab('api'); onClose(); }} className="hover:text-[#38BDF8] py-1">
+            <button type="button" onClick={() => { onNavigateTab('api'); onClose(); }} className="hover:text-[var(--m-accent)] py-1">
               Open Data API
             </button>
             <span>•</span>
-            <button type="button" onClick={() => { onNavigateTab('docs'); onClose(); }} className="hover:text-[#38BDF8] py-1">
+            <button type="button" onClick={() => { onNavigateTab('docs'); onClose(); }} className="hover:text-[var(--m-accent)] py-1">
               Docs
             </button>
           </div>

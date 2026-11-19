@@ -139,9 +139,9 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
                 type="button"
                 onClick={onDetectLocation}
                 disabled={isLocating}
-                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#26394B] text-xs font-medium text-[#B5C3D1] hover:text-[#F3F6FA] inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-medium text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
               >
-                <Navigation className={`w-3.5 h-3.5 text-[#35C7E8] ${isLocating ? 'animate-spin' : ''}`} />
+                <Navigation className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Detect GPS</span>
               </button>
             )}
@@ -149,9 +149,9 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#26394B] text-xs font-medium text-[#B5C3D1] hover:text-[#F3F6FA] inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
+                className="min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-medium text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span>Station Directory</span>
               </button>
             )}
@@ -160,8 +160,8 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
               onClick={() => setIsCompareMode((v) => !v)}
               className={`min-h-[40px] px-3 py-2 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
                 isCompareMode
-                  ? 'bg-[#0B72B9] border-[#35C7E8] text-white'
-                  : 'bg-[#101F2E] hover:bg-[#172A3B] border-[#26394B] text-[#F3F6FA]'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+                  : 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[var(--m-border)] text-[var(--m-text-primary)]'
               }`}
             >
               <GitCompare className="w-3.5 h-3.5" />
@@ -170,16 +170,16 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => setShowExplanation(true)}
-              className="min-h-[40px] px-3 py-2 rounded-lg bg-[#101F2E] hover:bg-[#172A3B] border border-[#26394B] text-xs font-medium text-[#B5C3D1] hover:text-[#F3F6FA] inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-2 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-xs font-medium text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <HelpCircle className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span className="hidden md:inline">Guide</span>
             </button>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isLoading}
-              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#0E82CF] border border-[#35C7E8]/40 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] border border-[var(--m-accent)]/40 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
@@ -187,13 +187,13 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
           </>
         }
       >
-        <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-[#8295A8] tabular-nums">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-[var(--m-text-muted)] tabular-nums">
           <span>
-            Locator: <strong className="text-[#F3F6FA]">{source === 'DEVICE_GPS' ? 'Device GPS' : 'Station Directory'}</strong>
+            Locator: <strong className="text-[var(--m-text-primary)]">{source === 'DEVICE_GPS' ? 'Device GPS' : 'Station Directory'}</strong>
           </span>
           <span>·</span>
           <span>
-            Horizon: <strong className="text-[#F3F6FA]">{horizonLabel}</strong>
+            Horizon: <strong className="text-[var(--m-text-primary)]">{horizonLabel}</strong>
           </span>
         </div>
       </PageHeader>

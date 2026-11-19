@@ -25,21 +25,21 @@ export const HourlyView: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] mx-auto select-none font-sans">
       {/* Top Header Card */}
-      <div className="bg-[#1E2733] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">schedule</span>
-            <h2 className="font-h3 text-base font-bold text-[#FFFFFF]">
+            <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)]">
               24-Hour Atmospheric Hourly Matrix
             </h2>
           </div>
-          <p className="text-xs text-[#8A94A6]">
+          <p className="text-xs text-[var(--m-text-secondary)]">
             Synoptic Station Stream • High-frequency sensor matrix at 1-hour temporal resolution
           </p>
         </div>
 
         {/* Metric Selector Tabs */}
-        <div className="flex gap-1.5 p-1 bg-[#0F141A] rounded-lg card-border">
+        <div className="flex gap-1.5 p-1 bg-[var(--m-surface-1)] rounded-lg card-border">
           {[
             { id: 'temp', label: 'Temperature (°C)' },
             { id: 'aqi', label: 'PM2.5 (µg/m³)' },
@@ -51,8 +51,8 @@ export const HourlyView: React.FC = () => {
               onClick={() => setSelectedMetric(tab.id as any)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 selectedMetric === tab.id
-                  ? 'bg-[#0B72B9] text-[#FFFFFF] shadow-sm'
-                  : 'text-[#8A94A6] hover:text-[#FFFFFF]'
+                  ? 'bg-[var(--m-accent)] text-[#FFFFFF] shadow-sm'
+                  : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               {tab.label}
@@ -62,9 +62,9 @@ export const HourlyView: React.FC = () => {
       </div>
 
       {/* Hourly Trend Chart */}
-      <div className="bg-[#1E2733] card-border rounded-xl p-6 shadow-xl">
+      <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-h4 text-sm font-semibold text-[#FFFFFF]">
+          <h3 className="font-h4 text-sm font-semibold text-[var(--m-text-primary)]">
             Telemetry Curve ({selectedMetric.toUpperCase()})
           </h3>
           <span className="text-xs text-[#4FA8E0] font-medium">
@@ -129,23 +129,23 @@ export const HourlyView: React.FC = () => {
           return (
             <div
               key={item.time}
-              className={`bg-[#0F141A] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[#0B72B9] transition-all cursor-pointer ${
-                idx === 2 ? 'ring-1 ring-[#0B72B9] bg-[#1E2733]' : ''
+              className={`bg-[var(--m-surface-1)] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[#0B72B9] transition-all cursor-pointer ${
+                idx === 2 ? 'ring-1 ring-[#0B72B9] bg-[var(--m-surface-2)]' : ''
               }`}
             >
-              <span className="text-xs text-[#8A94A6]">
+              <span className="text-xs text-[var(--m-text-secondary)]">
                 {item.time} {idx === 2 ? '(NOW)' : ''}
               </span>
               <span
-                className="material-symbols-outlined text-[28px] my-1 text-[#FFFFFF]"
+                className="material-symbols-outlined text-[28px] my-1 text-[var(--m-text-primary)]"
               >
                 {item.icon || 'cloud'}
               </span>
-              <span className="text-xl font-bold text-[#FFFFFF]">
+              <span className="text-xl font-bold text-[var(--m-text-primary)]">
                 {hasTemp ? `${Math.round(item.temp)}°C` : '—'}
               </span>
               <div className="w-full h-px bg-[rgba(225,230,235,0.12)] my-0.5"></div>
-              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+              <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>AQI</span>
                 <span
                   className="font-bold"
@@ -154,11 +154,11 @@ export const HourlyView: React.FC = () => {
                   {hasAqi ? item.aqi : '—'}
                 </span>
               </div>
-              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+              <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>Rain</span>
                 <span className="text-[#4FA8E0]">{hasRain ? `${item.rainProb}%` : '—'}</span>
               </div>
-              <div className="w-full flex justify-between text-[11px] text-[#8A94A6]">
+              <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>Wind</span>
                 <span>{hasWind ? `${item.windSpeed} km/h` : '—'}</span>
               </div>

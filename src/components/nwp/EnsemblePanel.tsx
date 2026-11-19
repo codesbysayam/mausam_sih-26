@@ -16,7 +16,7 @@ export const EnsemblePanel: React.FC<EnsemblePanelProps> = ({ stats, points }) =
   const maxRainProb = points.length > 0 ? Math.max(...points.slice(0, 48).map((p) => p.precipitationProbability || 0)) : 0;
 
   return (
-    <div className="flex flex-col gap-3 bg-[#0A1322] border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xl">
+    <div className="flex flex-col gap-3 bg-[var(--m-surface-1)] border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-amber-500/20">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-amber-400" />
@@ -31,7 +31,7 @@ export const EnsemblePanel: React.FC<EnsemblePanelProps> = ({ stats, points }) =
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {/* Temperature Spread */}
-        <div className="p-3.5 rounded-xl bg-[#060B12] border border-[#1E2E40] flex flex-col justify-between">
+        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
           <span className="text-[10px] uppercase font-mono text-slate-400">
             24h Ensemble Temp Spread
           </span>
@@ -49,7 +49,7 @@ export const EnsemblePanel: React.FC<EnsemblePanelProps> = ({ stats, points }) =
         </div>
 
         {/* Rain Probability */}
-        <div className="p-3.5 rounded-xl bg-[#060B12] border border-[#1E2E40] flex flex-col justify-between">
+        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
           <span className="text-[10px] uppercase font-mono text-slate-400">
             Peak Rain Probability (48h)
           </span>
@@ -67,7 +67,7 @@ export const EnsemblePanel: React.FC<EnsemblePanelProps> = ({ stats, points }) =
         </div>
 
         {/* Ensemble Uncertainty Guidance */}
-        <div className="p-3.5 rounded-xl bg-[#060B12] border border-[#1E2E40] flex flex-col justify-between">
+        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
           <span className="text-[10px] uppercase font-mono text-slate-400">
             Scenario Divergence
           </span>
@@ -85,7 +85,7 @@ export const EnsemblePanel: React.FC<EnsemblePanelProps> = ({ stats, points }) =
         </div>
       </div>
 
-      <div className="p-3 rounded-lg bg-[#0F1B2B] border border-[#1E3A5F] flex items-start gap-2.5">
+      <div className="p-3 rounded-lg bg-[var(--m-surface-1)] border border-[#1E3A5F] flex items-start gap-2.5">
         <HelpCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
         <p className="text-xs text-slate-300 leading-relaxed font-sans">
           <strong>Ensemble spread represents forecast uncertainty.</strong> A narrower spread indicates higher confidence where all members agree on the synoptic pattern. A wider spread indicates greater disagreement between perturbed initial states, highlighting alternative scenarios such as track shifts or delayed frontal passage.

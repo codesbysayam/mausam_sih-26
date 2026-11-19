@@ -211,15 +211,15 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
         <div id="warning-feed-unavailable-banner">
           <SeverityBanner
             state="UNAVAILABLE"
-            title="Official warning feed temporarily unreachable"
-            description="The real-time SACHET / NDMA disaster alert stream is temporarily unreachable. Surface telemetry and NWP model forecasts remain active."
+            title="Official SACHET / IMD warning feed unreachable"
+            description="The SACHET / NDMA CAP alert stream could not be reached. This does not confirm an all-clear; please retry sync or verify official IMD bulletins directly."
             source="NDMA SACHET CAP Gateway"
             action={
               <button
                 type="button"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#F59E0B]/40 text-xs font-semibold text-[#FCD34D] transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border border-[var(--m-watch)]/40 text-xs font-semibold text-[var(--m-watch)] transition-colors cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
                 <span>Retry Feed Sync</span>
@@ -236,7 +236,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
             title={alertSurgeNotice}
             description="Audible warning alert threshold reached on active SACHET monitoring cycle."
             action={
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#FCA5A5] bg-[#08131F] border border-[#EF4444]/40 px-2.5 py-1 rounded">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[var(--m-danger)] bg-[var(--m-surface-1)] border border-[var(--m-danger)]/40 px-2.5 py-1 rounded">
                 <Volume2 className="w-3.5 h-3.5" />
                 {isAudioAlertEnabled ? 'Chime Played' : 'Muted'}
               </span>
@@ -303,15 +303,15 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
           icon={<Megaphone className="w-4 h-4" />}
           action={
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-[#B5C3D1] font-mono tabular-nums bg-[#08131F] border border-[#26394B] px-2.5 py-1.5 rounded-lg">
-                Showing <strong className="text-[#F3F6FA]">{effectiveUnavailable ? '—' : filteredWarnings.length}</strong> of{' '}
-                <span className="text-[#8295A8]">{effectiveUnavailable ? '—' : warningsList.length}</span> active
+              <span className="text-xs text-[var(--m-text-secondary)] font-mono tabular-nums bg-[var(--m-surface-2)] border border-[var(--m-border)] px-2.5 py-1.5 rounded-lg">
+                Showing <strong className="text-[var(--m-text-primary)]">{effectiveUnavailable ? 'Unavailable' : filteredWarnings.length}</strong> of{' '}
+                <span className="text-[var(--m-text-muted)]">{effectiveUnavailable ? 'Unavailable' : warningsList.length}</span> active
               </span>
               {filter.state !== 'all' && (
                 <button
                   type="button"
                   onClick={() => setFilter((prev) => ({ ...prev, state: 'all' }))}
-                  className="text-xs text-[#35C7E8] hover:text-[#F3F6FA] flex items-center gap-1 cursor-pointer bg-[#08131F] border border-[#26394B] px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="text-xs text-[var(--m-accent)] hover:underline flex items-center gap-1 cursor-pointer bg-[var(--m-surface-2)] border border-[var(--m-border)] px-2.5 py-1.5 rounded-lg transition-colors"
                 >
                   <span>Filtered: {filter.state}</span>
                   <X className="w-3.5 h-3.5" />

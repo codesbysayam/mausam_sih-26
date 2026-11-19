@@ -240,29 +240,29 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
   const hasAqi = isValidNum(aqiVal);
 
   return (
-    <div className="flex flex-col h-full bg-[#07111D] text-[#B5C3D1] font-sans">
+    <div className="flex flex-col h-full bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] font-sans">
       {/* 1. MASTER METEOROLOGICAL HEADER */}
-      <div className="p-3.5 sm:p-4 bg-[#0B1927] border-b border-[#26394B] flex flex-col gap-3">
+      <div className="p-3.5 sm:p-4 bg-[var(--m-surface-1)] border-b border-[var(--m-border)] flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center justify-center text-[#35C7E8] font-bold font-mono text-sm shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] font-bold font-mono text-sm shrink-0">
               M
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2
                   id="ask-mausam-title"
-                  className="text-sm sm:text-base font-bold text-[#F3F6FA] tracking-tight"
+                  className="text-sm sm:text-base font-bold text-[var(--m-text-primary)] tracking-tight"
                 >
                   Ask MAUSAM
                 </h2>
                 {loc?.name && (
-                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-[#08131F] text-[#35C7E8] border border-[#26394B] truncate max-w-[180px]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-[var(--m-surface-inset)] text-[var(--m-accent)] border border-[var(--m-border)] truncate max-w-[180px]">
                     {loc.name}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-[#8295A8] block truncate">
+              <span className="text-[11px] text-[var(--m-text-muted)] block truncate">
                 India Meteorological &amp; Atmospheric Intelligence
               </span>
             </div>
@@ -273,7 +273,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
               value={preferredLanguage}
               onChange={(e) => setPreferredLanguage(e.target.value as LanguageCode)}
               aria-label="Select Assistant Language"
-              className="min-h-[44px] sm:min-h-[40px] bg-[#08131F] border border-[#26394B] text-xs font-mono text-[#F3F6FA] rounded-lg px-2.5 outline-none cursor-pointer focus:border-[#35C7E8]"
+              className="min-h-[44px] sm:min-h-[40px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs font-mono text-[var(--m-text-primary)] rounded-lg px-2.5 outline-none cursor-pointer focus:border-[var(--m-accent)]"
             >
               <option value="English">EN</option>
               <option value="Hindi">HI</option>
@@ -289,7 +289,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
               onClick={handleClearChat}
               title="Reset conversation"
               aria-label="Reset conversation"
-              className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+              className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -300,7 +300,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                 onClick={onClose}
                 title="Close panel"
                 aria-label="Close panel"
-                className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] transition-colors cursor-pointer m-focus-ring"
+                className="min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -310,37 +310,37 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
 
         {/* 2. CANONICAL CONTEXT STRIP */}
         {canonicalContext && (
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] text-[11px] tabular-nums">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] tabular-nums">
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Temp</span>
-              <span className="font-bold text-[#F3F6FA] font-mono text-xs truncate">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">Temp</span>
+              <span className="font-bold text-[var(--m-text-primary)] font-mono text-xs truncate">
                 {hasTemp ? `${curWeather!.temperatureC}°C` : '—'}
               </span>
             </div>
 
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Sky</span>
-              <span className="font-medium text-[#35C7E8] truncate text-xs">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">Sky</span>
+              <span className="font-medium text-[var(--m-accent)] truncate text-xs">
                 {curWeather?.condition || '—'}
               </span>
             </div>
 
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Humidity</span>
-              <span className="font-medium font-mono text-[#F3F6FA] text-xs truncate">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">Humidity</span>
+              <span className="font-medium font-mono text-[var(--m-text-primary)] text-xs truncate">
                 {hasHumidity ? `${curWeather!.humidity}%` : '—'}
               </span>
             </div>
 
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Wind</span>
-              <span className="font-medium font-mono text-[#F3F6FA] truncate text-xs">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">Wind</span>
+              <span className="font-medium font-mono text-[var(--m-text-primary)] truncate text-xs">
                 {hasWind ? `${curWeather!.windSpeedKmh} km/h` : '—'}
               </span>
             </div>
 
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">AQI</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">AQI</span>
               <span
                 className="font-medium font-mono text-xs truncate"
                 style={{
@@ -358,13 +358,13 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             </div>
 
             <div className="flex flex-col px-1 min-w-0">
-              <span className="text-[10px] text-[#8295A8] uppercase font-mono">Warning</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-mono">Warning</span>
               {topWarning ? (
-                <span className="font-bold text-[10px] font-mono uppercase text-[#FCA5A5] truncate">
+                <span className="font-bold text-[10px] font-mono uppercase text-[var(--m-danger)] truncate">
                   {topWarning.severity} Alert
                 </span>
               ) : (
-                <span className="font-medium text-[10px] font-mono text-[#6EE7B7] truncate">
+                <span className="font-medium text-[10px] font-mono text-[var(--m-ok)] truncate">
                   No Alert
                 </span>
               )}
@@ -374,7 +374,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       </div>
 
       {/* 3. NAVIGATION TABS */}
-      <div className="flex items-center border-b border-[#26394B] bg-[#08131F] px-3 sm:px-4 text-xs font-mono font-medium overflow-x-auto scrollbar-none">
+      <div className="flex items-center border-b border-[var(--m-border)] bg-[var(--m-surface-inset)] px-3 sm:px-4 text-xs font-mono font-medium overflow-x-auto scrollbar-none">
         {(
           [
             { id: 'CHAT', label: 'Assistant Chat' },
@@ -388,8 +388,8 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             onClick={() => setActiveTab(tab.id)}
             className={`min-h-[44px] sm:min-h-[40px] py-2 px-3 border-b-2 transition-colors cursor-pointer shrink-0 ${
               activeTab === tab.id
-                ? 'border-[#35C7E8] text-[#35C7E8] font-bold'
-                : 'border-transparent text-[#8295A8] hover:text-[#F3F6FA]'
+                ? 'border-[var(--m-accent)] text-[var(--m-accent)] font-bold'
+                : 'border-transparent text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             {tab.label}
@@ -416,12 +416,12 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
             ))}
 
             {isLoading && (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-[#0B1927] border border-[#26394B] text-xs text-[#B5C3D1]">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)]">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Loader2 className="w-4 h-4 text-[#35C7E8] animate-spin shrink-0" />
-                  <span className="text-[#35C7E8] font-medium truncate">{loadingMessage}</span>
+                  <Loader2 className="w-4 h-4 text-[var(--m-accent)] animate-spin shrink-0" />
+                  <span className="text-[var(--m-accent)] font-medium truncate">{loadingMessage}</span>
                 </div>
-                <span className="text-[10px] text-[#8295A8] font-mono uppercase shrink-0 ml-2">
+                <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase shrink-0 ml-2">
                   Querying Providers
                 </span>
               </div>
@@ -431,7 +431,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
           </div>
 
           {/* Input field */}
-          <div className="p-3 sm:p-4 bg-[#0B1927] border-t border-[#26394B] flex flex-col gap-2">
+          <div className="p-3 sm:p-4 bg-[var(--m-surface-1)] border-t border-[var(--m-border)] flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <input
                 ref={inputRef}
@@ -441,20 +441,20 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about weather, rainfall, warnings, AQI, agriculture..."
                 disabled={isLoading}
-                className="flex-1 min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg bg-[#08131F] border border-[#26394B] text-sm text-[#F3F6FA] placeholder-[#8295A8] focus:outline-none focus:border-[#35C7E8] transition-colors"
+                className="flex-1 min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-sm text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)] transition-colors"
               />
               <button
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isLoading}
-                className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[#0B72B9] hover:bg-[#35C7E8] disabled:opacity-40 text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring shrink-0"
+                className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] disabled:opacity-40 text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring shrink-0"
               >
                 <span>Send</span>
                 <Send className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-[#8295A8] px-0.5 font-mono">
+            <div className="flex items-center justify-between text-[10px] text-[var(--m-text-muted)] px-0.5 font-mono">
               <span>Grounding: IMD, SACHET, CPCB &amp; Open-Meteo Telemetry</span>
               <span>Zero-Discrepancy Enforcement</span>
             </div>
@@ -465,10 +465,10 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       {activeTab === 'REGIONS' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-[#F3F6FA] mb-1">
+            <h3 className="text-sm font-bold text-[var(--m-text-primary)] mb-1">
               All 36 Indian States &amp; Union Territories
             </h3>
-            <p className="text-xs text-[#8295A8]">
+            <p className="text-xs text-[var(--m-text-muted)]">
               Select any state or union territory to query live meteorological observations.
             </p>
           </div>
@@ -482,15 +482,15 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                   setActiveTab('CHAT');
                   handleSendMessage(`What is the current weather in ${reg.name}?`);
                 }}
-                className="min-h-[44px] p-2.5 rounded-lg bg-[#0B1927] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/45 transition-colors text-left flex items-center justify-between cursor-pointer m-focus-ring"
+                className="min-h-[44px] p-2.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/45 transition-colors text-left flex items-center justify-between cursor-pointer m-focus-ring"
               >
                 <div>
-                  <span className="font-semibold text-[#F3F6FA] text-xs block">{reg.name}</span>
-                  <span className="text-[10px] text-[#8295A8]">
+                  <span className="font-semibold text-[var(--m-text-primary)] text-xs block">{reg.name}</span>
+                  <span className="text-[10px] text-[var(--m-text-muted)]">
                     {reg.capital} · {reg.type === 'STATE' ? 'State' : 'Union Territory'}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#35C7E8] font-mono tabular-nums">
+                <span className="text-[11px] text-[var(--m-accent)] font-mono tabular-nums">
                   {reg.code}
                 </span>
               </button>
@@ -500,9 +500,9 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
       )}
 
       {activeTab === 'ABOUT' && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs text-[#B5C3D1] leading-relaxed">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs text-[var(--m-text-secondary)] leading-relaxed">
           <div className="m-panel p-4 space-y-1.5">
-            <h4 className="font-bold text-[#F3F6FA] text-sm">
+            <h4 className="font-bold text-[var(--m-text-primary)] text-sm">
               Truthful Meteorological Grounding
             </h4>
             <p>
@@ -511,14 +511,14 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
           </div>
 
           <div className="m-panel p-4 space-y-1.5">
-            <h4 className="font-bold text-[#F3F6FA] text-sm">Official IMD Data Connector</h4>
+            <h4 className="font-bold text-[var(--m-text-primary)] text-sm">Official IMD Data Connector</h4>
             <p>
               Direct IMD API access uses registered server credentials when provisioned. When direct IMD access is unconfigured, the system discloses the active provider and serves calibrated Open-Meteo telemetry.
             </p>
           </div>
 
           <div className="m-panel p-4 space-y-1.5">
-            <h4 className="font-bold text-[#F3F6FA] text-sm">Zero Data Discrepancy Protocol</h4>
+            <h4 className="font-bold text-[var(--m-text-primary)] text-sm">Zero Data Discrepancy Protocol</h4>
             <p>
               The header, context strip, answer cards, and message bubbles share a single synchronized canonical context so readings remain consistent across the assistant session.
             </p>

@@ -107,11 +107,11 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
   return (
     <section id="five-day-farm-action-timeline" className="space-y-4">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#1E2E40]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#38BDF8]" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
+            <Calendar className="w-4 h-4 text-[var(--m-accent)]" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-accent)]">
               5-Day Medium-Range Outlook
             </span>
           </div>
@@ -119,7 +119,7 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
             5-Day Field Outlook
           </h2>
         </div>
-        <span className="text-xs font-mono text-[#94A3B8]">
+        <span className="text-xs font-mono text-[var(--m-text-muted)]">
           Interactive chronological agronomic guidance
         </span>
       </div>
@@ -135,20 +135,20 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
               onClick={() => setSelectedDayIndex(idx)}
               className={`p-4 rounded-2xl text-left transition-all flex flex-col justify-between space-y-3 cursor-pointer border ${
                 isSelected
-                  ? 'bg-[#0E1B29] border-[#38BDF8] shadow-xl ring-1 ring-[#38BDF8]/40 scale-[1.02]'
-                  : 'bg-[#0B131D] border-[#1E2E40] hover:border-[#38BDF8]/40 hover:bg-[#0E1722]'
+                  ? 'bg-[var(--m-surface-1)] border-[var(--m-accent)] shadow-xl ring-1 ring-[#38BDF8]/40 scale-[1.02]'
+                  : 'bg-[var(--m-surface-1)] border-[var(--m-border)] hover:border-[var(--m-accent)]/40 hover:bg-[var(--m-surface-2)]'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-xs font-mono font-bold ${
-                      isSelected ? 'text-[#38BDF8]' : 'text-white'
+                      isSelected ? 'text-[var(--m-accent)]' : 'text-white'
                     }`}
                   >
                     {day.dayName}
                   </span>
-                  <span className="text-[10px] font-mono text-[#64748B]">
+                  <span className="text-[10px] font-mono text-[var(--m-text-muted)]">
                     {day.date.split(' ')[0]} {day.date.split(' ')[1]}
                   </span>
                 </div>
@@ -157,20 +157,20 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
                   <span className="text-xl font-black text-white">
                     {day.tempMax}°C
                   </span>
-                  <span className="text-xs font-mono text-[#64748B]">
+                  <span className="text-xs font-mono text-[var(--m-text-muted)]">
                     / {day.tempMin}°
                   </span>
                 </div>
 
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-[#94A3B8]">
-                  <CloudRain className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-[var(--m-text-muted)]">
+                  <CloudRain className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                   <span>{day.rainMm} mm</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#1E2E40]/60 space-y-1">
+              <div className="pt-2 border-t border-[var(--m-border)] space-y-1">
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-[#64748B]">Crop Risk</span>
+                  <span className="text-[var(--m-text-muted)]">Crop Risk</span>
                   <span
                     className="font-bold"
                     style={{ color: day.riskColor }}
@@ -178,7 +178,7 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
                     {day.cropRisk.split(' ')[0]}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#E2E8F0] font-medium leading-snug line-clamp-2">
+                <p className="text-[11px] text-[var(--m-text-primary)] font-medium leading-snug line-clamp-2">
                   {day.action}
                 </p>
               </div>
@@ -188,18 +188,18 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
       </div>
 
       {/* Selected Day Drill-Down Interactive Box */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-[#080E16] border border-[#1E2E40] shadow-2xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E2E40]">
+      <div className="p-5 sm:p-6 rounded-3xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] shadow-2xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--m-border)]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#38BDF8]/10 border border-[#38BDF8]/30 flex items-center justify-center text-[#38BDF8]">
+            <div className="w-9 h-9 rounded-xl bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)]">
               <Clock className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold uppercase text-[#38BDF8]">
+                <span className="text-xs font-mono font-bold uppercase text-[var(--m-accent)]">
                   {activeDay.dayName} Breakdown
                 </span>
-                <span className="text-xs font-mono text-[#64748B]">
+                <span className="text-xs font-mono text-[var(--m-text-muted)]">
                   • {activeDay.date}
                 </span>
               </div>
@@ -209,27 +209,27 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
             </div>
           </div>
 
-          <span className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 self-start sm:self-auto">
+          <span className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-[var(--m-ok-soft)] text-[var(--m-ok)] border border-[#10B981]/30 self-start sm:self-auto">
             {activeDay.suitability}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-3.5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] space-y-1 text-xs">
-            <span className="text-[10px] font-mono uppercase text-[#64748B] block">
+          <div className="p-3.5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] space-y-1 text-xs">
+            <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">
               Weather &amp; Soil Hydrology
             </span>
             <p className="text-white font-bold">{activeDay.weather}</p>
-            <p className="text-[#94A3B8] font-mono">
+            <p className="text-[var(--m-text-muted)] font-mono">
               Rainfall: {activeDay.rainMm} mm • Soil: {activeDay.soilCondition}
             </p>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#0B131D] border border-[#1E2E40] space-y-1 text-xs md:col-span-2">
-            <span className="text-[10px] font-mono uppercase text-[#64748B] block">
+          <div className="p-3.5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] space-y-1 text-xs md:col-span-2">
+            <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">
               Agronomic Action Directive for {selectedCrop}
             </span>
-            <p className="text-[#D7DEE8] leading-relaxed">
+            <p className="text-[var(--m-text-primary)] leading-relaxed">
               {activeDay.detailedAdvice}
             </p>
           </div>

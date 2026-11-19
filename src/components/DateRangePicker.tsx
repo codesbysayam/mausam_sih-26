@@ -240,14 +240,14 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const calendarContent = (
     <div
-      className={`date-range-picker-content flex flex-col md:flex-row bg-[#0B1927] border border-[#26394B] rounded-2xl shadow-2xl overflow-hidden text-[#F3F6FA] max-w-[95vw] sm:max-w-none ${className}`}
+      className={`date-range-picker-content flex flex-col md:flex-row bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-2xl shadow-2xl overflow-hidden text-[var(--m-text-primary)] max-w-[95vw] sm:max-w-none ${className}`}
       role="region"
       aria-label="Date Range Calendar"
     >
       {/* PRESETS SIDEBAR */}
       {presets.length > 0 && (
-        <div className="w-full md:w-40 bg-[#08131F] border-b md:border-b-0 md:border-r border-[#26394B] p-3 flex flex-row md:flex-col gap-1 overflow-x-auto">
-          <span className="text-[10px] font-mono font-bold text-[#8295A8] uppercase tracking-wider px-2 py-1 hidden md:block">
+        <div className="w-full md:w-40 bg-[var(--m-surface-inset)] border-b md:border-b-0 md:border-r border-[var(--m-border)] p-3 flex flex-row md:flex-col gap-1 overflow-x-auto">
+          <span className="text-[10px] font-mono font-bold text-[var(--m-text-muted)] uppercase tracking-wider px-2 py-1 hidden md:block">
             Quick Presets
           </span>
           {presets.map((p) => (
@@ -255,7 +255,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               key={p.label}
               type="button"
               onClick={() => handlePresetSelect(p)}
-              className="whitespace-nowrap text-left px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-[#B5C3D1] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer shrink-0"
+              className="whitespace-nowrap text-left px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer shrink-0"
             >
               {p.label}
             </button>
@@ -266,25 +266,25 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       {/* CALENDAR BODY */}
       <div className="p-4 w-full sm:w-[320px] select-none">
         {/* Navigation Header */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26394B]">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--m-border)]">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1 rounded-lg text-[#8295A8] hover:text-white hover:bg-[#101F2E] transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer"
             aria-label="Previous Month"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="text-xs font-mono font-bold text-[#F4F7FA]">
-            <span className="text-[#38BDF8] mr-1">{MONTH_NAMES[viewMonth]}</span>
+          <div className="text-xs font-mono font-bold text-[var(--m-text-primary)]">
+            <span className="text-[var(--m-accent)] mr-1">{MONTH_NAMES[viewMonth]}</span>
             <span>{viewYear}</span>
           </div>
 
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1 rounded-lg text-[#93A4B8] hover:text-white hover:bg-[#111F30] transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer"
             aria-label="Next Month"
           >
             <ChevronRight className="w-4 h-4" />
@@ -297,7 +297,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <span
               key={day}
               className={`text-[10px] font-mono font-semibold uppercase ${
-                idx === 0 || idx === 6 ? 'text-[#F59E0B]' : 'text-[#64748B]'
+                idx === 0 || idx === 6 ? 'text-[var(--m-watch)]' : 'text-[var(--m-text-muted)]'
               }`}
             >
               {day}
@@ -315,16 +315,16 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               cellStyle += ' text-[#334155] opacity-40 cursor-not-allowed';
             } else if (cell.isRangeStart || cell.isRangeEnd) {
               cellStyle +=
-                ' bg-[#1499E8] text-white font-bold shadow-[0_0_10px_rgba(20,153,232,0.6)] z-10';
+                ' bg-[var(--m-accent)] text-white font-bold shadow-[0_0_10px_rgba(20,153,232,0.6)] z-10';
             } else if (cell.isInRange) {
-              cellStyle += ' bg-[#1499E8]/20 text-[#38BDF8] rounded-none';
+              cellStyle += ' bg-[var(--m-accent-soft)] text-[var(--m-accent)] rounded-none';
             } else if (cell.isToday) {
               cellStyle +=
-                ' text-[#38BDF8] bg-[#38BDF8]/10 border border-[#38BDF8]/30 hover:bg-[#38BDF8]/20';
+                ' text-[var(--m-accent)] bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 hover:bg-[var(--m-accent-soft)]';
             } else if (!cell.isCurrentMonth) {
-              cellStyle += ' text-[#475569] hover:bg-[#111F30]';
+              cellStyle += ' text-[#475569] hover:bg-[var(--m-surface-2)]';
             } else {
-              cellStyle += ' text-[#D1DCE8] hover:bg-[#111F30] hover:text-white';
+              cellStyle += ' text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)]';
             }
 
             return (
@@ -343,20 +343,20 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         </div>
 
         {/* Selected Range Display & Controls */}
-        <div className="mt-3 pt-2.5 border-t border-[#26394B] flex items-center justify-between text-[11px] font-mono">
-          <div className="text-[#93A4B8] truncate mr-2">
+        <div className="mt-3 pt-2.5 border-t border-[var(--m-border)] flex items-center justify-between text-[11px] font-mono">
+          <div className="text-[var(--m-text-muted)] truncate mr-2">
             {tempRange.startDate ? (
               <span>
-                <span className="text-[#38BDF8]">{formatDateShort(tempRange.startDate)}</span>
+                <span className="text-[var(--m-accent)]">{formatDateShort(tempRange.startDate)}</span>
                 {tempRange.endDate && (
                   <>
                     {' → '}
-                    <span className="text-[#38BDF8]">{formatDateShort(tempRange.endDate)}</span>
+                    <span className="text-[var(--m-accent)]">{formatDateShort(tempRange.endDate)}</span>
                   </>
                 )}
               </span>
             ) : (
-              <span className="text-[#64748B]">Select start & end date</span>
+              <span className="text-[var(--m-text-muted)]">Select start & end date</span>
             )}
           </div>
 
@@ -369,7 +369,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 setTempRange(fresh);
                 triggerChange(fresh);
               }}
-              className="px-2 py-1 text-[#93A4B8] hover:text-white hover:bg-[#111F30] rounded-lg transition-colors cursor-pointer text-[10px]"
+              className="px-2 py-1 text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] rounded-lg transition-colors cursor-pointer text-[10px]"
             >
               Reset
             </button>
@@ -381,7 +381,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   onApply();
                   setIsOpen(false);
                 }}
-                className="px-2.5 py-1 bg-[#1499E8] hover:bg-[#0B72B9] text-white rounded-lg font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 py-1 bg-[var(--m-accent)] hover:bg-[var(--m-accent)] text-white rounded-lg font-bold flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <Check className="w-3 h-3" />
                 <span>Apply</span>
@@ -405,15 +405,15 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           triggerHaptic('tap');
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-2 bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 text-[#B5C3D1] hover:text-white rounded-xl px-3.5 py-2.5 text-xs font-mono transition-all cursor-pointer"
+        className="flex items-center gap-2 bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] rounded-xl px-3.5 py-2.5 text-xs font-mono transition-all cursor-pointer"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <CalendarIcon className="w-3.5 h-3.5 text-[#38BDF8]" />
+        <CalendarIcon className="w-3.5 h-3.5 text-[var(--m-accent)]" />
         <span className="font-medium truncate max-w-[180px]">{displayLabel}</span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#64748B] transition-transform ${
-            isOpen ? 'rotate-180 text-[#38BDF8]' : ''
+          className={`w-3.5 h-3.5 text-[var(--m-text-muted)] transition-transform ${
+            isOpen ? 'rotate-180 text-[var(--m-accent)]' : ''
           }`}
         />
       </button>

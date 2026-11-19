@@ -96,9 +96,9 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
     <div
       id="data-export-action-bar"
       aria-label={reportTitle}
-      className="flex flex-wrap items-center gap-2 p-3 bg-[#0B1927] border border-[#26394B] rounded-xl text-xs"
+      className="flex flex-wrap items-center gap-2 p-3 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl text-xs"
     >
-      <span className="text-[#8295A8] font-bold text-[11px] uppercase tracking-wider mr-1">
+      <span className="text-[var(--m-text-muted)] font-bold text-[11px] uppercase tracking-wider mr-1">
         Data Export:
       </span>
 
@@ -106,12 +106,12 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
         type="button"
         id="btn-download-csv"
         onClick={handleDownloadCSV}
-        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#35C7E8]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 text-[var(--m-text-primary)] rounded-lg transition-colors cursor-pointer font-medium"
       >
         {downloadedFormat === 'csv' ? (
-          <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
+          <Check className="w-3.5 h-3.5 text-[var(--m-ok)]" />
         ) : (
-          <Download className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <Download className="w-3.5 h-3.5 text-[var(--m-accent)]" />
         )}
         <span>Download CSV</span>
       </button>
@@ -120,12 +120,12 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
         type="button"
         id="btn-export-excel"
         onClick={handleExportExcel}
-        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#22C7A0]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-ok)]/50 text-[var(--m-text-primary)] rounded-lg transition-colors cursor-pointer font-medium"
       >
         {downloadedFormat === 'excel' ? (
-          <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
+          <Check className="w-3.5 h-3.5 text-[var(--m-ok)]" />
         ) : (
-          <FileSpreadsheet className="w-3.5 h-3.5 text-[#22C7A0]" />
+          <FileSpreadsheet className="w-3.5 h-3.5 text-[var(--m-ok)]" />
         )}
         <span>Export Excel</span>
       </button>
@@ -134,13 +134,13 @@ export const DataExportActions: React.FC<DataExportActionsProps> = ({
         type="button"
         id="btn-print-report"
         onClick={handlePrint}
-        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] hover:border-[#F59E0B]/50 text-[#F3F6FA] rounded-lg transition-colors cursor-pointer font-medium"
+        className="flex items-center gap-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-watch)]/50 text-[var(--m-text-primary)] rounded-lg transition-colors cursor-pointer font-medium"
       >
-        <Printer className="w-3.5 h-3.5 text-[#F59E0B]" />
+        <Printer className="w-3.5 h-3.5 text-[var(--m-watch)]" />
         <span>Print Report</span>
       </button>
 
-      <span className="ml-auto text-[10px] text-[#8295A8] font-mono hidden md:inline">
+      <span className="ml-auto text-[10px] text-[var(--m-text-muted)] font-mono hidden md:inline">
         Official IMD Observation Format
       </span>
     </div>

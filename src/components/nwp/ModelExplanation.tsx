@@ -60,41 +60,41 @@ export const ModelExplanation: React.FC<ModelExplanationProps> = ({ isOpen, onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
       <div className="m-panel-elevated w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-[#26394B] flex items-center justify-between bg-[#08131F]">
+        <div className="p-4 sm:p-5 border-b border-[var(--m-border)] flex items-center justify-between bg-[var(--m-surface-inset)]">
           <div className="flex items-center gap-2.5">
-            <BookOpen className="w-5 h-5 text-[#35C7E8]" />
-            <h2 className="text-base sm:text-lg font-bold font-mono text-[#F3F6FA]">
+            <BookOpen className="w-5 h-5 text-[var(--m-accent)]" />
+            <h2 className="text-base sm:text-lg font-bold font-mono text-[var(--m-text-primary)]">
               How to Read NWP Models
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#172A3B] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs text-[#B5C3D1] divide-y divide-[#26394B]">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs text-[var(--m-text-secondary)] divide-y divide-[var(--m-border)]">
           {sections.map((s, idx) => (
             <div key={s.title} className={idx > 0 ? 'pt-3.5' : ''}>
-              <h3 className="font-mono font-bold text-[#7DD3FC] text-xs sm:text-sm mb-1">
+              <h3 className="font-mono font-bold text-[var(--m-accent)] text-xs sm:text-sm mb-1">
                 {s.title}
               </h3>
-              <p className="leading-relaxed text-[#B5C3D1] text-xs sm:text-[13px]">
+              <p className="leading-relaxed text-[var(--m-text-secondary)] text-xs sm:text-[13px]">
                 {s.content}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="p-4 border-t border-[#26394B] bg-[#08131F] flex items-center justify-between text-[11px] font-mono text-[#8295A8]">
+        <div className="p-4 border-t border-[var(--m-border)] bg-[var(--m-surface-inset)] flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)]">
           <span>MAUSAM Meteorological Reference</span>
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[#0B72B9] hover:bg-[#0E82CF] text-white font-semibold transition-colors cursor-pointer"
+            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] text-white font-semibold transition-colors cursor-pointer"
           >
             Close Guide
           </button>

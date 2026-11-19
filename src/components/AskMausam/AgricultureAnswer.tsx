@@ -18,10 +18,10 @@ export const AgricultureAnswer: React.FC<AgricultureAnswerProps> = ({ agricultur
   const isModerate = agriculture.spraySuitability === 'MODERATE';
 
   const badgeColor = isOptimal
-    ? 'text-[#10B981] bg-[#10B981]/15 border-[#10B981]/30'
+    ? 'text-[var(--m-ok)] bg-[var(--m-ok-soft)] border-[#10B981]/30'
     : isModerate
-    ? 'text-[#EAB308] bg-[#EAB308]/15 border-[#EAB308]/30'
-    : 'text-[#EF4444] bg-[#EF4444]/15 border-[#EF4444]/30';
+    ? 'text-[var(--m-watch)] bg-[var(--m-watch-soft)] border-[var(--m-watch)]/30'
+    : 'text-[var(--m-danger)] bg-[var(--m-danger-soft)] border-[var(--m-danger)]/30';
 
   const badgeLabel = isOptimal
     ? 'Optimal Spray Window'
@@ -30,11 +30,11 @@ export const AgricultureAnswer: React.FC<AgricultureAnswerProps> = ({ agricultur
     : 'Spraying Not Recommended';
 
   return (
-    <div className="mt-2.5 p-3.5 sm:p-4 rounded-xl bg-[#0C1523] border border-[#1F2C3F] flex flex-col gap-3 text-[#D7DEE8]">
+    <div className="mt-2.5 p-3.5 sm:p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col gap-3 text-[var(--m-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#1A2638]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
         <div>
-          <span className="text-[11px] font-bold text-[#10B981] uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-[var(--m-ok)] uppercase tracking-wider">
             Agromet Farming Intelligence
           </span>
           <h3 className="text-sm font-semibold text-white mt-0.5">{locationName}</h3>
@@ -45,31 +45,31 @@ export const AgricultureAnswer: React.FC<AgricultureAnswerProps> = ({ agricultur
       </div>
 
       {/* Advisory Text */}
-      <p className="text-xs text-[#CBD5E1] leading-relaxed bg-[#121D2C] p-2.5 rounded-lg border border-[#1A2638]">
+      <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
         {agriculture.advisoryText}
       </p>
 
       {/* Soil & Environmental Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         {agriculture.soilMoisture0To1cm !== undefined && (
-          <div className="p-2 rounded-lg bg-[#121D2C] border border-[#1A2638] flex flex-col">
-            <span className="text-[10px] text-[#94A3B8]">Soil Moisture (0–1cm)</span>
+          <div className="p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+            <span className="text-[10px] text-[var(--m-text-muted)]">Soil Moisture (0–1cm)</span>
             <span className="font-semibold text-white font-mono mt-0.5">
               {Math.round(agriculture.soilMoisture0To1cm * 100)}%
             </span>
           </div>
         )}
         {agriculture.soilTemperatureC !== undefined && (
-          <div className="p-2 rounded-lg bg-[#121D2C] border border-[#1A2638] flex flex-col">
-            <span className="text-[10px] text-[#94A3B8]">Soil Temperature</span>
+          <div className="p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+            <span className="text-[10px] text-[var(--m-text-muted)]">Soil Temperature</span>
             <span className="font-semibold text-white font-mono mt-0.5">
               {agriculture.soilTemperatureC}°C
             </span>
           </div>
         )}
         {agriculture.evapotranspirationMm !== undefined && (
-          <div className="p-2 rounded-lg bg-[#121D2C] border border-[#1A2638] flex flex-col">
-            <span className="text-[10px] text-[#94A3B8]">Reference ET0</span>
+          <div className="p-2 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+            <span className="text-[10px] text-[var(--m-text-muted)]">Reference ET0</span>
             <span className="font-semibold text-white font-mono mt-0.5">
               {agriculture.evapotranspirationMm} mm/day
             </span>
@@ -77,7 +77,7 @@ export const AgricultureAnswer: React.FC<AgricultureAnswerProps> = ({ agricultur
         )}
       </div>
 
-      <div className="text-[10px] text-[#64748B] pt-1.5 border-t border-[#1A2638]">
+      <div className="text-[10px] text-[var(--m-text-muted)] pt-1.5 border-t border-[var(--m-border)]">
         Source: ICAR / IMD Agromet Advisory Network & Numerical Telemetry
       </div>
     </div>

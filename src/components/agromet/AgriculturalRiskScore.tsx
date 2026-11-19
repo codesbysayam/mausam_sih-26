@@ -70,9 +70,9 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
   const strokeDashoffset = circumference - (farmScore / 100) * circumference;
 
   return (
-    <section className="rounded-3xl bg-gradient-to-b from-[#101A26] to-[#0A1017] border border-[#1E2E40] p-6 sm:p-8 lg:p-10 shadow-2xl space-y-8">
+    <section className="rounded-3xl bg-gradient-to-b from-[var(--m-surface-1)] to-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 sm:p-8 lg:p-10 shadow-2xl space-y-8">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#1E2E40] gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[var(--m-border)] gap-3">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#2ECC71]/15 border border-[#2ECC71]/30 flex items-center justify-center text-[#2ECC71]">
@@ -82,12 +82,12 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
               Farm Health &amp; Crop Risk Radar
             </h2>
           </div>
-          <p className="text-sm text-[#94A3B8] mt-0.5">
+          <p className="text-sm text-[var(--m-text-muted)] mt-0.5">
             Deterministic multi-variable assessment synthesizing atmospheric stress, soil reserves, and pathogen vulnerability.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#14202E] border border-[#22354A] text-xs text-[#38BDF8] font-mono self-start sm:self-auto">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-xs text-[var(--m-accent)] font-mono self-start sm:self-auto">
           <span>Model-Derived Ensemble</span>
           <span className="text-[#334155]">•</span>
           <span className="text-[#2ECC71]">Verified</span>
@@ -97,8 +97,8 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
       {/* 2. Dual Panels: Left = Farm Health Score | Right = Crop Risk Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* LEFT (5 Cols): Today's Farm Score */}
-        <div className="lg:col-span-5 rounded-2xl bg-[#0B131C] border border-[#1E2E40] p-6 flex flex-col justify-between shadow-inner">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1E2E40]">
+        <div className="lg:col-span-5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 flex flex-col justify-between shadow-inner">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
             <div>
               <span className="text-[11px] font-bold text-[#2ECC71] uppercase font-mono tracking-wider block">
                 Agronomic Index
@@ -138,7 +138,7 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
                 <span className="text-4xl font-black font-mono text-white tracking-tighter">
                   {farmScore}
                 </span>
-                <span className="text-[10px] text-[#64748B] font-mono uppercase">out of 100</span>
+                <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase">out of 100</span>
               </div>
             </div>
 
@@ -147,10 +147,10 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
               {breakdownMetrics.map((m) => (
                 <div key={m.name} className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[#CBD5E1] font-medium">{m.name}</span>
+                    <span className="text-[var(--m-text-secondary)] font-medium">{m.name}</span>
                     <span className="font-mono font-bold text-white">{m.score}/100</span>
                   </div>
-                  <div className="w-full bg-[#182635] h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-[var(--m-surface-2)] h-1.5 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{ width: `${m.score}%`, backgroundColor: m.color }}
@@ -162,11 +162,11 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
           </div>
 
           {/* Expandable "Why this score?" Accordion */}
-          <div className="pt-3 border-t border-[#1E2E40]">
+          <div className="pt-3 border-t border-[var(--m-border)]">
             <button
               type="button"
               onClick={() => setIsWhyOpen(!isWhyOpen)}
-              className="w-full flex items-center justify-between text-xs text-[#38BDF8] hover:text-white font-semibold cursor-pointer focus:outline-none"
+              className="w-full flex items-center justify-between text-xs text-[var(--m-accent)] hover:text-[var(--m-text-primary)] font-semibold cursor-pointer focus:outline-none"
             >
               <span className="flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5" />
@@ -176,14 +176,14 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
             </button>
 
             {isWhyOpen && (
-              <div className="mt-3 p-3.5 rounded-xl bg-[#121E2C] border border-[#1E2E40] text-xs text-[#CBD5E1] space-y-2 leading-relaxed">
+              <div className="mt-3 p-3.5 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)] space-y-2 leading-relaxed">
                 <p>
                   • <strong>Positive Drivers (+28 pts):</strong> Adequate soil moisture reserve (68%) and manageable diurnal temperature span (31°/24°C) favor rapid vegetative tillering.
                 </p>
                 <p>
                   • <strong>Dampening Factors (-14 pts):</strong> Persistent morning relative humidity (85%) elevates blast/blight pathogen sporulation risk on moist foliage.
                 </p>
-                <p className="text-[11px] text-[#64748B] font-mono">
+                <p className="text-[11px] text-[var(--m-text-muted)] font-mono">
                   Formula: 0.25(Weather) + 0.25(Soil) + 0.20(Rain) + 0.15(Disease) + 0.15(Ops).
                 </p>
               </div>
@@ -192,15 +192,15 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
         </div>
 
         {/* RIGHT (7 Cols): CROP RISK RADAR / PROFILE */}
-        <div className="lg:col-span-7 rounded-2xl bg-[#0B131C] border border-[#1E2E40] p-6 flex flex-col justify-between shadow-inner">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1E2E40]">
+        <div className="lg:col-span-7 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 flex flex-col justify-between shadow-inner">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--m-border)]">
             <div>
-              <span className="text-[11px] font-bold text-[#38BDF8] uppercase font-mono tracking-wider block">
+              <span className="text-[11px] font-bold text-[var(--m-accent)] uppercase font-mono tracking-wider block">
                 Multi-Factor Vulnerability
               </span>
               <h3 className="text-lg font-bold text-white">Crop Risk Profile</h3>
             </div>
-            <span className="text-xs text-[#EF4444] font-mono font-bold bg-[#EF4444]/15 px-3 py-1 rounded-full border border-[#EF4444]/30">
+            <span className="text-xs text-[var(--m-danger)] font-mono font-bold bg-[var(--m-danger-soft)] px-3 py-1 rounded-full border border-[var(--m-danger)]/30">
               Primary Hazard: High Humidity
             </span>
           </div>
@@ -284,21 +284,21 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
 
             {/* Primary Risk Callout Card */}
             <div className="md:col-span-5 space-y-3">
-              <div className="p-4 rounded-xl bg-[#142232] border border-[#EF4444]/40 relative overflow-hidden">
-                <span className="text-[10px] text-[#EF4444] uppercase font-mono font-bold block mb-1">
+              <div className="p-4 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-danger)]/40 relative overflow-hidden">
+                <span className="text-[10px] text-[var(--m-danger)] uppercase font-mono font-bold block mb-1">
                   PRIMARY RISK
                 </span>
                 <h4 className="text-base font-bold text-white">HIGH HUMIDITY</h4>
-                <p className="text-xs text-[#CBD5E1] mt-1 leading-relaxed">
+                <p className="text-xs text-[var(--m-text-secondary)] mt-1 leading-relaxed">
                   &ldquo;Current weather conditions may increase disease pressure. Morning relative humidity (85%) promotes fungal germination.&rdquo;
                 </p>
-                <div className="mt-3 pt-2.5 border-t border-[#1E2E40] flex items-center justify-between text-[11px] text-[#94A3B8]">
+                <div className="mt-3 pt-2.5 border-t border-[var(--m-border)] flex items-center justify-between text-[11px] text-[var(--m-text-muted)]">
                   <span>Action:</span>
-                  <span className="text-[#38BDF8] font-bold">Field leaf inspection</span>
+                  <span className="text-[var(--m-accent)] font-bold">Field leaf inspection</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#101A26] border border-[#1E2E40] text-[11px] text-[#64748B] flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] flex items-center justify-between">
                 <span>Data Mode:</span>
                 <span className="text-[#2ECC71] font-mono font-semibold">Live Sensor Telemetry + NWP</span>
               </div>

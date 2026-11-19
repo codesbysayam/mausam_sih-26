@@ -49,7 +49,7 @@ export function DataTable<T>({
               <tr>
                 <td
                   colSpan={safeColumns.length || 1}
-                  className="text-center py-6 text-[#8295A8]"
+                  className="text-center py-6 text-[var(--m-text-muted)]"
                 >
                   {emptyMessage}
                 </td>
@@ -67,8 +67,10 @@ export function DataTable<T>({
                       {col.render
                         ? col.render(row, idx)
                         : col.accessorKey
-                        ? String(row[col.accessorKey] ?? '—')
-                        : '—'}
+                        ? row[col.accessorKey] !== null && row[col.accessorKey] !== undefined
+                          ? String(row[col.accessorKey])
+                          : 'Not reported'
+                        : 'Not reported'}
                     </td>
                   ))}
                 </tr>
@@ -81,7 +83,7 @@ export function DataTable<T>({
       {/* Mobile View: Stacked Card Layout to Prevent Horizontal Scrolling */}
       <div className="md:hidden flex flex-col gap-3 w-full">
         {safeData.length === 0 ? (
-          <div className="text-center py-6 text-[#8295A8] bg-[#08131F] rounded-xl border border-[#26394B] text-xs">
+          <div className="text-center py-6 text-[var(--m-text-muted)] bg-[var(--m-surface-2)] rounded-xl border border-[var(--m-border)] text-xs">
             {emptyMessage}
           </div>
         ) : (
@@ -92,19 +94,21 @@ export function DataTable<T>({
             return (
               <div
                 key={keyExtractor(row, idx)}
-                className="bg-[#0B1927] border border-[#26394B] rounded-xl p-3.5 flex flex-col gap-2.5 text-xs"
+                className="bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl p-3.5 flex flex-col gap-2.5 text-xs"
               >
                 {firstCol && (
-                  <div className="flex items-center justify-between border-b border-[#26394B] pb-2">
-                    <span className="text-[11px] font-bold text-[#35C7E8] uppercase tracking-wider">
+                  <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-2">
+                    <span className="text-[11px] font-bold text-[var(--m-accent)] uppercase tracking-wider">
                       {firstCol.header}
                     </span>
-                    <div className="text-right font-mono tabular-nums text-[#F3F6FA]">
+                    <div className="text-right font-mono tabular-nums text-[var(--m-text-primary)]">
                       {firstCol.render
                         ? firstCol.render(row, idx)
                         : firstCol.accessorKey
-                        ? String(row[firstCol.accessorKey] ?? '—')
-                        : '—'}
+                        ? row[firstCol.accessorKey] !== null && row[firstCol.accessorKey] !== undefined
+                          ? String(row[firstCol.accessorKey])
+                          : 'Not reported'
+                        : 'Not reported'}
                     </div>
                   </div>
                 )}
@@ -114,15 +118,17 @@ export function DataTable<T>({
                       key={cIdx}
                       className="flex items-center justify-between gap-3 text-xs"
                     >
-                      <span className="text-[11px] font-semibold text-[#8295A8] shrink-0">
+                      <span className="text-[11px] font-semibold text-[var(--m-text-muted)] shrink-0">
                         {col.header}
                       </span>
-                      <div className="text-right font-mono tabular-nums text-[#F3F6FA]">
+                      <div className="text-right font-mono tabular-nums text-[var(--m-text-primary)]">
                         {col.render
                           ? col.render(row, idx)
                           : col.accessorKey
-                          ? String(row[col.accessorKey] ?? '—')
-                          : '—'}
+                          ? row[col.accessorKey] !== null && row[col.accessorKey] !== undefined
+                            ? String(row[col.accessorKey])
+                            : 'Not reported'
+                          : 'Not reported'}
                       </div>
                     </div>
                   ))}

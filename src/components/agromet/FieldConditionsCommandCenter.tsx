@@ -118,7 +118,7 @@ export const FieldConditionsCommandCenter: React.FC<FieldConditionsCommandCenter
             Current Field Conditions
           </h2>
         </div>
-        <span className="text-xs font-mono text-[#94A3B8]">
+        <span className="text-xs font-mono text-[var(--m-text-muted)]">
           Automated Telemetry &amp; Microclimatic Synthesis
         </span>
       </div>
@@ -129,7 +129,7 @@ export const FieldConditionsCommandCenter: React.FC<FieldConditionsCommandCenter
           return (
             <div
               key={metric.id}
-              className="p-4 rounded-2xl bg-[#0B131D] border border-[#1E2E40] hover:border-[#38BDF8]/40 transition-all flex flex-col justify-between space-y-3 group"
+              className="p-4 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/40 transition-all flex flex-col justify-between space-y-3 group"
             >
               {/* Header */}
               <div className="flex items-center justify-between">
@@ -143,7 +143,7 @@ export const FieldConditionsCommandCenter: React.FC<FieldConditionsCommandCenter
                   >
                     <IconComp className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#94A3B8]">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--m-text-muted)]">
                     {metric.label}
                   </span>
                 </div>
@@ -165,13 +165,13 @@ export const FieldConditionsCommandCenter: React.FC<FieldConditionsCommandCenter
                 <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                   {metric.value}
                 </span>
-                <span className="text-xs font-mono font-bold text-[#64748B]">
+                <span className="text-xs font-mono font-bold text-[var(--m-text-muted)]">
                   {metric.unit}
                 </span>
               </div>
 
               {/* Explanation */}
-              <p className="text-[11px] text-[#94A3B8] leading-relaxed pt-2 border-t border-[#1E2E40]/60">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed pt-2 border-t border-[var(--m-border)]">
                 {metric.explanation}
               </p>
             </div>

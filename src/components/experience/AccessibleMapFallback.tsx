@@ -106,7 +106,7 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full bg-[#07111D]">
+    <div className="relative w-full h-full bg-[var(--m-surface-inset)]">
       <MausamMap
         viewMode={viewMode}
         activeMetric={activeMetric}

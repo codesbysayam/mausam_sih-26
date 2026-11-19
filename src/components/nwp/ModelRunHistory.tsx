@@ -51,7 +51,7 @@ export const ModelRunHistory: React.FC<ModelRunHistoryProps> = ({
           {cycles.map((c, i) => (
             <React.Fragment key={i}>
               <div className="flex flex-col items-center text-center gap-1.5 min-w-[110px]">
-                <span className={`text-xs font-mono font-bold tabular-nums ${c.isCurrent ? 'text-[#F3F6FA]' : 'text-[#8295A8]'}`}>
+                <span className={`text-xs font-mono font-bold tabular-nums ${c.isCurrent ? 'text-[var(--m-text-primary)]' : 'text-[var(--m-text-muted)]'}`}>
                   {c.label}
                 </span>
 
@@ -59,8 +59,8 @@ export const ModelRunHistory: React.FC<ModelRunHistoryProps> = ({
                   <span
                     className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                       c.isCurrent
-                        ? 'bg-[#0B72B9] border-[#35C7E8] ring-4 ring-[#0B72B9]/25'
-                        : 'bg-[#0B1927] border-[#26394B]'
+                        ? 'bg-[var(--m-accent)] border-[var(--m-accent)] ring-4 ring-[#0B72B9]/25'
+                        : 'bg-[var(--m-surface-1)] border-[var(--m-border)]'
                     }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${c.isCurrent ? 'bg-white' : 'bg-[#8295A8]'}`} />
@@ -70,8 +70,8 @@ export const ModelRunHistory: React.FC<ModelRunHistoryProps> = ({
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
                     c.isCurrent
-                      ? 'bg-[#22C7A0]/12 text-[#6EE7B7] font-semibold border-[#22C7A0]/35'
-                      : 'text-[#8295A8] bg-[#0B1927] border-[#26394B]'
+                      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] font-semibold border-[var(--m-ok)]/35'
+                      : 'text-[var(--m-text-muted)] bg-[var(--m-surface-1)] border-[var(--m-border)]'
                   }`}
                 >
                   {c.status}
@@ -79,14 +79,14 @@ export const ModelRunHistory: React.FC<ModelRunHistoryProps> = ({
               </div>
 
               {i < cycles.length - 1 && (
-                <div className="hidden sm:block flex-1 h-px bg-[#26394B]" />
+                <div className="hidden sm:block flex-1 h-px bg-[var(--m-surface-2)]" />
               )}
             </React.Fragment>
           ))}
         </div>
       )}
 
-      <p className="text-xs text-[#8295A8]">
+      <p className="text-xs text-[var(--m-text-muted)]">
         Numerical prediction models re-initialize every 6 or 12 hours using fresh satellite, radiosonde, and surface observations.
       </p>
     </DataPanel>

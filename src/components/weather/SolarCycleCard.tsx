@@ -37,10 +37,10 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
   return (
     <div
       id="solar-astronomical-cycle-card"
-      className="bg-[#1E2733] border border-[#314255] rounded-lg p-4 sm:p-5 shadow-md flex flex-col justify-between gap-4 h-full"
+      className="bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-lg p-4 sm:p-5 shadow-md flex flex-col justify-between gap-4 h-full"
     >
       {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-[#314255]">
+      <div className="flex items-center justify-between pb-2.5 border-b border-[var(--m-border-strong)]">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-[#F1C40F]/15 border border-[#F1C40F]/30 flex items-center justify-center text-[#F1C40F]">
             <Sun className="w-4 h-4" />
@@ -49,13 +49,13 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
             <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-tight">
               Solar &amp; Ephemeris Cycle
             </h3>
-            <p className="text-[11px] text-[#8A94A6]">
+            <p className="text-[11px] text-[var(--m-text-secondary)]">
               {location?.city ? `${location.city} (${formatCoordinatePair(lat, lng, 2)})` : 'Astronomical Daylight Ephemeris'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#151D26] border border-[#314255] text-[11px] font-mono text-[#D7DEE8]">
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[11px] font-mono text-[var(--m-text-primary)]">
           <Clock className="w-3 h-3 text-[#F1C40F]" />
           <span>Daylight: <strong className="text-white">{dayLengthStr}</strong></span>
         </div>
@@ -66,8 +66,8 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         id="solar-event-live-countdown"
         className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${
           isDay
-            ? 'bg-[#151D26] border-[#F1C40F]/40'
-            : 'bg-[#151D26] border-[#0B72B9]/40'
+            ? 'bg-[var(--m-surface-1)] border-[#F1C40F]/40'
+            : 'bg-[var(--m-surface-1)] border-[#0B72B9]/40'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -81,7 +81,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
             <Timer className="w-4 h-4 animate-pulse" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#8A94A6]">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--m-text-secondary)]">
               {solarData.nextEventName} Countdown
             </span>
             <span className="text-xs text-white font-medium">
@@ -91,20 +91,20 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         </div>
 
         <div className="text-right">
-          <span className="text-sm sm:text-base font-black font-mono tracking-tight text-white block bg-[#1E2733] px-2.5 py-1 rounded border border-[#314255]">
+          <span className="text-sm sm:text-base font-black font-mono tracking-tight text-[var(--m-text-primary)] block bg-[var(--m-surface-2)] px-2.5 py-1 rounded border border-[var(--m-border-strong)]">
             {solarData.countdownFormatted}
           </span>
-          <span className="text-[9px] text-[#8A94A6] mt-0.5 block">
+          <span className="text-[9px] text-[var(--m-text-secondary)] mt-0.5 block">
             {isDay ? 'Remaining Daylight' : 'Until Dawn Horizon'}
           </span>
         </div>
       </div>
 
       {/* Sun Trajectory Arc Graphic */}
-      <div className="p-3 bg-[#151D26] rounded-lg border border-[#314255] flex flex-col gap-3">
-        <div className="flex items-center justify-between text-[11px] text-[#8A94A6]">
+      <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border-strong)] flex flex-col gap-3">
+        <div className="flex items-center justify-between text-[11px] text-[var(--m-text-secondary)]">
           <div className="flex items-center gap-1">
-            <Sunrise className="w-3.5 h-3.5 text-[#FF8C42]" />
+            <Sunrise className="w-3.5 h-3.5 text-[var(--m-alert)]" />
             <span>Dawn ({solarData.civilDawnStr})</span>
           </div>
           <div className="flex items-center gap-1 text-[#F1C40F] font-semibold">
@@ -120,7 +120,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         {/* Dynamic Sun Position Track */}
         <div className="relative w-full h-8 flex items-center">
           {/* Track line */}
-          <div className="w-full h-1.5 bg-[#314255] rounded-full overflow-hidden relative">
+          <div className="w-full h-1.5 bg-[var(--m-surface-2)] rounded-full overflow-hidden relative">
             <div
               className="h-full bg-gradient-to-r from-[#FF8C42] via-[#F1C40F] to-[#E74C3C] transition-all duration-700"
               style={{ width: `${solarData.progressPercent}%` }}
@@ -139,10 +139,10 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         </div>
 
         {/* Status & Celestial Altitude/Azimuth */}
-        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[#314255]/60">
-          <span className="text-[#8A94A6] flex items-center gap-1">
+        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--m-border-strong)]">
+          <span className="text-[var(--m-text-secondary)] flex items-center gap-1">
             <Compass className="w-3 h-3 text-[#4FA8E0]" />
-            <span>Azimuth: <strong className="text-[#D7DEE8] font-mono">{solarData.solarAzimuthDeg}°</strong></span>
+            <span>Azimuth: <strong className="text-[var(--m-text-primary)] font-mono">{solarData.solarAzimuthDeg}°</strong></span>
           </span>
           <span className="font-mono text-[#F1C40F] font-bold">
             Elev: {solarData.solarElevationDeg > 0 ? `+${solarData.solarElevationDeg}°` : `${solarData.solarElevationDeg}° (Below)`}
@@ -152,18 +152,18 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
 
       {/* 3 Key Times (Sunrise, Solar Noon, Sunset) */}
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="p-2 rounded bg-[#151D26] border border-[#314255]">
-          <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-[#8A94A6]">
-            <Sunrise className="w-3 h-3 text-[#FF8C42]" />
+        <div className="p-2 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)]">
+          <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-[var(--m-text-secondary)]">
+            <Sunrise className="w-3 h-3 text-[var(--m-alert)]" />
             <span>Sunrise</span>
           </div>
           <div className="text-xs sm:text-sm font-black font-mono text-white mt-1">
             {sunriseStr}
           </div>
-          <span className="text-[9px] text-[#8A94A6]">Dawn {solarData.civilDawnStr}</span>
+          <span className="text-[9px] text-[var(--m-text-secondary)]">Dawn {solarData.civilDawnStr}</span>
         </div>
 
-        <div className="p-2 rounded bg-[#151D26] border border-[#314255]">
+        <div className="p-2 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)]">
           <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-[#F1C40F]">
             <Sun className="w-3 h-3 text-[#F1C40F]" />
             <span>Solar Noon</span>
@@ -171,18 +171,18 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
           <div className="text-xs sm:text-sm font-black font-mono text-[#F1C40F] mt-1">
             {solarNoonStr}
           </div>
-          <span className="text-[9px] text-[#8A94A6]">Max Solar Angle</span>
+          <span className="text-[9px] text-[var(--m-text-secondary)]">Max Solar Angle</span>
         </div>
 
-        <div className="p-2 rounded bg-[#151D26] border border-[#314255]">
-          <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-[#8A94A6]">
+        <div className="p-2 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)]">
+          <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-[var(--m-text-secondary)]">
             <Sunset className="w-3 h-3 text-[#E74C3C]" />
             <span>Sunset</span>
           </div>
           <div className="text-xs sm:text-sm font-black font-mono text-white mt-1">
             {sunsetStr}
           </div>
-          <span className="text-[9px] text-[#8A94A6]">Dusk {solarData.civilDuskStr}</span>
+          <span className="text-[9px] text-[var(--m-text-secondary)]">Dusk {solarData.civilDuskStr}</span>
         </div>
       </div>
     </div>

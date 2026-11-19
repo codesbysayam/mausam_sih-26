@@ -21,20 +21,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 select-none animate-in fade-in duration-200 font-sans">
-      <div className="w-full max-w-md bg-[#1E2733] card-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-md bg-[var(--m-surface-2)] card-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-4 card-header-divider flex justify-between items-center bg-[#0F141A]">
+        <div className="p-4 card-header-divider flex justify-between items-center bg-[var(--m-surface-1)]">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
               settings
             </span>
-            <h3 className="text-xs uppercase text-[#FFFFFF] tracking-wider font-bold">
+            <h3 className="text-xs uppercase text-[var(--m-text-primary)] tracking-wider font-bold">
               Console Preferences &amp; Calibration
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-[#8A94A6] hover:text-[#FFFFFF] p-1.5 rounded hover:bg-[#242F3D] transition-colors cursor-pointer"
+            className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] p-1.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -45,20 +45,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Temperature Units */}
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm font-bold text-[#FFFFFF]">
+              <p className="text-sm font-bold text-[var(--m-text-primary)]">
                 Temperature Unit
               </p>
-              <p className="text-xs text-[#8A94A6]">
+              <p className="text-xs text-[var(--m-text-secondary)]">
                 Celsius (°C) vs Fahrenheit (°F)
               </p>
             </div>
-            <div className="flex gap-1 bg-[#0F141A] p-1 rounded-lg card-border">
+            <div className="flex gap-1 bg-[var(--m-surface-1)] p-1 rounded-lg card-border">
               <button
                 onClick={() => onToggleTempUnit('C')}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
                   tempUnit === 'C'
-                    ? 'bg-[#0B72B9] text-[#FFFFFF]'
-                    : 'text-[#8A94A6] hover:text-[#FFFFFF]'
+                    ? 'bg-[var(--m-accent)] text-[#FFFFFF]'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 °C
@@ -67,8 +67,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onClick={() => onToggleTempUnit('F')}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
                   tempUnit === 'F'
-                    ? 'bg-[#0B72B9] text-[#FFFFFF]'
-                    : 'text-[#8A94A6] hover:text-[#FFFFFF]'
+                    ? 'bg-[var(--m-accent)] text-[#FFFFFF]'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 °F
@@ -79,17 +79,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Telemetry Refresh Rate */}
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm font-bold text-[#FFFFFF]">
+              <p className="text-sm font-bold text-[var(--m-text-primary)]">
                 Telemetry Polling Rate
               </p>
-              <p className="text-xs text-[#8A94A6]">
+              <p className="text-xs text-[var(--m-text-secondary)]">
                 Sensor stream update cadence
               </p>
             </div>
             <select
               value={telemetryInterval}
               onChange={(e) => setTelemetryInterval(e.target.value)}
-              className="bg-[#0F141A] card-border rounded-lg px-2.5 py-1.5 text-xs text-[#FFFFFF] focus:outline-none focus:border-[#0B72B9]"
+              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[#0B72B9]"
             >
               <option value="10s">10 seconds</option>
               <option value="30s">30 seconds (Default)</option>
@@ -101,17 +101,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* AQI Alert Threshold */}
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm font-bold text-[#FFFFFF]">
+              <p className="text-sm font-bold text-[var(--m-text-primary)]">
                 PM2.5 Warning Trigger
               </p>
-              <p className="text-xs text-[#8A94A6]">
+              <p className="text-xs text-[var(--m-text-secondary)]">
                 Threshold for push notifications
               </p>
             </div>
             <select
               value={aqiAlertThreshold}
               onChange={(e) => setAqiAlertThreshold(e.target.value)}
-              className="bg-[#0F141A] card-border rounded-lg px-2.5 py-1.5 text-xs text-[#FFFFFF] focus:outline-none focus:border-[#0B72B9]"
+              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[#0B72B9]"
             >
               <option value="50">50 µg/m³ (WHO)</option>
               <option value="100">100 µg/m³ (Standard)</option>
@@ -122,10 +122,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Audio Chimes */}
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm font-bold text-[#FFFFFF]">
+              <p className="text-sm font-bold text-[var(--m-text-primary)]">
                 Severe Weather Audio Beep
               </p>
-              <p className="text-xs text-[#8A94A6]">
+              <p className="text-xs text-[var(--m-text-secondary)]">
                 Audible chime for IMD warnings
               </p>
             </div>
@@ -139,10 +139,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[#0F141A] flex justify-end">
+        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-1)] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-[#0B72B9] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
           >
             Save &amp; Apply
           </button>

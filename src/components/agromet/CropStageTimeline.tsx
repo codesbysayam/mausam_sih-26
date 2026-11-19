@@ -26,8 +26,8 @@ export const CropStageTimeline: React.FC<CropStageTimelineProps> = ({
         subtitle={`Interactive growth stages for ${selectedCrop}. Select a stage to recalibrate advisories.`}
         icon={<Sprout className="w-4 h-4" />}
         action={
-          <div className="text-xs font-mono text-[#35C7E8] bg-[#08131F] border border-[#26394B] px-3 py-1.5 rounded-lg">
-            Active Stage: <strong className="text-[#F3F6FA]">{selectedStage}</strong>
+          <div className="text-xs font-mono text-[var(--m-accent)] bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-3 py-1.5 rounded-lg">
+            Active Stage: <strong className="text-[var(--m-text-primary)]">{selectedStage}</strong>
           </div>
         }
       />
@@ -56,10 +56,10 @@ export const CropStageTimeline: React.FC<CropStageTimelineProps> = ({
               aria-pressed={isSelected}
               className={`rounded-xl p-3 min-h-[76px] text-left transition-colors border flex flex-col justify-between space-y-2 cursor-pointer m-focus-ring ${
                 isSelected
-                  ? 'bg-[#101F2E] border-[#22C7A0]'
+                  ? 'bg-[var(--m-surface-2)] border-[#22C7A0]'
                   : isPassed
-                  ? 'bg-[#08131F] border-[#26394B] hover:border-[#38536A]'
-                  : 'bg-[#08131F]/70 border-[#26394B] hover:border-[#38536A] opacity-80'
+                  ? 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
+                  : 'bg-[var(--m-surface-inset)]/70 border-[var(--m-border)] hover:border-[var(--m-border-strong)] opacity-80'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -68,27 +68,27 @@ export const CropStageTimeline: React.FC<CropStageTimelineProps> = ({
                     isSelected
                       ? 'bg-[#22C7A0] text-[#07111D]'
                       : isPassed
-                      ? 'bg-[#22C7A0]/15 text-[#6EE7B7]'
-                      : 'bg-[#101F2E] text-[#8295A8]'
+                      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)]'
+                      : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)]'
                   }`}
                 >
                   {idx + 1}
                 </span>
                 {isSelected && (
-                  <span className="text-[9px] font-mono font-bold uppercase text-[#6EE7B7] px-1.5 py-0.5 rounded bg-[#22C7A0]/15 border border-[#22C7A0]/35">
+                  <span className="text-[9px] font-mono font-bold uppercase text-[var(--m-ok)] px-1.5 py-0.5 rounded bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35">
                     Active
                   </span>
                 )}
                 {isPassed && !isSelected && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#22C7A0]" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[var(--m-ok)]" />
                 )}
               </div>
 
               <div>
-                <div className={`text-xs font-mono font-bold leading-tight ${isSelected ? 'text-[#6EE7B7]' : 'text-[#F3F6FA]'}`}>
+                <div className={`text-xs font-mono font-bold leading-tight ${isSelected ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-primary)]'}`}>
                   {stage}
                 </div>
-                <div className="text-[10px] font-mono text-[#8295A8] mt-0.5 tabular-nums">
+                <div className="text-[10px] font-mono text-[var(--m-text-muted)] mt-0.5 tabular-nums">
                   {stageEstimatedDate
                     ? `Est: ${stageEstimatedDate}`
                     : idx === 0

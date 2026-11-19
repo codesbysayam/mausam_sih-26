@@ -43,7 +43,7 @@ export const AgrometDataProvenance: React.FC<AgrometDataProvenanceProps> = ({ bu
   ];
 
   return (
-    <div className="rounded-2xl bg-[#0B1017] border border-[#1E2E40] p-6 text-xs text-[#93A4B8] space-y-5">
+    <div className="rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 text-xs text-[var(--m-text-muted)] space-y-5">
       {/* 1. Data Integrity & Provenance Tagging */}
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -54,36 +54,36 @@ export const AgrometDataProvenance: React.FC<AgrometDataProvenanceProps> = ({ bu
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
-          <div className="p-3 rounded-xl bg-[#111A24] border border-[#1E2E40]">
-            <span className="text-[#38BDF8] font-bold block mb-0.5">METEOROLOGICAL SOURCE</span>
+          <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+            <span className="text-[var(--m-accent)] font-bold block mb-0.5">METEOROLOGICAL SOURCE</span>
             <span className="text-white font-medium">India Meteorological Department (IMD)</span>
-            <span className="text-[#64748B] block mt-0.5">NCMRWF GFS 12km Ensemble</span>
+            <span className="text-[var(--m-text-muted)] block mt-0.5">NCMRWF GFS 12km Ensemble</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#111A24] border border-[#1E2E40]">
+          <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
             <span className="text-[#2ECC71] font-bold block mb-0.5">AGROMET RESEARCH NODE</span>
             <span className="text-white font-medium">{bulletin.amfuUnit.split('•')[1]?.trim() || 'State Agricultural University (SAU)'}</span>
-            <span className="text-[#64748B] block mt-0.5">ICAR Co-ordinated Research</span>
+            <span className="text-[var(--m-text-muted)] block mt-0.5">ICAR Co-ordinated Research</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#111A24] border border-[#1E2E40]">
-            <span className="text-[#F59E0B] font-bold block mb-0.5">COMPUTATIONAL MODELS</span>
+          <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
+            <span className="text-[var(--m-watch)] font-bold block mb-0.5">COMPUTATIONAL MODELS</span>
             <span className="text-white font-medium">Deterministic Agro-Met Algorithms</span>
-            <span className="text-[#64748B] block mt-0.5">FAO-56 Soil Moisture &amp; ET0</span>
+            <span className="text-[var(--m-text-muted)] block mt-0.5">FAO-56 Soil Moisture &amp; ET0</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#111A24] border border-[#1E2E40]">
+          <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
             <span className="text-[#A855F7] font-bold block mb-0.5">PUBLICATION PROTOCOL</span>
             <span className="text-white font-medium">GKMS Bi-Weekly Release Cycle</span>
-            <span className="text-[#64748B] block mt-0.5">Tuesday / Friday Synoptic Runs</span>
+            <span className="text-[var(--m-text-muted)] block mt-0.5">Tuesday / Friday Synoptic Runs</span>
           </div>
         </div>
       </div>
 
       {/* 2. Scientific Data Hierarchy Badges */}
-      <div className="p-3.5 rounded-xl bg-[#121B26] border border-[#1E2E40] flex flex-wrap items-center justify-between gap-3 text-[11px]">
+      <div className="p-3.5 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-wrap items-center justify-between gap-3 text-[11px]">
         <div className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-[#38BDF8]" />
+          <Database className="w-4 h-4 text-[var(--m-accent)]" />
           <span className="text-white font-semibold">Data Pipeline Classification:</span>
         </div>
 
@@ -91,10 +91,10 @@ export const AgrometDataProvenance: React.FC<AgrometDataProvenanceProps> = ({ bu
           <span className="px-2 py-0.5 rounded bg-[#2ECC71]/15 text-[#2ECC71] border border-[#2ECC71]/30 font-medium">
             ● Live Observation: Synoptic Stations
           </span>
-          <span className="px-2 py-0.5 rounded bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-medium">
+          <span className="px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/30 font-medium">
             ● 5-Day Forecast: Numerical NWP
           </span>
-          <span className="px-2 py-0.5 rounded bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 font-medium">
+          <span className="px-2 py-0.5 rounded bg-[var(--m-watch-soft)] text-[var(--m-watch)] border border-[var(--m-watch)]/30 font-medium">
             ● Model-Derived: Soil Profile &amp; Risk Index
           </span>
           <span className="px-2 py-0.5 rounded bg-[#A855F7]/15 text-[#A855F7] border border-[#A855F7]/30 font-medium">
@@ -104,11 +104,11 @@ export const AgrometDataProvenance: React.FC<AgrometDataProvenanceProps> = ({ bu
       </div>
 
       {/* 3. Expandable Agro-Met Glossary */}
-      <div className="border-t border-[#1E2E40] pt-3">
+      <div className="border-t border-[var(--m-border)] pt-3">
         <button
           type="button"
           onClick={() => setIsGlossaryOpen(!isGlossaryOpen)}
-          className="flex items-center justify-between w-full text-xs font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors focus:outline-none cursor-pointer py-1"
+          className="flex items-center justify-between w-full text-xs font-semibold text-[var(--m-accent)] hover:text-[var(--m-accent)] transition-colors focus:outline-none cursor-pointer py-1"
         >
           <span className="flex items-center gap-1.5">
             <BookOpen className="w-4 h-4" />
@@ -120,12 +120,12 @@ export const AgrometDataProvenance: React.FC<AgrometDataProvenanceProps> = ({ bu
         {isGlossaryOpen && (
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in duration-150">
             {glossaryItems.map((item) => (
-              <div key={item.term} className="p-3 rounded-lg bg-[#111A24] border border-[#1E2E40]">
+              <div key={item.term} className="p-3 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)]">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-bold text-white font-mono">{item.term}</span>
                   <span className="text-[10px] text-[#2ECC71] font-semibold">{item.title}</span>
                 </div>
-                <p className="text-[11px] text-[#CBD5E1] leading-relaxed">
+                <p className="text-[11px] text-[var(--m-text-secondary)] leading-relaxed">
                   {item.desc}
                 </p>
               </div>

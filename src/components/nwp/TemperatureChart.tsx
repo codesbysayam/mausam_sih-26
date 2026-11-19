@@ -98,7 +98,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
         subtitle="2m surface air temperature curve"
         icon={<Thermometer className="w-4 h-4" />}
         action={
-          <div className="flex items-center gap-1 bg-[#08131F] p-1 rounded-lg border border-[#26394B] text-xs font-mono">
+          <div className="flex items-center gap-1 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)] text-xs font-mono">
             {([
               { label: '24H', val: 24 },
               { label: '48H', val: 48 },
@@ -111,8 +111,8 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
                 onClick={() => setHorizonFilter(opt.val)}
                 className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                   horizonFilter === opt.val
-                    ? 'bg-[#0B72B9] text-white font-semibold'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    ? 'bg-[var(--m-accent)] text-white font-semibold'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -124,32 +124,32 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
 
       <div className="flex flex-wrap items-center justify-between gap-2 min-h-[28px] text-xs font-mono tabular-nums px-1">
         {activePoint ? (
-          <div className="flex items-center gap-2.5 bg-[#08131F] border border-[#26394B] px-3 py-1 rounded-lg text-[#F3F6FA]">
-            <span className="text-[#35C7E8] font-bold">
+          <div className="flex items-center gap-2.5 bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-3 py-1 rounded-lg text-[var(--m-text-primary)]">
+            <span className="text-[var(--m-accent)] font-bold">
               {formatDate(activePoint.validTime)} {formatHour(activePoint.validTime)}
             </span>
             <span className="text-[#26394B]">·</span>
-            <span className="text-[#FCD34D] font-bold">
+            <span className="text-[var(--m-watch)] font-bold">
               Temp: {activePoint.temperature2m}°C
             </span>
             {activePoint.apparentTemperature !== undefined && (
               <>
                 <span className="text-[#26394B]">·</span>
-                <span className="text-[#B5C3D1]">
+                <span className="text-[var(--m-text-secondary)]">
                   Feels: {activePoint.apparentTemperature}°C
                 </span>
               </>
             )}
           </div>
         ) : (
-          <span className="text-[#8295A8] text-[11px] font-sans">
+          <span className="text-[var(--m-text-muted)] text-[11px] font-sans">
             Hover across the curve to inspect hourly temperature steps.
           </span>
         )}
 
         <div className="flex items-center gap-3 text-[11px]">
-          <span className="text-[#FCD34D]">Peak: {chartPoints[maxIdx]?.temperature2m}°C</span>
-          <span className="text-[#35C7E8]">Min: {chartPoints[minIdx]?.temperature2m}°C</span>
+          <span className="text-[var(--m-watch)]">Peak: {chartPoints[maxIdx]?.temperature2m}°C</span>
+          <span className="text-[var(--m-accent)]">Min: {chartPoints[minIdx]?.temperature2m}°C</span>
         </div>
       </div>
 

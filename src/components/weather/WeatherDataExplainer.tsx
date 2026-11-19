@@ -31,7 +31,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'Unlike relative humidity (which varies inversely with air temperature), dew point is an absolute measure of atmospheric moisture. Above 24°C feels oppressive; below 15°C feels crisp.',
     practicalTip:
       'When dew point is within 2°C of ambient temperature, fog, heavy dew, or stratus formation becomes likely.',
-    icon: <Droplets className="w-4 h-4 text-[#35C7E8]" />,
+    icon: <Droplets className="w-4 h-4 text-[var(--m-accent)]" />,
   },
   {
     id: 'pressure_tendency',
@@ -41,7 +41,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'Standard sea-level pressure is 1013.25 hPa. Rapid pressure falls (>1.0 hPa over 3 hours) accompany approaching troughs, squall lines, or cyclonic depressions.',
     practicalTip:
       'Monitor sharp 3-hour barometric drops ahead of convective squalls or monsoon lows.',
-    icon: <Gauge className="w-4 h-4 text-[#7DD3FC]" />,
+    icon: <Gauge className="w-4 h-4 text-[var(--m-accent)]" />,
   },
   {
     id: 'rain_probability',
@@ -61,7 +61,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'High relative humidity slows evaporative skin cooling. A 34°C dry-bulb air temperature at 75% RH imposes an apparent physiological load exceeding 44°C.',
     practicalTip:
       'Avoid strenuous midday outdoor exertion when Apparent Temperature exceeds 40°C.',
-    icon: <Thermometer className="w-4 h-4 text-[#FCA5A5]" />,
+    icon: <Thermometer className="w-4 h-4 text-[var(--m-danger)]" />,
   },
   {
     id: 'aqi',
@@ -71,7 +71,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'India CPCB NAQI evaluates PM2.5, PM10, NO2, SO2, CO, O3, NH3, and Pb. Categories: 0–50 Good, 51–100 Satisfactory, 101–200 Moderate, 201–300 Poor, 301–400 Very Poor, >400 Severe.',
     practicalTip:
       'Sensitive respiratory groups should curb prolonged outdoor exercise once AQI exceeds 200.',
-    icon: <HeartPulse className="w-4 h-4 text-[#6EE7B7]" />,
+    icon: <HeartPulse className="w-4 h-4 text-[var(--m-ok)]" />,
   },
   {
     id: 'radar_dbz',
@@ -81,7 +81,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       '15–25 dBZ corresponds to light rain or drizzle; 30–45 dBZ indicates moderate-to-heavy rain; >50 dBZ marks severe convective cores with hail potential.',
     practicalTip:
       'Track cells exceeding 45 dBZ on the Doppler Radar page to anticipate downdraft gusts.',
-    icon: <Radar className="w-4 h-4 text-[#FCD34D]" />,
+    icon: <Radar className="w-4 h-4 text-[var(--m-watch)]" />,
   },
   {
     id: 'uv_index',
@@ -91,7 +91,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'UV 0–2 is Low, 3–5 Moderate, 6–7 High, 8–10 Very High, and 11+ Extreme.',
     practicalTip:
       'Seek shade and use broad-spectrum sun protection between 11:00 and 15:00 IST when UV ≥ 6.',
-    icon: <Sun className="w-4 h-4 text-[#F59E0B]" />,
+    icon: <Sun className="w-4 h-4 text-[var(--m-watch)]" />,
   },
   {
     id: 'relative_humidity',
@@ -101,7 +101,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'Warm air holds substantially more moisture than cold air. 100% RH indicates complete saturation where condensation into fog, dew, or cloud occurs.',
     practicalTip:
       'Indoor RH between 40% and 60% supports respiratory comfort.',
-    icon: <Droplets className="w-4 h-4 text-[#35C7E8]" />,
+    icon: <Droplets className="w-4 h-4 text-[var(--m-accent)]" />,
   },
 ];
 
@@ -122,7 +122,7 @@ export const WeatherDataExplainer: React.FC = () => {
           return (
             <div
               key={item.id}
-              className="m-panel-inset hover:border-[#38536A] transition-colors overflow-hidden"
+              className="m-panel-inset hover:border-[var(--m-border-strong)] transition-colors overflow-hidden"
             >
               <button
                 type="button"
@@ -132,20 +132,20 @@ export const WeatherDataExplainer: React.FC = () => {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="shrink-0">{item.icon}</div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-[#F3F6FA]">{item.title}</div>
-                    <div className="text-[11px] text-[#8295A8] truncate">{item.shortDesc}</div>
+                    <div className="text-xs font-bold text-[var(--m-text-primary)]">{item.title}</div>
+                    <div className="text-[11px] text-[var(--m-text-muted)] truncate">{item.shortDesc}</div>
                   </div>
                 </div>
-                <div className="shrink-0 text-[#8295A8]">
+                <div className="shrink-0 text-[var(--m-text-muted)]">
                   {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </div>
               </button>
 
               {isOpen && (
-                <div className="px-3 pb-3 pt-2 border-t border-[#26394B] space-y-2 text-xs text-[#B5C3D1]">
+                <div className="px-3 pb-3 pt-2 border-t border-[var(--m-border)] space-y-2 text-xs text-[var(--m-text-secondary)]">
                   <p className="leading-relaxed">{item.fullDesc}</p>
-                  <div className="p-2.5 bg-[#0B1927] rounded-md border border-[#26394B] text-[11px] text-[#8295A8]">
-                    <strong className="text-[#35C7E8]">Operational Rule: </strong>
+                  <div className="p-2.5 bg-[var(--m-surface-1)] rounded-md border border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)]">
+                    <strong className="text-[var(--m-accent)]">Operational Rule: </strong>
                     {item.practicalTip}
                   </div>
                 </div>

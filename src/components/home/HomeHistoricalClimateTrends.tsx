@@ -141,14 +141,14 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
         badge={<SourceStatus status="REFERENCE" labelOverride="CLIMATOLOGICAL REFERENCE" />}
         action={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center p-1 bg-[#08131F] rounded-lg border border-[#26394B]">
+            <div className="flex items-center p-1 bg-[var(--m-surface-inset)] rounded-lg border border-[var(--m-border)]">
               <button
                 type="button"
                 onClick={() => setActiveTab('temperature')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'temperature'
                     ? 'bg-[#35C7E8] text-[#07111D]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 <Thermometer className="w-3.5 h-3.5" />
@@ -161,7 +161,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'rainfall'
                     ? 'bg-[#35C7E8] text-[#07111D]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 <CloudRain className="w-3.5 h-3.5" />
@@ -174,7 +174,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'decadal'
                     ? 'bg-[#35C7E8] text-[#07111D]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5" />
@@ -187,7 +187,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 aria-label="Comparison Year"
                 value={compareYear}
                 onChange={(e) => setCompareYear(e.target.value as '2025' | '2024' | '2023')}
-                className="bg-[#08131F] border border-[#26394B] text-xs text-[#F3F6FA] rounded-lg px-3 py-2 min-h-[40px] font-mono focus:outline-none focus:border-[#35C7E8] m-focus-ring"
+                className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-primary)] rounded-lg px-3 py-2 min-h-[40px] font-mono focus:outline-none focus:border-[var(--m-accent)] m-focus-ring"
               >
                 <option value="2025">vs 2025</option>
                 <option value="2024">vs 2024</option>
@@ -201,73 +201,73 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
       {/* Metric Highlights Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="m-panel-inset p-3.5">
-          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
             Regional Mean Temp
           </span>
           <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
-            <span className="text-2xl font-bold text-[#F3F6FA]">{stats.avgRecentT}°C</span>
-            <span className="text-xs font-semibold text-[#F59E0B] flex items-center">
+            <span className="text-2xl font-bold text-[var(--m-text-primary)]">{stats.avgRecentT}°C</span>
+            <span className="text-xs font-semibold text-[var(--m-watch)] flex items-center">
               <ArrowUpRight className="w-3.5 h-3.5" />
               +{stats.tempDiff}°C
             </span>
           </div>
-          <span className="text-[11px] text-[#8295A8] block mt-0.5 font-mono tabular-nums">
+          <span className="text-[11px] text-[var(--m-text-muted)] block mt-0.5 font-mono tabular-nums">
             vs. Normal {stats.avgNormalT}°C
           </span>
         </div>
 
         <div className="m-panel-inset p-3.5">
-          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
             Annual Precipitation
           </span>
           <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
-            <span className="text-2xl font-bold text-[#35C7E8]">{stats.totalRecentRain} mm</span>
-            <span className={`text-xs font-semibold flex items-center ${stats.rainDiffPct >= 0 ? 'text-[#22C7A0]' : 'text-[#EF4444]'}`}>
+            <span className="text-2xl font-bold text-[var(--m-accent)]">{stats.totalRecentRain} mm</span>
+            <span className={`text-xs font-semibold flex items-center ${stats.rainDiffPct >= 0 ? 'text-[var(--m-ok)]' : 'text-[var(--m-danger)]'}`}>
               {stats.rainDiffPct >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
               {stats.rainDiffPct >= 0 ? `+${stats.rainDiffPct}%` : `${stats.rainDiffPct}%`}
             </span>
           </div>
-          <span className="text-[11px] text-[#8295A8] block mt-0.5 font-mono tabular-nums">
+          <span className="text-[11px] text-[var(--m-text-muted)] block mt-0.5 font-mono tabular-nums">
             vs. Normal {stats.totalNormalRain} mm
           </span>
         </div>
 
         <div className="m-panel-inset p-3.5">
-          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
             National Heatwave Days
           </span>
           <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
-            <span className="text-2xl font-bold text-[#F59E0B]">31 Days</span>
-            <span className="text-xs font-semibold text-[#F97316] flex items-center">
+            <span className="text-2xl font-bold text-[var(--m-watch)]">31 Days</span>
+            <span className="text-xs font-semibold text-[var(--m-alert)] flex items-center">
               <Flame className="w-3.5 h-3.5 mr-0.5" />
               +17d
             </span>
           </div>
-          <span className="text-[11px] text-[#8295A8] block mt-0.5">All-India 2025 vs 14d decadal mean</span>
+          <span className="text-[11px] text-[var(--m-text-muted)] block mt-0.5">All-India 2025 vs 14d decadal mean</span>
         </div>
 
         <div className="m-panel-inset p-3.5">
-          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider block">
             All-India Monsoon LPA
           </span>
           <div className="flex items-baseline gap-2 mt-1 font-mono tabular-nums">
-            <span className="text-2xl font-bold text-[#22C7A0]">104%</span>
+            <span className="text-2xl font-bold text-[var(--m-ok)]">104%</span>
           </div>
-          <span className="text-[11px] text-[#8295A8] block mt-0.5">Normal Category (NCC Benchmark)</span>
+          <span className="text-[11px] text-[var(--m-text-muted)] block mt-0.5">Normal Category (NCC Benchmark)</span>
         </div>
       </div>
 
       {/* Main Interactive Recharts Area */}
       <div className="m-panel-inset p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#F3F6FA]">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--m-text-primary)]">
             {activeTab === 'temperature'
               ? `Monthly Mean Temperature: IMD Normal vs. ${compareYear}`
               : activeTab === 'rainfall'
               ? `Monthly Cumulative Rainfall: IMD Normal vs. ${compareYear}`
               : '10-Year National Trajectory (2016–2025): Mean Temp & Heatwave Days'}
           </span>
-          <span className="text-[11px] text-[#8295A8] font-mono">
+          <span className="text-[11px] text-[var(--m-text-muted)] font-mono">
             Source: IMD National Climate Centre (NCC)
           </span>
         </div>
@@ -421,14 +421,14 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
       </div>
 
       {/* Synoptic Climate Assessment Footer */}
-      <div className="m-panel-inset px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#8295A8]">
+      <div className="m-panel-inset px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[var(--m-text-muted)]">
         <div className="flex items-center gap-2.5">
-          <Info className="w-4 h-4 text-[#35C7E8] shrink-0" />
+          <Info className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
           <span>
             Climate normal baseline reflects official IMD Climatological Tables (1991–2020 WMO benchmark).
           </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-[#35C7E8]">
+        <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-[var(--m-accent)]">
           <span>WMO Normals 1991–2020</span>
         </div>
       </div>

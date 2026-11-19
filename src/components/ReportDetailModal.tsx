@@ -421,25 +421,25 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#0B1927] border border-[#26394B] rounded-xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
+        className="bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Header */}
-        <div className="bg-[#08131F] px-5 py-4 border-b border-[#26394B] flex items-start justify-between gap-3">
+        <div className="bg-[var(--m-surface-inset)] px-5 py-4 border-b border-[var(--m-border)] flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-lg bg-[#35C7E8]/15 border border-[#35C7E8]/35 flex items-center justify-center text-[#35C7E8] shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 flex items-center justify-center text-[var(--m-accent)] shrink-0">
               <BookOpen className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-[#0B72B9]/25 text-[#35C7E8] border border-[#0B72B9]/45 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                <span className="bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[#0B72B9]/45 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
                   {publication.type}
                 </span>
-                <span className="text-[11px] text-[#8295A8] font-mono tabular-nums">
+                <span className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
                   Ref: {publication.documentNumber}
                 </span>
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-[#F3F6FA] leading-snug mt-1">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--m-text-primary)] leading-snug mt-1">
                 {publication.title}
               </h2>
             </div>
@@ -449,7 +449,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close publication modal"
-            className="min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#101F2E] rounded-lg transition-colors cursor-pointer shrink-0"
+            className="min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] rounded-lg transition-colors cursor-pointer shrink-0"
             title="Close"
           >
             <X className="w-4 h-4" />
@@ -457,7 +457,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         </div>
 
         {/* Action Bar (Tabs & Export) */}
-        <div className="bg-[#101F2E] px-5 py-2.5 border-b border-[#26394B] flex flex-wrap items-center justify-between gap-2">
+        <div className="bg-[var(--m-surface-2)] px-5 py-2.5 border-b border-[var(--m-border)] flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto">
             {(
               [
@@ -473,8 +473,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 min-h-[40px] sm:min-h-[34px] text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-[#0B72B9] text-[#F3F6FA]'
-                    : 'text-[#8295A8] hover:text-[#F3F6FA] hover:bg-[#0B1927]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]'
+                    : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)]'
                 }`}
               >
                 {tab.label}
@@ -486,7 +486,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="bg-[#0B72B9] hover:bg-[#0B72B9]/85 text-[#F3F6FA] text-xs font-semibold px-3 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] text-xs font-semibold px-3 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Print Official Document with Government Header"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -496,7 +496,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handleDownloadHTML}
-              className="bg-[#08131F] hover:bg-[#0B1927] text-[#35C7E8] border border-[#35C7E8]/35 text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Download standalone HTML document"
             >
               <Download className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handleDownloadText}
-              className="bg-[#08131F] hover:bg-[#0B1927] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+              className="bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               title="Download clean plain text bulletin"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -516,11 +516,11 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handleCopyCitation}
-              className="bg-[#08131F] hover:bg-[#0B1927] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+              className="bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold px-2.5 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               title="Copy official academic citation"
             >
               {copiedCitation ? (
-                <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
+                <Check className="w-3.5 h-3.5 text-[var(--m-ok)]" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -530,34 +530,34 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         </div>
 
         {downloadNotice && (
-          <div className="bg-[#22C7A0]/15 border-b border-[#22C7A0]/35 text-[#22C7A0] px-5 py-2 text-xs font-medium flex items-center gap-2">
+          <div className="bg-[var(--m-ok-soft)] border-b border-[var(--m-ok)]/35 text-[var(--m-ok)] px-5 py-2 text-xs font-medium flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{downloadNotice}</span>
           </div>
         )}
 
         {/* Scrollable Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 text-sm text-[#B5C3D1] flex flex-col gap-5">
+        <div className="p-5 overflow-y-auto flex-1 text-sm text-[var(--m-text-secondary)] flex flex-col gap-5">
           {/* Official Issuance Banner */}
-          <div className="bg-[#08131F] p-4 rounded-xl border border-[#26394B] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="bg-[var(--m-surface-inset)] p-4 rounded-xl border border-[var(--m-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div>
-              <span className="text-[#35C7E8] font-bold uppercase text-[10px] tracking-wider block">
+              <span className="text-[var(--m-accent)] font-bold uppercase text-[10px] tracking-wider block">
                 Issuing Meteorological Authority
               </span>
-              <strong className="text-[#F3F6FA] text-sm block mt-0.5">
+              <strong className="text-[var(--m-text-primary)] text-sm block mt-0.5">
                 {publication.issuingAuthority}
               </strong>
-              <div className="text-[#8295A8] mt-0.5">
+              <div className="text-[var(--m-text-muted)] mt-0.5">
                 Lead Analyst / Directorate:{' '}
-                <span className="text-[#B5C3D1]">{publication.author}</span>
+                <span className="text-[var(--m-text-secondary)]">{publication.author}</span>
               </div>
             </div>
 
             <div className="flex sm:flex-col sm:items-end gap-1.5 text-xs">
-              <span className="text-[#8295A8]">
-                Date: <strong className="text-[#F3F6FA]">{publication.date}</strong>
+              <span className="text-[var(--m-text-muted)]">
+                Date: <strong className="text-[var(--m-text-primary)]">{publication.date}</strong>
               </span>
-              <span className="text-[#35C7E8] font-mono text-[11px] tabular-nums">
+              <span className="text-[var(--m-accent)] font-mono text-[11px] tabular-nums">
                 {publication.documentNumber}
               </span>
             </div>
@@ -565,23 +565,23 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
           {activeTab === 'content' && (
             <div className="flex flex-col gap-4">
-              <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                <h3 className="text-xs font-bold uppercase text-[#35C7E8] tracking-wider mb-1.5 flex items-center gap-1.5">
+              <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                <h3 className="text-xs font-bold uppercase text-[var(--m-accent)] tracking-wider mb-1.5 flex items-center gap-1.5">
                   <AlignLeft className="w-4 h-4" />
                   <span>Executive Abstract</span>
                 </h3>
-                <p className="text-xs text-[#B5C3D1] leading-relaxed italic">
+                <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed italic">
                   &ldquo;{publication.abstract}&rdquo;
                 </p>
               </div>
 
               {publication.synopticSummary && (
-                <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                  <h3 className="text-xs font-bold uppercase text-[#22C7A0] tracking-wider mb-1.5 flex items-center gap-1.5">
+                <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                  <h3 className="text-xs font-bold uppercase text-[var(--m-ok)] tracking-wider mb-1.5 flex items-center gap-1.5">
                     <Orbit className="w-4 h-4" />
                     <span>Synoptic Atmospheric Synopsis</span>
                   </h3>
-                  <p className="text-xs text-[#B5C3D1] leading-relaxed">
+                  <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
                     {publication.synopticSummary}
                   </p>
                 </div>
@@ -590,19 +590,19 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               {publication.sections.map((sec, idx) => (
                 <div
                   key={idx}
-                  className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B] flex flex-col gap-3"
+                  className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)] flex flex-col gap-3"
                 >
-                  <h3 className="text-sm font-bold text-[#F3F6FA] border-b border-[#26394B] pb-2">
+                  <h3 className="text-sm font-bold text-[var(--m-text-primary)] border-b border-[var(--m-border)] pb-2">
                     {sec.title}
                   </h3>
-                  <p className="text-xs text-[#B5C3D1] leading-relaxed">{sec.content}</p>
+                  <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{sec.content}</p>
 
                   {sec.tableData && (
                     <div className="mt-2">
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs text-left border-collapse">
                           <thead>
-                            <tr className="bg-[#08131F] border-b border-[#26394B] text-[#8295A8]">
+                            <tr className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] text-[var(--m-text-muted)]">
                               {sec.tableData.headers.map((h, hi) => (
                                 <th key={hi} className="p-2 font-bold whitespace-nowrap">
                                   {h}
@@ -612,11 +612,11 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                           </thead>
                           <tbody>
                             {sec.tableData.rows.map((row, ri) => (
-                              <tr key={ri} className="border-b border-[#26394B]/70 hover:bg-[#0B1927]">
+                              <tr key={ri} className="border-b border-[var(--m-border)]/70 hover:bg-[var(--m-surface-1)]">
                                 {row.map((cell, ci) => (
                                   <td
                                     key={ci}
-                                    className="p-2 font-mono tabular-nums text-[11px] text-[#F3F6FA]"
+                                    className="p-2 font-mono tabular-nums text-[11px] text-[var(--m-text-primary)]"
                                   >
                                     {cell}
                                   </td>
@@ -631,13 +631,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                         {sec.tableData.rows.map((row, ri) => (
                           <div
                             key={ri}
-                            className="p-3 rounded-lg bg-[#08131F] border border-[#26394B] flex flex-col gap-1.5 text-xs"
+                            className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-1.5 text-xs"
                           >
-                            <div className="flex items-center justify-between border-b border-[#26394B] pb-1.5 gap-2">
-                              <span className="text-[10px] font-bold text-[#35C7E8] uppercase tracking-wide shrink-0">
+                            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-1.5 gap-2">
+                              <span className="text-[10px] font-bold text-[var(--m-accent)] uppercase tracking-wide shrink-0">
                                 {sec.tableData!.headers[0] || 'Metric'}
                               </span>
-                              <span className="font-bold text-[#F3F6FA] text-xs text-right">
+                              <span className="font-bold text-[var(--m-text-primary)] text-xs text-right">
                                 {row[0]}
                               </span>
                             </div>
@@ -649,8 +649,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                                     key={ci}
                                     className="flex items-center justify-between gap-2 text-[11px]"
                                   >
-                                    <span className="text-[#8295A8]">{header}:</span>
-                                    <span className="font-mono tabular-nums text-[#F3F6FA] text-right">
+                                    <span className="text-[var(--m-text-muted)]">{header}:</span>
+                                    <span className="font-mono tabular-nums text-[var(--m-text-primary)] text-right">
                                       {cell}
                                     </span>
                                   </div>
@@ -669,33 +669,33 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
           {activeTab === 'abstract' && (
             <div className="flex flex-col gap-4">
-              <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                <h3 className="text-xs font-bold uppercase text-[#35C7E8] tracking-wider mb-2">
+              <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                <h3 className="text-xs font-bold uppercase text-[var(--m-accent)] tracking-wider mb-2">
                   Executive Scientific Summary
                 </h3>
-                <p className="text-sm text-[#B5C3D1] leading-relaxed">{publication.abstract}</p>
+                <p className="text-sm text-[var(--m-text-secondary)] leading-relaxed">{publication.abstract}</p>
               </div>
 
               {publication.synopticSummary && (
-                <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                  <h3 className="text-xs font-bold uppercase text-[#22C7A0] tracking-wider mb-2">
+                <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                  <h3 className="text-xs font-bold uppercase text-[var(--m-ok)] tracking-wider mb-2">
                     Atmospheric Flow Regimes
                   </h3>
-                  <p className="text-sm text-[#B5C3D1] leading-relaxed">
+                  <p className="text-sm text-[var(--m-text-secondary)] leading-relaxed">
                     {publication.synopticSummary}
                   </p>
                 </div>
               )}
 
-              <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                <h3 className="text-xs font-bold uppercase text-[#8295A8] tracking-wider mb-2">
+              <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                <h3 className="text-xs font-bold uppercase text-[var(--m-text-muted)] tracking-wider mb-2">
                   Keywords &amp; Atmospheric Descriptors
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {publication.keywords.map((kw, ki) => (
                     <span
                       key={ki}
-                      className="bg-[#08131F] text-[#35C7E8] border border-[#26394B] text-xs px-2.5 py-1 rounded"
+                      className="bg-[var(--m-surface-inset)] text-[var(--m-accent)] border border-[var(--m-border)] text-xs px-2.5 py-1 rounded"
                     >
                       #{kw}
                     </span>
@@ -708,7 +708,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
           {activeTab === 'data' && (
             <div className="flex flex-col gap-4">
               {publication.sections.filter((s) => s.tableData).length === 0 ? (
-                <div className="p-8 text-center text-[#8295A8] bg-[#101F2E] rounded-xl border border-[#26394B]">
+                <div className="p-8 text-center text-[var(--m-text-muted)] bg-[var(--m-surface-2)] rounded-xl border border-[var(--m-border)]">
                   No structured telemetry tables recorded in this specific monograph.
                 </div>
               ) : (
@@ -717,13 +717,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   .map((sec, idx) => (
                     <div
                       key={idx}
-                      className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]"
+                      className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]"
                     >
-                      <h3 className="text-sm font-bold text-[#F3F6FA] mb-2">{sec.title}</h3>
+                      <h3 className="text-sm font-bold text-[var(--m-text-primary)] mb-2">{sec.title}</h3>
                       <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-xs text-left border-collapse">
                           <thead>
-                            <tr className="bg-[#08131F] border-b border-[#26394B] text-[#8295A8]">
+                            <tr className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] text-[var(--m-text-muted)]">
                               {sec.tableData!.headers.map((h, hi) => (
                                 <th key={hi} className="p-2.5 font-bold whitespace-nowrap">
                                   {h}
@@ -733,11 +733,11 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                           </thead>
                           <tbody>
                             {sec.tableData!.rows.map((row, ri) => (
-                              <tr key={ri} className="border-b border-[#26394B]/70 hover:bg-[#0B1927]">
+                              <tr key={ri} className="border-b border-[var(--m-border)]/70 hover:bg-[var(--m-surface-1)]">
                                 {row.map((cell, ci) => (
                                   <td
                                     key={ci}
-                                    className="p-2.5 font-mono tabular-nums text-xs text-[#F3F6FA]"
+                                    className="p-2.5 font-mono tabular-nums text-xs text-[var(--m-text-primary)]"
                                   >
                                     {cell}
                                   </td>
@@ -752,13 +752,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                         {sec.tableData!.rows.map((row, ri) => (
                           <div
                             key={ri}
-                            className="p-3 rounded-lg bg-[#08131F] border border-[#26394B] flex flex-col gap-1.5 text-xs"
+                            className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-1.5 text-xs"
                           >
-                            <div className="flex items-center justify-between border-b border-[#26394B] pb-1.5 gap-2">
-                              <span className="text-[10px] font-bold text-[#35C7E8] uppercase tracking-wide shrink-0">
+                            <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-1.5 gap-2">
+                              <span className="text-[10px] font-bold text-[var(--m-accent)] uppercase tracking-wide shrink-0">
                                 {sec.tableData!.headers[0] || 'Metric'}
                               </span>
-                              <span className="font-bold text-[#F3F6FA] text-xs text-right">
+                              <span className="font-bold text-[var(--m-text-primary)] text-xs text-right">
                                 {row[0]}
                               </span>
                             </div>
@@ -770,8 +770,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                                     key={ci}
                                     className="flex items-center justify-between gap-2 text-[11px]"
                                   >
-                                    <span className="text-[#8295A8]">{header}:</span>
-                                    <span className="font-mono tabular-nums text-[#F3F6FA] text-right">
+                                    <span className="text-[var(--m-text-muted)]">{header}:</span>
+                                    <span className="font-mono tabular-nums text-[var(--m-text-primary)] text-right">
                                       {cell}
                                     </span>
                                   </div>
@@ -790,22 +790,22 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
           {activeTab === 'advisory' && (
             <div className="flex flex-col gap-4">
               {publication.recommendations && publication.recommendations.length > 0 ? (
-                <div className="bg-[#101F2E] p-4 rounded-xl border border-[#26394B]">
-                  <h3 className="text-xs font-bold uppercase text-[#F97316] tracking-wider mb-3 flex items-center gap-1.5">
+                <div className="bg-[var(--m-surface-2)] p-4 rounded-xl border border-[var(--m-border)]">
+                  <h3 className="text-xs font-bold uppercase text-[var(--m-alert)] tracking-wider mb-3 flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4" />
                     <span>Operational Actions &amp; Public Advisories</span>
                   </h3>
                   <ul className="flex flex-col gap-2.5">
                     {publication.recommendations.map((rec, ri) => (
-                      <li key={ri} className="flex items-start gap-2 text-xs text-[#B5C3D1]">
-                        <ChevronRight className="w-4 h-4 text-[#F97316] shrink-0 mt-0.5" />
+                      <li key={ri} className="flex items-start gap-2 text-xs text-[var(--m-text-secondary)]">
+                        <ChevronRight className="w-4 h-4 text-[var(--m-alert)] shrink-0 mt-0.5" />
                         <span>{rec}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               ) : (
-                <div className="p-8 text-center text-[#8295A8] bg-[#101F2E] rounded-xl border border-[#26394B]">
+                <div className="p-8 text-center text-[var(--m-text-muted)] bg-[var(--m-surface-2)] rounded-xl border border-[var(--m-border)]">
                   No special advisories attached to this research monograph.
                 </div>
               )}
@@ -814,7 +814,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         </div>
 
         {/* Modal Bottom Footer */}
-        <div className="bg-[#08131F] px-5 py-3 border-t border-[#26394B] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8295A8]">
+        <div className="bg-[var(--m-surface-inset)] px-5 py-3 border-t border-[var(--m-border)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--m-text-muted)]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#22C7A0]" />
             <span>Document Status: Official Open Data Publication (MAUSAM Registry)</span>
@@ -824,7 +824,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[#0B72B9] hover:bg-[#0B72B9]/85 text-[#F3F6FA] font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Export / Print</span>
@@ -832,7 +832,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[#101F2E] hover:bg-[#172A3D] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] rounded-lg transition-colors cursor-pointer"
+              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] rounded-lg transition-colors cursor-pointer"
             >
               Close
             </button>

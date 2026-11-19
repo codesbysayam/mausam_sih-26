@@ -56,42 +56,42 @@ export const UseMyLocationButton: React.FC<UseMyLocationButtonProps> = ({
 
   const isGpsActive = locationSource === 'DEVICE_GPS';
 
-  let iconNode = <MapPin className="w-4 h-4 text-[#35C7E8]" />;
+  let iconNode = <MapPin className="w-4 h-4 text-[var(--m-accent)]" />;
   let labelText = isCompact ? 'Locate Me' : 'Use My Current Location';
 
   if (isLocating || activePhase === 'locating') {
-    iconNode = <Loader2 className="w-4 h-4 text-[#35C7E8] animate-spin" />;
+    iconNode = <Loader2 className="w-4 h-4 text-[var(--m-accent)] animate-spin" />;
     labelText = isCompact ? 'Locating…' : 'Locating you…';
   } else if (activePhase === 'geocoding') {
-    iconNode = <Compass className="w-4 h-4 text-[#22C7A0] animate-spin" />;
+    iconNode = <Compass className="w-4 h-4 text-[var(--m-ok)] animate-spin" />;
     labelText = isCompact ? 'Resolving…' : 'Resolving station…';
   } else if (activePhase === 'success') {
-    iconNode = <CheckCircle2 className="w-4 h-4 text-[#22C7A0]" />;
+    iconNode = <CheckCircle2 className="w-4 h-4 text-[var(--m-ok)]" />;
     labelText = isCompact ? 'Detected' : 'Location Detected';
   } else if (activePhase === 'error' || locateError) {
-    iconNode = <AlertTriangle className="w-4 h-4 text-[#EF4444]" />;
+    iconNode = <AlertTriangle className="w-4 h-4 text-[var(--m-danger)]" />;
     labelText = isCompact ? 'Failed' : 'Location Unavailable';
   } else if (isGpsActive) {
-    iconNode = <RefreshCw className="w-4 h-4 text-[#35C7E8]" />;
+    iconNode = <RefreshCw className="w-4 h-4 text-[var(--m-accent)]" />;
     labelText = isCompact ? 'Refresh GPS' : 'Refresh Current Location';
   }
 
   let baseStyle = '';
   if (effectiveVariant === 'primary') {
     baseStyle =
-      'bg-[#0B72B9] hover:bg-[#0B72B9]/85 text-[#F3F6FA] border border-[#35C7E8]/40 focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 focus:ring-2 focus:ring-[#35C7E8]';
   } else if (effectiveVariant === 'secondary') {
     baseStyle =
-      'bg-[#101F2E] hover:bg-[#172A3D] text-[#F3F6FA] border border-[#35C7E8]/40 hover:border-[#35C7E8] focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 hover:border-[var(--m-accent)] focus:ring-2 focus:ring-[#35C7E8]';
   } else if (effectiveVariant === 'toolbar') {
     baseStyle =
-      'bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] hover:border-[#35C7E8]/50 focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 focus:ring-2 focus:ring-[#35C7E8]';
   } else if (effectiveVariant === 'dropdown') {
     baseStyle =
-      'w-full bg-[#35C7E8]/12 hover:bg-[#35C7E8]/20 text-[#35C7E8] border border-[#35C7E8]/35 hover:border-[#35C7E8]/60 focus:ring-2 focus:ring-[#35C7E8] justify-center';
+      'w-full bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 hover:border-[var(--m-accent)]/60 focus:ring-2 focus:ring-[#35C7E8] justify-center';
   } else {
     baseStyle =
-      'bg-transparent hover:bg-[#35C7E8]/15 text-[#35C7E8] hover:text-[#F3F6FA] border border-transparent hover:border-[#35C7E8]/35';
+      'bg-transparent hover:bg-[var(--m-accent-soft)] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] border border-transparent hover:border-[var(--m-accent)]/35';
   }
 
   return (
@@ -118,24 +118,24 @@ export const UseMyLocationButton: React.FC<UseMyLocationButtonProps> = ({
       </button>
 
       {locateError && (
-        <div className="absolute top-full mt-2 left-0 right-0 z-50 min-w-[280px] p-3 rounded-xl bg-[#101F2E] border border-[#EF4444]/40 text-xs shadow-2xl space-y-2 animate-fadeIn">
-          <div className="flex items-start gap-2 text-[#FCA5A5]">
-            <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+        <div className="absolute top-full mt-2 left-0 right-0 z-50 min-w-[280px] p-3 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-danger)]/40 text-xs shadow-2xl space-y-2 animate-fadeIn">
+          <div className="flex items-start gap-2 text-[var(--m-danger)]">
+            <AlertTriangle className="w-4 h-4 text-[var(--m-danger)] shrink-0 mt-0.5" />
             <div>
-              <div className="font-bold text-[#F3F6FA]">{locateError.message}</div>
+              <div className="font-bold text-[var(--m-text-primary)]">{locateError.message}</div>
               {locateError.instruction && (
-                <div className="text-[11px] text-[#B5C3D1] mt-0.5 leading-snug">
+                <div className="text-[11px] text-[var(--m-text-secondary)] mt-0.5 leading-snug">
                   {locateError.instruction}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-[#26394B]">
+          <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-[var(--m-border)]">
             <button
               type="button"
               onClick={handleClick}
-              className="px-2.5 min-h-[36px] rounded-lg bg-[#EF4444]/20 hover:bg-[#EF4444]/30 text-[#FCA5A5] font-bold text-[11px] transition-colors cursor-pointer"
+              className="px-2.5 min-h-[36px] rounded-lg bg-[var(--m-danger-soft)] hover:bg-[#EF4444]/30 text-[var(--m-danger)] font-bold text-[11px] transition-colors cursor-pointer"
             >
               Try Again
             </button>
@@ -143,9 +143,9 @@ export const UseMyLocationButton: React.FC<UseMyLocationButtonProps> = ({
               <button
                 type="button"
                 onClick={onOpenManualSearch}
-                className="px-2.5 min-h-[36px] rounded-lg bg-[#08131F] hover:bg-[#0B1927] border border-[#26394B] text-[#F3F6FA] text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 min-h-[36px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <Search className="w-3 h-3 text-[#35C7E8]" />
+                <Search className="w-3 h-3 text-[var(--m-accent)]" />
                 <span>Search Manually</span>
               </button>
             )}

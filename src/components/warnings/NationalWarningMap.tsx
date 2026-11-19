@@ -273,7 +273,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
         action={
           <div className="flex items-center gap-2">
             {selectedState && selectedState !== 'all' && (
-              <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded bg-[#101F2E] border border-[#35C7E8]/40 text-[#7DD3FC]">
+              <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)]">
                 Focus: {selectedState}
               </span>
             )}
@@ -281,10 +281,10 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
               id="btn-reset-map-view"
               type="button"
               onClick={handleResetView}
-              className="px-3 py-1.5 min-h-[36px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 min-h-[36px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Reset to All-India Synoptic Overview"
             >
-              <Maximize2 className="w-3.5 h-3.5 text-[#35C7E8]" />
+              <Maximize2 className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>Reset View</span>
             </button>
           </div>
@@ -293,7 +293,8 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
 
       <div
         id="map-container-wrapper"
-        className="w-full h-[460px] sm:h-[500px] lg:h-[540px] rounded-lg overflow-hidden relative border border-[#26394B] bg-[#07111D]"
+        data-theme="dark-workspace"
+        className="w-full h-[460px] sm:h-[500px] lg:h-[540px] rounded-lg overflow-hidden relative border border-[var(--m-border)] bg-[#07111D]"
       >
         <MapContainer
           center={mapCenter}
@@ -428,10 +429,10 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
 
       <div
         id="warning-map-legend"
-        className="pt-2.5 border-t border-[#26394B] flex flex-col gap-2"
+        className="pt-2.5 border-t border-[var(--m-border)] flex flex-col gap-2"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8295A8]">
-          <span className="font-mono font-semibold text-[#F3F6FA] uppercase tracking-wider text-[10px]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--m-text-muted)]">
+          <span className="font-mono font-semibold text-[var(--m-text-primary)] uppercase tracking-wider text-[10px]">
             Official IMD Warning Classifications
           </span>
           <span className="font-mono text-[10px] tabular-nums">
@@ -442,49 +443,49 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-            <span className="w-3 h-3 rounded-sm bg-[#EF4444] shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--m-danger)] shrink-0" />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[#FCA5A5] leading-tight truncate">
+              <div className="text-[11px] font-bold text-[var(--m-danger)] leading-tight truncate">
                 Red Alert
               </div>
-              <div className="text-[10px] text-[#8295A8] leading-tight truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
                 Take Action
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-            <span className="w-3 h-3 rounded-sm bg-[#F97316] shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--m-alert)] shrink-0" />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[#FDBA74] leading-tight truncate">
+              <div className="text-[11px] font-bold text-[var(--m-alert)] leading-tight truncate">
                 Orange Alert
               </div>
-              <div className="text-[10px] text-[#8295A8] leading-tight truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
                 Be Prepared
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-            <span className="w-3 h-3 rounded-sm bg-[#EAB308] shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--m-watch)] shrink-0" />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[#FDE047] leading-tight truncate">
+              <div className="text-[11px] font-bold text-[var(--m-watch)] leading-tight truncate">
                 Yellow Watch
               </div>
-              <div className="text-[10px] text-[#8295A8] leading-tight truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
                 Be Updated
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-            <span className="w-3 h-3 rounded-sm bg-[#22C7A0] shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--m-ok)] shrink-0" />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[#6EE7B7] leading-tight truncate">
+              <div className="text-[11px] font-bold text-[var(--m-ok)] leading-tight truncate">
                 Normal
               </div>
-              <div className="text-[10px] text-[#8295A8] leading-tight truncate">
+              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
                 No Severe Warning
               </div>
             </div>

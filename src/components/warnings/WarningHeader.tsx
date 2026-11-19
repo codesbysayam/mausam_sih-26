@@ -43,9 +43,9 @@ export const WarningHeader: React.FC<WarningHeaderProps> = ({
             disabled={isLoading}
             title="Refresh National Warning Feed"
             aria-label="Refresh warning data"
-            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[42px] rounded-lg bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[42px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#35C7E8] ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLoading ? 'animate-spin' : ''}`} />
             <span>{isLoading ? 'Syncing' : 'Refresh Feed'}</span>
           </button>
         </div>

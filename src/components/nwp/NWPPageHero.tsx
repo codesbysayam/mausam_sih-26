@@ -53,26 +53,26 @@ export const NWPPageHero: React.FC<NWPPageHeroProps> = ({
 
         {/* Metadata Chips: Latitude, Longitude, Horizon, Last Updated */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#0B263D] border border-[#1D5278] text-[11px] text-[#AFC4D8] font-mono">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
             <Compass className="w-3 h-3 text-[#29B6F6]" />
             <span className="text-slate-400">Lat:</span>
             <span className="text-white font-medium">{Math.abs(lat).toFixed(4)}°{lat >= 0 ? 'N' : 'S'}</span>
           </div>
 
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#0B263D] border border-[#1D5278] text-[11px] text-[#AFC4D8] font-mono">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
             <Compass className="w-3 h-3 text-[#29B6F6]" />
             <span className="text-slate-400">Lon:</span>
             <span className="text-white font-medium">{Math.abs(lon).toFixed(4)}°{lon >= 0 ? 'E' : 'W'}</span>
           </div>
 
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#0B263D] border border-[#1D5278] text-[11px] text-[#AFC4D8] font-mono">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
             <Calendar className="w-3 h-3 text-[#00E676]" />
             <span className="text-slate-400">Horizon:</span>
             <span className="text-white font-medium">{forecastHorizon}</span>
           </div>
 
           {lastUpdated && (
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#0B263D] border border-[#1D5278] text-[11px] text-[#AFC4D8] font-mono">
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
               <Clock className="w-3 h-3 text-amber-400" />
               <span className="text-slate-400">Updated:</span>
               <span className="text-white font-medium">{lastUpdated}</span>
@@ -90,7 +90,7 @@ export const NWPPageHero: React.FC<NWPPageHeroProps> = ({
             className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer shadow-sm ${
               isCompareMode
                 ? 'bg-[#1565C0] border-[#29B6F6] text-white'
-                : 'bg-[#0B263D] border-[#1D5278] text-[#AFC4D8] hover:text-white hover:border-[#29B6F6]'
+                : 'bg-[var(--m-surface-1)] border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] hover:border-[#29B6F6]'
             }`}
           >
             <span>{isCompareMode ? 'Exit Comparison' : 'Compare All Models'}</span>

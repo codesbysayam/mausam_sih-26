@@ -112,13 +112,13 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
       onMouseDown={(e) => e.stopPropagation()}
       className={`m-panel select-none overflow-hidden ${className}`}
     >
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#26394B] bg-[#08131F]">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--m-border)] bg-[var(--m-surface-inset)]">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#35C7E8]/12 border border-[#35C7E8]/35 text-[#7DD3FC] text-[11px] font-mono font-semibold">
-            <Radio className="w-3 h-3 text-[#35C7E8]" />
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 text-[var(--m-accent)] text-[11px] font-mono font-semibold">
+            <Radio className="w-3 h-3 text-[var(--m-accent)]" />
             <span>6-HOUR TRACK TIME-LAPSE</span>
           </div>
-          <span className="text-[11px] font-mono text-[#8295A8] hidden md:inline">
+          <span className="text-[11px] font-mono text-[var(--m-text-muted)] hidden md:inline">
             IMD Synoptic Surveillance
           </span>
         </div>
@@ -127,19 +127,19 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
           <div
             className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-semibold flex items-center gap-1.5 border tabular-nums ${
               currentFrame.isLive
-                ? 'bg-[#EF4444]/15 border-[#EF4444]/40 text-[#FCA5A5]'
-                : 'bg-[#101F2E] border-[#26394B] text-[#F3F6FA]'
+                ? 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/40 text-[var(--m-danger)]'
+                : 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-primary)]'
             }`}
           >
             <span>{currentFrame.relativeTime}</span>
-            <span className="text-[#B5C3D1] font-normal">({currentFrame.formattedTime})</span>
+            <span className="text-[var(--m-text-secondary)] font-normal">({currentFrame.formattedTime})</span>
           </div>
 
           {isCollapsible && (
             <button
               type="button"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="w-8 h-8 rounded-lg text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+              className="w-8 h-8 rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
               title={isCollapsed ? 'Expand Playback Controls' : 'Collapse Playback Controls'}
               aria-label={isCollapsed ? 'Expand Playback Controls' : 'Collapse Playback Controls'}
             >
@@ -151,27 +151,27 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
 
       {!isCollapsed && (
         <div className="p-3.5 sm:p-4 flex flex-col gap-3 font-mono text-xs">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-2.5 border-b border-[#26394B] tabular-nums">
-            <div className="flex items-center gap-1.5 text-[#F3F6FA]">
-              <Compass className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-2.5 border-b border-[var(--m-border)] tabular-nums">
+            <div className="flex items-center gap-1.5 text-[var(--m-text-primary)]">
+              <Compass className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span className="text-[11px] font-semibold">
                 {formatCoordinatePair(currentFrame.latitude, currentFrame.longitude, 2)}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[#FCD34D]">
-              <Wind className="w-3.5 h-3.5 text-[#F97316]" />
+            <div className="flex items-center gap-1.5 text-[var(--m-watch)]">
+              <Wind className="w-3.5 h-3.5 text-[var(--m-alert)]" />
               <span className="text-[11px] font-semibold">{currentFrame.windSpeed}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[#F3F6FA]">
-              <Gauge className="w-3.5 h-3.5 text-[#35C7E8]" />
+            <div className="flex items-center gap-1.5 text-[var(--m-text-primary)]">
+              <Gauge className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span className="text-[11px] font-semibold">{currentFrame.centralPressure}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[#B5C3D1] truncate">
-              <span className="text-[10px] text-[#8295A8] uppercase">Loc:</span>
-              <span className="text-[11px] text-[#7DD3FC] truncate" title={currentFrame.locationName}>
+            <div className="flex items-center gap-1.5 text-[var(--m-text-secondary)] truncate">
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase">Loc:</span>
+              <span className="text-[11px] text-[var(--m-accent)] truncate" title={currentFrame.locationName}>
                 {currentFrame.locationName}
               </span>
             </div>
@@ -179,7 +179,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
 
           <div className="flex flex-col gap-1.5">
             <div className="relative w-full h-7 flex items-center">
-              <div className="w-full h-2 bg-[#08131F] border border-[#26394B] rounded-full overflow-hidden relative">
+              <div className="w-full h-2 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-full overflow-hidden relative">
                 <div
                   className="h-full bg-[#35C7E8] transition-all duration-100"
                   style={{ width: `${progressPercent}%` }}
@@ -203,10 +203,10 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                     key={frame.id}
                     className={`w-2.5 h-2.5 rounded-full border transition-transform ${
                       idx === activeFrameIndex
-                        ? 'bg-[#F3F6FA] border-[#35C7E8] scale-125'
+                        ? 'bg-[#F3F6FA] border-[var(--m-accent)] scale-125'
                         : idx < activeFrameIndex
-                        ? 'bg-[#35C7E8] border-[#07111D]'
-                        : 'bg-[#08131F] border-[#38536A]'
+                        ? 'bg-[#35C7E8] border-[var(--m-border)]'
+                        : 'bg-[var(--m-surface-inset)] border-[var(--m-border-strong)]'
                     }`}
                     title={`${frame.relativeTime} (${frame.formattedTime})`}
                   />
@@ -214,9 +214,9 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-[#8295A8] tabular-nums">
+            <div className="flex items-center justify-between text-[10px] text-[var(--m-text-muted)] tabular-nums">
               <span>{frames[0]?.relativeTime} ({frames[0]?.formattedTime})</span>
-              <span className="font-semibold text-[#F3F6FA]">
+              <span className="font-semibold text-[var(--m-text-primary)]">
                 {frames[frames.length - 1]?.relativeTime} ({frames[frames.length - 1]?.formattedTime})
               </span>
             </div>
@@ -228,7 +228,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 type="button"
                 onClick={() => onChangeFrame(0)}
                 disabled={isEarliest}
-                className="w-9 h-9 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+                className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
                 title="Jump to Start"
               >
                 <SkipBack className="w-4 h-4" />
@@ -238,7 +238,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 type="button"
                 onClick={() => onChangeFrame(Math.max(0, activeFrameIndex - 1))}
                 disabled={isEarliest}
-                className="w-9 h-9 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+                className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
                 title="Previous Frame"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -250,7 +250,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 className={`px-3.5 min-h-[38px] rounded-lg border flex items-center justify-center gap-1.5 font-semibold transition-colors cursor-pointer m-focus-ring ${
                   isPlaying
                     ? 'bg-[#EF4444] hover:bg-[#DC2626] border-[#F87171] text-white'
-                    : 'bg-[#0B72B9] hover:bg-[#095C96] border-[#35C7E8]/50 text-white'
+                    : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-white'
                 }`}
                 title={isPlaying ? 'Pause Animation' : 'Play Animation'}
               >
@@ -271,7 +271,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 type="button"
                 onClick={() => onChangeFrame(Math.min(frames.length - 1, activeFrameIndex + 1))}
                 disabled={isLatest}
-                className="w-9 h-9 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+                className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
                 title="Next Frame"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -281,7 +281,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 type="button"
                 onClick={() => onChangeFrame(frames.length - 1)}
                 disabled={isLatest}
-                className="w-9 h-9 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+                className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
                 title="Jump to Latest"
               >
                 <SkipForward className="w-4 h-4" />
@@ -295,8 +295,8 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                   onClick={onToggleLoop}
                   className={`w-9 h-9 rounded-lg border flex items-center justify-center text-xs transition-colors cursor-pointer m-focus-ring ${
                     loop
-                      ? 'bg-[#35C7E8]/12 border-[#35C7E8]/45 text-[#7DD3FC]'
-                      : 'bg-[#08131F] border-[#26394B] text-[#8295A8]'
+                      ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
+                      : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)]'
                   }`}
                   title={loop ? 'Loop Enabled' : 'Loop Disabled'}
                 >
@@ -304,7 +304,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 </button>
               )}
 
-              <div className="flex items-center bg-[#08131F] border border-[#26394B] rounded-lg p-0.5 tabular-nums">
+              <div className="flex items-center bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg p-0.5 tabular-nums">
                 {[0.5, 1, 2, 4].map((spd) => (
                   <button
                     key={spd}
@@ -312,8 +312,8 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                     onClick={() => onChangeSpeed(spd)}
                     className={`px-2.5 py-1.5 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
                       playbackSpeed === spd
-                        ? 'bg-[#0B72B9] text-white'
-                        : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                        ? 'bg-[var(--m-accent)] text-white'
+                        : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                     }`}
                   >
                     {spd}x

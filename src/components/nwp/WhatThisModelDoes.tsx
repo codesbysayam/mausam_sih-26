@@ -91,20 +91,20 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
         icon={<Info className="w-4 h-4" />}
       />
 
-      <p className="text-xs sm:text-sm text-[#B5C3D1] leading-relaxed">
+      <p className="text-xs sm:text-sm text-[var(--m-text-secondary)] leading-relaxed">
         {modelContent.explanation}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="m-panel-inset p-3.5 flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#35C7E8]" />
+          <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span>What It Predicts</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+          <ul className="flex flex-col gap-1.5 text-xs text-[var(--m-text-secondary)]">
             {modelContent.predicts.map((item) => (
               <li key={item} className="flex items-start gap-1.5">
-                <span className="text-[#35C7E8] font-bold">·</span>
+                <span className="text-[var(--m-accent)] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -112,14 +112,14 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
         </div>
 
         <div className="m-panel-inset p-3.5 flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
-            <Check className="w-3.5 h-3.5 text-[#22C7A0]" />
+          <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 text-[var(--m-ok)]" />
             <span>Best Used For</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+          <ul className="flex flex-col gap-1.5 text-xs text-[var(--m-text-secondary)]">
             {modelContent.bestFor.map((item) => (
               <li key={item} className="flex items-start gap-1.5">
-                <span className="text-[#22C7A0] font-bold">·</span>
+                <span className="text-[var(--m-ok)] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -127,14 +127,14 @@ export const WhatThisModelDoes: React.FC<WhatThisModelDoesProps> = ({ modelId })
         </div>
 
         <div className="m-panel-inset p-3.5 flex flex-col gap-2">
-          <span className="text-[11px] font-bold text-[#F3F6FA] uppercase tracking-wider flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-[#F59E0B]" />
+          <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
+            <ShieldAlert className="w-3.5 h-3.5 text-[var(--m-watch)]" />
             <span>Limitations</span>
           </span>
-          <ul className="flex flex-col gap-1.5 text-xs text-[#B5C3D1]">
+          <ul className="flex flex-col gap-1.5 text-xs text-[var(--m-text-secondary)]">
             {modelContent.limitations.map((item) => (
               <li key={item} className="flex items-start gap-1.5">
-                <span className="text-[#F59E0B] font-bold">·</span>
+                <span className="text-[var(--m-watch)] font-bold">·</span>
                 <span>{item}</span>
               </li>
             ))}

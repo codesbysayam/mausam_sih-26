@@ -67,7 +67,7 @@ export const LanguageSelector: React.FC = () => {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label={`Current language: ${currentLanguageInfo.name}. Click to change language.`}
-        className="flex items-center justify-between gap-1.5 h-10 px-2.5 sm:px-3 bg-[#0B2239] hover:bg-[#102D47] border border-[#1D4E73] hover:border-[#1565C0]/60 rounded-xl text-white text-xs font-semibold tracking-wide transition-colors focus:outline-none focus:ring-1 focus:ring-[#1565C0] shrink-0 whitespace-nowrap cursor-pointer"
+        className="flex items-center justify-between gap-1.5 h-10 px-2.5 sm:px-3 bg-[var(--m-surface-2)] hover:bg-[#102D47] border border-[#1D4E73] hover:border-[#1565C0]/60 rounded-xl text-white text-xs font-semibold tracking-wide transition-colors focus:outline-none focus:ring-1 focus:ring-[#1565C0] shrink-0 whitespace-nowrap cursor-pointer"
       >
         <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">
           translate
@@ -86,7 +86,7 @@ export const LanguageSelector: React.FC = () => {
         </span>
 
         <span
-          className={`material-symbols-outlined text-[16px] text-[#8A94A6] transition-transform duration-150 ${
+          className={`material-symbols-outlined text-[16px] text-[var(--m-text-secondary)] transition-transform duration-150 ${
             isOpen ? 'rotate-180 text-white' : ''
           }`}
         >
@@ -99,13 +99,13 @@ export const LanguageSelector: React.FC = () => {
         <div
           role="listbox"
           aria-label="Select platform language"
-          className="absolute right-0 mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-24px)] bg-[#0B2239] border border-[#1D4E73] rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col"
+          className="absolute right-0 mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-24px)] bg-[var(--m-surface-2)] border border-[#1D4E73] rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col"
           style={{ maxHeight: '380px' }}
         >
           {/* Search Header */}
-          <div className="p-2 border-b border-[#334155] bg-[#0F141A]/70 sticky top-0 z-10">
+          <div className="p-2 border-b border-[var(--m-border-strong)] bg-[var(--m-surface-1)] sticky top-0 z-10">
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[#8A94A6] text-[16px]">
+              <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[var(--m-text-secondary)] text-[16px]">
                 search
               </span>
               <input
@@ -114,21 +114,21 @@ export const LanguageSelector: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('searchLanguage', 'Search language...')}
-                className="w-full h-8 bg-[#17212B] border border-[#334155] rounded text-white text-xs pl-7 pr-7 focus:outline-none focus:border-[#0B72B9]"
+                className="w-full h-8 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded text-[var(--m-text-primary)] text-xs pl-7 pr-7 focus:outline-none focus:border-[#0B72B9]"
                 aria-label={t('searchLanguage', 'Search language...')}
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8A94A6] hover:text-white text-xs"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs"
                   aria-label="Clear search"
                 >
                   <span className="material-symbols-outlined text-[14px]">close</span>
                 </button>
               )}
             </div>
-            <div className="flex justify-between items-center px-1 mt-1 text-[10px] text-[#8A94A6]">
+            <div className="flex justify-between items-center px-1 mt-1 text-[10px] text-[var(--m-text-secondary)]">
               <span>22 Scheduled Languages + English</span>
               <span>{filteredLanguages.length} available</span>
             </div>
@@ -147,10 +147,10 @@ export const LanguageSelector: React.FC = () => {
                     aria-selected={isSelected}
                     type="button"
                     onClick={() => handleSelect(item.code)}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between text-xs transition-colors border-b border-[#334155]/20 last:border-0 ${
+                    className={`w-full px-3 py-2 text-left flex items-center justify-between text-xs transition-colors border-b border-[var(--m-border-strong)] last:border-0 ${
                       isSelected
-                        ? 'bg-[#0B72B9] text-white font-bold'
-                        : 'text-[#D7DEE8] hover:bg-[#1E2733] hover:text-white'
+                        ? 'bg-[var(--m-accent)] text-white font-bold'
+                        : 'text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] hover:text-[var(--m-text-primary)]'
                     }`}
                   >
                     <div className="flex flex-col">
@@ -160,7 +160,7 @@ export const LanguageSelector: React.FC = () => {
                       {item.nativeName !== item.name && (
                         <span
                           className={`text-[11px] leading-tight ${
-                            isSelected ? 'text-white/80' : 'text-[#8A94A6]'
+                            isSelected ? 'text-white/80' : 'text-[var(--m-text-secondary)]'
                           }`}
                         >
                           {item.name}
@@ -173,7 +173,7 @@ export const LanguageSelector: React.FC = () => {
                         className={`text-[10px] font-mono px-1 py-0.2 rounded border ${
                           isSelected
                             ? 'bg-white/20 border-white/40 text-white'
-                            : 'bg-[#0F141A] border-[#334155] text-[#8A94A6]'
+                            : 'bg-[var(--m-surface-1)] border-[var(--m-border-strong)] text-[var(--m-text-secondary)]'
                         }`}
                       >
                         {item.code.toUpperCase()}
@@ -188,7 +188,7 @@ export const LanguageSelector: React.FC = () => {
                 );
               })
             ) : (
-              <div className="p-4 text-center text-xs text-[#8A94A6]">
+              <div className="p-4 text-center text-xs text-[var(--m-text-secondary)]">
                 No language found matching &ldquo;{searchQuery}&rdquo;
               </div>
             )}

@@ -51,9 +51,9 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'High':
-        return 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/40';
+        return 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/40';
       case 'Moderate':
-        return 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40';
+        return 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/40';
       case 'Low':
       default:
         return 'bg-[#2ECC71]/20 text-[#2ECC71] border-[#2ECC71]/40';
@@ -61,9 +61,9 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
   };
 
   return (
-    <div className="rounded-2xl bg-[#0F1622] border border-[#1E2E40] p-6 shadow-xl">
+    <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-6 shadow-xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-[#1E2E40] gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-[var(--m-border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#2ECC71]/15 border border-[#2ECC71]/30 flex items-center justify-center">
@@ -73,14 +73,14 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
               Crop-Specific Stage Advisory Matrix
             </h3>
           </div>
-          <p className="text-xs text-[#93A4B8]">
+          <p className="text-xs text-[var(--m-text-muted)]">
             Detailed stage-wise agronomic recommendations issued by AMFU {bulletin.district} node.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto text-xs text-[#93A4B8]">
+        <div className="flex items-center gap-2 self-start sm:self-auto text-xs text-[var(--m-text-muted)]">
           <span>Crops Tracked:</span>
-          <span className="font-mono font-bold text-white px-2 py-0.5 rounded bg-[#182635] border border-[#2A3E54]">
+          <span className="font-mono font-bold text-[var(--m-text-primary)] px-2 py-0.5 rounded bg-[var(--m-surface-2)] border border-[var(--m-border-strong)]">
             {bulletin.crops.length} Priority Cultivars
           </span>
         </div>
@@ -98,8 +98,8 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
               key={crop.cropName}
               className={`rounded-xl border transition-all duration-200 overflow-hidden ${
                 isExpanded
-                  ? 'bg-[#121D2A] border-[#2ECC71]/50 shadow-lg'
-                  : 'bg-[#111A24] border-[#1E2E40] hover:border-[#2A3E54] hover:bg-[#131E2A]'
+                  ? 'bg-[var(--m-surface-1)] border-[#2ECC71]/50 shadow-lg'
+                  : 'bg-[var(--m-surface-1)] border-[var(--m-border)] hover:border-[var(--m-border-strong)] hover:bg-[var(--m-surface-2)]'
               }`}
             >
               {/* Crop Row Trigger Header */}
@@ -113,7 +113,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                     className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
                       isExpanded
                         ? 'bg-[#2ECC71] text-[#0A1017]'
-                        : 'bg-[#182635] text-[#2ECC71] border border-[#2A3E54]'
+                        : 'bg-[var(--m-surface-2)] text-[#2ECC71] border border-[var(--m-border-strong)]'
                     }`}
                   >
                     0{idx + 1}
@@ -125,7 +125,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                         {crop.cropName}
                       </h4>
                       {isSelected && (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/40 font-semibold uppercase">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/40 font-semibold uppercase">
                           Active Target
                         </span>
                       )}
@@ -138,8 +138,8 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-[#93A4B8] mt-1">
-                      <span className="text-[#38BDF8] font-medium font-mono">
+                    <div className="flex items-center gap-2 text-xs text-[var(--m-text-muted)] mt-1">
+                      <span className="text-[var(--m-accent)] font-medium font-mono">
                         Stage: {crop.stage}
                       </span>
                       <span className="text-[#334155]">•</span>
@@ -149,11 +149,11 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-[#38BDF8] font-semibold hidden md:inline">
+                  <span className="text-xs text-[var(--m-accent)] font-semibold hidden md:inline">
                     {isExpanded ? 'Collapse' : 'Expand Advisory'}
                   </span>
                   <div
-                    className={`p-2 rounded-lg bg-[#182635] text-[#93A4B8] transition-transform duration-200 ${
+                    className={`p-2 rounded-lg bg-[var(--m-surface-2)] text-[var(--m-text-muted)] transition-transform duration-200 ${
                       isExpanded ? 'rotate-180 text-white bg-[#2ECC71]/20' : ''
                     }`}
                   >
@@ -164,29 +164,29 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
 
               {/* Crop Row Expanded Advisory Details */}
               {isExpanded && (
-                <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-[#1E2E40]/80 space-y-4">
+                <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-[var(--m-border)] space-y-4">
                   {/* Grid of 4 Detailed Functional Advisory Blocks */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 1. Irrigation Management */}
-                    <div className="p-4 rounded-xl bg-[#0F1622] border border-[#1E2E40] flex flex-col justify-between hover:border-[#38BDF8]/40 transition-colors">
+                    <div className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between hover:border-[var(--m-accent)]/40 transition-colors">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
-                            <Droplet className="w-4 h-4 text-[#38BDF8]" />
+                          <span className="text-xs font-bold text-[var(--m-accent)] uppercase tracking-wider flex items-center gap-1.5">
+                            <Droplet className="w-4 h-4 text-[var(--m-accent)]" />
                             Irrigation Management
                           </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#38BDF8]/15 text-[#38BDF8] font-mono">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-mono">
                             Moisture Regime
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-[#F4F7FA] font-medium leading-relaxed mb-3">
+                        <p className="text-xs sm:text-sm text-[var(--m-text-primary)] font-medium leading-relaxed mb-3">
                           {crop.irrigationAdvice}
                         </p>
                       </div>
 
-                      <div className="pt-2.5 border-t border-[#1E2E40] text-[11px] text-[#93A4B8] space-y-1">
+                      <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] space-y-1">
                         <div>
-                          <strong className="text-[#38BDF8]">Why:</strong> Avoid root zone waterlogging or water stress during key phenology phase.
+                          <strong className="text-[var(--m-accent)]">Why:</strong> Avoid root zone waterlogging or water stress during key phenology phase.
                         </div>
                         <div className="flex items-center gap-1 text-[#2ECC71]">
                           <Clock className="w-3 h-3" />
@@ -196,7 +196,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                     </div>
 
                     {/* 2. Nutrient & Fertilizer Strategy */}
-                    <div className="p-4 rounded-xl bg-[#0F1622] border border-[#1E2E40] flex flex-col justify-between hover:border-[#2ECC71]/40 transition-colors">
+                    <div className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between hover:border-[#2ECC71]/40 transition-colors">
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-bold text-[#2ECC71] uppercase tracking-wider flex items-center gap-1.5">
@@ -207,16 +207,16 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                             NPK Splits
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-[#F4F7FA] font-medium leading-relaxed mb-3">
+                        <p className="text-xs sm:text-sm text-[var(--m-text-primary)] font-medium leading-relaxed mb-3">
                           {crop.fertilizerAdvice}
                         </p>
                       </div>
 
-                      <div className="pt-2.5 border-t border-[#1E2E40] text-[11px] text-[#93A4B8] space-y-1">
+                      <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] space-y-1">
                         <div>
                           <strong className="text-[#2ECC71]">Why:</strong> Prevent nitrogen leaching and ensure maximum canopy absorption.
                         </div>
-                        <div className="flex items-center gap-1 text-[#F59E0B]">
+                        <div className="flex items-center gap-1 text-[var(--m-watch)]">
                           <Clock className="w-3 h-3" />
                           <span>Window: Clear morning hours (08:00 – 11:00 AM) on dry foliage</span>
                         </div>
@@ -224,27 +224,27 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                     </div>
 
                     {/* 3. Plant Protection & IPM */}
-                    <div className="p-4 rounded-xl bg-[#0F1622] border border-[#1E2E40] flex flex-col justify-between hover:border-[#EF4444]/40 transition-colors">
+                    <div className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between hover:border-[var(--m-danger)]/40 transition-colors">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-[#EF4444] uppercase tracking-wider flex items-center gap-1.5">
-                            <Bug className="w-4 h-4 text-[#EF4444]" />
+                          <span className="text-xs font-bold text-[var(--m-danger)] uppercase tracking-wider flex items-center gap-1.5">
+                            <Bug className="w-4 h-4 text-[var(--m-danger)]" />
                             Pest &amp; Disease IPM
                           </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444] font-mono">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-danger-soft)] text-[var(--m-danger)] font-mono">
                             Biosecurity
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-[#F4F7FA] font-medium leading-relaxed mb-3">
+                        <p className="text-xs sm:text-sm text-[var(--m-text-primary)] font-medium leading-relaxed mb-3">
                           {crop.pestDiseaseAdvice}
                         </p>
                       </div>
 
-                      <div className="pt-2.5 border-t border-[#1E2E40] text-[11px] text-[#93A4B8] space-y-1">
+                      <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] space-y-1">
                         <div>
-                          <strong className="text-[#EF4444]">Why:</strong> High morning humidity accelerates spore germination and sucking insect spread.
+                          <strong className="text-[var(--m-danger)]">Why:</strong> High morning humidity accelerates spore germination and sucking insect spread.
                         </div>
-                        <div className="flex items-center gap-1 text-[#38BDF8]">
+                        <div className="flex items-center gap-1 text-[var(--m-accent)]">
                           <Clock className="w-3 h-3" />
                           <span>Scouting: Inspect lower leaf surface during 07:30 – 09:30 AM</span>
                         </div>
@@ -252,7 +252,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                     </div>
 
                     {/* 4. Cultural, Harvesting & Post-Harvest */}
-                    <div className="p-4 rounded-xl bg-[#0F1622] border border-[#1E2E40] flex flex-col justify-between hover:border-[#A855F7]/40 transition-colors">
+                    <div className="p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between hover:border-[#A855F7]/40 transition-colors">
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-bold text-[#A855F7] uppercase tracking-wider flex items-center gap-1.5">
@@ -263,16 +263,16 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                             Post-Harvest
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-[#F4F7FA] font-medium leading-relaxed mb-3">
+                        <p className="text-xs sm:text-sm text-[var(--m-text-primary)] font-medium leading-relaxed mb-3">
                           {crop.harvestingAdvice}
                         </p>
                       </div>
 
-                      <div className="pt-2.5 border-t border-[#1E2E40] text-[11px] text-[#93A4B8] space-y-1">
+                      <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] space-y-1">
                         <div>
                           <strong className="text-[#A855F7]">Why:</strong> Prevent seed grain spoilage and maintain dry storage standards.
                         </div>
-                        <div className="flex items-center gap-1 text-[#CBD5E1]">
+                        <div className="flex items-center gap-1 text-[var(--m-text-secondary)]">
                           <ShieldCheck className="w-3 h-3 text-[#2ECC71]" />
                           <span>Standard: Safe grain moisture threshold &lt;12–14%</span>
                         </div>
@@ -281,12 +281,12 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                   </div>
 
                   {/* Quick Sowing / Cultural Footnote */}
-                  <div className="p-3 rounded-lg bg-[#0A1017] border border-[#1E2E40] text-xs text-[#93A4B8] flex items-center justify-between flex-wrap gap-2">
+                  <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-muted)] flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-3.5 h-3.5 text-[#2ECC71]" />
                       <span><strong>Cultural Practice:</strong> {crop.sowingAdvice}</span>
                     </div>
-                    <span className="text-[10px] font-mono text-[#38BDF8]">
+                    <span className="text-[10px] font-mono text-[var(--m-accent)]">
                       AMFU {bulletin.district} Advisory Code: {crop.cropName.slice(0, 3).toUpperCase()}-2026
                     </span>
                   </div>

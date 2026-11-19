@@ -24,7 +24,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
       return <CloudRain className="w-5 h-5 text-[#4FA8E0]" />;
     }
     if (c.includes('cloud') || c.includes('overcast')) {
-      return <Cloud className="w-5 h-5 text-[#93A4B8]" />;
+      return <Cloud className="w-5 h-5 text-[var(--m-text-muted)]" />;
     }
     if (c.includes('wind') || c.includes('breeze')) {
       return <Wind className="w-5 h-5 text-[#4FA8E0]" />;
@@ -47,25 +47,25 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
   return (
     <section
       id="live-weather-timeline"
-      className="bg-[#17212B] border border-[#334155] rounded-xl p-4 sm:p-5 shadow-lg"
+      className="bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-xl p-4 sm:p-5 shadow-lg"
       aria-label="Hourly Atmospheric Timeline"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#334155] pb-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--m-border-strong)] pb-3 mb-4">
         <div className="flex items-center gap-2.5">
           <Clock className="w-5 h-5 text-[#4FA8E0]" />
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               ATMOSPHERIC TIMELINE (HOURLY)
             </h3>
-            <p className="text-xs text-[#8A94A6]">
+            <p className="text-xs text-[var(--m-text-secondary)]">
               Surface telemetry & deterministic prediction for{' '}
-              <span className="text-[#D7DEE8] font-medium">{locationName}</span>
+              <span className="text-[var(--m-text-primary)] font-medium">{locationName}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[#8A94A6]">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--m-text-secondary)]">
           <span className="w-2 h-2 rounded-full bg-[#2ECC71]" />
           <span>IMD-GFS / WRF Surface Grid</span>
           <span className="hidden md:inline text-[#334155]">|</span>
@@ -74,12 +74,12 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
       </div>
 
       {!hasData ? (
-        <div className="p-6 bg-[#0F141A] rounded-lg border border-[#334155] flex flex-col items-center justify-center text-center">
-          <AlertCircle className="w-8 h-8 text-[#8A94A6] mb-2" />
-          <p className="text-xs text-[#D7DEE8] font-medium">
+        <div className="p-6 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border-strong)] flex flex-col items-center justify-center text-center">
+          <AlertCircle className="w-8 h-8 text-[var(--m-text-secondary)] mb-2" />
+          <p className="text-xs text-[var(--m-text-primary)] font-medium">
             Model forecast data unavailable for current observation coordinates
           </p>
-          <p className="text-[11px] text-[#8A94A6] mt-1">
+          <p className="text-[11px] text-[var(--m-text-secondary)] mt-1">
             Awaiting next synoptic NWP cycle upload from meteorological server
           </p>
         </div>
@@ -97,8 +97,8 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                   key={slot.label}
                   className={`flex-1 min-w-[95px] p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-all ${
                     isNow
-                      ? 'bg-[#0B72B9]/20 border-[#0B72B9] shadow-md ring-1 ring-[#0B72B9]/40'
-                      : 'bg-[#0F141A] border-[#334155]/70 hover:border-[#4FA8E0]/60'
+                      ? 'bg-[var(--m-accent-soft)] border-[#0B72B9] shadow-md ring-1 ring-[#0B72B9]/40'
+                      : 'bg-[var(--m-surface-1)] border-[var(--m-border-strong)] hover:border-[#4FA8E0]/60'
                   }`}
                 >
                   {/* Step label & Status Badge */}
@@ -106,8 +106,8 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                     <span
                       className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
                         isNow
-                          ? 'bg-[#0B72B9] text-white'
-                          : 'bg-[#1E2733] text-[#8A94A6]'
+                          ? 'bg-[var(--m-accent)] text-white'
+                          : 'bg-[var(--m-surface-2)] text-[var(--m-text-secondary)]'
                       }`}
                     >
                       {slot.label}
@@ -116,7 +116,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                       className={`text-[8px] font-mono font-bold px-1 rounded uppercase ${
                         isNow
                           ? 'text-[#2ECC71] bg-[#008000]/20'
-                          : 'text-[#4FA8E0] bg-[#0B72B9]/15'
+                          : 'text-[#4FA8E0] bg-[var(--m-accent-soft)]'
                       }`}
                     >
                       {isNow ? 'OBSERVED' : 'FORECAST'}
@@ -124,13 +124,13 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                   </div>
 
                   {/* Time */}
-                  <span className="text-xs text-[#D7DEE8] font-mono font-medium mt-1">
+                  <span className="text-xs text-[var(--m-text-primary)] font-mono font-medium mt-1">
                     {item?.time || (isNow ? 'Now' : 'N/A')}
                   </span>
 
                   {/* Weather Icon */}
                   <div className="my-2" title={item?.condition || 'Weather'}>
-                    {item ? getWeatherIcon(item.condition) : <span className="text-xs text-[#8A94A6]">N/A</span>}
+                    {item ? getWeatherIcon(item.condition) : <span className="text-xs text-[var(--m-text-secondary)]">N/A</span>}
                   </div>
 
                   {/* Temperature */}
@@ -140,14 +140,14 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
 
                   {/* Condition label */}
                   <span
-                    className="text-[10px] text-[#8A94A6] mt-0.5 truncate max-w-[90px]"
+                    className="text-[10px] text-[var(--m-text-secondary)] mt-0.5 truncate max-w-[90px]"
                     title={item?.condition || 'Conditions'}
                   >
                     {item?.condition || 'Unavailable'}
                   </span>
 
                   {/* Metrics footer: Rain & Humidity */}
-                  <div className="mt-2 pt-1.5 border-t border-[#334155]/60 w-full flex items-center justify-between text-[10px] font-mono">
+                  <div className="mt-2 pt-1.5 border-t border-[var(--m-border-strong)] w-full flex items-center justify-between text-[10px] font-mono">
                     <div
                       className="flex items-center gap-0.5 text-[#4FA8E0]"
                       title={typeof item?.rainProb === 'number' && Number.isFinite(item.rainProb) ? `Rain Probability: ${item.rainProb}%` : 'Rain Probability unavailable'}

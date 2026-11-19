@@ -89,7 +89,7 @@ export const SprayingWindowAnalyzer: React.FC<SprayingWindowAnalyzerProps> = ({
         badge={<SourceStatus status={windows.length > 0 ? 'LIVE' : 'UNAVAILABLE'} />}
         action={
           windows.length > 0 ? (
-            <div className="flex items-center gap-3 text-[11px] font-mono text-[#B5C3D1]">
+            <div className="flex items-center gap-3 text-[11px] font-mono text-[var(--m-text-secondary)]">
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#22C7A0]" /> IDEAL
               </span>
@@ -113,49 +113,49 @@ export const SprayingWindowAnalyzer: React.FC<SprayingWindowAnalyzerProps> = ({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {windows.map((w, idx) => {
-            let badgeBg = 'bg-[#22C7A0]/12 border-[#22C7A0]/35 text-[#6EE7B7]';
-            let cardBorder = 'border-[#22C7A0]/30';
+            let badgeBg = 'bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35 text-[var(--m-ok)]';
+            let cardBorder = 'border-[var(--m-ok)]/30';
             if (w.suitability === 'ACCEPTABLE') {
-              badgeBg = 'bg-[#F59E0B]/12 border-[#F59E0B]/35 text-[#FCD34D]';
-              cardBorder = 'border-[#F59E0B]/30';
+              badgeBg = 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35 text-[var(--m-watch)]';
+              cardBorder = 'border-[var(--m-watch)]/30';
             } else if (w.suitability === 'AVOID') {
-              badgeBg = 'bg-[#EF4444]/12 border-[#EF4444]/35 text-[#FCA5A5]';
-              cardBorder = 'border-[#EF4444]/30';
+              badgeBg = 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35 text-[var(--m-danger)]';
+              cardBorder = 'border-[var(--m-danger)]/30';
             }
 
             return (
               <div
                 key={idx}
-                className={`rounded-xl bg-[#08131F] border ${cardBorder} p-4 flex flex-col justify-between space-y-3`}
+                className={`rounded-xl bg-[var(--m-surface-inset)] border ${cardBorder} p-4 flex flex-col justify-between space-y-3`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <span className="text-xs font-mono font-bold text-[#F3F6FA] block">
+                    <span className="text-xs font-mono font-bold text-[var(--m-text-primary)] block">
                       {w.label}
                     </span>
-                    <span className="text-[10px] font-mono text-[#8295A8]">{w.title}</span>
+                    <span className="text-[10px] font-mono text-[var(--m-text-muted)]">{w.title}</span>
                   </div>
                   <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold border ${badgeBg}`}>
                     {w.suitability}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono tabular-nums text-[#B5C3D1] bg-[#07111D] p-2.5 rounded-lg border border-[#26394B]">
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono tabular-nums text-[var(--m-text-secondary)] bg-[var(--m-surface-inset)] p-2.5 rounded-lg border border-[var(--m-border)]">
                   <div>
-                    Wind: <strong className="text-[#F3F6FA]">{w.wind !== null ? `${w.wind} km/h` : '—'}</strong>
+                    Wind: <strong className="text-[var(--m-text-primary)]">{w.wind !== null ? `${w.wind} km/h` : '—'}</strong>
                   </div>
                   <div>
-                    Rain: <strong className="text-[#35C7E8]">{w.rainProb !== null ? `${w.rainProb}%` : '—'}</strong>
+                    Rain: <strong className="text-[var(--m-accent)]">{w.rainProb !== null ? `${w.rainProb}%` : '—'}</strong>
                   </div>
                   <div>
-                    Temp: <strong className="text-[#F3F6FA]">{w.temp}°C</strong>
+                    Temp: <strong className="text-[var(--m-text-primary)]">{w.temp}°C</strong>
                   </div>
                   <div>
-                    RH: <strong className="text-[#F3F6FA]">{w.humidity !== null ? `${w.humidity}%` : '—'}</strong>
+                    RH: <strong className="text-[var(--m-text-primary)]">{w.humidity !== null ? `${w.humidity}%` : '—'}</strong>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[#8295A8] leading-snug">{w.advice}</p>
+                <p className="text-[11px] text-[var(--m-text-muted)] leading-snug">{w.advice}</p>
               </div>
             );
           })}

@@ -43,14 +43,14 @@ export const WeatherBulletin: React.FC<WeatherBulletinProps> = ({
               <span className="text-white font-bold text-xs">
                 {t('weatherBulletin', 'WEATHER BULLETIN')}: {activeAlert.title.toUpperCase()}
               </span>
-              <span className="text-[11px] font-semibold text-[#8A94A6]">
+              <span className="text-[11px] font-semibold text-[var(--m-text-secondary)]">
                 • {t('affectedArea', 'Affected')}: {activeAlert.affectedArea || currentLocationName}
               </span>
-              <span className="text-[11px] text-[#8A94A6]">
+              <span className="text-[11px] text-[var(--m-text-secondary)]">
                 • {t('validUntil', 'Valid until')}: {activeAlert.validUntil || '24 Hours'}
               </span>
             </div>
-            <p className="text-[#D7DEE8] text-xs mt-0.5 line-clamp-1">
+            <p className="text-[var(--m-text-primary)] text-xs mt-0.5 line-clamp-1">
               {activeAlert.description}
             </p>
           </div>
@@ -83,13 +83,13 @@ export const WeatherBulletin: React.FC<WeatherBulletinProps> = ({
           <span className="text-white font-bold text-xs">
             {t('synopticBulletin', 'SYNOPTIC BULLETIN: NORMAL METEOROLOGICAL CONDITIONS')}
           </span>
-          <span className="text-[#8A94A6] text-xs ml-2">
+          <span className="text-[var(--m-text-secondary)] text-xs ml-2">
             {t('noSevereWarnings', `No active severe storm warnings for ${currentLocationName}. Monitored across all Doppler radars.`)}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-[11px] text-[#8A94A6]">
+      <div className="flex items-center gap-2 text-[11px] text-[var(--m-text-secondary)]">
         <span className="w-2 h-2 rounded-full bg-[#2ECC71]" />
         <span>{t('observationVerified', 'Observation Verified')}</span>
       </div>

@@ -117,10 +117,10 @@ export const WeatherMetrics: React.FC<WeatherMetricsProps> = ({ weather }) => {
         {metrics.map((m, idx) => (
           <div
             key={idx}
-            className="bg-[#1E2733] border border-[#334155] rounded p-3 flex flex-col justify-between"
+            className="bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded p-3 flex flex-col justify-between"
           >
             <div className="flex justify-between items-start">
-              <div className="flex items-center gap-1.5 text-xs text-[#8A94A6]">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--m-text-secondary)]">
                 <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">
                   {m.icon}
                 </span>
@@ -131,10 +131,10 @@ export const WeatherMetrics: React.FC<WeatherMetricsProps> = ({ weather }) => {
 
             <div className="mt-2 mb-1 flex items-baseline gap-1.5">
               <span className="text-xl font-bold text-white font-mono">{m.value}</span>
-              <span className="text-xs text-[#8A94A6]">{m.unit}</span>
+              <span className="text-xs text-[var(--m-text-secondary)]">{m.unit}</span>
             </div>
 
-            <p className="text-[11px] text-[#8A94A6] mt-1 border-t border-[#334155]/60 pt-1.5">
+            <p className="text-[11px] text-[var(--m-text-secondary)] mt-1 border-t border-[var(--m-border-strong)] pt-1.5">
               {m.desc}
             </p>
           </div>

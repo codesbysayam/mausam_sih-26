@@ -69,8 +69,8 @@ export const HomePersonalizedHub: React.FC<HomePersonalizedHubProps> = ({
               onClick={() => setActivePersona(pKey)}
               className={`px-3 min-h-[36px] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer m-focus-ring border ${
                 isSelected
-                  ? 'bg-[#35C7E8] text-[#05101C] border-[#35C7E8]'
-                  : 'bg-[#08131F] text-[#8295A8] hover:text-[#F3F6FA] border-[#26394B] hover:border-[#38536A]'
+                  ? 'bg-[#35C7E8] text-[#05101C] border-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
             >
               <PIcon className="w-3.5 h-3.5" />
@@ -83,13 +83,13 @@ export const HomePersonalizedHub: React.FC<HomePersonalizedHubProps> = ({
       {/* Active Sector Advice Card */}
       <div className="m-panel-inset p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <IconComponent className="w-5 h-5" />
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="text-sm font-bold text-[#F3F6FA]">
+              <span className="text-sm font-bold text-[var(--m-text-primary)]">
                 {activeConfig.label}
               </span>
               <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${story.personaAdvice.badgeColor}`}>
@@ -97,11 +97,11 @@ export const HomePersonalizedHub: React.FC<HomePersonalizedHubProps> = ({
               </span>
             </div>
 
-            <div className="text-xs font-semibold text-[#35C7E8] mb-1">
+            <div className="text-xs font-semibold text-[var(--m-accent)] mb-1">
               {story.personaAdvice.highlight}
             </div>
 
-            <p className="text-xs text-[#B5C3D1] leading-relaxed max-w-3xl">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed max-w-3xl">
               {story.personaAdvice.advice}
             </p>
           </div>
@@ -111,7 +111,7 @@ export const HomePersonalizedHub: React.FC<HomePersonalizedHubProps> = ({
           <button
             type="button"
             onClick={onNavigateToWeather}
-            className="text-xs text-[#35C7E8] hover:text-[#7DD3FC] font-semibold flex items-center gap-1.5 shrink-0 self-start md:self-auto cursor-pointer"
+            className="text-xs text-[var(--m-accent)] hover:text-[var(--m-accent)] font-semibold flex items-center gap-1.5 shrink-0 self-start md:self-auto cursor-pointer"
           >
             <span>Open Local Weather Detail</span>
             <ArrowRight className="w-3.5 h-3.5" />

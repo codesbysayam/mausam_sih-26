@@ -245,23 +245,23 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
   };
 
   return (
-    <div className="flex flex-col bg-[#0F141A] card-border rounded-xl shadow-xl overflow-hidden select-none relative font-sans">
+    <div className="flex flex-col bg-[var(--m-surface-1)] card-border rounded-xl shadow-xl overflow-hidden select-none relative font-sans">
       {/* Top Map Toolbar */}
-      <div className="p-4 card-header-divider bg-[#1E2733] flex flex-wrap justify-between items-center gap-3">
+      <div className="p-4 card-header-divider bg-[var(--m-surface-2)] flex flex-wrap justify-between items-center gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#0B72B9]/20 border border-[#0B72B9]/40 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/40 flex items-center justify-center">
             <span className="material-symbols-outlined text-[#4FA8E0] text-[22px]">
               radar
             </span>
           </div>
           <div>
-            <h3 className="text-sm text-[#FFFFFF] font-bold flex items-center gap-2">
+            <h3 className="text-sm text-[var(--m-text-primary)] font-bold flex items-center gap-2">
               Pan-India Dynamic Doppler Weather Radar (DWR)
               <span className="px-2 py-0.5 rounded bg-[#2ECC71]/20 text-[#2ECC71] text-[11px] border border-[#2ECC71]/30 font-semibold">
                 Live Mosaic
               </span>
             </h3>
-            <p className="text-xs text-[#8A94A6]">
+            <p className="text-xs text-[var(--m-text-secondary)]">
               Drag to pan • Scroll or buttons to zoom • Click radar stations for telemetry
             </p>
           </div>
@@ -270,7 +270,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         {/* Toolbar Actions: Layer Switcher & Snapshot Download */}
         <div className="flex items-center flex-wrap gap-2">
           {/* Layer Switcher */}
-          <div className="flex items-center gap-1 p-1 bg-[#0F141A] rounded-lg card-border">
+          <div className="flex items-center gap-1 p-1 bg-[var(--m-surface-1)] rounded-lg card-border">
             {(
               [
                 { key: 'radar', label: 'Doppler Echoes', icon: 'radar' },
@@ -285,8 +285,8 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                 onClick={() => setActiveLayer(layer.key as RadarLayer)}
                 className={`px-3 py-1.5 text-xs rounded-md transition-all flex items-center gap-1.5 cursor-pointer font-medium ${
                   activeLayer === layer.key
-                    ? 'bg-[#0B72B9] text-[#FFFFFF] font-semibold shadow-sm'
-                    : 'text-[#8A94A6] hover:text-[#FFFFFF] hover:bg-[#1E2733]'
+                    ? 'bg-[var(--m-accent)] text-[#FFFFFF] font-semibold shadow-sm'
+                    : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
                 }`}
               >
                 <span className="material-symbols-outlined text-[15px]">{layer.icon}</span>
@@ -300,7 +300,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             onClick={handleCaptureRadarImage}
             disabled={isCapturing}
             title="Capture current radar view as an image and download to share"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0B72B9] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold shadow-md transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[16px]">
               {isCapturing ? 'hourglass_top' : 'photo_camera'}
@@ -326,7 +326,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        className="relative h-[520px] w-full bg-[#0A0F14] overflow-hidden cursor-grab active:cursor-grabbing flex items-center justify-center"
+        className="relative h-[520px] w-full bg-[var(--m-surface-inset)] overflow-hidden cursor-grab active:cursor-grabbing flex items-center justify-center"
       >
         {/* Ambient Grid overlay */}
         <div
@@ -339,39 +339,39 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         ></div>
 
         {/* Zoom & Navigation Floating Controls */}
-        <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 bg-[#1E2733]/95 backdrop-blur-md p-1.5 rounded-lg card-border shadow-2xl">
+        <div className="absolute top-4 right-4 z-20 flex flex-col gap-1.5 bg-[var(--m-surface-2)] backdrop-blur-md p-1.5 rounded-lg card-border shadow-2xl">
           <button
             onClick={handleZoomIn}
             title="Zoom In"
-            className="w-8 h-8 rounded bg-[#0F141A] hover:bg-[#0B72B9] hover:text-[#FFFFFF] text-[#F4F7FA] flex items-center justify-center transition-all cursor-pointer font-bold"
+            className="w-8 h-8 rounded bg-[var(--m-surface-1)] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] text-[var(--m-text-primary)] flex items-center justify-center transition-all cursor-pointer font-bold"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
           </button>
           <button
             onClick={handleZoomOut}
             title="Zoom Out"
-            className="w-8 h-8 rounded bg-[#0F141A] hover:bg-[#0B72B9] hover:text-[#FFFFFF] text-[#F4F7FA] flex items-center justify-center transition-all cursor-pointer font-bold"
+            className="w-8 h-8 rounded bg-[var(--m-surface-1)] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] text-[var(--m-text-primary)] flex items-center justify-center transition-all cursor-pointer font-bold"
           >
             <span className="material-symbols-outlined text-[18px]">remove</span>
           </button>
           <button
             onClick={handleReset}
             title="Reset Map View"
-            className="w-8 h-8 rounded bg-[#0F141A] hover:bg-[#0B72B9] hover:text-[#FFFFFF] text-[#F4F7FA] flex items-center justify-center transition-all cursor-pointer font-bold"
+            className="w-8 h-8 rounded bg-[var(--m-surface-1)] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] text-[var(--m-text-primary)] flex items-center justify-center transition-all cursor-pointer font-bold"
           >
             <span className="material-symbols-outlined text-[18px]">restart_alt</span>
           </button>
           <button
             onClick={handleCaptureRadarImage}
             title="Download Radar Image"
-            className="w-8 h-8 rounded bg-[#0B72B9]/20 text-[#4FA8E0] hover:bg-[#0B72B9] hover:text-[#FFFFFF] flex items-center justify-center transition-all cursor-pointer font-bold"
+            className="w-8 h-8 rounded bg-[var(--m-accent-soft)] text-[#4FA8E0] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] flex items-center justify-center transition-all cursor-pointer font-bold"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
 
         {/* Floating Active Station HUD */}
-        <div className="absolute top-4 left-4 z-20 bg-[#1E2733]/95 backdrop-blur-md p-3.5 rounded-lg card-border shadow-2xl max-w-xs pointer-events-auto">
+        <div className="absolute top-4 left-4 z-20 bg-[var(--m-surface-2)] backdrop-blur-md p-3.5 rounded-lg card-border shadow-2xl max-w-xs pointer-events-auto">
           <div className="flex items-center justify-between gap-2 mb-1">
             <span className="text-[11px] font-bold text-[#4FA8E0]">
               {selectedStation.code}
@@ -380,28 +380,28 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
               {selectedStation.radarType || 'S-Band'}
             </span>
           </div>
-          <h4 className="font-h4 text-sm font-bold text-[#FFFFFF]">
+          <h4 className="font-h4 text-sm font-bold text-[var(--m-text-primary)]">
             {selectedStation.name}
           </h4>
-          <p className="text-[12px] text-[#8A94A6] mt-0.5">
+          <p className="text-[12px] text-[var(--m-text-secondary)] mt-0.5">
             {selectedStation.state} • Elev: {selectedStation.elevation}
           </p>
 
           <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-[rgba(225,230,235,0.12)] text-center">
-            <div className="bg-[#0F141A] p-1.5 rounded card-border">
-              <span className="text-[10px] text-[#8A94A6] block">Temp</span>
-              <span className="text-sm font-bold text-[#FFFFFF]">
+            <div className="bg-[var(--m-surface-1)] p-1.5 rounded card-border">
+              <span className="text-[10px] text-[var(--m-text-secondary)] block">Temp</span>
+              <span className="text-sm font-bold text-[var(--m-text-primary)]">
                 {selectedStation.temp}°C
               </span>
             </div>
-            <div className="bg-[#0F141A] p-1.5 rounded card-border">
-              <span className="text-[10px] text-[#8A94A6] block">Reflectivity</span>
+            <div className="bg-[var(--m-surface-1)] p-1.5 rounded card-border">
+              <span className="text-[10px] text-[var(--m-text-secondary)] block">Reflectivity</span>
               <span className="text-sm font-bold text-[#4FA8E0]">
                 {selectedStation.reflectivityDbz || 40} dBZ
               </span>
             </div>
-            <div className="bg-[#0F141A] p-1.5 rounded card-border">
-              <span className="text-[10px] text-[#8A94A6] block">AQI PM2.5</span>
+            <div className="bg-[var(--m-surface-1)] p-1.5 rounded card-border">
+              <span className="text-[10px] text-[var(--m-text-secondary)] block">AQI PM2.5</span>
               <span
                 className="text-sm font-bold"
                 style={{
@@ -667,29 +667,29 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         </div>
 
         {/* Interactive Legend Box */}
-        <div className="absolute bottom-4 left-4 z-20 bg-[#1E2733]/95 backdrop-blur-md p-3 rounded-lg card-border shadow-2xl flex flex-col gap-1.5">
+        <div className="absolute bottom-4 left-4 z-20 bg-[var(--m-surface-2)] backdrop-blur-md p-3 rounded-lg card-border shadow-2xl flex flex-col gap-1.5">
           <span className="text-[10px] uppercase text-[#4FA8E0] font-bold">
             Reflectivity Scale (dBZ)
           </span>
           <div className="flex items-center gap-1">
             <div className="w-4 h-2.5 rounded-xs bg-[#4FA8E0]" title="Light Rain (15-25 dBZ)"></div>
-            <span className="text-[9px] text-[#8A94A6]">15</span>
+            <span className="text-[9px] text-[var(--m-text-secondary)]">15</span>
             <div className="w-4 h-2.5 rounded-xs bg-[#2ECC71]" title="Moderate Rain (25-35 dBZ)"></div>
-            <span className="text-[9px] text-[#8A94A6]">30</span>
+            <span className="text-[9px] text-[var(--m-text-secondary)]">30</span>
             <div className="w-4 h-2.5 rounded-xs bg-[#F1C40F]" title="Heavy Rain (35-45 dBZ)"></div>
-            <span className="text-[9px] text-[#8A94A6]">45</span>
+            <span className="text-[9px] text-[var(--m-text-secondary)]">45</span>
             <div className="w-4 h-2.5 rounded-xs bg-[#E74C3C]" title="Severe Hail/Storm (>50 dBZ)"></div>
-            <span className="text-[9px] text-[#8A94A6]">60+</span>
+            <span className="text-[9px] text-[var(--m-text-secondary)]">60+</span>
           </div>
         </div>
       </div>
 
       {/* Interactive Timeline Playback Bar */}
-      <div className="p-4 card-header-divider bg-[#1E2733] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-4 card-header-divider bg-[var(--m-surface-2)] flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0B72B9] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold transition-all cursor-pointer shadow-md"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold transition-all cursor-pointer shadow-md"
           >
             <span className="material-symbols-outlined text-[18px]">
               {isPlaying ? 'pause' : 'play_arrow'}
@@ -697,7 +697,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             {isPlaying ? 'Pause Loop' : 'Play Loop'}
           </button>
 
-          <span className="text-xs text-[#4FA8E0] font-semibold bg-[#0F141A] px-3 py-1.5 rounded-lg card-border">
+          <span className="text-xs text-[#4FA8E0] font-semibold bg-[var(--m-surface-1)] px-3 py-1.5 rounded-lg card-border">
             {timeLabels[timeIndex]}
           </span>
         </div>
@@ -713,8 +713,8 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
               }}
               className={`flex-1 py-1.5 px-2 rounded text-xs transition-all cursor-pointer text-center font-medium ${
                 timeIndex === idx
-                  ? 'bg-[#0B72B9] text-[#FFFFFF] font-semibold shadow'
-                  : 'bg-[#0F141A] text-[#8A94A6] hover:text-[#FFFFFF] hover:bg-[#18202B]'
+                  ? 'bg-[var(--m-accent)] text-[#FFFFFF] font-semibold shadow'
+                  : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
               {lbl.split(' ')[0]}

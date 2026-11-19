@@ -70,9 +70,9 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
         subtitle="Chronological index of operational weather bulletins and research releases"
         icon={<Clock className="w-4 h-4" />}
         action={
-          <div className="text-xs font-mono text-[#8295A8] flex items-center gap-2 tabular-nums">
+          <div className="text-xs font-mono text-[var(--m-text-muted)] flex items-center gap-2 tabular-nums">
             <span>Active Epoch:</span>
-            <span className="px-2.5 py-1 rounded-md bg-[#08131F] text-[#35C7E8] border border-[#26394B] font-bold">
+            <span className="px-2.5 py-1 rounded-md bg-[var(--m-surface-inset)] text-[var(--m-accent)] border border-[var(--m-border)] font-bold">
               {activeGroup.period} ({activeGroup.items.length})
             </span>
           </div>
@@ -80,7 +80,7 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
       />
 
       {/* Horizontal Timeline Period Switcher */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-3 scrollbar-none border-b border-[#26394B]">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-3 scrollbar-none border-b border-[var(--m-border)]">
         {timelineGroups.map((group) => {
           const isSelected = activeGroup.period === group.period;
           return (
@@ -90,15 +90,15 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
               onClick={() => setSelectedPeriod(group.period)}
               className={`min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-colors shrink-0 flex items-center gap-2 cursor-pointer m-focus-ring tabular-nums ${
                 isSelected
-                  ? 'bg-[#0B72B9] text-white border border-[#35C7E8]/50'
-                  : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] border border-[#26394B]'
+                  ? 'bg-[var(--m-accent)] text-white border border-[var(--m-accent)]/50'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] border border-[var(--m-border)]'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>{group.period}</span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] ${
-                  isSelected ? 'bg-black/25 text-white' : 'bg-[#101F2E] text-[#8295A8]'
+                  isSelected ? 'bg-black/25 text-white' : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)]'
                 }`}
               >
                 {group.count}
@@ -117,7 +117,7 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
               key={pub.id}
               type="button"
               onClick={() => onOpenReport(pub)}
-              className="text-left p-4 rounded-xl bg-[#08131F] border border-[#26394B] hover:border-[#35C7E8]/50 transition-colors flex flex-col justify-between cursor-pointer group m-focus-ring"
+              className="text-left p-4 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 transition-colors flex flex-col justify-between cursor-pointer group m-focus-ring"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -126,25 +126,25 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
                   >
                     {theme.label}
                   </span>
-                  <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">
+                  <span className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums shrink-0">
                     {pub.date}
                   </span>
                 </div>
 
-                <h4 className="text-sm font-bold text-[#F3F6FA] group-hover:text-[#35C7E8] transition-colors line-clamp-2 leading-snug">
+                <h4 className="text-sm font-bold text-[var(--m-text-primary)] group-hover:text-[var(--m-accent)] transition-colors line-clamp-2 leading-snug">
                   {pub.title}
                 </h4>
 
-                <p className="text-xs text-[#B5C3D1] mt-2 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[var(--m-text-secondary)] mt-2 line-clamp-2 leading-relaxed">
                   {pub.abstract}
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#26394B] flex items-center justify-between text-xs text-[#8295A8] w-full">
+              <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex items-center justify-between text-xs text-[var(--m-text-muted)] w-full">
                 <span className="font-mono text-[11px] truncate max-w-[170px]">
                   {pub.author}
                 </span>
-                <span className="text-[#35C7E8] flex items-center gap-1 font-mono font-bold text-[11px] shrink-0">
+                <span className="text-[var(--m-accent)] flex items-center gap-1 font-mono font-bold text-[11px] shrink-0">
                   <span>READ</span>
                   <ArrowRight className="w-3 h-3" />
                 </span>

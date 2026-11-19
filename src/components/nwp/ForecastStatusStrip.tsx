@@ -56,9 +56,9 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
         <span className="text-[#26394B] hidden sm:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
-          <Clock className="w-3.5 h-3.5 text-[#35C7E8]" />
-          <span className="text-[10px] uppercase text-[#8295A8]">Run:</span>
-          <span className="text-[#F3F6FA] font-medium tabular-nums">
+          <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+          <span className="text-[10px] uppercase text-[var(--m-text-muted)]">Run:</span>
+          <span className="text-[var(--m-text-primary)] font-medium tabular-nums">
             {isUnavailable ? '—' : formatUtcRun(runData?.runTime)}
           </span>
         </div>
@@ -66,9 +66,9 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
         <span className="text-[#26394B] hidden md:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
-          <Calendar className="w-3.5 h-3.5 text-[#22C7A0]" />
-          <span className="text-[10px] uppercase text-[#8295A8]">Horizon:</span>
-          <span className="text-[#F3F6FA] font-medium tabular-nums">
+          <Calendar className="w-3.5 h-3.5 text-[var(--m-ok)]" />
+          <span className="text-[10px] uppercase text-[var(--m-text-muted)]">Horizon:</span>
+          <span className="text-[var(--m-text-primary)] font-medium tabular-nums">
             {isUnavailable ? '—' : runData?.forecastHours ? `0–${Math.round(runData.forecastHours / 24)}D` : '—'}
           </span>
         </div>
@@ -76,24 +76,24 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
         <span className="text-[#26394B] hidden lg:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
-          <Activity className="w-3.5 h-3.5 text-[#F59E0B]" />
-          <span className="text-[10px] uppercase text-[#8295A8]">Age:</span>
-          <span className="text-[#F3F6FA] font-medium tabular-nums">{ageLabel}</span>
+          <Activity className="w-3.5 h-3.5 text-[var(--m-watch)]" />
+          <span className="text-[10px] uppercase text-[var(--m-text-muted)]">Age:</span>
+          <span className="text-[var(--m-text-primary)] font-medium tabular-nums">{ageLabel}</span>
         </div>
 
         <span className="text-[#26394B] hidden xl:inline">|</span>
 
         <div className="flex items-center gap-1.5">
-          <Database className="w-3.5 h-3.5 text-[#35C7E8]" />
-          <span className="text-[10px] font-mono uppercase text-[#8295A8]">Source:</span>
-          <span className="text-[#B5C3D1] text-xs truncate max-w-[220px]">
+          <Database className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+          <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)]">Source:</span>
+          <span className="text-[var(--m-text-secondary)] text-xs truncate max-w-[220px]">
             {runData?.source || (modelId === 'ECMWF' ? 'Open-Meteo → ECMWF' : runData?.provider || 'Unconfigured')}
           </span>
         </div>
       </div>
 
-      <div className="hidden 2xl:flex items-center gap-1.5 text-[11px] text-[#8295A8] shrink-0">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#22C7A0]" />
+      <div className="hidden 2xl:flex items-center gap-1.5 text-[11px] text-[var(--m-text-muted)] shrink-0">
+        <ShieldCheck className="w-3.5 h-3.5 text-[var(--m-ok)]" />
         <span>Zero Synthetic Fallback</span>
       </div>
     </div>

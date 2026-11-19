@@ -41,8 +41,8 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
         return (
           <React.Fragment key={link.id}>
             {index > 0 && (
-              <span className="text-[#38536A] select-none hidden sm:inline" aria-hidden="true">
-                •
+              <span className="text-[var(--m-border-strong)] select-none hidden sm:inline" aria-hidden="true">
+                ·
               </span>
             )}
             <button
@@ -52,10 +52,10 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
                 e.preventDefault();
                 onNavigate(link.id);
               }}
-              className={`transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded focus:outline-none focus:ring-1 focus:ring-[#35C7E8] ${
+              className={`transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded m-focus-ring ${
                 isActive
-                  ? 'text-[#35C7E8] font-semibold underline underline-offset-2'
-                  : 'text-[#8295A8] hover:text-[#F3F6FA] hover:underline'
+                  ? 'text-[var(--m-accent)] font-semibold underline underline-offset-4'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:underline underline-offset-4'
               }`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -64,8 +64,8 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
           </React.Fragment>
         );
       })}
-      <span className="text-[#38536A] select-none hidden sm:inline" aria-hidden="true">
-        •
+      <span className="text-[var(--m-border-strong)] select-none hidden sm:inline" aria-hidden="true">
+        ·
       </span>
       <button
         type="button"
@@ -76,7 +76,7 @@ export const FooterNavigation: React.FC<FooterNavigationProps> = ({
             (window as any).MausamConsent.openPreferences();
           }
         }}
-        className="transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded text-[#8295A8] hover:text-[#35C7E8] hover:underline focus:outline-none focus:ring-1 focus:ring-[#35C7E8]"
+        className="transition-colors cursor-pointer text-xs min-h-[44px] sm:min-h-[32px] px-1.5 rounded text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:underline underline-offset-4 m-focus-ring"
       >
         Privacy &amp; Storage Preferences
       </button>

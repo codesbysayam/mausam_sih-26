@@ -37,7 +37,7 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
   return (
     <div
       id="reports-hero"
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B1522] via-[#0E1A2B] to-[#081019] border border-[#1E2E40] p-6 sm:p-8 lg:p-10 shadow-2xl"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--m-surface-inset)] via-[var(--m-surface-1)] to-[var(--m-surface-inset)] border border-[var(--m-border)] p-6 sm:p-8 lg:p-10 shadow-2xl"
     >
       {/* Subtle scientific coordinate grid & atmospheric contour lines SVG backdrop */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -84,11 +84,11 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
         {/* Left Side: Page Introduction */}
         <div className="max-w-2xl">
           <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/15 border border-[#38BDF8]/30 text-[#38BDF8] text-[11px] font-mono font-bold uppercase tracking-wider">
-              <BookOpen className="w-3.5 h-3.5 text-[#38BDF8]" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 text-[var(--m-accent)] text-[11px] font-mono font-bold uppercase tracking-wider">
+              <BookOpen className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               Official Meteorological Research Library
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono text-[#94A3B8]">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono text-[var(--m-text-muted)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2ECC71]" />
               Open Data Repository
             </span>
@@ -98,30 +98,30 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
             REPORTS &amp; RESEARCH
           </h1>
 
-          <p className="text-base sm:text-lg font-medium text-[#38BDF8] mt-2 leading-snug">
+          <p className="text-base sm:text-lg font-medium text-[var(--m-accent)] mt-2 leading-snug">
             Meteorological intelligence, scientific publications &amp; official bulletins
           </p>
 
-          <p className="text-xs sm:text-sm text-[#94A3B8] mt-3 leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-[var(--m-text-muted)] mt-3 leading-relaxed max-w-xl">
             Explore weather observations, climatological studies, agrometeorological bulletins, atmospheric research and operational meteorological reports curated across India&apos;s primary national institutes.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-[#CBD5E1]">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#142232] border border-[#22354A] font-mono">
+          <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-[var(--m-text-secondary)]">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 text-[#2ECC71]" />
               WMO-No. 8 Calibrated
             </span>
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#142232] border border-[#22354A] font-mono">
-              <Database className="w-3.5 h-3.5 text-[#38BDF8]" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] font-mono">
+              <Database className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               Open Research Portal
             </span>
           </div>
         </div>
 
         {/* Right Side: Publication Intelligence Stats Card */}
-        <div className="lg:w-80 shrink-0 rounded-2xl bg-[#09111A]/90 border border-[#1E2E40] p-5 shadow-xl backdrop-blur-md">
-          <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-[#1E2E40]">
-            <span className="text-[11px] font-mono font-bold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
+        <div className="lg:w-80 shrink-0 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] p-5 shadow-xl backdrop-blur-md">
+          <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-[var(--m-border)]">
+            <span className="text-[11px] font-mono font-bold text-[var(--m-accent)] uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5" />
               Publication Intelligence
             </span>
@@ -131,44 +131,44 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-xl bg-[#101A26] border border-[#1E2E40] flex flex-col justify-between">
+            <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between">
               <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">
                 {totalCount.toString().padStart(2, '0')}
               </span>
-              <span className="text-[10px] font-mono font-bold uppercase text-[#94A3B8] mt-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-[var(--m-text-muted)] mt-1">
                 Publications
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#101A26] border border-[#1E2E40] flex flex-col justify-between">
+            <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between">
               <span className="text-2xl sm:text-3xl font-black font-mono text-[#818CF8] tracking-tight">
                 {researchCount.toString().padStart(2, '0')}
               </span>
-              <span className="text-[10px] font-mono font-bold uppercase text-[#94A3B8] mt-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-[var(--m-text-muted)] mt-1">
                 Research Papers
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#101A26] border border-[#1E2E40] flex flex-col justify-between">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-[#38BDF8] tracking-tight">
+            <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between">
+              <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--m-accent)] tracking-tight">
                 {officialCount.toString().padStart(2, '0')}
               </span>
-              <span className="text-[10px] font-mono font-bold uppercase text-[#94A3B8] mt-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-[var(--m-text-muted)] mt-1">
                 Official Bulletins
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#101A26] border border-[#1E2E40] flex flex-col justify-between">
+            <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between">
               <span className="text-2xl sm:text-3xl font-black font-mono text-[#2ECC71] tracking-tight">
                 {technicalStudiesCount.toString().padStart(2, '0')}
               </span>
-              <span className="text-[10px] font-mono font-bold uppercase text-[#94A3B8] mt-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-[var(--m-text-muted)] mt-1">
                 Technical Studies
               </span>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1E2E40] flex items-center justify-between text-[11px] font-mono text-[#94A3B8]">
+          <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)]">
             <span>LATEST UPDATE:</span>
             <span className="text-white font-bold">31 AUG 2026</span>
           </div>

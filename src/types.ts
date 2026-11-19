@@ -1,3 +1,5 @@
+import type { DataProvenance } from './types/dataProvenance';
+
 export type NavigationTab = 
   | 'today'
   | 'radar'
@@ -196,6 +198,10 @@ export interface CurrentWeather {
   lastUpdated: string;
   lastUpdatedTimestamp?: number;
   source: string;
+  observedAt?: string | null;
+  validAt?: string | null;
+  fetchedAt?: string | null;
+  provenance?: DataProvenance;
   observationStatus?: 'LOADING' | 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE';
   observationSource?: string;
   observationTimeFormatted?: string;
@@ -309,7 +315,7 @@ export interface HourlyForecastItem {
   time: string;
   hourNumber: number;
   temp: number;
-  feelsLike?: number;
+  feelsLike?: number | null;
   condition: string;
   rainCondition?: string;
   icon: string;

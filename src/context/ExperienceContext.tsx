@@ -10,6 +10,7 @@ import type { MainNavTab } from '../components/layout/MainNavigation';
 import type { FooterView } from '../components/layout/FooterNavigation';
 
 export type ExperienceMode = 'explore' | 'analyze' | 'classic';
+export type SurfaceTheme = 'paper' | 'dark';
 
 export type SpatialLayerId =
   | 'conditions'
@@ -293,6 +294,8 @@ export type AnalyzeOrFooterView = MainNavTab | FooterView | 'not-found';
 interface ExperienceContextValue {
   mode: ExperienceMode;
   setMode: (mode: ExperienceMode) => void;
+  surfaceTheme: SurfaceTheme;
+  setSurfaceTheme: (theme: SurfaceTheme) => void;
   activeLayer: SpatialLayerId;
   setActiveLayer: (layer: SpatialLayerId) => void;
   activeLayerDef: SpatialLayerDefinition;
@@ -326,6 +329,7 @@ interface ExperienceContextValue {
 }
 
 const GUIDE_DISMISSED_KEY = 'mausam_bruno_guide_dismissed_v1';
+const SURFACE_THEME_KEY = 'mausam_surface_theme_v2';
 
 const ExperienceContext = createContext<ExperienceContextValue | undefined>(undefined);
 
@@ -334,11 +338,23 @@ function detectInitialReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function readInitialSurfaceTheme(): SurfaceTheme {
+  if (typeof window === 'undefined') return 'paper';
+  try {
+    const saved = window.localStorage.getItem(SURFACE_THEME_KEY);
+    if (saved === 'dark' || saved === 'paper') return saved;
+  } catch {
+    // Ignore storage read errors
+  }
+  return 'paper';
+}
+
 export const ExperienceProvider: React.FC<{
   initialMode?: ExperienceMode;
   children: React.ReactNode;
-}> = ({ initialMode = 'explore', children }) => {
+}> = ({ initialMode = 'analyze', children }) => {
   const [mode, setModeState] = useState<ExperienceMode>(initialMode);
+  const [surfaceTheme, setSurfaceThemeState] = useState<SurfaceTheme>(readInitialSurfaceTheme);
   const [activeLayer, setActiveLayer] = useState<SpatialLayerId>('wind');
   const [rendererMode, setRendererMode] = useState<RendererMode>('3d');
   const [webglUnavailableReason, setWebglUnavailableReason] = useState<string | null>(null);
@@ -348,6 +364,15 @@ export const ExperienceProvider: React.FC<{
   const [isTimelinePlaying, setIsTimelinePlaying] = useState<boolean>(false);
   const [inspectedFeature, setInspectedFeature] = useState<InspectedSpatialFeature | null>(null);
   const [isAlertDrawerOpen, setIsAlertDrawerOpen] = useState<boolean>(false);
+
+  const setSurfaceTheme = useCallback((nextTheme: SurfaceTheme) => {
+    setSurfaceThemeState(nextTheme);
+    try {
+      window.localStorage.setItem(SURFACE_THEME_KEY, nextTheme);
+    } catch {
+      // Ignore storage write errors
+    }
+  }, []);
 
   const [showControlsGuide, setShowControlsGuide] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -456,6 +481,8 @@ export const ExperienceProvider: React.FC<{
     () => ({
       mode,
       setMode,
+      surfaceTheme,
+      setSurfaceTheme,
       activeLayer,
       setActiveLayer,
       activeLayerDef,
@@ -490,6 +517,8 @@ export const ExperienceProvider: React.FC<{
     [
       mode,
       setMode,
+      surfaceTheme,
+      setSurfaceTheme,
       activeLayer,
       activeLayerDef,
       rendererMode,

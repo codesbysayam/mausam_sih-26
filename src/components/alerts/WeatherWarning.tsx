@@ -36,7 +36,7 @@ export const WeatherWarning: React.FC<WeatherWarningProps> = ({
       />
 
       {alerts.length === 0 ? (
-        <div className="p-4 bg-[#1E2733] border border-[#334155] rounded flex items-center gap-3">
+        <div className="p-4 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded flex items-center gap-3">
           <span className="material-symbols-outlined text-[#2ECC71] text-[24px]">
             verified
           </span>
@@ -44,7 +44,7 @@ export const WeatherWarning: React.FC<WeatherWarningProps> = ({
             <h4 className="text-white font-bold text-sm">
               GREEN WARNING CODE — NO SEVERE WEATHER WARNING
             </h4>
-            <p className="text-xs text-[#8A94A6] mt-0.5">
+            <p className="text-xs text-[var(--m-text-secondary)] mt-0.5">
               Atmospheric conditions remain stable across the designated district. Routine diurnal variations observed.
             </p>
           </div>
@@ -54,15 +54,15 @@ export const WeatherWarning: React.FC<WeatherWarningProps> = ({
           {alerts.map((alert, idx) => (
             <div
               key={alert.id || idx}
-              className={`p-4 bg-[#1E2733] border rounded ${
+              className={`p-4 bg-[var(--m-surface-2)] border rounded ${
                 alert.severity === 'Severe' || alert.severity === 'Extreme'
                   ? 'border-[#E74C3C] border-l-4'
                   : alert.severity === 'Moderate'
                   ? 'border-[#FF8C42] border-l-4'
-                  : 'border-[#334155]'
+                  : 'border-[var(--m-border-strong)]'
               }`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#334155] gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[var(--m-border-strong)] gap-2">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-white text-sm">
                     {alert.title}
@@ -70,16 +70,16 @@ export const WeatherWarning: React.FC<WeatherWarningProps> = ({
                   {getSeverityBadge(alert.severity)}
                 </div>
 
-                <div className="text-xs text-[#8A94A6]">
-                  Issued by: <strong className="text-[#D7DEE8]">IMD Severe Weather Centre</strong>
+                <div className="text-xs text-[var(--m-text-secondary)]">
+                  Issued by: <strong className="text-[var(--m-text-primary)]">IMD Severe Weather Centre</strong>
                 </div>
               </div>
 
-              <div className="py-2.5 text-xs text-[#D7DEE8] leading-relaxed">
+              <div className="py-2.5 text-xs text-[var(--m-text-primary)] leading-relaxed">
                 {alert.description}
               </div>
 
-              <div className="pt-2 border-t border-[#334155] flex flex-wrap items-center justify-between text-xs text-[#8A94A6] gap-2">
+              <div className="pt-2 border-t border-[var(--m-border-strong)] flex flex-wrap items-center justify-between text-xs text-[var(--m-text-secondary)] gap-2">
                 <div>
                   Affected Area: <strong className="text-white">{alert.affectedArea || regionName}</strong>
                 </div>

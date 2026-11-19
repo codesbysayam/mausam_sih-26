@@ -71,15 +71,15 @@ export class ErrorBoundary extends Component<Props, State> {
       // Sub-component fallback (for widgets like radar, maps, or charts)
       if (this.props.fallbackTitle) {
         return (
-          <div className="w-full p-4 rounded-xl bg-[#0F1722] border border-[#334155] my-3">
+          <div className="w-full p-4 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] my-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-[#F59E0B]">
+              <div className="flex items-center gap-2.5 text-[var(--m-watch)]">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <div>
-                  <h4 className="text-xs font-bold text-[#F1F5F9]">
+                  <h4 className="text-xs font-bold text-[var(--m-text-primary)]">
                     {this.props.fallbackTitle} Temporarily Unavailable
                   </h4>
-                  <p className="text-[11px] text-[#94A3B8]">
+                  <p className="text-[11px] text-[var(--m-text-muted)]">
                     Fallback atmospheric telemetry is active. Live widget will recover on next cycle.
                   </p>
                 </div>
@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="px-3 py-1.5 rounded-lg bg-[#1E293B] hover:bg-[#334155] text-xs font-medium text-[#38BDF8] flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-xs font-medium text-[var(--m-accent)] flex items-center gap-1.5 transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Retry</span>
@@ -103,23 +103,23 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Root application fallback (if an unhandled crash threatens the entire page)
       return (
-        <div className="min-h-screen bg-[#071018] text-[#F8FAFC] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#0F1722] border border-[#1E2E40] rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col gap-5">
+        <div className="min-h-screen bg-[var(--m-surface-inset)] text-[var(--m-text-primary)] flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col gap-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#DC2626]/20 border border-[#DC2626]/40 flex items-center justify-center text-[#EF4444]">
+              <div className="w-10 h-10 rounded-xl bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/40 flex items-center justify-center text-[var(--m-danger)]">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-white tracking-wide">
                   {isModuleLoadError ? 'Application Update Available' : 'MAUSAM Atmospheric Shell'}
                 </h1>
-                <p className="text-xs text-[#94A3B8]">
+                <p className="text-xs text-[var(--m-text-muted)]">
                   {isModuleLoadError ? 'New module release detected' : 'Autonomous Fail-Safe Recovery Active'}
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-[#CBD5E1] leading-relaxed">
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
               {isModuleLoadError
                 ? 'A fresh meteorological build was deployed. Reloading will sync your browser with the latest live components.'
                 : 'The interface encountered an unexpected rendering condition on this device. Your weather monitoring data and settings are preserved.'}
@@ -144,7 +144,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <button
                   type="button"
                   onClick={this.handleFullReset}
-                  className="py-2.5 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] text-[#94A3B8] hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="py-2.5 px-4 rounded-xl bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Reset Cache</span>
@@ -153,11 +153,11 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {this.state.error && (
-              <div className="border-t border-[#1E2E40] pt-3">
+              <div className="border-t border-[var(--m-border)] pt-3">
                 <button
                   type="button"
                   onClick={() => this.setState((prev) => ({ showDetails: !prev.showDetails }))}
-                  className="flex items-center justify-between w-full text-[11px] text-[#64748B] hover:text-[#94A3B8] py-1"
+                  className="flex items-center justify-between w-full text-[11px] text-[var(--m-text-muted)] hover:text-[var(--m-text-muted)] py-1"
                 >
                   <span>Diagnostic Information</span>
                   {this.state.showDetails ? (
@@ -167,7 +167,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   )}
                 </button>
                 {this.state.showDetails && (
-                  <pre className="mt-2 p-3 rounded-lg bg-[#070C14] text-[10px] font-mono text-[#F87171] overflow-x-auto whitespace-pre-wrap max-h-36">
+                  <pre className="mt-2 p-3 rounded-lg bg-[var(--m-surface-inset)] text-[10px] font-mono text-[var(--m-danger)] overflow-x-auto whitespace-pre-wrap max-h-36">
                     {this.state.error.toString()}
                   </pre>
                 )}

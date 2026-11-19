@@ -90,7 +90,7 @@ export const ModelMetrics: React.FC<ModelMetricsProps> = ({
         return (
           <div
             key={i}
-            className={`p-3.5 rounded-xl bg-[#09111C] border ${c.border} flex flex-col justify-between gap-1 shadow-md`}
+            className={`p-3.5 rounded-xl bg-[var(--m-surface-inset)] border ${c.border} flex flex-col justify-between gap-1 shadow-md`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-mono text-slate-400 font-medium">

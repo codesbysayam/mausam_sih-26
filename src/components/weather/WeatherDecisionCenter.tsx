@@ -55,29 +55,29 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
   const getIconForCategory = (key: string) => {
     switch (key) {
       case 'outdoor_activity':
-        return <Activity className="w-4 h-4 text-[#35C7E8]" />;
+        return <Activity className="w-4 h-4 text-[var(--m-accent)]" />;
       case 'running_walking':
-        return <Footprints className="w-4 h-4 text-[#22C7A0]" />;
+        return <Footprints className="w-4 h-4 text-[var(--m-ok)]" />;
       case 'travel_commuting':
-        return <Compass className="w-4 h-4 text-[#F59E0B]" />;
+        return <Compass className="w-4 h-4 text-[var(--m-watch)]" />;
       case 'driving_conditions':
-        return <Car className="w-4 h-4 text-[#7DD3FC]" />;
+        return <Car className="w-4 h-4 text-[var(--m-accent)]" />;
       case 'rain_protection':
         return <Umbrella className="w-4 h-4 text-[#818CF8]" />;
       case 'heat_exposure':
-        return <Flame className="w-4 h-4 text-[#FCA5A5]" />;
+        return <Flame className="w-4 h-4 text-[var(--m-danger)]" />;
       case 'uv_exposure':
-        return <Sun className="w-4 h-4 text-[#FCD34D]" />;
+        return <Sun className="w-4 h-4 text-[var(--m-watch)]" />;
       case 'thunderstorm_safety':
-        return <CloudLightning className="w-4 h-4 text-[#EF4444]" />;
+        return <CloudLightning className="w-4 h-4 text-[var(--m-danger)]" />;
       case 'visibility_risk':
         return <Eye className="w-4 h-4 text-[#A78BFA]" />;
       case 'flood_waterlogging':
-        return <Shield className="w-4 h-4 text-[#35C7E8]" />;
+        return <Shield className="w-4 h-4 text-[var(--m-accent)]" />;
       case 'air_quality_exposure':
-        return <HeartPulse className="w-4 h-4 text-[#6EE7B7]" />;
+        return <HeartPulse className="w-4 h-4 text-[var(--m-ok)]" />;
       default:
-        return <Info className="w-4 h-4 text-[#8295A8]" />;
+        return <Info className="w-4 h-4 text-[var(--m-text-muted)]" />;
     }
   };
 
@@ -88,14 +88,14 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
         subtitle="Guidance computed strictly from available surface & forecast parameters"
         icon={<Compass className="w-4 h-4" />}
         action={
-          <div className="flex items-center gap-1 bg-[#08131F] p-1 rounded-lg border border-[#26394B]">
+          <div className="flex items-center gap-1 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)]">
             <button
               type="button"
               onClick={() => setActiveTab('decision')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'decision'
-                  ? 'bg-[#101F2E] text-[#F3F6FA] border border-[#38536A]'
-                  : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border border-[var(--m-border-strong)]'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               Action Matrix
@@ -105,8 +105,8 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
               onClick={() => setActiveTab('travel')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'travel'
-                  ? 'bg-[#101F2E] text-[#F3F6FA] border border-[#38536A]'
-                  : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border border-[var(--m-border-strong)]'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               Travel &amp; Roads
@@ -116,8 +116,8 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
               onClick={() => setActiveTab('health')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'health'
-                  ? 'bg-[#101F2E] text-[#F3F6FA] border border-[#38536A]'
-                  : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border border-[var(--m-border-strong)]'
+                  : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
               Health &amp; Exposure
@@ -132,12 +132,12 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
             <div
               key={item.key}
               id={`decision-card-${item.key}`}
-              className="m-panel-inset p-3.5 flex flex-col justify-between gap-2.5 hover:border-[#38536A] transition-colors"
+              className="m-panel-inset p-3.5 flex flex-col justify-between gap-2.5 hover:border-[var(--m-border-strong)] transition-colors"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   {getIconForCategory(item.key)}
-                  <span className="text-xs font-bold text-[#F3F6FA] truncate">{item.label}</span>
+                  <span className="text-xs font-bold text-[var(--m-text-primary)] truncate">{item.label}</span>
                 </div>
                 <span
                   className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md uppercase border shrink-0 ${item.badgeColor}`}
@@ -146,11 +146,11 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
                 </span>
               </div>
 
-              <p className="text-xs text-[#B5C3D1] leading-relaxed">{item.recommendation}</p>
+              <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">{item.recommendation}</p>
 
-              <div className="pt-2 border-t border-[#26394B]/70 flex items-center justify-between text-[11px] text-[#8295A8]">
+              <div className="pt-2 border-t border-[var(--m-border)]/70 flex items-center justify-between text-[11px] text-[var(--m-text-muted)]">
                 <span className="truncate font-mono tabular-nums">
-                  Basis: <strong className="text-[#F3F6FA] font-sans">{item.basisValue}</strong>
+                  Basis: <strong className="text-[var(--m-text-primary)] font-sans">{item.basisValue}</strong>
                 </span>
               </div>
             </div>
@@ -160,14 +160,14 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
 
       {activeTab === 'travel' && (
         <div className="m-panel-inset p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#26394B] pb-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--m-border)] pb-2.5">
             <div className="flex items-center gap-2">
-              <Car className="w-4 h-4 text-[#35C7E8]" />
-              <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">
+              <Car className="w-4 h-4 text-[var(--m-accent)]" />
+              <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
                 Highway &amp; Commuter Conditions
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#6EE7B7] bg-[#22C7A0]/10 px-2.5 py-1 rounded-md border border-[#22C7A0]/30 font-mono">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--m-ok)] bg-[var(--m-ok-soft)] px-2.5 py-1 rounded-md border border-[var(--m-ok)]/30 font-mono">
               <Clock className="w-3.5 h-3.5" />
               <span>
                 Window: <strong className="font-sans">{travel.bestTravelWindow}</strong>
@@ -184,17 +184,17 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
               { label: 'Waterlogging', val: travel.floodRisk },
               { label: 'Convection', val: travel.thunderstormRisk },
             ].map((cell) => (
-              <div key={cell.label} className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
-                <div className="text-[10px] text-[#8295A8] font-semibold uppercase">{cell.label}</div>
-                <div className="text-xs font-bold text-[#F3F6FA] mt-0.5">{cell.val}</div>
+              <div key={cell.label} className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
+                <div className="text-[10px] text-[var(--m-text-muted)] font-semibold uppercase">{cell.label}</div>
+                <div className="text-xs font-bold text-[var(--m-text-primary)] mt-0.5">{cell.val}</div>
               </div>
             ))}
           </div>
 
-          <div className="p-3 bg-[#0B1927] rounded-lg border border-[#26394B] text-xs text-[#B5C3D1] flex items-start gap-2.5">
-            <Shield className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+          <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)] text-xs text-[var(--m-text-secondary)] flex items-start gap-2.5">
+            <Shield className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
             <div>
-              <strong className="text-[#F3F6FA]">Transit Directive: </strong>
+              <strong className="text-[var(--m-text-primary)]">Transit Directive: </strong>
               {travel.advisoryNote}
             </div>
           </div>
@@ -203,70 +203,70 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
 
       {activeTab === 'health' && (
         <div className="m-panel-inset p-4 space-y-3">
-          <div className="flex items-center gap-2 border-b border-[#26394B] pb-2.5">
-            <HeartPulse className="w-4 h-4 text-[#EF4444]" />
-            <span className="text-xs font-bold text-[#F3F6FA] uppercase tracking-wider">
+          <div className="flex items-center gap-2 border-b border-[var(--m-border)] pb-2.5">
+            <HeartPulse className="w-4 h-4 text-[var(--m-danger)]" />
+            <span className="text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
               Health &amp; Physiological Stress Index
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-[#0B1927] p-3 rounded-lg border border-[#26394B] space-y-1">
-              <div className="text-[10px] text-[#8295A8] font-bold uppercase">Heat Index</div>
-              <div className="text-base font-bold font-mono tabular-nums text-[#FCA5A5]">
+            <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[var(--m-border)] space-y-1">
+              <div className="text-[10px] text-[var(--m-text-muted)] font-bold uppercase">Heat Index</div>
+              <div className="text-base font-bold font-mono tabular-nums text-[var(--m-danger)]">
                 {health.heatIndexC !== null ? `${health.heatIndexC}°C` : '—'}
-                <span className="text-xs font-sans font-normal text-[#8295A8] ml-1.5">
+                <span className="text-xs font-sans font-normal text-[var(--m-text-muted)] ml-1.5">
                   ({health.heatStressCategory})
                 </span>
               </div>
-              <p className="text-[11px] text-[#8295A8] leading-tight">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-tight">
                 Perceived body load combining ambient temperature and relative humidity.
               </p>
             </div>
 
-            <div className="bg-[#0B1927] p-3 rounded-lg border border-[#26394B] space-y-1">
-              <div className="text-[10px] text-[#8295A8] font-bold uppercase">Humidex Discomfort</div>
-              <div className="text-base font-bold font-mono tabular-nums text-[#FCD34D]">
+            <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[var(--m-border)] space-y-1">
+              <div className="text-[10px] text-[var(--m-text-muted)] font-bold uppercase">Humidex Discomfort</div>
+              <div className="text-base font-bold font-mono tabular-nums text-[var(--m-watch)]">
                 {health.humidexValue !== null ? health.humidexValue : '—'}
-                <span className="text-xs font-sans font-normal text-[#8295A8] ml-1.5">
+                <span className="text-xs font-sans font-normal text-[var(--m-text-muted)] ml-1.5">
                   ({health.humidityDiscomfort})
                 </span>
               </div>
-              <p className="text-[11px] text-[#8295A8] leading-tight">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-tight">
                 Evaluates moisture load hindering evaporative cooling.
               </p>
             </div>
 
-            <div className="bg-[#0B1927] p-3 rounded-lg border border-[#26394B] space-y-1">
-              <div className="text-[10px] text-[#8295A8] font-bold uppercase">UV Solar Radiation</div>
+            <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[var(--m-border)] space-y-1">
+              <div className="text-[10px] text-[var(--m-text-muted)] font-bold uppercase">UV Solar Radiation</div>
               <div className="text-base font-bold font-mono tabular-nums text-[#C084FC]">
                 {rawUv !== null ? rawUv.toFixed(1) : '—'}
-                <span className="text-xs font-sans font-normal text-[#8295A8] ml-1.5">
+                <span className="text-xs font-sans font-normal text-[var(--m-text-muted)] ml-1.5">
                   ({health.uvRiskLevel})
                 </span>
               </div>
-              <p className="text-[11px] text-[#8295A8] leading-tight">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-tight">
                 Solar erythemal exposure index around midday hours.
               </p>
             </div>
 
-            <div className="bg-[#0B1927] p-3 rounded-lg border border-[#26394B] space-y-1">
-              <div className="text-[10px] text-[#8295A8] font-bold uppercase">Air Quality Exposure</div>
-              <div className="text-base font-bold font-mono tabular-nums text-[#6EE7B7]">
+            <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[var(--m-border)] space-y-1">
+              <div className="text-[10px] text-[var(--m-text-muted)] font-bold uppercase">Air Quality Exposure</div>
+              <div className="text-base font-bold font-mono tabular-nums text-[var(--m-ok)]">
                 {rawAqi !== null ? `AQI ${rawAqi}` : 'AQI —'}
-                <span className="text-xs font-sans font-normal text-[#8295A8] ml-1.5">
+                <span className="text-xs font-sans font-normal text-[var(--m-text-muted)] ml-1.5">
                   ({health.airQualityExposure})
                 </span>
               </div>
-              <p className="text-[11px] text-[#8295A8] leading-tight">
+              <p className="text-[11px] text-[var(--m-text-muted)] leading-tight">
                 {rawPm25 !== null ? `Fine particulate PM2.5 at ${rawPm25} µg/m³.` : 'PM2.5 telemetry unavailable.'}
               </p>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#8295A8] bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[11px] text-[var(--m-text-muted)] bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)] flex flex-wrap items-center justify-between gap-2">
             <span>Guidance aligned with WHO and IMD physiological exposure thresholds.</span>
-            <span className="text-[#35C7E8] font-mono shrink-0">Source: Open-Meteo &amp; CPCB Feeds</span>
+            <span className="text-[var(--m-accent)] font-mono shrink-0">Source: Open-Meteo &amp; CPCB Feeds</span>
           </div>
         </div>
       )}

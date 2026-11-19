@@ -114,7 +114,7 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
               <button
                 type="button"
                 onClick={onNavigateToAqi}
-                className="text-xs text-[#35C7E8] hover:text-[#7DD3FC] font-semibold flex items-center gap-1 cursor-pointer m-focus-ring"
+                className="text-xs text-[var(--m-accent)] hover:text-[var(--m-accent)] font-semibold flex items-center gap-1 cursor-pointer m-focus-ring"
               >
                 <span>Full AQI Hub</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -129,7 +129,7 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
         {/* Left 5 Cols: Main AQI Summary */}
         <div className="lg:col-span-5 m-panel-inset p-4 flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#B5C3D1]">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--m-text-secondary)]">
               National Air Quality Index
             </span>
             <span
@@ -160,27 +160,27 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
               {safeAqi !== null ? safeAqi : '—'}
             </span>
             <div className="min-w-0">
-              <span className="text-sm sm:text-base font-bold text-[#F3F6FA] block">
+              <span className="text-sm sm:text-base font-bold text-[var(--m-text-primary)] block">
                 {aqiInfo ? aqiInfo.headline : 'AQI Telemetry Unavailable'}
               </span>
-              <span className="text-xs text-[#35C7E8] font-medium">
+              <span className="text-xs text-[var(--m-accent)] font-medium">
                 Dominant Pollutant: {dominantLabel}
               </span>
             </div>
           </div>
 
-          <div className="text-xs text-[#B5C3D1] space-y-1 bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B]">
+          <div className="text-xs text-[var(--m-text-secondary)] space-y-1 bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <div className="flex justify-between text-[11px] gap-2">
-              <span className="text-[#8295A8]">Sector:</span>
-              <span className="text-[#F3F6FA] font-medium truncate">{stationName}</span>
+              <span className="text-[var(--m-text-muted)]">Sector:</span>
+              <span className="text-[var(--m-text-primary)] font-medium truncate">{stationName}</span>
             </div>
             <div className="flex justify-between text-[11px] gap-2">
-              <span className="text-[#8295A8]">Standard:</span>
-              <span className="text-[#F3F6FA]">CPCB NAQI</span>
+              <span className="text-[var(--m-text-muted)]">Standard:</span>
+              <span className="text-[var(--m-text-primary)]">CPCB NAQI</span>
             </div>
           </div>
 
-          <p className="text-xs text-[#B5C3D1] leading-relaxed">
+          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
             {aqiInfo
               ? aqiInfo.healthImpact
               : 'Real-time particulate station feed is currently awaiting synchronization for this location.'}
@@ -197,19 +197,19 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
                 key={p.label}
                 className="m-panel-inset p-3 flex flex-col justify-between gap-2"
               >
-                <div className="flex justify-between items-center text-[10px] font-mono font-semibold text-[#8295A8] uppercase">
+                <div className="flex justify-between items-center text-[10px] font-mono font-semibold text-[var(--m-text-muted)] uppercase">
                   <span>{p.label}</span>
-                  <span className="text-[#B5C3D1]">{p.limitLabel}</span>
+                  <span className="text-[var(--m-text-secondary)]">{p.limitLabel}</span>
                 </div>
                 <div className="font-mono tabular-nums">
-                  <span className="text-lg font-bold text-[#F3F6FA]">
+                  <span className="text-lg font-bold text-[var(--m-text-primary)]">
                     {p.value !== null ? p.value : '—'}
                   </span>{' '}
                   {p.value !== null && (
-                    <span className="text-[10px] font-sans text-[#8295A8]">{p.unit}</span>
+                    <span className="text-[10px] font-sans text-[var(--m-text-muted)]">{p.unit}</span>
                   )}
                 </div>
-                <div className="w-full bg-[#101F2E] h-1 rounded overflow-hidden">
+                <div className="w-full bg-[var(--m-surface-2)] h-1 rounded overflow-hidden">
                   <div
                     className="h-full rounded transition-all"
                     style={{
@@ -228,71 +228,71 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="m-panel-inset p-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#22C7A0] shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-ok)] shrink-0">
               <Flower2 className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-mono uppercase text-[#8295A8] block">Pollen Index</span>
-              <span className="text-xs font-semibold text-[#F3F6FA]">
+              <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">Pollen Index</span>
+              <span className="text-xs font-semibold text-[var(--m-text-primary)]">
                 {pollen !== null ? `${pollen} grains/m³` : 'Sensor unavailable'}
               </span>
             </div>
           </div>
-          <span className="text-[10px] text-[#8295A8] font-mono shrink-0">
+          <span className="text-[10px] text-[var(--m-text-muted)] font-mono shrink-0">
             {pollen !== null ? 'Observed' : 'No Station'}
           </span>
         </div>
 
         <div className="m-panel-inset p-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#F59E0B] shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-watch)] shrink-0">
               <Sun className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-mono uppercase text-[#8295A8] block">Solar UV Index</span>
-              <span className="text-xs font-semibold text-[#F3F6FA] tabular-nums">
+              <span className="text-[10px] font-mono uppercase text-[var(--m-text-muted)] block">Solar UV Index</span>
+              <span className="text-xs font-semibold text-[var(--m-text-primary)] tabular-nums">
                 {uv !== null ? `UV ${uv.toFixed(1)} · ${uvRisk}` : 'Unavailable'}
               </span>
             </div>
           </div>
-          <span className="text-[10px] text-[#F59E0B] font-mono shrink-0">
+          <span className="text-[10px] text-[var(--m-watch)] font-mono shrink-0">
             Irradiance
           </span>
         </div>
       </div>
 
       {/* Reference Cities Snapshot (Explicitly Labeled) */}
-      <div className="pt-3 border-t border-[#26394B]">
+      <div className="pt-3 border-t border-[var(--m-border)]">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-          <h3 className="text-[11px] font-mono font-semibold text-[#B5C3D1] uppercase tracking-wider">
+          <h3 className="text-[11px] font-mono font-semibold text-[var(--m-text-secondary)] uppercase tracking-wider">
             National Capital Reference Summary (Static Snapshot)
           </h3>
           <SourceStatus status="REFERENCE" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="m-panel-inset p-3">
-            <span className="text-[10px] font-mono font-semibold text-[#FCA5A5] uppercase tracking-wider block mb-2">
+            <span className="text-[10px] font-mono font-semibold text-[var(--m-danger)] uppercase tracking-wider block mb-2">
               Highest Reference AQI
             </span>
             <div className="space-y-1.5 text-xs font-mono tabular-nums">
               {mostPolluted.map((c) => (
-                <div key={c.id} className="flex justify-between items-center py-0.5 border-b border-[#26394B]/60 last:border-b-0">
-                  <span className="text-[#B5C3D1] font-sans">{c.city || c.name}</span>
-                  <span className="text-[#EF4444] font-semibold">{c.aqi} AQI</span>
+                <div key={c.id} className="flex justify-between items-center py-0.5 border-b border-[var(--m-border)]/60 last:border-b-0">
+                  <span className="text-[var(--m-text-secondary)] font-sans">{c.city || c.name}</span>
+                  <span className="text-[var(--m-danger)] font-semibold">{c.aqi} AQI</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="m-panel-inset p-3">
-            <span className="text-[10px] font-mono font-semibold text-[#6EE7B7] uppercase tracking-wider block mb-2">
+            <span className="text-[10px] font-mono font-semibold text-[var(--m-ok)] uppercase tracking-wider block mb-2">
               Cleanest Reference AQI
             </span>
             <div className="space-y-1.5 text-xs font-mono tabular-nums">
               {cleanest.map((c) => (
-                <div key={c.id} className="flex justify-between items-center py-0.5 border-b border-[#26394B]/60 last:border-b-0">
-                  <span className="text-[#B5C3D1] font-sans">{c.city || c.name}</span>
-                  <span className="text-[#22C7A0] font-semibold">{c.aqi} AQI</span>
+                <div key={c.id} className="flex justify-between items-center py-0.5 border-b border-[var(--m-border)]/60 last:border-b-0">
+                  <span className="text-[var(--m-text-secondary)] font-sans">{c.city || c.name}</span>
+                  <span className="text-[var(--m-ok)] font-semibold">{c.aqi} AQI</span>
                 </div>
               ))}
             </div>

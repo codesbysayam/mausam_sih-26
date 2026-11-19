@@ -76,12 +76,12 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
       : 'LOW PROBABILITY';
   const rainRiskColor =
     rainProbability === null
-      ? 'text-[#8295A8]'
+      ? 'text-[var(--m-text-muted)]'
       : rainProbability > 60
-      ? 'text-[#35C7E8]'
+      ? 'text-[var(--m-accent)]'
       : rainProbability > 30
-      ? 'text-[#7DD3FC]'
-      : 'text-[#8295A8]';
+      ? 'text-[var(--m-accent)]'
+      : 'text-[var(--m-text-muted)]';
 
   const humidity = typeof current?.humidity === 'number' ? current.humidity : null;
   const dewPoint =
@@ -107,7 +107,7 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
   const sprayStatus =
     isSpraySafe === null ? 'UNAVAILABLE' : isSpraySafe ? 'SAFE FOR SPRAYING' : 'HIGH DRIFT HAZARD';
   const sprayColor =
-    isSpraySafe === null ? 'text-[#8295A8]' : isSpraySafe ? 'text-[#22C7A0]' : 'text-[#EF4444]';
+    isSpraySafe === null ? 'text-[var(--m-text-muted)]' : isSpraySafe ? 'text-[var(--m-ok)]' : 'text-[var(--m-danger)]';
 
   const explicitET0 = typeof current?.evapotranspiration === 'number' ? current.evapotranspiration : null;
   const baseET0 =
@@ -146,12 +146,12 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
       : 'Standard irrigation cycle';
   const soilColor =
     soilStatus === 'UNAVAILABLE'
-      ? 'text-[#8295A8]'
+      ? 'text-[var(--m-text-muted)]'
       : isSaturated
-      ? 'text-[#35C7E8]'
+      ? 'text-[var(--m-accent)]'
       : isDry
-      ? 'text-[#F59E0B]'
-      : 'text-[#22C7A0]';
+      ? 'text-[var(--m-watch)]'
+      : 'text-[var(--m-ok)]';
 
   return (
     <DataPanel id="agromet-farm-status-overview" className="space-y-4">
@@ -179,28 +179,28 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
           {/* CARD 1: Temperature */}
           <div id="metric-temperature-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Canopy Temp &amp; Heat Load
               </span>
-              <Thermometer className="w-4 h-4 text-[#F59E0B]" />
+              <Thermometer className="w-4 h-4 text-[var(--m-watch)]" />
             </div>
 
             <div>
               <div className="flex items-baseline gap-2.5 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA]">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
                   {currentTemp.toFixed(1)}°C
                 </span>
-                <span className="text-xs text-[#35C7E8] font-semibold">{tempTrend}</span>
+                <span className="text-xs text-[var(--m-accent)] font-semibold">{tempTrend}</span>
               </div>
-              <div className="text-xs font-mono tabular-nums text-[#8295A8] mt-1">
-                Max: <strong className="text-[#F3F6FA]">{highTemp !== null ? `${Math.round(highTemp)}°C` : '—'}</strong> · Min:{' '}
-                <strong className="text-[#F3F6FA]">{lowTemp !== null ? `${Math.round(lowTemp)}°C` : '—'}</strong>
+              <div className="text-xs font-mono tabular-nums text-[var(--m-text-muted)] mt-1">
+                Max: <strong className="text-[var(--m-text-primary)]">{highTemp !== null ? `${Math.round(highTemp)}°C` : '—'}</strong> · Min:{' '}
+                <strong className="text-[var(--m-text-primary)]">{lowTemp !== null ? `${Math.round(lowTemp)}°C` : '—'}</strong>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>Thermal Regime</span>
-              <span className={currentTemp >= 38 ? 'text-[#EF4444] font-semibold' : 'text-[#22C7A0] font-semibold'}>
+              <span className={currentTemp >= 38 ? 'text-[var(--m-danger)] font-semibold' : 'text-[var(--m-ok)] font-semibold'}>
                 {currentTemp >= 38 ? 'Heat Stress' : 'Safe Thermal Zone'}
               </span>
             </div>
@@ -209,28 +209,28 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
           {/* CARD 2: Rainfall */}
           <div id="metric-rainfall-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Precipitation &amp; Recharge
               </span>
-              <CloudRain className="w-4 h-4 text-[#35C7E8]" />
+              <CloudRain className="w-4 h-4 text-[var(--m-accent)]" />
             </div>
 
             <div>
               <div className="flex items-baseline gap-2 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA]">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
                   {rain24h !== null ? `${rain24h} mm` : '—'}
                 </span>
-                <span className="text-xs text-[#35C7E8]">Observed</span>
+                <span className="text-xs text-[var(--m-accent)]">Observed</span>
               </div>
-              <div className="text-xs font-mono tabular-nums text-[#8295A8] mt-1">
+              <div className="text-xs font-mono tabular-nums text-[var(--m-text-muted)] mt-1">
                 48h Outlook:{' '}
-                <strong className="text-[#F3F6FA]">{rainNext48h !== null ? `${rainNext48h} mm` : '—'}</strong>
+                <strong className="text-[var(--m-text-primary)]">{rainNext48h !== null ? `${rainNext48h} mm` : '—'}</strong>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono tabular-nums text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono tabular-nums text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>
-                Prob: <strong className="text-[#F3F6FA]">{rainProbability !== null ? `${Math.round(rainProbability)}%` : '—'}</strong>
+                Prob: <strong className="text-[var(--m-text-primary)]">{rainProbability !== null ? `${Math.round(rainProbability)}%` : '—'}</strong>
               </span>
               <span className={`font-semibold ${rainRiskColor}`}>{rainRiskStatus}</span>
             </div>
@@ -239,35 +239,35 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
           {/* CARD 3: Humidity & Dew */}
           <div id="metric-humidity-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Humidity &amp; Dew Point
               </span>
-              <Gauge className="w-4 h-4 text-[#35C7E8]" />
+              <Gauge className="w-4 h-4 text-[var(--m-accent)]" />
             </div>
 
             <div>
               <div className="flex items-baseline gap-2.5 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA]">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
                   {humidity !== null ? `${Math.round(humidity)}%` : '—'}
                 </span>
-                <span className="text-xs text-[#8295A8]">
-                  Dew Pt: <strong className="text-[#F3F6FA]">{dewPoint !== null ? `${Math.round(dewPoint)}°C` : '—'}</strong>
+                <span className="text-xs text-[var(--m-text-muted)]">
+                  Dew Pt: <strong className="text-[var(--m-text-primary)]">{dewPoint !== null ? `${Math.round(dewPoint)}°C` : '—'}</strong>
                 </span>
               </div>
-              <div className="text-xs font-mono text-[#8295A8] mt-1">
-                Wetness: <strong className="text-[#F3F6FA]">{dewDuration}</strong>
+              <div className="text-xs font-mono text-[var(--m-text-muted)] mt-1">
+                Wetness: <strong className="text-[var(--m-text-primary)]">{dewDuration}</strong>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>Pathogen Spore Risk</span>
               <span
                 className={
                   humidity === null
-                    ? 'text-[#8295A8] font-semibold'
+                    ? 'text-[var(--m-text-muted)] font-semibold'
                     : humidity > 80
-                    ? 'text-[#EF4444] font-semibold'
-                    : 'text-[#22C7A0] font-semibold'
+                    ? 'text-[var(--m-danger)] font-semibold'
+                    : 'text-[var(--m-ok)] font-semibold'
                 }
               >
                 {humidity === null ? 'UNAVAILABLE' : humidity > 80 ? 'ELEVATED' : 'LOW'}
@@ -278,33 +278,33 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
           {/* CARD 4: Wind & Drift */}
           <div id="metric-wind-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Surface Wind &amp; Drift
               </span>
-              <Wind className="w-4 h-4 text-[#B5C3D1]" />
+              <Wind className="w-4 h-4 text-[var(--m-text-secondary)]" />
             </div>
 
             <div>
               <div className="flex items-baseline gap-2.5 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA]">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
                   {windSpeed !== null ? (
                     <>
-                      {Math.round(windSpeed)} <span className="text-base font-normal text-[#8295A8]">km/h</span>
+                      {Math.round(windSpeed)} <span className="text-base font-normal text-[var(--m-text-muted)]">km/h</span>
                     </>
                   ) : (
                     '—'
                   )}
                 </span>
-                <span className="text-xs text-[#8295A8]">
-                  Dir: <strong className="text-[#F3F6FA]">{windDirection}</strong>
+                <span className="text-xs text-[var(--m-text-muted)]">
+                  Dir: <strong className="text-[var(--m-text-primary)]">{windDirection}</strong>
                 </span>
               </div>
-              <div className="text-xs font-mono tabular-nums text-[#8295A8] mt-1">
-                Gusts: <strong className="text-[#F3F6FA]">{windGust !== null ? `${Math.round(windGust)} km/h` : '—'}</strong> · Limit 15 km/h
+              <div className="text-xs font-mono tabular-nums text-[var(--m-text-muted)] mt-1">
+                Gusts: <strong className="text-[var(--m-text-primary)]">{windGust !== null ? `${Math.round(windGust)} km/h` : '—'}</strong> · Limit 15 km/h
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>Spraying</span>
               <span className={`font-semibold ${sprayColor}`}>{sprayStatus}</span>
             </div>
@@ -313,57 +313,57 @@ export const FarmStatusOverview: React.FC<FarmStatusOverviewProps> = ({
           {/* CARD 5: Evapotranspiration */}
           <div id="metric-etc-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Evapotranspiration (ETc)
               </span>
-              <Sun className="w-4 h-4 text-[#22C7A0]" />
+              <Sun className="w-4 h-4 text-[var(--m-ok)]" />
             </div>
 
             <div>
               <div className="flex items-baseline gap-2.5 font-mono tabular-nums">
-                <span className="text-2xl sm:text-3xl font-bold text-[#F3F6FA]">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
                   {etcValue !== null ? (
                     <>
-                      {etcValue} <span className="text-base font-normal text-[#8295A8]">mm/d</span>
+                      {etcValue} <span className="text-base font-normal text-[var(--m-text-muted)]">mm/d</span>
                     </>
                   ) : (
                     '—'
                   )}
                 </span>
-                <span className="text-xs text-[#22C7A0] font-semibold">Kc {kcFactor}</span>
+                <span className="text-xs text-[var(--m-ok)] font-semibold">Kc {kcFactor}</span>
               </div>
-              <div className="text-xs font-mono tabular-nums text-[#8295A8] mt-1">
-                Ref ET₀: <strong className="text-[#F3F6FA]">{baseET0 !== null ? `${baseET0} mm/day` : '—'}</strong>
+              <div className="text-xs font-mono tabular-nums text-[var(--m-text-muted)] mt-1">
+                Ref ET₀: <strong className="text-[var(--m-text-primary)]">{baseET0 !== null ? `${baseET0} mm/day` : '—'}</strong>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>Water Loss</span>
-              <span className="text-[#22C7A0] font-semibold">{etRequirement}</span>
+              <span className="text-[var(--m-ok)] font-semibold">{etRequirement}</span>
             </div>
           </div>
 
           {/* CARD 6: Root Zone Soil */}
           <div id="metric-soil-card" className="m-panel-inset p-4 flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-semibold text-[#8295A8] uppercase tracking-wider">
+              <span className="text-[11px] font-mono font-semibold text-[var(--m-text-muted)] uppercase tracking-wider">
                 Root Zone Soil Hydrology
               </span>
-              <Droplets className="w-4 h-4 text-[#35C7E8]" />
+              <Droplets className="w-4 h-4 text-[var(--m-accent)]" />
             </div>
 
             <div>
               <div className={`text-xl font-bold font-mono tracking-tight ${soilColor}`}>
                 {soilStatus}
               </div>
-              <div className="text-xs font-mono text-[#8295A8] mt-1">
-                Directive: <strong className="text-[#F3F6FA]">{soilAdvice}</strong>
+              <div className="text-xs font-mono text-[var(--m-text-muted)] mt-1">
+                Directive: <strong className="text-[var(--m-text-primary)]">{soilAdvice}</strong>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-[#26394B] text-[11px] font-mono text-[#B5C3D1] flex items-center justify-between">
+            <div className="pt-2.5 border-t border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] flex items-center justify-between">
               <span>Stage Context</span>
-              <span className="text-[#F3F6FA] font-semibold">{selectedStage}</span>
+              <span className="text-[var(--m-text-primary)] font-semibold">{selectedStage}</span>
             </div>
           </div>
         </div>

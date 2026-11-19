@@ -28,11 +28,11 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
   return (
     <div
       id="nwp-location-context-bar"
-      className="w-full bg-[#081F33]/90 border border-[#1D5278] rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm backdrop-blur-xs"
+      className="w-full bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm backdrop-blur-xs"
     >
       {/* Left: Location Identity & Coordinates */}
       <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-        <div className="w-7 h-7 rounded-lg bg-[#0E2D4A] border border-[#1D5278] flex items-center justify-center text-[#29B6F6] shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-[#0E2D4A] border border-[var(--m-border)] flex items-center justify-center text-[#29B6F6] shrink-0">
           <MapPin className="w-4 h-4" />
         </div>
 
@@ -78,7 +78,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
             type="button"
             onClick={onDetectLocation}
             disabled={isLocating}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B263D] hover:bg-[#102D44] border border-[#1D5278] text-[#AFC4D8] hover:text-white text-xs font-sans transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer disabled:opacity-50"
             title="Detect GPS location"
           >
             <Navigation className={`w-3.5 h-3.5 text-[#29B6F6] ${isLocating ? 'animate-spin' : ''}`} />
@@ -90,7 +90,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
           <button
             type="button"
             onClick={onOpenLocationCenter}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B263D] hover:bg-[#102D44] border border-[#1D5278] text-[#AFC4D8] hover:text-white text-xs font-sans transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer"
             title="Change Location"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-[#29B6F6]" />
