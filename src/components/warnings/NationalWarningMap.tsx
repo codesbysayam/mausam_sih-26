@@ -1,99 +1,142 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Globe2, Maximize2 } from 'lucide-react';
-import { AlertSeverity, StateWarningSummary, WarningRecord } from '../../types/warningTypes';
-import { STATE_ALERT_SEVERITIES } from '../../data/nationalWarningsData';
+import 'leaflet/dist/leaflet.css';
+import { Maximize2, MapPin, ShieldAlert, ChevronRight, Globe2, AlertTriangle } from 'lucide-react';
 import { ALL_INDIA_STATES_MET_PROFILES, StateMeteorologicalProfile } from '../../data/allIndiaStatesProfiles';
-import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
+import { StateWarningSummary, AlertSeverity, WarningRecord } from '../../types/warningTypes';
+import { warningService } from '../../services/warningService';
+import {
+  PRIMARY_OBSERVATORY_BASEMAP,
+  FALLBACK_OSM_BASEMAP,
+  INDIA_GEOGRAPHIC_BOUNDS,
+} from '../../utils/mapBasemaps';
 
 interface NationalWarningMapProps {
   selectedState: string | null;
   onSelectState: (stateName: string, stateCode: string) => void;
   onOpenStateDrawer?: (summary: StateWarningSummary) => void;
-  warnings: WarningRecord[];
+  warnings?: WarningRecord[];
   isUnavailable?: boolean;
 }
 
-const SEVERITY_CONFIG: Record<
-  AlertSeverity | 'unverified',
-  { fill: string; border: string; label: string; text: string }
-> = {
-  red: {
-    fill: '#EF4444',
-    border: '#B91C1C',
-    label: 'Red Alert',
-    text: 'Take Action',
-  },
-  orange: {
-    fill: '#F97316',
-    border: '#C2410C',
-    label: 'Orange Alert',
-    text: 'Be Prepared',
-  },
-  yellow: {
-    fill: '#EAB308',
-    border: '#A16207',
-    label: 'Yellow Watch',
-    text: 'Be Updated',
-  },
-  purple: {
-    fill: '#C5A46D',
-    border: '#C5A46D',
-    label: 'Advisory',
-    text: 'Advisory Bulletin',
-  },
-  green: {
-    fill: '#22C7A0',
-    border: '#0F766E',
-    label: 'Normal / Clear',
-    text: 'No Active Warning',
-  },
-  unverified: {
-    fill: '#898B83',
-    border: '#2F3534',
-    label: 'Unverified',
-    text: 'Feed Unavailable',
-  },
+const SEVERITY_COLORS: Record<AlertSeverity, { bg: string; border: string; text: string; label: string }> = {
+  red: { bg: '#C94F4B', border: '#F0EEE7', text: '#F0EEE7', label: 'RED ALERT' },
+  orange: { bg: '#D98548', border: '#F0EEE7', text: '#0B0C0D', label: 'ORANGE ALERT' },
+  yellow: { bg: '#D8B14F', border: '#0B0C0D', text: '#0B0C0D', label: 'YELLOW WATCH' },
+  purple: { bg: '#A7C5C5', border: '#0B0C0D', text: '#0B0C0D', label: 'ADVISORY' },
+  green: { bg: '#5C9A79', border: '#111314', text: '#0B0C0D', label: 'NORMAL' },
 };
 
-function MapResizeFix() {
+const UNAVAILABLE_STYLE = {
+  bg: '#52575B',
+  border: '#191C1D',
+  text: '#E6E4DD',
+  label: 'UNVERIFIED',
+};
+
+// Leaflet controller for smooth bounds fit & zoom on selection
+const MapController: React.FC<{
+  selectedProfile: StateMeteorologicalProfile | null;
+  resetCounter: number;
+}> = ({ selectedProfile, resetCounter }) => {
   const map = useMap();
 
   useEffect(() => {
-    const container = map.getContainer();
-    const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize({ pan: false, animate: false });
-    });
-    resizeObserver.observe(container);
-
     const timer = setTimeout(() => {
-      map.invalidateSize({ pan: false, animate: false });
-    }, 200);
-
-    return () => {
-      resizeObserver.disconnect();
-      clearTimeout(timer);
-    };
+      map.invalidateSize({ animate: false });
+      if (!selectedProfile) {
+        map.fitBounds(INDIA_GEOGRAPHIC_BOUNDS, { padding: [22, 22], maxZoom: 5 });
+      }
+    }, 120);
+    return () => clearTimeout(timer);
   }, [map]);
 
-  return null;
-}
-
-function MapCenterController({
-  center,
-  zoom,
-}: {
-  center: [number, number];
-  zoom: number;
-}) {
-  const map = useMap();
+  useEffect(() => {
+    if (selectedProfile) {
+      map.flyTo([selectedProfile.lat, selectedProfile.lng], 6, { duration: 0.75 });
+    }
+  }, [selectedProfile, map]);
 
   useEffect(() => {
-    map.setView(center, zoom, { animate: true });
-  }, [center, zoom, map]);
+    if (resetCounter > 0) {
+      map.fitBounds(INDIA_GEOGRAPHIC_BOUNDS, { padding: [22, 22], maxZoom: 5, animate: true });
+    }
+  }, [resetCounter, map]);
 
   return null;
+};
+
+/**
+ * Geographic marker builder:
+ * - Active warning states get a prominent geographic pin + readable state name callout + alert count pill.
+ * - Normal / Unverified states get a clean compact coordinate dot so markers never collide or clip.
+ */
+function createGeographicStateIcon(
+  profile: StateMeteorologicalProfile,
+  severity: AlertSeverity,
+  isSelected: boolean,
+  activeCount: number,
+  isUnavailable: boolean
+): L.DivIcon {
+  const palette = isUnavailable ? UNAVAILABLE_STYLE : SEVERITY_COLORS[severity] || SEVERITY_COLORS.green;
+  const isAlerted = !isUnavailable && severity !== 'green';
+  const shortLabel =
+    profile.name.length > 16
+      ? profile.code === 'DNHDD'
+        ? 'DNH & DD'
+        : profile.code === 'AN'
+        ? 'A & N Islands'
+        : profile.name.slice(0, 14) + '…'
+      : profile.name;
+
+  if (isAlerted || isSelected) {
+    const ringGlow =
+      severity === 'red'
+        ? '0 0 0 5px rgba(201,79,75,0.28)'
+        : severity === 'orange'
+        ? '0 0 0 5px rgba(217,133,72,0.28)'
+        : severity === 'yellow'
+        ? '0 0 0 5px rgba(216,177,79,0.26)'
+        : '0 0 0 4px rgba(197,164,109,0.28)';
+
+    const countBadge =
+      activeCount > 0
+        ? `<span style="margin-left:5px;padding:0 5px;border-radius:9999px;background:#0B0C0D;color:#F0EEE7;font-size:9px;font-weight:700;line-height:15px;">${activeCount}</span>`
+        : '';
+
+    return L.divIcon({
+      className: 'mausam-geo-state-marker-alert',
+      html: `
+        <div style="display:flex;align-items:center;gap:5px;transform:translate(-7px,-50%);pointer-events:auto;">
+          <div style="width:14px;height:14px;border-radius:9999px;background:${palette.bg};border:2px solid ${palette.border};box-shadow:${ringGlow};flex-shrink:0;"></div>
+          <div style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;background:rgba(11,12,13,0.92);border:1px solid ${palette.bg};color:#F0EEE7;font-family:var(--font-mono,monospace);font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.45);">
+            <span>${shortLabel}</span>${countBadge}
+          </div>
+        </div>
+      `,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+    });
+  }
+
+  // Normal or unverified state: compact, clean geographic representative dot (shows full name on hover)
+  return L.divIcon({
+    className: 'mausam-geo-state-marker-normal',
+    html: `
+      <div style="
+        width: 11px;
+        height: 11px;
+        border-radius: 9999px;
+        background: ${palette.bg};
+        border: 1.5px solid #0B0C0D;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        opacity: ${isUnavailable ? '0.65' : '0.88'};
+      "></div>
+    `,
+    iconSize: [11, 11],
+    iconAnchor: [5.5, 5.5],
+  });
 }
 
 export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
@@ -103,395 +146,318 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
   warnings = [],
   isUnavailable = false,
 }) => {
-  const INDIA_CENTER: [number, number] = [22.8, 80.5];
-  const DEFAULT_ZOOM = 4.5;
+  const [resetCounter, setResetCounter] = useState(0);
+  const [useOsmFallback, setUseOsmFallback] = useState(false);
+  const [tileErrorCount, setTileErrorCount] = useState(0);
 
-  const [mapCenter, setMapCenter] = useState<[number, number]>(INDIA_CENTER);
-  const [mapZoom, setMapZoom] = useState<number>(DEFAULT_ZOOM);
+  // Single canonical reconciliation shared with StateWatchlistPanel & NationalAlertStatus
+  const reconciled = useMemo(
+    () => warningService.reconcileNationalWarnings(warnings, { isUnavailable }),
+    [warnings, isUnavailable]
+  );
 
-  const stationMetadataMap = useMemo(() => {
-    const map = new Map<string, StateWarningSummary>();
-    Object.values(STATE_ALERT_SEVERITIES).forEach((summary) => {
-      map.set(summary.stateCode.toLowerCase(), summary);
-      map.set(summary.stateName.toLowerCase(), summary);
-    });
-    return map;
-  }, []);
+  const selectedProfile = useMemo(() => {
+    if (!selectedState || selectedState === 'all') return null;
+    const q = selectedState.toLowerCase();
+    return (
+      ALL_INDIA_STATES_MET_PROFILES.find(
+        (p) =>
+          p.name.toLowerCase() === q ||
+          p.code.toLowerCase() === q ||
+          `in-${p.code.toLowerCase()}` === q ||
+          p.aliases.some((a) => a.toLowerCase() === q)
+      ) || null
+    );
+  }, [selectedState]);
 
   const resolveStateSummary = useCallback(
     (profile: StateMeteorologicalProfile): StateWarningSummary => {
-      const sName = profile.name.toLowerCase();
-      const sCode = profile.code.toLowerCase();
-      const meta =
-        stationMetadataMap.get(`in-${sCode}`) ||
-        stationMetadataMap.get(sName);
-
-      const matchedWarnings = isUnavailable
-        ? []
-        : warnings.filter(
-            (w) =>
-              w.state.toLowerCase() === sName ||
-              w.stateCode.toLowerCase() === sCode ||
-              w.stateCode.toLowerCase() === `in-${sCode}` ||
-              w.state.toLowerCase().includes(sName) ||
-              sName.includes(w.state.toLowerCase())
-          );
-
-      if (matchedWarnings.length > 0) {
-        const order: Record<AlertSeverity, number> = {
-          red: 4,
-          orange: 3,
-          yellow: 2,
-          purple: 1,
-          green: 0,
-        };
-        const sorted = [...matchedWarnings].sort(
-          (a, b) => (order[b.severity] ?? 0) - (order[a.severity] ?? 0)
-        );
-        const top = sorted[0];
-        return {
-          stateCode: `in-${profile.code.toLowerCase()}`,
-          stateName: profile.name,
-          capital: profile.capital,
-          highestSeverity: top.severity,
-          activeCount: matchedWarnings.length,
-          primaryHazard: top.hazardCategory,
-          primaryHazardLabel: top.hazardLabel,
-          representativeStation: profile.representativeStation || meta?.representativeStation || 'IMD AWS',
-          bulletinHeadline: top.title,
-          validityRange: top.validUntil,
-        };
-      }
+      const codeKey = profile.code.toLowerCase();
+      const matched = reconciled.stateSummaries[codeKey];
+      if (matched) return matched;
 
       return {
-        stateCode: `in-${profile.code.toLowerCase()}`,
+        stateCode: `in-${codeKey}`,
         stateName: profile.name,
         capital: profile.capital,
         highestSeverity: 'green',
         activeCount: 0,
-        primaryHazard: 'heavy_rain',
-        primaryHazardLabel: isUnavailable ? 'Feed Unreachable' : 'Normal Seasonal Weather',
-        representativeStation: profile.representativeStation || meta?.representativeStation || 'IMD AWS',
+        primaryHazard: 'agromet_advisory',
+        primaryHazardLabel: isUnavailable ? 'Feed Unverified' : 'Normal Seasonal Conditions',
+        representativeStation: profile.representativeStation,
         bulletinHeadline: isUnavailable
-          ? 'SACHET / NDMA feed unreachable — alert status unverified.'
-          : 'No active severe meteorological warning for this subdivision.',
-        validityRange: isUnavailable ? 'Unavailable' : 'Routine Observation',
+          ? 'Official SACHET / IMD feed unreachable — status unverified.'
+          : 'No active severe weather warning',
+        validityRange: isUnavailable ? 'Unavailable' : 'Routine Synoptic Cycle',
       };
     },
-    [stationMetadataMap, warnings, isUnavailable]
+    [reconciled, isUnavailable]
   );
 
-  useEffect(() => {
-    if (selectedState && selectedState !== 'all') {
-      const match = ALL_INDIA_STATES_MET_PROFILES.find(
-        (p) =>
-          p.name.toLowerCase() === selectedState.toLowerCase() ||
-          p.code.toLowerCase() === selectedState.toLowerCase() ||
-          selectedState.toLowerCase().includes(p.name.toLowerCase())
-      );
-      if (match) {
-        setMapCenter([match.lat, match.lng]);
-        setMapZoom(6);
+  const handleTileError = useCallback(() => {
+    setTileErrorCount((prev) => {
+      const next = prev + 1;
+      if (next >= 3 && !useOsmFallback) {
+        setUseOsmFallback(true);
       }
-    }
-  }, [selectedState]);
+      return next;
+    });
+  }, [useOsmFallback]);
 
   const handleResetView = () => {
-    setMapCenter(INDIA_CENTER);
-    setMapZoom(DEFAULT_ZOOM);
-    if (selectedState && selectedState !== 'all') {
-      onSelectState('All India', 'all');
-    }
+    onSelectState('All India', 'in-all');
+    setResetCounter((c) => c + 1);
   };
 
-  const createSeverityMarker = (
-    severityKey: AlertSeverity | 'unverified',
-    isSelected: boolean,
-    code: string,
-    count: number
-  ) => {
-    const config = SEVERITY_CONFIG[severityKey] || SEVERITY_CONFIG.green;
-    const isLightBg = severityKey === 'yellow' || severityKey === 'green';
-    const textFill = isLightBg ? '#111314' : '#FFFFFF';
-    const size = isSelected ? 34 : 28;
-
-    const html = `
-      <div class="relative flex items-center justify-center cursor-pointer transition-transform duration-150 ${
-        isSelected ? 'scale-115 z-50' : 'hover:scale-110 z-20'
-      }" style="width: ${size}px; height: ${size}px;">
-        <div class="relative flex items-center justify-center rounded-full font-mono font-bold text-[10px] border" style="width: ${size}px; height: ${size}px; background-color: ${
-      config.fill
-    }; border-color: ${isSelected ? '#FFFFFF' : config.border}; color: ${textFill}; ${
-      isSelected ? 'box-shadow: 0 0 0 2px #C5A46D;' : ''
-    }">
-          <span>${code}</span>
-        </div>
-        ${
-          count > 1
-            ? `<span class="absolute -top-1 -right-1 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style="width: 15px; height: 15px; background: #111314; border: 1px solid ${config.fill};">${count}</span>`
-            : ''
-        }
-      </div>
-    `;
-
-    return L.divIcon({
-      html,
-      className: 'custom-state-alert-marker',
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      popupAnchor: [0, -size / 2 - 4],
-    });
-  };
-
-  const stateCounts = useMemo(() => {
-    let red = 0;
-    let orange = 0;
-    let yellow = 0;
-    let green = 0;
-
-    ALL_INDIA_STATES_MET_PROFILES.forEach((p) => {
-      const summary = resolveStateSummary(p);
-      if (summary.highestSeverity === 'red') red++;
-      else if (summary.highestSeverity === 'orange') orange++;
-      else if (summary.highestSeverity === 'yellow') yellow++;
-      else green++;
-    });
-
-    return { red, orange, yellow, green, total: ALL_INDIA_STATES_MET_PROFILES.length };
-  }, [resolveStateSummary]);
+  const activeBasemap = useOsmFallback ? FALLBACK_OSM_BASEMAP : PRIMARY_OBSERVATORY_BASEMAP;
 
   return (
-    <DataPanel
+    <div
       id="national-weather-alert-map-card"
-      className="flex flex-col justify-between gap-3.5 h-full"
+      className="m-panel p-4 sm:p-5 flex flex-col justify-between gap-4 h-full min-h-[540px]"
     >
-      <SectionHeading
-        title="National Weather Alert Map"
-        subtitle="Geographic warning classification across Indian States & Union Territories"
-        icon={<Globe2 className="w-4 h-4" />}
-        badge={<SourceStatus status={isUnavailable ? 'UNAVAILABLE' : warnings.length > 0 ? 'LIVE' : 'ALL_CLEAR'} />}
-        action={
-          <div className="flex items-center gap-2">
-            {selectedState && selectedState !== 'all' && (
-              <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)]">
-                Focus: {selectedState}
-              </span>
-            )}
-            <button
-              id="btn-reset-map-view"
-              type="button"
-              onClick={handleResetView}
-              className="px-3 py-1.5 min-h-[36px] rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Reset to All-India Synoptic Overview"
-            >
-              <Maximize2 className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-              <span>Reset View</span>
-            </button>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--m-border)]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
+            <Globe2 className="w-4 h-4" />
           </div>
-        }
-      />
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--m-text-primary)] tracking-tight">
+                National Weather Alert Map
+              </h2>
+              {isUnavailable ? (
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-watch)] bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 px-2 py-0.5 rounded">
+                  <AlertTriangle className="w-3 h-3" />
+                  FEED UNVERIFIED
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-ok)] bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 px-2 py-0.5 rounded">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--m-ok)]" />
+                  SACHET / IMD LIVE
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[var(--m-text-muted)] mt-0.5">
+              Representative geographic points for all {reconciled.totalStatesAndUTs} Indian States &amp; UTs ·{' '}
+              {useOsmFallback ? 'OpenStreetMap Fallback' : 'Esri Dark Gray Basemap'}
+            </p>
+          </div>
+        </div>
 
-      <div
-        id="map-container-wrapper"
-        data-theme="dark-workspace"
-        className="w-full h-[460px] sm:h-[500px] lg:h-[540px] rounded-lg overflow-hidden relative border border-[var(--m-border)] bg-[var(--m-surface-inset)]"
-      >
-        <MapContainer
-          center={mapCenter}
-          zoom={mapZoom}
-          minZoom={4}
-          maxZoom={9}
-          scrollWheelZoom={false}
-          attributionControl={true}
-          zoomControl={true}
-          style={{ width: '100%', height: '100%', backgroundColor: '#111314' }}
+        <button
+          id="btn-reset-national-map"
+          type="button"
+          onClick={handleResetView}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-xs font-semibold text-[var(--m-text-primary)] border border-[var(--m-border)] transition-colors cursor-pointer self-start sm:self-auto"
         >
-          <MapResizeFix />
-          <MapCenterController center={mapCenter} zoom={mapZoom} />
+          <Maximize2 className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+          <span>Reset View</span>
+        </button>
+      </div>
 
+      {/* Interactive Geographic Leaflet Map */}
+      <div className="relative flex-1 w-full min-h-[430px] rounded-xl overflow-hidden border border-[var(--m-border)] bg-[#0D1012] z-10">
+        <MapContainer
+          center={[22.2, 82.6]}
+          zoom={4.5}
+          minZoom={4}
+          maxZoom={11}
+          zoomSnap={0.5}
+          scrollWheelZoom={true}
+          style={{ width: '100%', height: '100%', minHeight: '430px', background: '#0D1012' }}
+          className="z-10"
+        >
+          {/* Verified Zero-Key Basemap + Automatic Failover */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            maxZoom={18}
+            key={activeBasemap.id}
+            attribution={activeBasemap.attribution}
+            url={activeBasemap.baseUrl}
+            maxZoom={activeBasemap.maxZoom}
+            className={activeBasemap.className}
+            eventHandlers={{
+              tileerror: handleTileError,
+            }}
           />
+          {!useOsmFallback && PRIMARY_OBSERVATORY_BASEMAP.referenceUrl && (
+            <TileLayer
+              url={PRIMARY_OBSERVATORY_BASEMAP.referenceUrl}
+              maxZoom={PRIMARY_OBSERVATORY_BASEMAP.maxZoom}
+              opacity={0.75}
+            />
+          )}
+
+          <MapController selectedProfile={selectedProfile} resetCounter={resetCounter} />
 
           {ALL_INDIA_STATES_MET_PROFILES.map((profile) => {
             const summary = resolveStateSummary(profile);
-            const severityKey = isUnavailable ? 'unverified' : summary.highestSeverity;
-            const isSelected =
-              selectedState &&
-              (selectedState.toLowerCase() === profile.name.toLowerCase() ||
-                selectedState.toLowerCase() === profile.code.toLowerCase() ||
-                selectedState.toLowerCase() === summary.stateCode.toLowerCase());
-
-            const icon = createSeverityMarker(
-              severityKey,
-              Boolean(isSelected),
-              profile.code,
-              summary.activeCount
+            const isSelected = selectedProfile?.id === profile.id;
+            const icon = createGeographicStateIcon(
+              profile,
+              summary.highestSeverity,
+              isSelected,
+              summary.activeCount,
+              isUnavailable
             );
-
-            const badgeConfig = SEVERITY_CONFIG[severityKey] || SEVERITY_CONFIG.green;
+            const palette = isUnavailable
+              ? UNAVAILABLE_STYLE
+              : SEVERITY_COLORS[summary.highestSeverity] || SEVERITY_COLORS.green;
 
             return (
               <Marker
                 key={profile.id}
                 position={[profile.lat, profile.lng]}
                 icon={icon}
+                zIndexOffset={summary.highestSeverity !== 'green' ? 500 : isSelected ? 600 : 100}
                 eventHandlers={{
                   click: () => {
-                    onSelectState(profile.name, summary.stateCode);
+                    onSelectState(profile.name, `in-${profile.code.toLowerCase()}`);
                   },
                 }}
               >
-                <Tooltip direction="top" offset={[0, -18]} opacity={0.95}>
-                  <div className="font-sans text-xs">
-                    <strong className="text-[var(--m-text-primary)] block">{profile.name}</strong>
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-wider block mt-0.5 font-mono"
-                      style={{ color: badgeConfig.fill }}
-                    >
+                <Tooltip direction="top" offset={[0, -8]} opacity={0.96}>
+                  <div className="text-[11px] font-mono leading-snug">
+                    <div className="font-bold text-slate-900">
+                      {profile.name} ({profile.code})
+                    </div>
+                    <div className="text-[10px] text-slate-600">
                       {isUnavailable
-                        ? 'Unverified · Feed Unavailable'
-                        : `${badgeConfig.label} (${summary.activeCount} Alert${summary.activeCount === 1 ? '' : 's'})`}
-                    </span>
+                        ? 'Feed Unverified — Status Unknown'
+                        : summary.activeCount > 0
+                        ? `${palette.label} · ${summary.activeCount} active bulletin${summary.activeCount > 1 ? 's' : ''}`
+                        : 'Normal · No active severe alert'}
+                    </div>
+                    <div className="text-[9px] text-slate-500">
+                      Representative Point: {profile.capital} ({profile.lat.toFixed(2)}°N, {profile.lng.toFixed(2)}°E)
+                    </div>
                   </div>
                 </Tooltip>
 
-                <Popup className="mausam-dark-popup">
-                  <div className="p-1 min-w-[230px] max-w-[280px] text-xs font-sans">
-                    <div className="flex items-center justify-between pb-1.5 border-b border-[var(--m-border)] mb-2">
-                      <div>
-                        <h4 className="font-bold text-[var(--m-text-primary)] text-sm leading-tight">
+                <Popup className="mausam-leaflet-popup" minWidth={230} maxWidth={290}>
+                  <div className="p-1 text-slate-900">
+                    <div className="flex items-center justify-between gap-2 pb-1.5 mb-2 border-b border-slate-200">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                        <span className="font-bold text-xs uppercase tracking-tight truncate">
                           {profile.name}
-                        </h4>
-                        <span className="text-[10px] text-[var(--m-text-muted)]">
-                          Capital: {profile.capital}
                         </span>
                       </div>
                       <span
-                        className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border uppercase tracking-wider"
+                        className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0"
                         style={{
-                          backgroundColor: `${badgeConfig.fill}22`,
-                          borderColor: badgeConfig.fill,
-                          color: badgeConfig.fill,
+                          backgroundColor: palette.bg,
+                          color: palette.text,
                         }}
                       >
-                        {badgeConfig.label}
+                        {palette.label}
                       </span>
                     </div>
 
-                    <div className="space-y-1.5 text-[var(--m-text-primary)]">
-                      <div className="text-[11px] text-[var(--m-text-secondary)]">
-                        <strong className="text-[var(--m-text-primary)]">Primary Hazard:</strong>{' '}
-                        {summary.primaryHazardLabel}
+                    <div className="space-y-1 text-[11px] text-slate-700 mb-2.5">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-slate-500">Representative Point:</span>
+                        <span className="font-semibold text-right">{profile.capital}</span>
                       </div>
-
-                      <div className="text-[11px] leading-snug bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
-                        {summary.bulletinHeadline}
+                      <div className="flex justify-between gap-2">
+                        <span className="text-slate-500">Coordinates:</span>
+                        <span className="font-mono text-[10px]">
+                          {profile.lat.toFixed(2)}°N, {profile.lng.toFixed(2)}°E
+                        </span>
                       </div>
-
-                      <div className="text-[10px] text-[var(--m-text-muted)]">
-                        <span>Station: </span>
-                        <strong className="text-[var(--m-text-primary)] font-mono">{summary.representativeStation}</strong>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-slate-500">Active Bulletins:</span>
+                        <span className="font-bold">
+                          {isUnavailable ? 'Unverified' : summary.activeCount}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-slate-500">Primary Hazard:</span>
+                        <span className="font-semibold truncate max-w-[140px]">
+                          {summary.primaryHazardLabel}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="pt-2.5 mt-2 border-t border-[var(--m-border)] flex items-center justify-between gap-2">
+                    <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded border border-slate-200 leading-snug mb-2.5">
+                      {summary.bulletinHeadline}
+                    </p>
+
+                    {onOpenStateDrawer && (
                       <button
                         type="button"
-                        onClick={() => {
-                          onSelectState(profile.name, summary.stateCode);
-                        }}
-                        className="w-full py-1.5 px-2 rounded bg-[var(--m-accent)] hover:bg-[#095C96] text-[var(--m-on-accent)] font-semibold text-[11px] transition-colors cursor-pointer text-center"
+                        onClick={() => onOpenStateDrawer(summary)}
+                        className="w-full py-1.5 px-2.5 rounded bg-[var(--m-accent)] hover:opacity-90 text-[var(--m-on-accent)] text-[11px] font-semibold flex items-center justify-center gap-1 transition-opacity cursor-pointer"
                       >
-                        Filter Warnings ({profile.name})
+                        <span>Inspect State Advisory</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </button>
-
-                      {onOpenStateDrawer && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenStateDrawer(summary)}
-                          className="py-1.5 px-2.5 rounded bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] font-semibold text-[11px] transition-colors cursor-pointer"
-                          title="View Full State Advisory"
-                        >
-                          Advisory
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </Popup>
               </Marker>
             );
           })}
         </MapContainer>
+
+        {/* Subtle Geographic & Coordinate Disclaimer Overlay */}
+        <div className="absolute bottom-2 left-2 z-[400] px-2.5 py-1 rounded-md bg-[var(--m-surface-1)]/90 border border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] pointer-events-none">
+          Representative State/UT Coordinates · {reconciled.affectedStateCount}/{reconciled.totalStatesAndUTs} Alerted
+        </div>
       </div>
 
-      <div
-        id="warning-map-legend"
-        className="pt-2.5 border-t border-[var(--m-border)] flex flex-col gap-2"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--m-text-muted)]">
-          <span className="font-mono font-semibold text-[var(--m-text-primary)] uppercase tracking-wider text-[10px]">
-            Official IMD Warning Classifications
-          </span>
-          <span className="font-mono text-[10px] tabular-nums">
+      {/* Reconciled Severity Legend */}
+      <div className="pt-2 border-t border-[var(--m-border)] flex flex-col gap-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--m-text-muted)]">
+            <ShieldAlert className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+            <span>Official IMD Warning Classifications (States &amp; UTs)</span>
+          </div>
+          <div className="text-[11px] font-mono text-[var(--m-text-secondary)] tabular-nums">
             {isUnavailable
-              ? 'Counts unverified while SACHET feed is unreachable'
-              : `${stateCounts.red} Red · ${stateCounts.orange} Orange · ${stateCounts.yellow} Yellow · ${stateCounts.green} Normal`}
-          </span>
+              ? 'Feed Unverified · No state confirmed normal'
+              : `${reconciled.redStates} Red · ${reconciled.orangeStates} Orange · ${reconciled.yellowStates} Yellow · ${reconciled.normalStateCount} Normal (${reconciled.totalBulletins} active bulletins)`}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
-            <span className="w-3 h-3 rounded-sm bg-[var(--m-danger)] shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[var(--m-danger)] leading-tight truncate">
-                Red Alert
-              </div>
-              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
-                Take Action
-              </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--m-danger-soft)] border border-[var(--m-danger)]/35">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C94F4B] shrink-0" />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="font-bold text-[var(--m-danger)] text-[10px] uppercase">Red Alert</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] truncate">Take Action</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
-            <span className="w-3 h-3 rounded-sm bg-[var(--m-alert)] shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[var(--m-alert)] leading-tight truncate">
-                Orange Alert
-              </div>
-              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
-                Be Prepared
-              </div>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--m-alert-soft)] border border-[var(--m-alert)]/35">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D98548] shrink-0" />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="font-bold text-[var(--m-alert)] text-[10px] uppercase">Orange Alert</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] truncate">Be Prepared</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
-            <span className="w-3 h-3 rounded-sm bg-[var(--m-watch)] shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[var(--m-watch)] leading-tight truncate">
-                Yellow Watch
-              </div>
-              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
-                Be Updated
-              </div>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D8B14F] shrink-0" />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="font-bold text-[var(--m-watch)] text-[10px] uppercase">Yellow Watch</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] truncate">Be Updated</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
-            <span className="w-3 h-3 rounded-sm bg-[var(--m-ok)] shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold text-[var(--m-ok)] leading-tight truncate">
-                Normal
-              </div>
-              <div className="text-[10px] text-[var(--m-text-muted)] leading-tight truncate">
-                No Severe Warning
-              </div>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#5C9A79] shrink-0" />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="font-bold text-[var(--m-ok)] text-[10px] uppercase">
+                {isUnavailable ? 'Unverified' : 'Green Normal'}
+              </span>
+              <span className="text-[10px] text-[var(--m-text-muted)] truncate">
+                {isUnavailable ? 'Feed Offline' : 'No Severe Alert'}
+              </span>
             </div>
           </div>
         </div>
       </div>
-    </DataPanel>
+    </div>
   );
 };

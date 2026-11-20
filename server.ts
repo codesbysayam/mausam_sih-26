@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
@@ -9,6 +10,8 @@ import { realMausamRouter } from './server/routes/realMausamRoutes';
 import { warningsRouter } from './server/routes/warningsRoute';
 import { multiSourceRouter } from './server/routes/multiSourceRoutes';
 import { unifiedApiRouter } from './server/routes/unifiedApiRoutes';
+import { weatherNewsRouter } from './server/routes/weatherNewsRoute';
+import { agrometImdRouter } from './server/routes/agrometImdRoute';
 import weatherHandler from './api/weather';
 import warningsHandler from './api/warnings';
 import radarHandler from './api/radar';
@@ -160,6 +163,138 @@ async function startServer() {
 
   // Authoritative Multi-Persona & External Data Services (CPCB, Tides, Marine, Azure Alerts)
   app.use('/api/authoritative', authoritativeRouter);
+
+  // Weather News & Situation Reports RSS Aggregation (Context Only — Separate from Official Alerts)
+  app.use('/api/weather-news', weatherNewsRouter);
+
+  // Official IMD Agromet (GKMS) Live Metadata Endpoint
+  app.use('/api/agromet', agrometImdRouter);
+
+  // Broadcast Neural TTS Endpoint (Gemini 3.8 Flash Lite TTS — Indian English & Hindi Bulletin Narration)
+  const ttsCache = new Map<string, { audioBase64: string; mimeType: string; voiceName: string; model: string; createdAt: number }>();
+  const TTS_CACHE_TTL_MS = 30 * 60 * 1000;
+  const TTS_CACHE_MAX = 24;
+
+  app.post('/api/tts', async (req: express.Request, res: express.Response) => {
+    try {
+      const rawText = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+      const language: 'en' | 'hi' = req.body?.language === 'hi' ? 'hi' : 'en';
+      const bulletinId = typeof req.body?.bulletinId === 'string' ? req.body.bulletinId.slice(0, 80) : 'default';
+
+      if (!rawText) {
+        return res.status(400).json({ ok: false, error: 'Missing bulletin text for speech synthesis.' });
+      }
+      if (rawText.length > 3500) {
+        return res.status(400).json({ ok: false, error: 'Bulletin text exceeds maximum narration length.' });
+      }
+
+      const voiceName = language === 'hi' ? 'Kore' : 'Charon';
+      const contentHash = crypto
+        .createHash('sha256')
+        .update(`${bulletinId}:${language}:${voiceName}:${rawText}`)
+        .digest('hex');
+
+      const cached = ttsCache.get(contentHash);
+      if (cached && Date.now() - cached.createdAt < TTS_CACHE_TTL_MS) {
+        return res.json({
+          ok: true,
+          cached: true,
+          engine: 'gemini-neural-tts',
+          model: cached.model,
+          voiceName: cached.voiceName,
+          language,
+          mimeType: cached.mimeType,
+          audioBase64: cached.audioBase64,
+        });
+      }
+
+      const client = getAIClient();
+      if (!client) {
+        return res.status(503).json({
+          ok: false,
+          code: 'TTS_PROVIDER_NOT_CONFIGURED',
+          error: 'Neural TTS server credentials are not configured; use browser speech fallback.',
+        });
+      }
+
+      const styleDirective =
+        language === 'hi'
+          ? 'Calm, authoritative Hindi meteorological news broadcaster in All India Radio / Doordarshan weather bulletin style. Crisp pronunciation of Indian state and city names, clear numerical readings, and measured natural pauses between sentences and paragraphs.'
+          : 'Calm, authoritative Indian English meteorological news broadcaster in India Meteorological Department / All India Radio bulletin style. Crisp pronunciation of Indian state, coastal, and district names, clear meteorological units and numbers, and measured natural pauses between sections.';
+
+      const ttsResponse = await client.models.generateContent({
+        model: 'gemini-3.8-flash-lite-tts',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: rawText,
+                speechMetadata: {
+                  style: styleDirective,
+                },
+              } as any,
+            ],
+          },
+        ],
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName,
+              },
+            },
+          },
+        },
+      });
+
+      const audioPart = ttsResponse.candidates?.[0]?.content?.parts?.find(
+        (p: any) => p?.inlineData?.data
+      ) as any;
+      const base64Audio = audioPart?.inlineData?.data as string | undefined;
+      const mimeType = audioPart?.inlineData?.mimeType || 'audio/wav';
+
+      if (!base64Audio) {
+        return res.status(502).json({
+          ok: false,
+          code: 'TTS_EMPTY_AUDIO',
+          error: 'Neural TTS engine returned no audio stream.',
+        });
+      }
+
+      if (ttsCache.size >= TTS_CACHE_MAX) {
+        const oldestKey = ttsCache.keys().next().value;
+        if (oldestKey) ttsCache.delete(oldestKey);
+      }
+      ttsCache.set(contentHash, {
+        audioBase64: base64Audio,
+        mimeType,
+        voiceName,
+        model: 'gemini-3.8-flash-lite-tts',
+        createdAt: Date.now(),
+      });
+
+      return res.json({
+        ok: true,
+        cached: false,
+        engine: 'gemini-neural-tts',
+        model: 'gemini-3.8-flash-lite-tts',
+        voiceName,
+        language,
+        mimeType,
+        audioBase64: base64Audio,
+      });
+    } catch (err: any) {
+      const status = isQuotaError(err) ? 429 : 502;
+      console.warn('[Mausam TTS Error]', err?.message || err);
+      return res.status(status).json({
+        ok: false,
+        code: isQuotaError(err) ? 'TTS_QUOTA_EXCEEDED' : 'TTS_UPSTREAM_FAILED',
+        error: err?.message || 'Neural TTS generation failed.',
+      });
+    }
+  });
 
   // AI Assistant endpoint: Ask Mausam with Search & Maps Grounding
   const handleAskMausam = async (req: express.Request, res: express.Response) => {

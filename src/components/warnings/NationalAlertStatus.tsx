@@ -12,7 +12,18 @@ interface NationalAlertStatusProps {
     statusColor: string;
   };
   stats: WarningStats;
+  reconciledCounts?: {
+    redStates: number;
+    orangeStates: number;
+    yellowStates: number;
+    affectedStateCount: number;
+    normalStateCount: number;
+    totalStatesAndUTs: number;
+    unmappedBulletinsCount: number;
+    latestIssuedAt: string | null;
+  };
   lastUpdated?: string;
+  sourceAttribution?: string;
   onViewRegionalAlerts?: () => void;
   isUnavailable?: boolean;
 }
@@ -20,6 +31,9 @@ interface NationalAlertStatusProps {
 export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
   overallStatus,
   stats,
+  reconciledCounts,
+  lastUpdated,
+  sourceAttribution = 'NDMA SACHET / IMD CAP Feed',
   onViewRegionalAlerts,
   isUnavailable = false,
 }) => {
@@ -41,6 +55,27 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
     ? 'Live CAP warning alerts could not be verified from the SACHET/NDMA gateway. Check regional sources or retry sync.'
     : overallStatus.description;
 
+  const totalStates = reconciledCounts?.totalStatesAndUTs ?? 36;
+  const affectedStates = reconciledCounts?.affectedStateCount ?? stats.statesAffected;
+  const normalStates = reconciledCounts?.normalStateCount ?? stats.greenNormalStates;
+  const redStates = reconciledCounts?.redStates ?? 0;
+  const orangeStates = reconciledCounts?.orangeStates ?? 0;
+  const yellowStates = reconciledCounts?.yellowStates ?? 0;
+  const unmappedCount = reconciledCounts?.unmappedBulletinsCount ?? 0;
+
+  const provenanceSummary = isUnavailable
+    ? `Source: ${sourceAttribution} · Bulletin count unverified`
+    : [
+        `${stats.totalActive} active bulletin${stats.totalActive === 1 ? '' : 's'} across ${affectedStates} of ${totalStates} States & UTs${
+          unmappedCount > 0 ? ` (+${unmappedCount} regional/multi-state)` : ''
+        }`,
+        `Source: ${sourceAttribution}`,
+        lastUpdated ? `Synced: ${lastUpdated}` : null,
+        reconciledCounts?.latestIssuedAt ? `Latest Bulletin: ${reconciledCounts.latestIssuedAt}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+
   return (
     <section
       id="current-national-alert-status-section"
@@ -52,11 +87,7 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
           state={bannerState}
           title={bannerTitle}
           description={bannerDescription}
-          source={
-            isUnavailable
-              ? 'Bulletin count unverified'
-              : `${stats.totalActive} active national bulletin${stats.totalActive === 1 ? '' : 's'}`
-          }
+          source={provenanceSummary}
           action={
             onViewRegionalAlerts ? (
               <button
@@ -84,7 +115,11 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
             label="Red Warnings"
             value={isUnavailable ? null : stats.severeRed}
             unit="bulletins"
-            hint="Take immediate protective action"
+            hint={
+              isUnavailable
+                ? 'Feed unverified'
+                : `${redStates} state${redStates === 1 ? '' : 's'}/UTs at Red · Take immediate action`
+            }
             unavailableLabel="Feed unverified"
             valueClassName="text-2xl sm:text-3xl font-bold text-[var(--m-danger)]"
           />
@@ -95,7 +130,11 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
             label="Orange Alerts"
             value={isUnavailable ? null : stats.moderateOrange}
             unit="bulletins"
-            hint="Be prepared for severe weather"
+            hint={
+              isUnavailable
+                ? 'Feed unverified'
+                : `${orangeStates} state${orangeStates === 1 ? '' : 's'}/UTs at Orange · Be prepared`
+            }
             unavailableLabel="Feed unverified"
             valueClassName="text-2xl sm:text-3xl font-bold text-[var(--m-alert)]"
           />
@@ -106,7 +145,11 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
             label="Yellow Watches"
             value={isUnavailable ? null : stats.advisoryYellow}
             unit="bulletins"
-            hint="Stay updated on weather changes"
+            hint={
+              isUnavailable
+                ? 'Feed unverified'
+                : `${yellowStates} state${yellowStates === 1 ? '' : 's'}/UTs at Yellow · Multiple bulletins possible per state`
+            }
             unavailableLabel="Feed unverified"
             valueClassName="text-2xl sm:text-3xl font-bold text-[var(--m-watch)]"
           />
@@ -118,9 +161,13 @@ export const NationalAlertStatus: React.FC<NationalAlertStatusProps> = ({
         >
           <MetricValue
             label={isUnavailable ? 'Feed Verification' : 'Normal States / UTs'}
-            value={isUnavailable ? null : stats.greenNormalStates}
-            unit="/ 36"
-            hint="No severe warning in effect"
+            value={isUnavailable ? null : normalStates}
+            unit={`/ ${totalStates}`}
+            hint={
+              isUnavailable
+                ? 'Status unverified — feed offline'
+                : `${affectedStates} alerted · ${normalStates} with no active severe alert`
+            }
             unavailableLabel="SACHET feed unreachable"
             valueClassName="text-2xl sm:text-3xl font-bold text-[var(--m-ok)]"
           />

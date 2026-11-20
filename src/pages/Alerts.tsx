@@ -14,6 +14,7 @@ import { WarningFeedDiagnostics } from '../types/warnings';
 import { WarningHeader } from '../components/warnings/WarningHeader';
 import { NationalAlertStatus } from '../components/warnings/NationalAlertStatus';
 import { WarningTicker } from '../components/warnings/WarningTicker';
+import { WeatherNewsSection } from '../components/warnings/WeatherNewsSection';
 import { useAlertAudio } from '../hooks/useAlertAudio';
 import { WarningFilterBar } from '../components/warnings/WarningFilterBar';
 import { NationalWarningMap } from '../components/warnings/NationalWarningMap';
@@ -101,13 +102,19 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
 
   const regionalAlertsRef = useRef<HTMLDivElement>(null);
 
+  const reconciled = useMemo(() => {
+    return warningHelperService.reconcileNationalWarnings(warningsList, {
+      isUnavailable: effectiveUnavailable,
+    });
+  }, [warningsList, effectiveUnavailable]);
+
   const filteredWarnings = useMemo(() => {
-    return warningHelperService.filterWarnings(warningsList, filter);
-  }, [warningsList, filter]);
+    return warningHelperService.filterWarnings(reconciled.activeWarnings, filter);
+  }, [reconciled.activeWarnings, filter]);
 
   const stats = useMemo(() => {
-    return warningHelperService.calculateStats(warningsList);
-  }, [warningsList]);
+    return warningHelperService.calculateStats(warningsList, effectiveUnavailable);
+  }, [warningsList, effectiveUnavailable]);
 
   const overallStatus = useMemo(() => {
     return warningHelperService.getNationalOverallStatus(warningsList);
@@ -249,16 +256,33 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
         <NationalAlertStatus
           overallStatus={overallStatus}
           stats={stats}
+          reconciledCounts={{
+            redStates: reconciled.redStates,
+            orangeStates: reconciled.orangeStates,
+            yellowStates: reconciled.yellowStates,
+            affectedStateCount: reconciled.affectedStateCount,
+            normalStateCount: reconciled.normalStateCount,
+            totalStatesAndUTs: reconciled.totalStatesAndUTs,
+            unmappedBulletinsCount: reconciled.unmappedOrNationalBulletins.length,
+            latestIssuedAt: reconciled.latestIssuedAt,
+          }}
           lastUpdated={updatedLabel}
+          sourceAttribution={diagnostics?.provider || 'NDMA SACHET / IMD CAP Feed'}
           onViewRegionalAlerts={handleScrollToRegionalAlerts}
           isUnavailable={effectiveUnavailable}
         />
         <WarningTicker
-          warnings={warningsList}
+          warnings={reconciled.activeWarnings}
           onSelectWarning={handleOpenWarningDetails}
           isUnavailable={effectiveUnavailable}
         />
       </div>
+
+      {/* Weather News & Situation Reports — Contextual Reporting Separate from Official Warnings */}
+      <WeatherNewsSection
+        latestOfficialBulletinIso={diagnostics?.lastSuccessfulFetchAt || null}
+        selectedRegion={filter.state !== 'all' ? filter.state : selectedLocation?.state || null}
+      />
 
       <div
         id="section-national-warning-map-and-watchlist"

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronRight, MapPin, Search, X } from 'lucide-react';
 import { StateWarningSummary, AlertSeverity, WarningRecord } from '../../types/warningTypes';
-import { STATE_ALERT_SEVERITIES } from '../../data/nationalWarningsData';
+import { warningService } from '../../services/warningService';
 import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
 
 interface StateWatchlistPanelProps {
@@ -22,65 +22,12 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | 'all'>('all');
 
-  const statesList = useMemo(() => {
-    const baseList: StateWarningSummary[] = Object.values(STATE_ALERT_SEVERITIES).map((s) => {
-      const matched = isUnavailable
-        ? []
-        : warnings.filter(
-            (w) =>
-              w.state.toLowerCase() === s.stateName.toLowerCase() ||
-              w.stateCode.toLowerCase() === s.stateCode.replace('in-', '').toLowerCase() ||
-              w.stateCode.toLowerCase() === s.stateCode.toLowerCase()
-          );
+  const reconciled = useMemo(
+    () => warningService.reconcileNationalWarnings(warnings, { isUnavailable }),
+    [warnings, isUnavailable]
+  );
 
-      if (matched.length > 0) {
-        const order: Record<AlertSeverity, number> = {
-          red: 4,
-          orange: 3,
-          yellow: 2,
-          purple: 1,
-          green: 0,
-        };
-        const sorted = [...matched].sort(
-          (a, b) => (order[b.severity] ?? 0) - (order[a.severity] ?? 0)
-        );
-        const top = sorted[0];
-        return {
-          ...s,
-          highestSeverity: top.severity,
-          activeCount: matched.length,
-          primaryHazard: top.hazardCategory,
-          primaryHazardLabel: top.hazardLabel,
-          bulletinHeadline: top.title,
-          validityRange: top.validUntil,
-        };
-      }
-
-      return {
-        ...s,
-        highestSeverity: 'green',
-        activeCount: 0,
-        primaryHazardLabel: isUnavailable ? 'Feed Unreachable' : 'Normal Seasonal Conditions',
-        bulletinHeadline: isUnavailable
-          ? 'SACHET / NDMA feed unreachable — alert status unverified.'
-          : 'No active severe weather warning',
-        validityRange: isUnavailable ? 'Unavailable' : 'Routine Synoptic Cycle',
-      };
-    });
-
-    return baseList.sort((a, b) => {
-      const order: Record<AlertSeverity, number> = {
-        red: 4,
-        orange: 3,
-        yellow: 2,
-        purple: 1,
-        green: 0,
-      };
-      const diff = order[b.highestSeverity] - order[a.highestSeverity];
-      if (diff !== 0) return diff;
-      return a.stateName.localeCompare(b.stateName);
-    });
-  }, [warnings, isUnavailable]);
+  const statesList = reconciled.stateSummariesList;
 
   const filteredStates = useMemo(() => {
     return statesList.filter((s) => {

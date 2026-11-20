@@ -2523,3 +2523,55 @@ img, svg, canvas, video {
   }
 }
 
+/* =========================================
+   OBSERVATORY LEAFLET DARK BASEMAP LAYERS
+   ========================================= */
+.mausam-esri-dark-tiles {
+  filter: brightness(0.95) contrast(1.06) saturate(0.85);
+}
+
+.mausam-osm-dark-tiles {
+  filter: invert(1) hue-rotate(185deg) saturate(0.32) brightness(0.76) contrast(1.08);
+}
+
+.leaflet-container {
+  background: #0d1012 !important;
+  font-family: var(--font-body);
+}
+
+.leaflet-control-attribution {
+  background: rgba(11, 12, 13, 0.84) !important;
+  color: rgba(240, 238, 231, 0.72) !important;
+  font-size: 10px !important;
+  border-top-left-radius: 6px;
+}
+
+.leaflet-control-attribution a {
+  color: #c5a46d !important;
+}
+/* =========================================
+   OBSERVATORY LEAFLET DARK BASEMAP LAYERS
+   ========================================= */
+.mausam-esri-dark-tiles {
+  filter: brightness(0.95) contrast(1.06) saturate(0.85);
+}
+
+.mausam-osm-dark-tiles {
+  filter: invert(1) hue-rotate(185deg) saturate(0.32) brightness(0.76) contrast(1.08);
+}
+
+.leaflet-container {
+  background: #0d1012 !important;
+  font-family: var(--font-body);
+}
+
+.leaflet-control-attribution {
+  background: rgba(11, 12, 13, 0.84) !important;
+  color: rgba(240, 238, 231, 0.72) !important;
+  font-size: 10px !important;
+  border-top-left-radius: 6px;
+}
+
+.leaflet-control-attribution a {
+  color: #c5a46d !important;
+}
