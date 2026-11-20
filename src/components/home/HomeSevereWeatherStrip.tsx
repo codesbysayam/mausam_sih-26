@@ -309,7 +309,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
       default:
         return {
           badgeBg: 'bg-[var(--alert-accent-soft)] text-[var(--alert-accent)] border-[var(--alert-border)]',
-          dotColor: 'bg-[#1678B8]',
+          dotColor: 'bg-[var(--severity-unknown)]',
           accentColor: 'text-[var(--alert-accent)]',
         };
     }
@@ -1069,7 +1069,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   setSelectedDistrictDetail(null);
                   onNavigateToWarnings?.();
                 }}
-                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-white cursor-pointer"
+                className="px-3 min-h-[40px] sm:min-h-[34px] rounded-[7px] bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-[var(--m-on-accent)] cursor-pointer"
               >
                 {getAlertLabel('viewInWarnings', effectiveLangCode)}
               </button>
@@ -1287,7 +1287,7 @@ export const HomeSevereWeatherStrip: React.FC<HomeSevereWeatherStripProps> = ({
                   setIsWarningDetailModalOpen(false);
                   onNavigateToWarnings?.();
                 }}
-                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-white transition-opacity cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 min-h-[44px] sm:min-h-[36px] rounded-[7px] bg-[var(--m-accent)] hover:opacity-95 text-xs font-bold text-[var(--m-on-accent)] transition-opacity cursor-pointer"
               >
                 <span>{getAlertLabel('viewInWarnings', effectiveLangCode)}</span>
                 <ChevronRight className="w-3.5 h-3.5 shrink-0" />

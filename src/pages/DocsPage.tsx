@@ -624,7 +624,7 @@ const TasksSection: React.FC = () => {
               onClick={() => setFilter(mode)}
               className={`text-xs px-3 min-h-[36px] sm:min-h-[32px] rounded-lg capitalize transition-colors cursor-pointer ${
                 filter === mode
-                  ? 'bg-[var(--m-accent)] text-white font-semibold'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                   : 'text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)]'
               }`}
             >

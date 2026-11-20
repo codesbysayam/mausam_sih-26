@@ -131,7 +131,7 @@ export const AgrometCommandHeader: React.FC<AgrometCommandHeaderProps> = ({
           <Sprout className="w-3.5 h-3.5 text-[var(--m-ok)]" />
           <span>Crop Age:</span>
           <strong className="text-[var(--m-text-primary)]">{cropAgeDays} DAS</strong>
-          <span className="text-[#38536A]">|</span>
+          <span className="text-[var(--m-text-muted)]">|</span>
           <span>Stage:</span>
           <strong className="text-[var(--m-accent)]">{selectedStage}</strong>
         </div>

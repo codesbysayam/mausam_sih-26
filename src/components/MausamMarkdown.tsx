@@ -39,12 +39,12 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="block text-sm font-bold text-[#4FA8E0] mb-2 mt-2 border-b border-[var(--m-border)] pb-1">
+            <h2 className="block text-sm font-bold text-[var(--m-accent)] mb-2 mt-2 border-b border-[var(--m-border)] pb-1">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="block text-xs sm:text-sm font-bold text-[#4FA8E0] mb-2 mt-1.5 tracking-wide">
+            <h3 className="block text-xs sm:text-sm font-bold text-[var(--m-accent)] mb-2 mt-1.5 tracking-wide">
               {children}
             </h3>
           ),
@@ -69,12 +69,12 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
             </em>
           ),
           ul: ({ children }) => (
-            <ul className="space-y-1.5 my-2 pl-4 list-disc marker:text-[#0B72B9]">
+            <ul className="space-y-1.5 my-2 pl-4 list-disc marker:text-[var(--m-accent)]">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="space-y-1.5 my-2 pl-4 list-decimal marker:text-[#0B72B9] font-medium">
+            <ol className="space-y-1.5 my-2 pl-4 list-decimal marker:text-[var(--m-accent)] font-medium">
               {children}
             </ol>
           ),
@@ -106,12 +106,12 @@ export const MausamMarkdown: React.FC<MausamMarkdownProps> = ({ content }) => {
             </td>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#0B72B9] pl-3 py-1.5 my-2 bg-[var(--m-accent-soft)] text-xs text-[#93C5FD] rounded-r-md">
+            <blockquote className="border-l-2 border-[var(--m-accent)] pl-3 py-1.5 my-2 bg-[var(--m-accent-soft)] text-xs text-[#93C5FD] rounded-r-md">
               {children}
             </blockquote>
           ),
           code: ({ children }) => (
-            <code className="px-1.5 py-0.5 rounded bg-[var(--m-surface-2)] text-[#4FA8E0] font-mono text-[11px] border border-[var(--m-border)]">
+            <code className="px-1.5 py-0.5 rounded bg-[var(--m-surface-2)] text-[var(--m-accent)] font-mono text-[11px] border border-[var(--m-border)]">
               {children}
             </code>
           ),

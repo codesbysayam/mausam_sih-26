@@ -312,17 +312,17 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
               'relative h-8 rounded-lg text-xs font-mono font-semibold flex items-center justify-center transition-all cursor-pointer';
 
             if (cell.isDisabled) {
-              cellStyle += ' text-[#334155] opacity-40 cursor-not-allowed';
+              cellStyle += ' text-[var(--m-text-muted)] opacity-40 cursor-not-allowed';
             } else if (cell.isRangeStart || cell.isRangeEnd) {
               cellStyle +=
-                ' bg-[var(--m-accent)] text-white font-bold shadow-[0_0_10px_rgba(20,153,232,0.6)] z-10';
+                ' bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold shadow-[0_0_10px_rgba(197, 164, 109,0.6)] z-10';
             } else if (cell.isInRange) {
               cellStyle += ' bg-[var(--m-accent-soft)] text-[var(--m-accent)] rounded-none';
             } else if (cell.isToday) {
               cellStyle +=
                 ' text-[var(--m-accent)] bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 hover:bg-[var(--m-accent-soft)]';
             } else if (!cell.isCurrentMonth) {
-              cellStyle += ' text-[#475569] hover:bg-[var(--m-surface-2)]';
+              cellStyle += ' text-[var(--m-text-muted)] hover:bg-[var(--m-surface-2)]';
             } else {
               cellStyle += ' text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)]';
             }
@@ -381,7 +381,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   onApply();
                   setIsOpen(false);
                 }}
-                className="px-2.5 py-1 bg-[var(--m-accent)] hover:bg-[var(--m-accent)] text-white rounded-lg font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 py-1 bg-[var(--m-accent)] hover:bg-[var(--m-accent)] text-[var(--m-on-accent)] rounded-lg font-bold flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <Check className="w-3 h-3" />
                 <span>Apply</span>

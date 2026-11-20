@@ -44,66 +44,66 @@ export const WindPanel: React.FC<WindPanelProps> = ({ points }) => {
   };
 
   return (
-    <div className="flex flex-col gap-3 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-2xl p-4 sm:p-5 shadow-xl">
+    <div className="flex flex-col gap-3 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-[11px] p-4 sm:p-5">
       <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
         <div className="flex items-center gap-2">
-          <Wind className="w-4 h-4 text-teal-400" />
-          <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
+          <Wind className="w-4 h-4 text-[var(--weather-wind)]" />
+          <h3 className="text-sm font-mono font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
             Wind &amp; Gust Outlook (24-Hour Profile)
           </h3>
         </div>
-        <span className="text-[10px] font-mono text-slate-400 bg-[var(--m-surface-2)] px-2 py-0.5 rounded border border-[#1E3A5F]">
+        <span className="text-[10px] font-mono text-[var(--m-text-muted)] bg-[var(--m-surface-2)] px-2 py-0.5 rounded border border-[var(--m-border)]">
           10-METER LEVEL
         </span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
         {/* Sustained Max */}
-        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-mono text-slate-400">Peak Sustained Wind</span>
-          <span className="text-2xl font-bold font-mono text-teal-300 mt-1">
+        <div className="p-3.5 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Peak Sustained Wind</span>
+          <span className="text-2xl font-bold font-mono text-[var(--weather-wind)] mt-1 tabular-nums">
             {maxWind} km/h
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
             {maxWindTime ? `At ${formatHour(maxWindTime)}` : '24h Horizon'}
           </span>
         </div>
 
         {/* Max Gust */}
-        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-mono text-slate-400">Maximum Wind Gust</span>
-          <span className="text-2xl font-bold font-mono text-amber-300 mt-1">
+        <div className="p-3.5 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Maximum Wind Gust</span>
+          <span className="text-2xl font-bold font-mono text-[var(--weather-sun)] mt-1 tabular-nums">
             {maxGust > 0 ? `${maxGust} km/h` : '—'}
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
             Turbulent Kinetic Energy
           </span>
         </div>
 
         {/* Dominant Vector */}
-        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-mono text-slate-400">Dominant Direction</span>
+        <div className="p-3.5 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Dominant Direction</span>
           <div className="flex items-center gap-2 mt-1">
             <Navigation
-              className="w-4 h-4 text-sky-400 transition-transform"
+              className="w-4 h-4 text-[var(--m-accent)] transition-transform"
               style={{ transform: `rotate(${avgDirection}deg)` }}
             />
-            <span className="text-2xl font-bold font-mono text-white">
+            <span className="text-2xl font-bold font-mono text-[var(--m-text-primary)] tabular-nums">
               {getCardinal(avgDirection)} ({avgDirection}°)
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
             Mean 24h Flow
           </span>
         </div>
 
         {/* Squall / Convective Risk */}
-        <div className="p-3.5 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-mono text-slate-400">Squall Threshold</span>
-          <span className="text-sm font-bold font-mono text-white mt-1">
+        <div className="p-3.5 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)]">Squall Threshold</span>
+          <span className="text-sm font-bold font-mono text-[var(--m-text-primary)] mt-1">
             {maxGust > 45 ? 'Elevated Gust Risk' : 'Normal Gradient Flow'}
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
             {maxGust > 45 ? 'Convective downburst potential' : 'Boundary layer stability normal'}
           </span>
         </div>

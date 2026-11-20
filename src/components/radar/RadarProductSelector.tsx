@@ -82,7 +82,7 @@ export const RadarProductSelector: React.FC<RadarProductSelectorProps> = ({
         subtitle="Operational product status and volumetric Doppler gateway availability"
         icon={<Layers className="w-4 h-4" />}
         action={
-          <span className="text-[11px] font-mono text-[#35C7E8] bg-[#08131F] border border-[#26394B] px-2.5 py-1 rounded-md">
+          <span className="text-[11px] font-mono text-[var(--m-accent)] bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-2.5 py-1 rounded-md">
             Overlay: {radarSourceLabel}
           </span>
         }
@@ -103,26 +103,26 @@ export const RadarProductSelector: React.FC<RadarProductSelectorProps> = ({
               className={`p-3.5 rounded-lg border text-left flex flex-col justify-between transition-colors m-focus-ring ${
                 prod.available
                   ? isSelected
-                    ? 'bg-[#101F2E] border-[#35C7E8] cursor-pointer'
-                    : 'bg-[#08131F] border-[#26394B] hover:border-[#38536A] cursor-pointer'
-                  : 'bg-[#08131F]/60 border-[#26394B]/60 opacity-80 cursor-not-allowed'
+                    ? 'bg-[var(--m-surface-1)] border-[var(--m-accent)] cursor-pointer'
+                    : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)] cursor-pointer'
+                  : 'bg-[var(--m-surface-inset)]/60 border-[var(--m-border)]/60 opacity-80 cursor-not-allowed'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-xs font-bold text-[#F3F6FA]">{prod.label}</span>
+                  <span className="text-xs font-bold text-[var(--m-text-primary)]">{prod.label}</span>
                   <SourceStatus
                     status={prod.available ? 'LIVE' : 'UNAVAILABLE'}
                     labelOverride={prod.available ? 'ACTIVE' : 'UNAVAILABLE'}
                   />
                 </div>
-                <p className="text-[11px] text-[#B5C3D1] leading-snug mb-2">
+                <p className="text-[11px] text-[var(--m-text-secondary)] leading-snug mb-2">
                   {prod.shortDesc}
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-[#26394B] mt-1 text-[10px]">
-                <span className={prod.available ? 'text-[#35C7E8] font-mono' : 'text-[#8295A8]'}>
+              <div className="pt-2 border-t border-[var(--m-border)] mt-1 text-[10px]">
+                <span className={prod.available ? 'text-[var(--m-accent)] font-mono' : 'text-[var(--m-text-muted)]'}>
                   {prod.statusText}
                 </span>
               </div>
@@ -131,11 +131,11 @@ export const RadarProductSelector: React.FC<RadarProductSelectorProps> = ({
         })}
       </div>
 
-      <div className="mt-4 p-3.5 bg-[#08131F] border border-[#26394B] rounded-lg text-xs text-[#B5C3D1] flex items-start gap-2.5">
-        <ShieldCheck className="w-4 h-4 text-[#35C7E8] shrink-0 mt-0.5" />
+      <div className="mt-4 p-3.5 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg text-xs text-[var(--m-text-secondary)] flex items-start gap-2.5">
+        <ShieldCheck className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <span className="font-bold text-[#F3F6FA] block">Data Integrity &amp; Calibration Transparency</span>
-          <p className="text-[11px] text-[#B5C3D1] leading-relaxed">
+          <span className="font-bold text-[var(--m-text-primary)] block">Data Integrity &amp; Calibration Transparency</span>
+          <p className="text-[11px] text-[var(--m-text-secondary)] leading-relaxed">
             RainViewer precipitation radar composite provides real-time hydrometeor reflectivity. IMD single-station volumetric Doppler products (MAX Z, PPZ, PPV, SRI, PAC, VVP2) require direct institutional gateway authorization and are marked Unavailable without simulation.
           </p>
         </div>

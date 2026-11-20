@@ -108,7 +108,7 @@ export default function App() {
     if (metaTheme) {
       metaTheme.setAttribute(
         'content',
-        activeTheme === 'classic' ? '#F4F6F7' : activeTheme === 'paper' ? '#F7F6F1' : '#07111B'
+        activeTheme === 'classic' || activeTheme === 'paper' ? '#F1F0EA' : '#0B0C0D'
       );
     }
   }, [activeTheme]);

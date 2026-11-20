@@ -36,50 +36,50 @@ export function getProviderStatusVisual(status: ProviderStatus): ProviderStatusV
         label: 'Live',
         tone: 'live',
         description: 'Fresh telemetry verified from upstream feed',
-        dotClass: 'bg-emerald-400',
-        textClass: 'text-emerald-300',
-        bgClass: 'bg-emerald-500/12',
-        borderClass: 'border-emerald-500/35',
+        dotClass: 'bg-[var(--m-ok)]',
+        textClass: 'text-[var(--m-ok)]',
+        bgClass: 'bg-[var(--m-ok-soft)]',
+        borderClass: 'border-[var(--m-ok)]/35',
       };
     case 'RECENT':
       return {
         label: 'Recent',
         tone: 'recent',
         description: 'Valid recent telemetry within operational window',
-        dotClass: 'bg-[#38BDF8]',
-        textClass: 'text-[#7DD3FC]',
-        bgClass: 'bg-[#38BDF8]/12',
-        borderClass: 'border-[#38BDF8]/35',
+        dotClass: 'bg-[var(--m-info)]',
+        textClass: 'text-[var(--m-info)]',
+        bgClass: 'bg-[var(--m-accent-soft)]',
+        borderClass: 'border-[var(--m-info)]/35',
       };
     case 'STALE':
       return {
         label: 'Stale',
         tone: 'stale',
         description: 'Cached response retained; upstream refresh delayed',
-        dotClass: 'bg-amber-400',
-        textClass: 'text-amber-300',
-        bgClass: 'bg-amber-500/12',
-        borderClass: 'border-amber-500/35',
+        dotClass: 'bg-[var(--m-watch)]',
+        textClass: 'text-[var(--m-watch)]',
+        bgClass: 'bg-[var(--m-watch-soft)]',
+        borderClass: 'border-[var(--m-watch)]/35',
       };
     case 'LOADING':
       return {
         label: 'Syncing',
         tone: 'loading',
         description: 'Request in progress',
-        dotClass: 'bg-sky-400',
-        textClass: 'text-sky-300',
-        bgClass: 'bg-sky-500/12',
-        borderClass: 'border-sky-500/35',
+        dotClass: 'bg-[var(--m-accent)]',
+        textClass: 'text-[var(--m-accent)]',
+        bgClass: 'bg-[var(--m-accent-soft)]',
+        borderClass: 'border-[var(--m-accent)]/35',
       };
     case 'ERROR':
       return {
         label: 'Error',
         tone: 'error',
         description: 'Upstream request failed without fallback data',
-        dotClass: 'bg-rose-400',
-        textClass: 'text-rose-300',
-        bgClass: 'bg-rose-500/12',
-        borderClass: 'border-rose-500/35',
+        dotClass: 'bg-[var(--m-danger)]',
+        textClass: 'text-[var(--m-danger)]',
+        bgClass: 'bg-[var(--m-danger-soft)]',
+        borderClass: 'border-[var(--m-danger)]/35',
       };
     case 'UNAVAILABLE':
     default:
@@ -87,10 +87,10 @@ export function getProviderStatusVisual(status: ProviderStatus): ProviderStatusV
         label: 'Unavailable',
         tone: 'unavailable',
         description: 'Official feed unreachable or not configured in this environment',
-        dotClass: 'bg-amber-500',
-        textClass: 'text-amber-300',
-        bgClass: 'bg-amber-500/10',
-        borderClass: 'border-amber-500/30',
+        dotClass: 'bg-[var(--m-watch)]',
+        textClass: 'text-[var(--m-watch)]',
+        bgClass: 'bg-[var(--m-watch-soft)]',
+        borderClass: 'border-[var(--m-watch)]/30',
       };
   }
 }

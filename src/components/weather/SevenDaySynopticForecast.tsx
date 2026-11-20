@@ -136,7 +136,7 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
           </div>
 
           <div className="m-panel-inset p-2.5 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[var(--m-accent-soft)] border border-[#0B72B9]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
               <CloudRain className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0">
@@ -249,7 +249,7 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
                 <div className="relative w-full h-1.5 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-full overflow-hidden">
                   {widthPercent > 0 && (
                     <div
-                      className="absolute h-full rounded-full bg-gradient-to-r from-[#35C7E8] to-[#EF4444]"
+                      className="absolute h-full rounded-full bg-gradient-to-r from-[var(--m-accent)] to-[#EF4444]"
                       style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
                     />
                   )}

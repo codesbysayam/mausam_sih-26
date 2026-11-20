@@ -243,19 +243,19 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   <meta charset="UTF-8">
   <title>${publication.title} - IMD Publication</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.6; color: #1E293B; max-width: 900px; margin: 40px auto; padding: 0 24px; }
-    .header { text-align: center; border-bottom: 2px solid #0B72B9; padding-bottom: 20px; margin-bottom: 24px; }
-    .header h1 { font-size: 20px; text-transform: uppercase; margin: 0; color: #0A5A94; }
-    .header h2 { font-size: 15px; color: #475569; margin: 4px 0 0 0; font-weight: normal; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.6; color: #202424; max-width: 900px; margin: 40px auto; padding: 0 24px; }
+    .header { text-align: center; border-bottom: 2px solid #C5A46D; padding-bottom: 20px; margin-bottom: 24px; }
+    .header h1 { font-size: 20px; text-transform: uppercase; margin: 0; color: #C5A46D; }
+    .header h2 { font-size: 15px; color: #898B83; margin: 4px 0 0 0; font-weight: normal; }
     .title-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
-    .title-box h3 { margin: 0 0 10px 0; color: #0F172A; font-size: 20px; }
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; color: #64748B; }
-    .meta-grid strong { color: #1E293B; }
+    .title-box h3 { margin: 0 0 10px 0; color: #111314; font-size: 20px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; color: #898B83; }
+    .meta-grid strong { color: #202424; }
     .section { margin-bottom: 24px; }
-    .section h4 { font-size: 16px; color: #0B72B9; border-bottom: 1px solid #CBD5E1; padding-bottom: 6px; margin: 20px 0 10px 0; }
+    .section h4 { font-size: 16px; color: #C5A46D; border-bottom: 1px solid #CBD5E1; padding-bottom: 6px; margin: 20px 0 10px 0; }
     table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
     th, td { border: 1px solid #CBD5E1; padding: 8px 12px; text-align: left; }
-    th { background: #F1F5F9; font-weight: bold; color: #334155; }
+    th { background: #F1F5F9; font-weight: bold; color: #2F3534; }
     tr:nth-child(even) { background: #F8FAFC; }
     .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8; text-align: center; }
   </style>
@@ -432,7 +432,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[#0B72B9]/45 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                <span className="bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/45 text-[10px] uppercase font-bold px-2 py-0.5 rounded">
                   {publication.type}
                 </span>
                 <span className="text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
@@ -486,7 +486,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] text-xs font-semibold px-3 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="bg-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] text-xs font-semibold px-3 min-h-[40px] sm:min-h-[34px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Print Official Document with Government Header"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -824,7 +824,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 min-h-[40px] sm:min-h-[34px] bg-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Export / Print</span>

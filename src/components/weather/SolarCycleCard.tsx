@@ -67,7 +67,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${
           isDay
             ? 'bg-[var(--m-surface-1)] border-[#F1C40F]/40'
-            : 'bg-[var(--m-surface-1)] border-[#0B72B9]/40'
+            : 'bg-[var(--m-surface-1)] border-[var(--m-accent)]/40'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -75,7 +75,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
             className={`p-2 rounded-md ${
               isDay
                 ? 'bg-[#F1C40F]/15 text-[#F1C40F]'
-                : 'bg-[#4FA8E0]/15 text-[#4FA8E0]'
+                : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)]'
             }`}
           >
             <Timer className="w-4 h-4 animate-pulse" />
@@ -132,7 +132,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 z-10 flex flex-col items-center"
             style={{ left: `${Math.max(4, Math.min(96, solarData.progressPercent))}%` }}
           >
-            <div className="w-6 h-6 rounded-full bg-[#F1C40F] border-2 border-white shadow-lg flex items-center justify-center text-[#1E2733] animate-pulse">
+            <div className="w-6 h-6 rounded-full bg-[#F1C40F] border-2 border-white shadow-lg flex items-center justify-center text-[var(--m-surface-2)] animate-pulse">
               <Sun className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -141,7 +141,7 @@ export const SolarCycleCard: React.FC<SolarCycleCardProps> = ({ weather, locatio
         {/* Status & Celestial Altitude/Azimuth */}
         <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--m-border-strong)]">
           <span className="text-[var(--m-text-secondary)] flex items-center gap-1">
-            <Compass className="w-3 h-3 text-[#4FA8E0]" />
+            <Compass className="w-3 h-3 text-[var(--m-accent)]" />
             <span>Azimuth: <strong className="text-[var(--m-text-primary)] font-mono">{solarData.solarAzimuthDeg}°</strong></span>
           </span>
           <span className="font-mono text-[#F1C40F] font-bold">

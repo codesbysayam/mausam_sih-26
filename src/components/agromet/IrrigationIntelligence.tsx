@@ -29,7 +29,7 @@ export const IrrigationIntelligence: React.FC<IrrigationIntelligenceProps> = ({
   const rainToday = bulletin.rainfall5DaysList?.[0]?.amountMm ?? 15;
 
   const irrigationStatus = overall > 65 || rainToday > 8 ? 'POSTPONE / LOW' : 'RECOMMENDED';
-  const statusColor = irrigationStatus === 'POSTPONE / LOW' ? '#38BDF8' : '#10B981';
+  const statusColor = irrigationStatus === 'POSTPONE / LOW' ? '#C5A46D' : '#10B981';
 
   return (
     <section id="irrigation-intelligence-section" className="space-y-4">
@@ -163,7 +163,7 @@ export const IrrigationIntelligence: React.FC<IrrigationIntelligenceProps> = ({
                 </div>
                 <div className="h-2.5 w-full rounded-full bg-[var(--m-surface-2)] overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#38BDF8] to-[#0284C7] rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-[var(--m-accent)] to-[var(--m-accent)] rounded-full transition-all duration-500"
                     style={{ width: `${rootZone}%` }}
                   ></div>
                 </div>

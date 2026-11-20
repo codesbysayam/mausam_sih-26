@@ -49,8 +49,8 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
         >
           <defs>
             <pattern id="scientific-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#38BDF8" strokeWidth="0.5" strokeOpacity="0.4" />
-              <circle cx="40" cy="40" r="1" fill="#38BDF8" fillOpacity="0.6" />
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#C5A46D" strokeWidth="0.5" strokeOpacity="0.4" />
+              <circle cx="40" cy="40" r="1" fill="#C5A46D" fillOpacity="0.6" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#scientific-grid)" />
@@ -66,14 +66,14 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
           <path
             d="M-50,220 C220,130 450,260 700,160 C950,60 1100,200 1250,120"
             fill="none"
-            stroke="#38BDF8"
+            stroke="#C5A46D"
             strokeWidth="1"
             strokeOpacity="0.4"
           />
           <path
             d="M-50,160 C240,80 500,200 750,100 C1000,0 1150,140 1250,60"
             fill="none"
-            stroke="#818CF8"
+            stroke="#C5A46D"
             strokeWidth="0.8"
             strokeOpacity="0.3"
           />
@@ -141,7 +141,7 @@ export const ReportsHero: React.FC<ReportsHeroProps> = ({ publications }) => {
             </div>
 
             <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-[#818CF8] tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--m-accent)] tracking-tight">
                 {researchCount.toString().padStart(2, '0')}
               </span>
               <span className="text-[10px] font-mono font-bold uppercase text-[var(--m-text-muted)] mt-1">

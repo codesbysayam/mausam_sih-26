@@ -15,11 +15,11 @@ export const HourlyView: React.FC = () => {
 
   const chartColor =
     selectedMetric === 'temp'
-      ? '#4FA8E0'
+      ? '#C5A46D'
       : selectedMetric === 'aqi'
       ? '#FFB703'
       : selectedMetric === 'rainProb'
-      ? '#0B72B9'
+      ? '#C5A46D'
       : '#2ECC71';
 
   return (
@@ -28,7 +28,7 @@ export const HourlyView: React.FC = () => {
       <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">schedule</span>
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">schedule</span>
             <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)]">
               24-Hour Atmospheric Hourly Matrix
             </h2>
@@ -67,7 +67,7 @@ export const HourlyView: React.FC = () => {
           <h3 className="font-h4 text-sm font-semibold text-[var(--m-text-primary)]">
             Telemetry Curve ({selectedMetric.toUpperCase()})
           </h3>
-          <span className="text-xs text-[#4FA8E0] font-medium">
+          <span className="text-xs text-[var(--m-accent)] font-medium">
             {selectedMetric === 'temp'
               ? 'Peak 31.0°C at 13:00 • Minimum 21.5°C at Dawn'
               : selectedMetric === 'aqi'
@@ -87,22 +87,22 @@ export const HourlyView: React.FC = () => {
                   <stop offset="95%" stopColor={chartColor} stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(225,230,235,0.12)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 219, 200,0.12)" />
               <XAxis
                 dataKey="time"
-                stroke="#8A94A6"
-                tick={{ fill: '#8A94A6', fontSize: 11 }}
+                stroke="#898B83"
+                tick={{ fill: '#898B83', fontSize: 11 }}
               />
               <YAxis
-                stroke="#8A94A6"
-                tick={{ fill: '#8A94A6', fontSize: 11 }}
+                stroke="#898B83"
+                tick={{ fill: '#898B83', fontSize: 11 }}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0F141A',
-                  borderColor: 'rgba(225,230,235,0.12)',
+                  backgroundColor: '#111314',
+                  borderColor: 'rgba(226, 219, 200,0.12)',
                   borderRadius: 8,
-                  color: '#F4F7FA',
+                  color: '#F0EEE7',
                   fontSize: 12,
                 }}
               />
@@ -129,8 +129,8 @@ export const HourlyView: React.FC = () => {
           return (
             <div
               key={item.time}
-              className={`bg-[var(--m-surface-1)] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[#0B72B9] transition-all cursor-pointer ${
-                idx === 2 ? 'ring-1 ring-[#0B72B9] bg-[var(--m-surface-2)]' : ''
+              className={`bg-[var(--m-surface-1)] card-border rounded-xl p-3.5 flex flex-col items-center text-center gap-2 hover:border-[var(--m-accent)] transition-all cursor-pointer ${
+                idx === 2 ? 'ring-1 ring-[var(--m-focus)] bg-[var(--m-surface-2)]' : ''
               }`}
             >
               <span className="text-xs text-[var(--m-text-secondary)]">
@@ -144,19 +144,19 @@ export const HourlyView: React.FC = () => {
               <span className="text-xl font-bold text-[var(--m-text-primary)]">
                 {hasTemp ? `${Math.round(item.temp)}°C` : '—'}
               </span>
-              <div className="w-full h-px bg-[rgba(225,230,235,0.12)] my-0.5"></div>
+              <div className="w-full h-px bg-[rgba(226, 219, 200,0.12)] my-0.5"></div>
               <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>AQI</span>
                 <span
                   className="font-bold"
-                  style={{ color: hasAqi ? (item.aqi > 100 ? '#FFB703' : '#2ECC71') : '#8A94A6' }}
+                  style={{ color: hasAqi ? (item.aqi > 100 ? '#FFB703' : '#2ECC71') : '#898B83' }}
                 >
                   {hasAqi ? item.aqi : '—'}
                 </span>
               </div>
               <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>Rain</span>
-                <span className="text-[#4FA8E0]">{hasRain ? `${item.rainProb}%` : '—'}</span>
+                <span className="text-[var(--m-accent)]">{hasRain ? `${item.rainProb}%` : '—'}</span>
               </div>
               <div className="w-full flex justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span>Wind</span>

@@ -111,7 +111,7 @@ For real-time weather updates visit mausam.imd.gov.in
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2ECC71] text-[#0A1017] font-black text-xs hover:bg-[#27AE60] transition-all shadow-lg shadow-[#2ECC71]/20 cursor-pointer focus:outline-none"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2ECC71] text-[var(--m-on-accent)] font-black text-xs hover:bg-[#27AE60] transition-all shadow-lg shadow-[#2ECC71]/20 cursor-pointer focus:outline-none"
             >
               <Eye className="w-4 h-4" />
               <span>Read Full Bulletin</span>

@@ -59,11 +59,11 @@ export const ModelRunHistory: React.FC<ModelRunHistoryProps> = ({
                   <span
                     className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                       c.isCurrent
-                        ? 'bg-[var(--m-accent)] border-[var(--m-accent)] ring-4 ring-[#0B72B9]/25'
+                        ? 'bg-[var(--m-accent)] border-[var(--m-accent)] ring-4 ring-[var(--m-focus)]/25'
                         : 'bg-[var(--m-surface-1)] border-[var(--m-border)]'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${c.isCurrent ? 'bg-white' : 'bg-[#8295A8]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${c.isCurrent ? 'bg-white' : 'bg-[var(--m-text-muted)]'}`} />
                   </span>
                 </div>
 

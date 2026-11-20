@@ -418,7 +418,7 @@ function TacticalOverlaysController({
     if (showCoverageMask) {
       const coverageCircle = L.circle([centerLat, centerLng], {
         radius: maxRange * 1000,
-        color: '#1499E8',
+        color: '#C5A46D',
         weight: 1.8,
         opacity: 0.85,
         dashArray: '6, 4',
@@ -433,7 +433,7 @@ function TacticalOverlaysController({
       for (let r = step; r <= maxRange; r += step) {
         const ring = L.circle([centerLat, centerLng], {
           radius: r * 1000,
-          color: r === maxRange ? '#1499E8' : 'rgba(67, 199, 244, 0.45)',
+          color: r === maxRange ? '#C5A46D' : 'rgba(197, 164, 109, 0.45)',
           weight: r === maxRange ? 1.5 : 1.0,
           dashArray: r === maxRange ? undefined : '3, 4',
           fill: false,
@@ -446,7 +446,7 @@ function TacticalOverlaysController({
         const labelMarker = L.marker([labelLat, labelLng], {
           icon: L.divIcon({
             className: 'radar-leaflet-label',
-            html: `<div style="color:#43C7F4; font-family:monospace; font-size:10px; font-weight:700; text-shadow:0 1px 3px #000; background:rgba(7,16,24,0.85); padding:1px 4px; border-radius:3px; border:1px solid rgba(67,199,244,0.3); transform:translate(-50%,-50%); white-space:nowrap;">${r} km</div>`,
+            html: `<div style="color:#C5A46D; font-family:monospace; font-size:10px; font-weight:700; text-shadow:0 1px 3px #000; background:rgba(17, 19, 20,0.85); padding:1px 4px; border-radius:3px; border:1px solid rgba(197, 164, 109,0.3); transform:translate(-50%,-50%); white-space:nowrap;">${r} km</div>`,
           }),
           interactive: false,
         });
@@ -464,7 +464,7 @@ function TacticalOverlaysController({
             [endLat, endLng],
           ],
           {
-            color: az % 90 === 0 ? 'rgba(67, 199, 244, 0.5)' : 'rgba(67, 199, 244, 0.22)',
+            color: az % 90 === 0 ? 'rgba(197, 164, 109, 0.5)' : 'rgba(197, 164, 109, 0.22)',
             weight: az % 90 === 0 ? 1.2 : 0.8,
             dashArray: az % 90 === 0 ? undefined : '2, 4',
             interactive: false,
@@ -489,8 +489,8 @@ function TacticalOverlaysController({
           icon: L.divIcon({
             className: 'radar-azimuth-label',
             html: `<div style="color:${
-              az % 90 === 0 ? '#43C7F4' : '#93A4B8'
-            }; font-family:monospace; font-size:9px; font-weight:700; text-shadow:0 1px 2px #000; background:rgba(7,16,24,0.85); padding:1px 3px; border-radius:2px; border:1px solid rgba(22,35,49,0.9); transform:translate(-50%,-50%); white-space:nowrap;">${cardinalName}</div>`,
+              az % 90 === 0 ? '#C5A46D' : '#898B83'
+            }; font-family:monospace; font-size:9px; font-weight:700; text-shadow:0 1px 2px #000; background:rgba(17, 19, 20,0.85); padding:1px 3px; border-radius:2px; border:1px solid rgba(25, 28, 29,0.9); transform:translate(-50%,-50%); white-space:nowrap;">${cardinalName}</div>`,
           }),
           interactive: false,
         });
@@ -512,7 +512,7 @@ function TacticalOverlaysController({
             [lat, lngMax],
           ],
           {
-            color: 'rgba(147, 164, 184, 0.12)',
+            color: 'rgba(226, 219, 200, 0.12)',
             weight: 0.6,
             dashArray: '2, 6',
             interactive: false,
@@ -528,7 +528,7 @@ function TacticalOverlaysController({
             [latMax, lng],
           ],
           {
-            color: 'rgba(147, 164, 184, 0.12)',
+            color: 'rgba(226, 219, 200, 0.12)',
             weight: 0.6,
             dashArray: '2, 6',
             interactive: false,
@@ -557,7 +557,7 @@ function TacticalOverlaysController({
                 }; box-shadow:0 0 4px ${place.isWater ? '#00D9FF' : '#FFC857'};"></span>
                 <span style="color:${
                   place.isWater ? '#A5F3FC' : '#E2E8F0'
-                }; font-size:9px; font-weight:600; text-shadow:0 1px 2px #000; background:rgba(7,16,24,0.7); padding:1px 3px; border-radius:2px; white-space:nowrap;">${
+                }; font-size:9px; font-weight:600; text-shadow:0 1px 2px #000; background:rgba(17, 19, 20,0.7); padding:1px 3px; border-radius:2px; white-space:nowrap;">${
                 place.name
               }</span>
               </div>`,
@@ -575,7 +575,7 @@ function TacticalOverlaysController({
       html: `
         <div style="position:relative; width:22px; height:22px; transform:translate(-50%,-50%);">
           <div style="position:absolute; inset:0; border:2px solid #22C7A0; border-radius:50%; animation:pulse 2s infinite; opacity:0.8;"></div>
-          <div style="position:absolute; inset:3px; border:1px solid #1499E8; border-radius:50%;"></div>
+          <div style="position:absolute; inset:3px; border:1px solid #C5A46D; border-radius:50%;"></div>
           <div style="position:absolute; top:50%; left:0; width:100%; height:1px; background:#22C7A0;"></div>
           <div style="position:absolute; left:50%; top:0; height:100%; width:1px; background:#22C7A0;"></div>
           <div style="position:absolute; top:50%; left:50%; width:4px; height:4px; background:#FFFFFF; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 6px #22C7A0;"></div>
@@ -585,11 +585,11 @@ function TacticalOverlaysController({
 
     const centerMarker = L.marker([centerLat, centerLng], { icon: centerIcon, zIndexOffset: 1000 });
     centerMarker.bindPopup(`
-      <div style="font-family:sans-serif; color:#0B141E; padding:4px;">
+      <div style="font-family:sans-serif; color:#111314; padding:4px;">
         <h4 style="margin:0; font-weight:bold; font-size:13px;">${station.name}</h4>
-        <div style="font-size:11px; color:#475569; margin-top:2px;">Station Code: <strong>${station.code}</strong> • Band: ${station.band}</div>
-        <div style="font-size:10px; color:#64748B; margin-top:4px;">Coordinates: ${formatCoordinatePair(station.lat, station.lng, 4)}</div>
-        <div style="font-size:10px; color:#1499E8; margin-top:2px;">Surveillance Baseline: ${station.range}</div>
+        <div style="font-size:11px; color:#898B83; margin-top:2px;">Station Code: <strong>${station.code}</strong> • Band: ${station.band}</div>
+        <div style="font-size:10px; color:#898B83; margin-top:4px;">Coordinates: ${formatCoordinatePair(station.lat, station.lng, 4)}</div>
+        <div style="font-size:10px; color:#C5A46D; margin-top:2px;">Surveillance Baseline: ${station.range}</div>
       </div>
     `);
     group.addLayer(centerMarker);
@@ -815,8 +815,8 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
       label: 'LIVE',
     },
     RECENT: {
-      dot: 'bg-[#43C7F4]',
-      badge: 'bg-[#43C7F4]/15 text-[#43C7F4] border-[#43C7F4]/30',
+      dot: 'bg-[var(--m-accent)]',
+      badge: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
       label: 'RECENT',
     },
     STALE: {
@@ -830,8 +830,8 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
       label: 'UNAVAILABLE',
     },
     LOADING: {
-      dot: 'bg-[#43C7F4] animate-ping',
-      badge: 'bg-[#43C7F4]/15 text-[#43C7F4] border-[#43C7F4]/30',
+      dot: 'bg-[var(--m-accent)] animate-ping',
+      badge: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
       label: 'LOADING',
     },
     ERROR: {
@@ -848,27 +848,27 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
   return (
     <div
       id="professional-meteorological-radar"
-      className={`rounded-2xl bg-[#0B141E] border border-[#162331] shadow-2xl overflow-hidden flex flex-col transition-all ${
+      className={`rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] shadow-2xl overflow-hidden flex flex-col transition-all ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'w-full'
       }`}
     >
       {/* 1. Radar Station Scope Header & Real Operational Telemetry */}
-      <div className="bg-[#071018] px-4 py-3 border-b border-[#162331] flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[var(--m-surface-inset)] px-4 py-3 border-b border-[var(--m-border-strong)] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#1499E8]/20 border border-[#1499E8]/40 flex items-center justify-center text-[#43C7F4]">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 flex items-center justify-center text-[var(--m-accent)]">
             <Radio className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[#F4F7FA]">{station.name}</h3>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded font-bold bg-[#1499E8]/20 text-[#43C7F4] border border-[#1499E8]/30">
+              <h3 className="text-sm font-bold text-[var(--m-text-primary)]">{station.name}</h3>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded font-bold bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/30">
                 {station.code}
               </span>
               <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-[#22C7A0]/20 text-[#22C7A0]">
                 {station.state}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-[#93A4B8] mt-0.5">
+            <div className="flex items-center gap-3 text-[11px] text-[var(--m-text-muted)] mt-0.5">
               <span>{station.band}</span>
               <span>•</span>
               <span>Elevation: {station.elevationMeters}m ASL</span>
@@ -891,7 +891,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
               ● {statusConfig.label}
             </span>
 
-            <small className="text-[#93A4B8] text-[11px] font-mono">
+            <small className="text-[var(--m-text-muted)] text-[11px] font-mono">
               {productMetadata?.observedFormatted ? (
                 <>OBSERVED: {productMetadata.observedFormatted}</>
               ) : isLoadingProduct ? (
@@ -907,7 +907,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             <button
               type="button"
               onClick={() => setIsInspectorOpen(true)}
-              className="px-2.5 py-1 rounded-lg bg-[#1499E8]/15 hover:bg-[#1499E8]/25 border border-[#1499E8]/40 text-[#43C7F4] flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition-colors"
               title="Inspect uncropped full-resolution IMD station radar scan"
             >
               <Eye className="w-3.5 h-3.5" />
@@ -920,11 +920,11 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             type="button"
             onClick={() => fetchActiveProductData(station.code || station.id, activeProduct)}
             disabled={isLoadingProduct}
-            className="px-2.5 py-1 rounded-lg bg-[#0B141E] hover:bg-[#162331] border border-[#162331] text-[#93A4B8] hover:text-[#43C7F4] flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[var(--m-text-muted)] hover:text-[var(--m-accent-strong)] flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-colors"
             title="Refresh radar scan data immediately"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 ${isLoadingProduct ? 'animate-spin text-[#43C7F4]' : ''}`}
+              className={`w-3.5 h-3.5 ${isLoadingProduct ? 'animate-spin text-[var(--m-accent)]' : ''}`}
             />
             <span className="hidden sm:inline">Refresh</span>
           </button>
@@ -933,7 +933,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           <button
             type="button"
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="w-8 h-8 rounded-lg bg-[#0B141E] border border-[#162331] text-[#93A4B8] hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] text-[var(--m-text-muted)] hover:text-white flex items-center justify-center cursor-pointer transition-colors"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Scope'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -942,9 +942,9 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
       </div>
 
       {/* Real Source Attribution & Active Stream Specification HUD */}
-      <div className="bg-[#070D14] px-4 py-1.5 border-b border-[#162331] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#8A94A6]">
+      <div className="bg-[#070D14] px-4 py-1.5 border-b border-[var(--m-border-strong)] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--m-text-muted)]">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-[#D1DCE8]">
+          <span className="font-bold text-[var(--m-text-secondary)]">
             {productMetadata?.isFallback || productMetadata?.source?.includes('RainViewer')
               ? 'Weather radar imagery'
               : 'PRODUCT:'}
@@ -952,21 +952,21 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           {!(productMetadata?.isFallback || productMetadata?.source?.includes('RainViewer')) && (
             <span className="font-semibold text-white">{currentProdConfig.label}</span>
           )}
-          <span className="text-[#162331]">|</span>
-          <span className="font-bold text-[#D1DCE8]">SOURCE:</span>
-          <span className="font-semibold text-[#43C7F4]">
+          <span className="text-[var(--m-surface-2)]">|</span>
+          <span className="font-bold text-[var(--m-text-secondary)]">SOURCE:</span>
+          <span className="font-semibold text-[var(--m-accent)]">
             {productMetadata?.isFallback || productMetadata?.source?.includes('RainViewer')
               ? 'RainViewer'
               : (productMetadata?.source || 'India Meteorological Department (IMD)')}
           </span>
-          <span className="text-[#162331]">|</span>
-          <span className="font-bold text-[#D1DCE8]">STATUS:</span>
+          <span className="text-[var(--m-surface-2)]">|</span>
+          <span className="font-bold text-[var(--m-text-secondary)]">STATUS:</span>
           <span
             className={`font-semibold ${
               currentStatus === 'LIVE'
                 ? 'text-[#22C7A0]'
                 : currentStatus === 'RECENT'
-                ? 'text-[#43C7F4]'
+                ? 'text-[var(--m-accent)]'
                 : currentStatus === 'UNAVAILABLE'
                 ? 'text-[#EF4444]'
                 : 'text-[#FFC857]'
@@ -976,23 +976,23 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           </span>
           {productMetadata?.isFallback && (
             <>
-              <span className="text-[#162331]">|</span>
+              <span className="text-[var(--m-surface-2)]">|</span>
               <span className="text-[10px] text-[#FFC857] italic">
                 (RainViewer Composite Reflectivity Mosaic Active)
               </span>
             </>
           )}
         </div>
-        <div className="text-[10px] text-[#93A4B8] font-mono">
+        <div className="text-[10px] text-[var(--m-text-muted)] font-mono">
           Cut: {currentProdConfig.elevationAngle} • Unit: {currentProdConfig.unit}
         </div>
       </div>
 
       {/* 2. REAL PRODUCT BUTTON SELECTOR & SCOPE CONTROLLER */}
-      <div className="bg-[#0B141E] px-4 py-2.5 border-b border-[#162331] flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-[var(--m-surface-inset)] px-4 py-2.5 border-b border-[var(--m-border-strong)] flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* All 6 Radar Products as Active Selectable Tabs */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold text-[#93A4B8] uppercase mr-1">Products:</span>
+          <span className="text-[11px] font-bold text-[var(--m-text-muted)] uppercase mr-1">Products:</span>
 
           {PRODUCT_LIST.map((prod) => {
             const isSelected = activeProduct === prod.key;
@@ -1013,10 +1013,10 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 }}
                 className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   !isSupportedByFeed
-                    ? 'bg-[#071018]/50 text-[#5A6878] border border-[#162331]/40 cursor-not-allowed opacity-60'
+                    ? 'bg-[var(--m-surface-inset)]/50 text-[#5A6878] border border-[var(--m-border-strong)]/40 cursor-not-allowed opacity-60'
                     : isSelected
-                    ? 'bg-[#1499E8] text-white shadow-md cursor-pointer'
-                    : 'bg-[#071018] text-[#93A4B8] hover:text-white hover:bg-[#162331] border border-[#162331] cursor-pointer'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-md cursor-pointer'
+                    : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] hover:text-white hover:bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] cursor-pointer'
                 }`}
                 title={
                   !isSupportedByFeed
@@ -1039,16 +1039,16 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         <div className="flex items-center gap-2">
           {/* Range Selector */}
           <div className="flex items-center gap-1">
-            <span className="text-[11px] font-bold text-[#93A4B8] uppercase mr-0.5">Range:</span>
+            <span className="text-[11px] font-bold text-[var(--m-text-muted)] uppercase mr-0.5">Range:</span>
             {station.maxRangeKm >= 500 ? (
-              <div className="flex bg-[#071018] border border-[#162331] rounded p-0.5">
+              <div className="flex bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] rounded p-0.5">
                 <button
                   type="button"
                   onClick={() => setSelectedRangeKm(250)}
                   className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
                     selectedRangeKm === 250
-                      ? 'bg-[#1499E8] text-white shadow-sm'
-                      : 'text-[#93A4B8] hover:text-white'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
+                      : 'text-[var(--m-text-muted)] hover:text-white'
                   }`}
                 >
                   250 km
@@ -1058,15 +1058,15 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                   onClick={() => setSelectedRangeKm(500)}
                   className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
                     selectedRangeKm === 500
-                      ? 'bg-[#1499E8] text-white shadow-sm'
-                      : 'text-[#93A4B8] hover:text-white'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
+                      : 'text-[var(--m-text-muted)] hover:text-white'
                   }`}
                 >
                   500 km
                 </button>
               </div>
             ) : (
-              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#071018] text-[#43C7F4] border border-[#162331]">
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[var(--m-surface-inset)] text-[var(--m-accent)] border border-[var(--m-border-strong)]">
                 {station.maxRangeKm} km
               </span>
             )}
@@ -1078,12 +1078,12 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             onClick={() =>
               setBasemapStyle(basemapStyle === 'meteorological' ? 'standard' : 'meteorological')
             }
-            className="px-2.5 py-1 rounded text-xs font-semibold bg-[#071018] text-[#93A4B8] hover:text-white border border-[#162331] flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="px-2.5 py-1 rounded text-xs font-semibold bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] hover:text-white border border-[var(--m-border-strong)] flex items-center gap-1.5 cursor-pointer transition-colors"
             title="Toggle between Meteorological Scope filter and Standard OpenStreetMap"
           >
             {basemapStyle === 'meteorological' ? (
               <>
-                <Moon className="w-3.5 h-3.5 text-[#43C7F4]" />
+                <Moon className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span className="hidden sm:inline">Scope Basemap</span>
               </>
             ) : (
@@ -1099,67 +1099,67 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             <button
               type="button"
               onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className="px-2.5 py-1 rounded text-xs font-semibold bg-[#071018] text-[#93A4B8] hover:text-white border border-[#162331] flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-1 rounded text-xs font-semibold bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] hover:text-white border border-[var(--m-border-strong)] flex items-center gap-1.5 cursor-pointer"
             >
-              <Layers className="w-3.5 h-3.5 text-[#43C7F4]" />
+              <Layers className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span className="hidden sm:inline">Overlays</span>
             </button>
 
             {showLayerMenu && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 bg-[#071018] border border-[#162331] rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2">
-                <span className="text-[10px] font-bold text-[#93A4B8] uppercase">
+              <div className="absolute right-0 top-full mt-1.5 w-56 bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] rounded-xl p-3 shadow-2xl z-50 flex flex-col gap-2">
+                <span className="text-[10px] font-bold text-[var(--m-text-muted)] uppercase">
                   Scope Tactical Layers
                 </span>
-                <label className="flex items-center gap-2 text-xs text-[#D1DCE8] cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--m-text-secondary)] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showRangeRings}
                     onChange={(e) => setShowRangeRings(e.target.checked)}
-                    className="rounded accent-[#1499E8]"
+                    className="rounded accent-[var(--m-accent)]"
                   />
                   <span>Range Rings</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs text-[#D1DCE8] cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--m-text-secondary)] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showAzimuths}
                     onChange={(e) => setShowAzimuths(e.target.checked)}
-                    className="rounded accent-[#1499E8]"
+                    className="rounded accent-[var(--m-accent)]"
                   />
                   <span>Azimuth Radials (30°)</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs text-[#D1DCE8] cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--m-text-secondary)] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showLatLngGrid}
                     onChange={(e) => setShowLatLngGrid(e.target.checked)}
-                    className="rounded accent-[#1499E8]"
+                    className="rounded accent-[var(--m-accent)]"
                   />
                   <span>Lat/Lng Graticule</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs text-[#D1DCE8] cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--m-text-secondary)] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showCities}
                     onChange={(e) => setShowCities(e.target.checked)}
-                    className="rounded accent-[#1499E8]"
+                    className="rounded accent-[var(--m-accent)]"
                   />
                   <span>Surrounding Locations</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs text-[#D1DCE8] cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--m-text-secondary)] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showCoverageMask}
                     onChange={(e) => setShowCoverageMask(e.target.checked)}
-                    className="rounded accent-[#1499E8]"
+                    className="rounded accent-[var(--m-accent)]"
                   />
                   <span>Perimeter Boundary ({selectedRangeKm}km)</span>
                 </label>
 
-                <div className="pt-2 border-t border-[#162331] flex flex-col gap-1">
-                  <div className="flex justify-between text-[10px] text-[#93A4B8]">
+                <div className="pt-2 border-t border-[var(--m-border-strong)] flex flex-col gap-1">
+                  <div className="flex justify-between text-[10px] text-[var(--m-text-muted)]">
                     <span>Radar Echo Opacity</span>
-                    <span className="font-mono text-[#43C7F4]">
+                    <span className="font-mono text-[var(--m-accent)]">
                       {(radarOpacity * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -1170,7 +1170,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                     step="0.05"
                     value={radarOpacity}
                     onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
-                    className="w-full accent-[#1499E8] h-1 bg-[#162331] rounded cursor-pointer"
+                    className="w-full accent-[var(--m-accent)] h-1 bg-[var(--m-surface-2)] rounded cursor-pointer"
                   />
                 </div>
               </div>
@@ -1181,7 +1181,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           <button
             type="button"
             onClick={handleRecenter}
-            className="w-8 h-8 rounded-lg bg-[#071018] border border-[#162331] text-[#93A4B8] hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] text-[var(--m-text-muted)] hover:text-white flex items-center justify-center cursor-pointer transition-colors"
             title="Recenter Radar on Station"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -1273,12 +1273,12 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         </div>
 
         {/* Compass / True North (Top-Right) */}
-        <div className="absolute top-4 right-4 z-20 pointer-events-none bg-[#071018]/90 backdrop-blur-xs border border-[#162331] rounded-xl p-2.5 shadow-xl flex flex-col items-center">
+        <div className="absolute top-4 right-4 z-20 pointer-events-none bg-[var(--m-surface-inset)]/90 backdrop-blur-xs border border-[var(--m-border-strong)] rounded-xl p-2.5 shadow-xl flex flex-col items-center">
           <div className="relative w-9 h-9 flex items-center justify-center">
-            <Compass className="w-9 h-9 text-[#43C7F4]/70" />
+            <Compass className="w-9 h-9 text-[var(--m-accent)]/70" />
             <div className="absolute top-0 text-[9px] font-bold text-[#FF8C42]">N</div>
           </div>
-          <span className="text-[9px] font-mono text-[#93A4B8] mt-1">TRUE NORTH</span>
+          <span className="text-[9px] font-mono text-[var(--m-text-muted)] mt-1">TRUE NORTH</span>
         </div>
 
         {/* Tactical Floating Controls (+ / - / Lock) with Smooth Interaction */}
@@ -1291,7 +1291,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             className={`w-8 h-8 rounded-lg border flex items-center justify-center cursor-pointer transition-all duration-150 shadow-md select-none ${
               isMapLocked
                 ? 'bg-[#FF8C42]/20 border-[#FF8C42] text-[#FF8C42] ring-1 ring-[#FF8C42]/50'
-                : 'bg-[#071018]/90 hover:bg-[#162331] border-[#162331] text-[#D1DCE8] hover:text-white'
+                : 'bg-[var(--m-surface-inset)]/90 hover:bg-[var(--m-surface-2)] border-[var(--m-border-strong)] text-[var(--m-text-secondary)] hover:text-white'
             }`}
             title={
               isMapLocked
@@ -1301,7 +1301,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             aria-label={isMapLocked ? 'Unlock radar map panning and zooming' : 'Lock radar map to current sector'}
             aria-pressed={isMapLocked}
           >
-            {isMapLocked ? <Lock className="w-4 h-4 text-[#FF8C42]" /> : <Unlock className="w-4 h-4 text-[#93A4B8]" />}
+            {isMapLocked ? <Lock className="w-4 h-4 text-[#FF8C42]" /> : <Unlock className="w-4 h-4 text-[var(--m-text-muted)]" />}
           </button>
 
           <button
@@ -1310,8 +1310,8 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             onClick={handleZoomIn}
             className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-150 shadow-md select-none ${
               isMapLocked
-                ? 'bg-[#071018]/50 border-[#162331]/40 text-[#8A94A6]/40 cursor-not-allowed'
-                : 'bg-[#071018]/90 hover:bg-[#162331] active:bg-[#43C7F4]/20 active:scale-90 border-[#162331] text-[#D1DCE8] hover:text-white cursor-pointer'
+                ? 'bg-[var(--m-surface-inset)]/50 border-[var(--m-border-strong)]/40 text-[var(--m-text-muted)]/40 cursor-not-allowed'
+                : 'bg-[var(--m-surface-inset)]/90 hover:bg-[var(--m-surface-2)] active:bg-[var(--m-accent-soft)] active:scale-90 border-[var(--m-border-strong)] text-[var(--m-text-secondary)] hover:text-white cursor-pointer'
             }`}
             title={isMapLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Smooth Zoom In'}
             aria-label="Zoom In"
@@ -1324,8 +1324,8 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             onClick={handleZoomOut}
             className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-150 shadow-md select-none ${
               isMapLocked
-                ? 'bg-[#071018]/50 border-[#162331]/40 text-[#8A94A6]/40 cursor-not-allowed'
-                : 'bg-[#071018]/90 hover:bg-[#162331] active:bg-[#43C7F4]/20 active:scale-90 border-[#162331] text-[#D1DCE8] hover:text-white cursor-pointer'
+                ? 'bg-[var(--m-surface-inset)]/50 border-[var(--m-border-strong)]/40 text-[var(--m-text-muted)]/40 cursor-not-allowed'
+                : 'bg-[var(--m-surface-inset)]/90 hover:bg-[var(--m-surface-2)] active:bg-[var(--m-accent-soft)] active:scale-90 border-[var(--m-border-strong)] text-[var(--m-text-secondary)] hover:text-white cursor-pointer'
             }`}
             title={isMapLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Smooth Zoom Out'}
             aria-label="Zoom Out"
@@ -1336,11 +1336,11 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
 
         {/* On-Map Floating Sector Lock HUD Badge */}
         {isMapLocked && (
-          <div className="absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#071018]/95 border border-[#FF8C42]/80 text-[#FF8C42] text-xs font-mono shadow-2xl backdrop-blur-md">
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[#FF8C42]/80 text-[#FF8C42] text-xs font-mono shadow-2xl backdrop-blur-md">
             <Lock className="w-3.5 h-3.5 text-[#FF8C42]" />
             <div className="flex flex-col">
               <span className="font-bold uppercase tracking-wider text-[11px]">Sector View Locked</span>
-              <span className="text-[10px] text-[#D1DCE8]">{station.name} ({station.band} Band)</span>
+              <span className="text-[10px] text-[var(--m-text-secondary)]">{station.name} ({station.band} Band)</span>
             </div>
             <button
               type="button"
@@ -1353,41 +1353,41 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         )}
 
         {/* Station Telemetry HUD Overlay (Top-Left) */}
-        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-[#071018]/92 backdrop-blur-xs border border-[#162331] rounded-xl p-3 shadow-xl max-w-xs flex flex-col gap-1 text-xs">
+        <div className="absolute top-4 left-4 z-20 pointer-events-none bg-[var(--m-surface-inset)]/92 backdrop-blur-xs border border-[var(--m-border-strong)] rounded-xl p-3 shadow-xl max-w-xs flex flex-col gap-1 text-xs">
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${statusConfig.dot}`} />
-            <span className="font-bold text-[#F4F7FA]">{station.name}</span>
+            <span className="font-bold text-[var(--m-text-primary)]">{station.name}</span>
           </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-[#93A4B8] mt-1">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-[var(--m-text-muted)] mt-1">
             <span>Operational Band:</span>
-            <span className="font-mono text-[#D1DCE8]">{station.band}</span>
+            <span className="font-mono text-[var(--m-text-secondary)]">{station.band}</span>
             <span>Elevation:</span>
-            <span className="font-mono text-[#D1DCE8]">{station.elevationMeters}m ASL</span>
+            <span className="font-mono text-[var(--m-text-secondary)]">{station.elevationMeters}m ASL</span>
             <span>Surveillance Scope:</span>
-            <span className="font-mono text-[#43C7F4]">{selectedRangeKm} km</span>
+            <span className="font-mono text-[var(--m-accent)]">{selectedRangeKm} km</span>
             <span>Active Product:</span>
             <span className="font-mono text-[#22C7A0]">{activeProduct}</span>
             <span>Azimuth Radials:</span>
-            <span className="font-mono text-[#D1DCE8]">30° Geodesic</span>
+            <span className="font-mono text-[var(--m-text-secondary)]">30° Geodesic</span>
           </div>
-          <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-[#162331]/80">
+          <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-[var(--m-border-strong)]/80">
             <div className="radar-live-badge">
               <span className="radar-live-pulse-dot" />
               <span className="text-[10px] font-mono font-bold tracking-wider text-[#22C7A0]">LIVE SWEEP ACTIVE</span>
             </div>
-            <span className="text-[10px] font-mono text-[#93A4B8]">4s CYCLE</span>
+            <span className="text-[10px] font-mono text-[var(--m-text-muted)]">4s CYCLE</span>
           </div>
         </div>
 
         {/* Non-blocking Loading State Badges */}
         {!basemapReady && (
           <div className="radar-loading">
-            <div className="bg-[#0B141E]/95 backdrop-blur-md border border-[#43C7F4]/40 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-2.5">
-              <RefreshCw className="w-3.5 h-3.5 text-[#43C7F4] animate-spin" />
+            <div className="bg-[var(--m-surface-inset)]/95 backdrop-blur-md border border-[var(--m-accent)]/40 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-2.5">
+              <RefreshCw className="w-3.5 h-3.5 text-[var(--m-accent)] animate-spin" />
               <span className="text-[11px] font-semibold text-white tracking-wide">
                 Loading radar map…
               </span>
-              <span className="text-[9px] font-mono text-[#43C7F4] bg-[#43C7F4]/15 px-1.5 py-0.5 rounded font-bold">
+              <span className="text-[9px] font-mono text-[var(--m-accent)] bg-[var(--m-accent-soft)] px-1.5 py-0.5 rounded font-bold">
                 BASEMAP
               </span>
             </div>
@@ -1396,8 +1396,8 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
 
         {basemapReady && isLoadingProduct && (
           <div className="radar-loading">
-            <div className="bg-[#0B141E]/95 backdrop-blur-md border border-[#43C7F4]/40 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-2.5">
-              <RefreshCw className="w-3.5 h-3.5 text-[#43C7F4] animate-spin" />
+            <div className="bg-[var(--m-surface-inset)]/95 backdrop-blur-md border border-[var(--m-accent)]/40 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-2.5">
+              <RefreshCw className="w-3.5 h-3.5 text-[var(--m-accent)] animate-spin" />
               <span className="text-[11px] font-semibold text-white tracking-wide">
                 Loading radar imagery…
               </span>
@@ -1411,7 +1411,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         {/* Error Indicators */}
         {basemapError && (
           <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-            <div className="bg-[#071018]/95 border border-[#EF4444]/50 rounded-lg px-3.5 py-1.5 text-xs text-[#EF4444] font-medium shadow-xl flex items-center gap-2">
+            <div className="bg-[var(--m-surface-inset)]/95 border border-[#EF4444]/50 rounded-lg px-3.5 py-1.5 text-xs text-[#EF4444] font-medium shadow-xl flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
               <span>Basemap temporarily unavailable</span>
             </div>
@@ -1419,7 +1419,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         )}
         {radarError && !isLoadingProduct && (
           <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-            <div className="bg-[#071018]/95 border border-[#FFC857]/50 rounded-lg px-3.5 py-1.5 text-xs text-[#FFC857] font-medium shadow-xl flex items-center gap-2">
+            <div className="bg-[var(--m-surface-inset)]/95 border border-[#FFC857]/50 rounded-lg px-3.5 py-1.5 text-xs text-[#FFC857] font-medium shadow-xl flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
               <span>Radar imagery unavailable</span>
             </div>
@@ -1429,7 +1429,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         {/* Truthful Unavailable Product Notice: Displayed when product has no verified free public source */}
         {!productMetadata?.available && !isLoadingProduct && (
           <div className="absolute inset-x-4 top-24 z-30 flex justify-center pointer-events-none">
-            <div className="bg-[#071018]/95 border border-[#EF4444]/40 rounded-xl px-5 py-4 shadow-2xl flex items-start gap-3.5 max-w-xl">
+            <div className="bg-[var(--m-surface-inset)]/95 border border-[#EF4444]/40 rounded-xl px-5 py-4 shadow-2xl flex items-start gap-3.5 max-w-xl">
               <div className="w-10 h-10 rounded-lg bg-[#EF4444]/20 border border-[#EF4444]/40 flex items-center justify-center text-[#EF4444] shrink-0 mt-0.5">
                 <AlertTriangle className="w-5 h-5" />
               </div>
@@ -1442,11 +1442,11 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                     {activeProduct}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#D1DCE8] leading-tight">
+                <p className="text-[11px] text-[var(--m-text-secondary)] leading-tight">
                   {productMetadata?.reason ||
                     `Direct IMD feed for ${currentProdConfig.fullName} is currently offline for station ${station.code} or undergoing routine calibration.`}
                 </p>
-                <p className="text-[10px] text-[#93A4B8] mt-1 leading-snug">
+                <p className="text-[10px] text-[var(--m-text-muted)] mt-1 leading-snug">
                   In compliance with meteorological data integrity standards, synthetic or fabricated radar data is strictly prohibited. The tactical range rings, OpenStreetMap basemap, and station coordinates remain fully functional.
                 </p>
               </div>
@@ -1455,10 +1455,10 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
         )}
 
         {/* Calibrated Dynamic Product Color Legend (Bottom-Left) */}
-        <div className="absolute bottom-4 left-4 z-20 pointer-events-auto bg-[#071018]/92 backdrop-blur-xs border border-[#162331] rounded-xl p-2.5 shadow-xl max-w-md">
+        <div className="absolute bottom-4 left-4 z-20 pointer-events-auto bg-[var(--m-surface-inset)]/92 backdrop-blur-xs border border-[var(--m-border-strong)] rounded-xl p-2.5 shadow-xl max-w-md">
           {/* Dynamic Header based on active product */}
-          <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-[#162331] text-[10px]">
-            <span className="font-bold uppercase tracking-wider text-[#43C7F4]">
+          <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-[var(--m-border-strong)] text-[10px]">
+            <span className="font-bold uppercase tracking-wider text-[var(--m-accent)]">
               {activeProduct === 'PPV'
                 ? 'Radial Velocity (m/s)'
                 : activeProduct === 'SRI'
@@ -1469,7 +1469,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 ? 'Wind Profile Speed (m/s)'
                 : 'Radar Reflectivity (dBZ)'}
             </span>
-            <span className="text-[#93A4B8]">{currentProdConfig.unit}</span>
+            <span className="text-[var(--m-text-muted)]">{currentProdConfig.unit}</span>
           </div>
 
           {/* Dynamic Color Bars */}
@@ -1487,7 +1487,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 <div style={{ backgroundColor: '#FF3300' }} className="flex-1" title="+24 m/s: Strong Outbound" />
                 <div style={{ backgroundColor: '#990000' }} className="flex-1" title="> +32 m/s: Extreme Outbound" />
               </div>
-              <div className="flex justify-between text-[9px] font-mono text-[#93A4B8] mt-1 px-0.5">
+              <div className="flex justify-between text-[9px] font-mono text-[var(--m-text-muted)] mt-1 px-0.5">
                 <span className="text-[#22C7A0]">-48 Inbound</span>
                 <span className="text-[#22C7A0]">-24</span>
                 <span className="text-[#FFFFFF]">0</span>
@@ -1507,7 +1507,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 <div style={{ backgroundColor: '#FF6B6B' }} className="flex-1" title="50–100 mm/hr: Intense" />
                 <div style={{ backgroundColor: '#D90429' }} className="flex-1" title="> 100 mm/hr: Torrential" />
               </div>
-              <div className="flex justify-between text-[9px] font-mono text-[#93A4B8] mt-1 px-0.5">
+              <div className="flex justify-between text-[9px] font-mono text-[var(--m-text-muted)] mt-1 px-0.5">
                 <span>0.1</span>
                 <span>1</span>
                 <span>4</span>
@@ -1529,7 +1529,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 <div style={{ backgroundColor: '#EA580C' }} className="flex-1" title="100–150 mm" />
                 <div style={{ backgroundColor: '#991B1B' }} className="flex-1" title="> 150 mm" />
               </div>
-              <div className="flex justify-between text-[9px] font-mono text-[#93A4B8] mt-1 px-0.5">
+              <div className="flex justify-between text-[9px] font-mono text-[var(--m-text-muted)] mt-1 px-0.5">
                 <span>1</span>
                 <span>5</span>
                 <span>15</span>
@@ -1543,14 +1543,14 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             // Volume Velocity Processing Wind Profile
             <div>
               <div className="flex h-3 w-full rounded overflow-hidden shadow-inner">
-                <div style={{ backgroundColor: '#38BDF8' }} className="flex-1" title="0–5 m/s: Light" />
+                <div style={{ backgroundColor: '#C5A46D' }} className="flex-1" title="0–5 m/s: Light" />
                 <div style={{ backgroundColor: '#34D399' }} className="flex-1" title="5–15 m/s: Moderate" />
                 <div style={{ backgroundColor: '#FBBF24' }} className="flex-1" title="15–25 m/s: Strong" />
                 <div style={{ backgroundColor: '#F97316' }} className="flex-1" title="25–35 m/s: Gale" />
                 <div style={{ backgroundColor: '#EF4444' }} className="flex-1" title="35–50 m/s: Storm" />
                 <div style={{ backgroundColor: '#A855F7' }} className="flex-1" title="> 50 m/s: Hurricane" />
               </div>
-              <div className="flex justify-between text-[9px] font-mono text-[#93A4B8] mt-1 px-0.5">
+              <div className="flex justify-between text-[9px] font-mono text-[var(--m-text-muted)] mt-1 px-0.5">
                 <span>0</span>
                 <span>10</span>
                 <span>20</span>
@@ -1574,7 +1574,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 <div style={{ backgroundColor: '#FF00FF' }} className="flex-1" title="60-65 dBZ: Severe Hail / Core" />
                 <div style={{ backgroundColor: '#FFFFFF' }} className="flex-1" title=">65 dBZ: Violent Core" />
               </div>
-              <div className="flex justify-between text-[9px] font-mono text-[#93A4B8] mt-1 px-0.5">
+              <div className="flex justify-between text-[9px] font-mono text-[var(--m-text-muted)] mt-1 px-0.5">
                 <span>10</span>
                 <span>20</span>
                 <span>30</span>
@@ -1589,18 +1589,18 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
       </div>
 
       {/* 4. Verified Metadata & Station Specifications Footer */}
-      <div className="bg-[#071018] px-4 py-3 border-t border-[#162331] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-        <div className="p-2.5 rounded-lg bg-[#0B141E] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Selected Product</span>
-          <span className="text-xs font-bold text-[#F4F7FA]">{currentProdConfig.label}</span>
-          <span className="text-[10px] text-[#43C7F4] block mt-0.5">
+      <div className="bg-[var(--m-surface-inset)] px-4 py-3 border-t border-[var(--m-border-strong)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Selected Product</span>
+          <span className="text-xs font-bold text-[var(--m-text-primary)]">{currentProdConfig.label}</span>
+          <span className="text-[10px] text-[var(--m-accent)] block mt-0.5">
             {currentProdConfig.elevationAngle}
           </span>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-[#0B141E] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Source Feed</span>
-          <span className="text-xs font-bold text-[#F4F7FA]">
+        <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Source Feed</span>
+          <span className="text-xs font-bold text-[var(--m-text-primary)]">
             {productMetadata?.source || 'IMD DWR Network'}
           </span>
           <span className="text-[10px] text-[#22C7A0] block mt-0.5">
@@ -1608,20 +1608,20 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           </span>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-[#0B141E] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Map Projection</span>
-          <span className="text-xs font-bold text-[#F4F7FA]">OpenStreetMap WGS 84</span>
-          <span className="text-[10px] text-[#43C7F4] block mt-0.5">
+        <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Map Projection</span>
+          <span className="text-xs font-bold text-[var(--m-text-primary)]">OpenStreetMap WGS 84</span>
+          <span className="text-[10px] text-[var(--m-accent)] block mt-0.5">
             Zoom Bound: 4 – 12
           </span>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-[#0B141E] border border-[#162331]">
-          <span className="text-[10px] text-[#93A4B8] uppercase block">Radar Coverage</span>
-          <span className="text-xs font-bold text-[#F4F7FA]">
+        <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)]">
+          <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Radar Coverage</span>
+          <span className="text-xs font-bold text-[var(--m-text-primary)]">
             {selectedRangeKm} km Surveillance Radius
           </span>
-          <span className="text-[10px] text-[#93A4B8] block mt-0.5">
+          <span className="text-[10px] text-[var(--m-text-muted)] block mt-0.5">
             Geodesic Reticle &amp; Rings
           </span>
         </div>
@@ -1630,18 +1630,18 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
       {/* 5. Full-Resolution IMD Station Scan Inspector Modal */}
       {isInspectorOpen && productMetadata?.imageUrl && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0B141E] border border-[#162331] rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
-            <div className="bg-[#071018] px-5 py-3.5 border-b border-[#162331] flex items-center justify-between">
+            <div className="bg-[var(--m-surface-inset)] px-5 py-3.5 border-b border-[var(--m-border-strong)] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#1499E8]/20 border border-[#1499E8]/40 flex items-center justify-center text-[#43C7F4]">
+                <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 flex items-center justify-center text-[var(--m-accent)]">
                   <Activity className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">
                     IMD Official Radar Scan Graphic — {station.name} ({station.code})
                   </h3>
-                  <div className="text-[11px] text-[#93A4B8]">
+                  <div className="text-[11px] text-[var(--m-text-muted)]">
                     Product: <strong>{currentProdConfig.fullName}</strong> • Observed: {productMetadata.observedFormatted}
                   </div>
                 </div>
@@ -1652,7 +1652,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                     href={productMetadata.directUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg bg-[#162331] hover:bg-[#1E2E40] text-[#93A4B8] hover:text-[#43C7F4] text-xs flex items-center gap-1 transition-colors"
+                    className="p-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[#1E2E40] text-[var(--m-text-muted)] hover:text-[var(--m-accent-strong)] text-xs flex items-center gap-1 transition-colors"
                     title="Open direct IMD origin file in new tab"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -1662,7 +1662,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsInspectorOpen(false)}
-                  className="p-1.5 rounded-lg bg-[#162331] hover:bg-[#1E2E40] text-[#93A4B8] hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[#1E2E40] text-[var(--m-text-muted)] hover:text-white transition-colors cursor-pointer"
                   title="Close Inspector"
                 >
                   <X className="w-4 h-4" />
@@ -1671,16 +1671,16 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             </div>
 
             {/* Modal Body: Full Resolution Radar Graphic */}
-            <div className="p-4 overflow-auto flex items-center justify-center bg-[#070C14] min-h-[420px]">
+            <div className="p-4 overflow-auto flex items-center justify-center bg-[var(--m-surface-inset)] min-h-[420px]">
               <img
                 src={productMetadata.imageUrl}
                 alt={`${station.name} - ${activeProduct} Doppler Radar Scan`}
-                className="max-w-full max-h-[68vh] object-contain rounded-lg border border-[#162331] shadow-2xl"
+                className="max-w-full max-h-[68vh] object-contain rounded-lg border border-[var(--m-border-strong)] shadow-2xl"
               />
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-[#071018] px-5 py-3 border-t border-[#162331] flex flex-wrap items-center justify-between text-xs text-[#93A4B8]">
+            <div className="bg-[var(--m-surface-inset)] px-5 py-3 border-t border-[var(--m-border-strong)] flex flex-wrap items-center justify-between text-xs text-[var(--m-text-muted)]">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#22C7A0]" />
                 <span>Verified Official India Meteorological Department Radar Feed</span>

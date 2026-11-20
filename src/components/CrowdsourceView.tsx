@@ -155,7 +155,7 @@ export const CrowdsourceView: React.FC = () => {
                 groups
               </span>
             </div>
-            <h2 className="font-label-caps text-xs uppercase text-[#dae2fd] tracking-widest font-bold">
+            <h2 className="font-label-caps text-xs uppercase text-[var(--m-text-primary)] tracking-widest font-bold">
               Mausam Crowdsource • India Meteorological Department (IMD)
             </h2>
           </div>
@@ -170,7 +170,7 @@ export const CrowdsourceView: React.FC = () => {
             setIsModalOpen(true);
             setSubmissionSuccess(null);
           }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#38bdf8] text-[#00354a] font-label-caps text-xs uppercase font-bold hover:bg-[#7dd3fc] transition-all cursor-pointer shadow-lg hover:shadow-[#38bdf8]/20 shrink-0"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--m-accent)] text-[var(--m-on-accent)] font-label-caps text-xs uppercase font-bold hover:bg-[var(--m-accent-hover)] transition-all cursor-pointer shadow-lg hover:shadow-[#C5A46D]/20 shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
           <span>+ Start New Observation</span>
@@ -179,7 +179,7 @@ export const CrowdsourceView: React.FC = () => {
 
       {/* Success Notification Banner */}
       {submissionSuccess && (
-        <div className="bg-[#4edea3]/15 border border-[#4edea3]/40 rounded-lg p-4 flex items-center justify-between gap-3 text-[#dae2fd]">
+        <div className="bg-[#4edea3]/15 border border-[#4edea3]/40 rounded-lg p-4 flex items-center justify-between gap-3 text-[var(--m-text-primary)]">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-[#4edea3] text-[24px]">
               check_circle
@@ -195,7 +195,7 @@ export const CrowdsourceView: React.FC = () => {
           </div>
           <button
             onClick={() => setSubmissionSuccess(null)}
-            className="text-[var(--m-text-secondary)] hover:text-[#dae2fd] p-1 cursor-pointer"
+            className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] p-1 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -205,7 +205,7 @@ export const CrowdsourceView: React.FC = () => {
       {/* Filter Chips & Overview Matrix */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--m-surface-1)] p-3 rounded-lg card-border font-sans">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#87929a] font-semibold">
+          <span className="text-xs text-[var(--m-text-muted)] font-semibold">
             Filter event:
           </span>
           <div className="flex flex-wrap gap-1">
@@ -215,8 +215,8 @@ export const CrowdsourceView: React.FC = () => {
                 onClick={() => setFilterEvent(f)}
                 className={`px-2.5 py-1 text-xs rounded-md transition-all cursor-pointer ${
                   filterEvent.toLowerCase() === f.toLowerCase()
-                    ? 'bg-[#38bdf8] text-[#00354a] font-semibold shadow'
-                    : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[#dae2fd]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold shadow'
+                    : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
                 {f === 'all' ? 'All Events' : f}
@@ -255,10 +255,10 @@ export const CrowdsourceView: React.FC = () => {
                       </span>
                     </span>
                     <div>
-                      <h4 className="font-headline-md text-sm font-bold text-[#dae2fd]">
+                      <h4 className="font-headline-md text-sm font-bold text-[var(--m-text-primary)]">
                         {rep.weatherEvent}
                       </h4>
-                      <span className="font-data-sm text-[10px] text-[#87929a]">
+                      <span className="font-data-sm text-[10px] text-[var(--m-text-muted)]">
                         {rep.district}, {rep.state}
                       </span>
                     </div>
@@ -276,7 +276,7 @@ export const CrowdsourceView: React.FC = () => {
                 </div>
 
                 {/* Text details */}
-                <p className="font-body-md text-xs text-[#dae2fd] leading-relaxed mb-3">
+                <p className="font-body-md text-xs text-[var(--m-text-primary)] leading-relaxed mb-3">
                   {rep.details}
                 </p>
 
@@ -286,7 +286,7 @@ export const CrowdsourceView: React.FC = () => {
                     warning
                   </span>
                   <div>
-                    <span className="font-label-caps text-[9px] uppercase text-[#87929a] font-bold block">
+                    <span className="font-label-caps text-[9px] uppercase text-[var(--m-text-muted)] font-bold block">
                       Damage Assessment
                     </span>
                     <span className="font-data-sm text-xs font-semibold text-[#fbbf24]">
@@ -304,7 +304,7 @@ export const CrowdsourceView: React.FC = () => {
                       referrerPolicy="no-referrer"
                       className="w-full h-36 object-cover transition-transform group-hover/img:scale-105"
                     />
-                    <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-[#dae2fd] text-[9px] font-mono px-2 py-0.5 rounded">
+                    <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-[var(--m-text-primary)] text-[9px] font-mono px-2 py-0.5 rounded">
                       {rep.mediaType === 'video' ? 'Video Evidence' : 'Photo Evidence'}
                     </span>
                   </div>
@@ -312,7 +312,7 @@ export const CrowdsourceView: React.FC = () => {
               </div>
 
               {/* Card Footer with Reporter & Upvote */}
-              <div className="pt-3 border-t border-[var(--m-border-strong)] flex justify-between items-center text-xs font-data-sm text-[#87929a]">
+              <div className="pt-3 border-t border-[var(--m-border-strong)] flex justify-between items-center text-xs font-data-sm text-[var(--m-text-muted)]">
                 <div className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px]">person</span>
                   <span className="truncate max-w-[130px]">{rep.reporterName}</span>
@@ -320,7 +320,7 @@ export const CrowdsourceView: React.FC = () => {
 
                 <button
                   onClick={() => handleUpvote(rep.id)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-[var(--m-surface-1)] hover:bg-[#38bdf8] hover:text-[#00354a] text-[var(--m-accent)] transition-colors cursor-pointer card-border font-bold"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-[var(--m-surface-1)] hover:bg-[var(--m-accent-hover)] hover:text-[var(--m-on-accent)] text-[var(--m-accent)] transition-colors cursor-pointer card-border font-bold"
                 >
                   <span className="material-symbols-outlined text-[14px]">thumb_up</span>
                   <span>{rep.upvotes}</span>
@@ -342,7 +342,7 @@ export const CrowdsourceView: React.FC = () => {
                   edit_note
                 </span>
                 <div>
-                  <h3 className="font-label-caps text-xs uppercase text-[#dae2fd] tracking-widest font-bold">
+                  <h3 className="font-label-caps text-xs uppercase text-[var(--m-text-primary)] tracking-widest font-bold">
                     Submit Mausam Weather Observation
                   </h3>
                   <p className="font-data-sm text-[11px] text-[var(--m-text-secondary)]">
@@ -352,7 +352,7 @@ export const CrowdsourceView: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[var(--m-text-secondary)] hover:text-[#dae2fd] p-1.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
+                className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] p-1.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
@@ -392,7 +392,7 @@ export const CrowdsourceView: React.FC = () => {
                     placeholder="Specific Landmark / Street"
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
-                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-body-md text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-body-md text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                   />
                   <input
                     type="text"
@@ -400,7 +400,7 @@ export const CrowdsourceView: React.FC = () => {
                     placeholder="District / City (e.g. New Delhi)"
                     value={districtName}
                     onChange={(e) => setDistrictName(e.target.value)}
-                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-body-md text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-body-md text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                   />
                 </div>
               </div>
@@ -419,7 +419,7 @@ export const CrowdsourceView: React.FC = () => {
                   <select
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-mono text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-mono text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                   >
                     <option value={todayStr}>Today ({todayStr})</option>
                     <option value={yesterdayStr}>Yesterday ({yesterdayStr})</option>
@@ -429,7 +429,7 @@ export const CrowdsourceView: React.FC = () => {
                     required
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
-                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-mono text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                    className="bg-[var(--m-surface-1)] card-border rounded px-3 py-2 text-xs font-mono text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                   />
                 </div>
               </div>
@@ -449,7 +449,7 @@ export const CrowdsourceView: React.FC = () => {
                         onClick={() => setSelectedEvent(evt.type)}
                         className={`p-2 rounded-lg card-border flex flex-col items-center gap-1 transition-all cursor-pointer text-center ${
                           isSelected
-                            ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[#dae2fd] shadow-md ring-1 ring-[#38bdf8]'
+                            ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-text-primary)] shadow-md ring-1 ring-[var(--m-focus)]'
                             : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
                         }`}
                       >
@@ -476,7 +476,7 @@ export const CrowdsourceView: React.FC = () => {
                 <select
                   value={selectedDamage}
                   onChange={(e) => setSelectedDamage(e.target.value as DamageAssessmentType)}
-                  className="w-full bg-[var(--m-surface-1)] card-border rounded-lg px-3.5 py-2.5 text-xs font-body-md text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                  className="w-full bg-[var(--m-surface-1)] card-border rounded-lg px-3.5 py-2.5 text-xs font-body-md text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                 >
                   {DAMAGE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -496,7 +496,7 @@ export const CrowdsourceView: React.FC = () => {
                   placeholder="Describe intensity, wind gusts, hail size, street water accumulation..."
                   value={detailsText}
                   onChange={(e) => setDetailsText(e.target.value)}
-                  className="w-full bg-[var(--m-surface-1)] card-border rounded-lg px-3.5 py-2 text-xs font-body-md text-[#dae2fd] focus:outline-none focus:border-[var(--m-accent)]"
+                  className="w-full bg-[var(--m-surface-1)] card-border rounded-lg px-3.5 py-2 text-xs font-body-md text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
                 />
               </div>
 
@@ -506,7 +506,7 @@ export const CrowdsourceView: React.FC = () => {
                   <label className="font-label-caps text-[10px] uppercase text-[var(--m-accent)] font-bold">
                     6. Upload Photo (&lt; 1.5 MB) or Video (&lt; 10 MB)
                   </label>
-                  <span className="font-data-sm text-[9px] text-[#87929a]">
+                  <span className="font-data-sm text-[9px] text-[var(--m-text-muted)]">
                     Optional evidence
                   </span>
                 </div>
@@ -515,7 +515,7 @@ export const CrowdsourceView: React.FC = () => {
                   type="file"
                   accept="image/*,video/*"
                   onChange={handleFileUpload}
-                  className="w-full text-xs text-[#bdc8d1] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#38bdf8] file:text-[#00354a] hover:file:bg-[#7dd3fc] cursor-pointer"
+                  className="w-full text-xs text-[#bdc8d1] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[var(--m-accent)] file:text-[var(--m-on-accent)] hover:file:bg-[var(--m-accent-hover)] cursor-pointer"
                 />
 
                 {uploadedFile && (
@@ -550,7 +550,7 @@ export const CrowdsourceView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#38bdf8] text-[#00354a] font-label-caps text-xs uppercase font-bold hover:bg-[#7dd3fc] transition-all cursor-pointer shadow-md"
+                  className="px-5 py-2 rounded-lg bg-[var(--m-accent)] text-[var(--m-on-accent)] font-label-caps text-xs uppercase font-bold hover:bg-[var(--m-accent-hover)] transition-all cursor-pointer shadow-md"
                 >
                   Submit to IMD
                 </button>

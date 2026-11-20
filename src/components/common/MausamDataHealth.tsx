@@ -395,7 +395,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
             className={`min-h-[44px] sm:min-h-[40px] flex items-center gap-2 px-3.5 py-2 rounded-lg border text-xs font-mono font-semibold transition-colors cursor-pointer select-none m-focus-ring ${
               isRefreshing
                 ? 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-muted)] cursor-not-allowed'
-                : 'bg-[var(--m-accent)] hover:opacity-95 border-[var(--m-accent)] text-white'
+                : 'bg-[var(--m-accent)] hover:opacity-95 border-[var(--m-accent)] text-[var(--m-on-accent)]'
             }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -761,7 +761,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                 type="button"
                 onClick={(e) => handleRefreshSingleProvider(selectedStoreProviderId, e)}
                 disabled={refreshingSingleId === selectedStoreProviderId}
-                className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-white inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-[var(--m-on-accent)] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${
@@ -880,7 +880,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                   type="button"
                   disabled={isSavingConfig}
                   onClick={() => handleSaveProviderConfig(selectedProvider.id)}
-                  className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-white flex items-center gap-1.5 transition-opacity disabled:opacity-50 shrink-0 cursor-pointer"
+                  className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-[var(--m-on-accent)] flex items-center gap-1.5 transition-opacity disabled:opacity-50 shrink-0 cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSavingConfig ? 'Saving…' : 'Save'}</span>

@@ -181,7 +181,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="inline-flex items-center gap-1.5 px-4 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-white transition-opacity cursor-pointer m-focus-ring"
+                className="inline-flex items-center gap-1.5 px-4 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-[var(--m-on-accent)] transition-opacity cursor-pointer m-focus-ring"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Change City</span>
@@ -581,7 +581,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   setSelectedStateModal(null);
                   onNavigateToTab('weather');
                 }}
-                className="w-full min-h-[42px] rounded-xl bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-semibold py-2.5 flex items-center justify-center gap-1.5 cursor-pointer transition-opacity m-focus-ring"
+                className="w-full min-h-[42px] rounded-xl bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] text-xs font-semibold py-2.5 flex items-center justify-center gap-1.5 cursor-pointer transition-opacity m-focus-ring"
               >
                 <span>Open Live Weather for {selectedStateModal.name}</span>
                 <ArrowRight className="w-4 h-4" />

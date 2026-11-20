@@ -481,7 +481,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         <button
           type="button"
           onClick={() => setActiveStateName(item.state)}
-          className="px-2.5 py-1.5 min-h-[34px] bg-[var(--m-surface-2)] hover:bg-[var(--m-accent)] text-[var(--m-text-secondary)] hover:text-white border border-[var(--m-border)] rounded-lg text-[11px] font-mono font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="px-2.5 py-1.5 min-h-[34px] bg-[var(--m-surface-2)] hover:bg-[var(--m-accent)] text-[var(--m-text-secondary)] hover:text-[var(--m-on-accent)] border border-[var(--m-border)] rounded-lg text-[11px] font-mono font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <MapIcon className="w-3.5 h-3.5" />
           <span>Focus</span>
@@ -531,7 +531,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
               <button
                 type="button"
                 onClick={onOpenLocationCenter}
-                className="px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-white flex items-center gap-1.5 transition-opacity cursor-pointer m-focus-ring"
+                className="px-3 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-[var(--m-on-accent)] flex items-center gap-1.5 transition-opacity cursor-pointer m-focus-ring"
               >
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Change Station</span>
@@ -616,7 +616,7 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
                 onClick={() => setTrendView('both')}
                 className={`px-3 py-1.5 min-h-[34px] rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
                   trendView === 'both'
-                    ? 'bg-[var(--m-accent)] text-white'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >

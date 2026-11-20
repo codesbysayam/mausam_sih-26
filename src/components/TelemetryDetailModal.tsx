@@ -18,7 +18,7 @@ export const TelemetryDetailModal: React.FC<TelemetryDetailModalProps> = ({
         {/* Header */}
         <div className="p-4 card-header-divider flex justify-between items-center bg-[var(--m-surface-1)]">
           <div>
-            <span className="text-xs text-[#4FA8E0] font-semibold block">
+            <span className="text-xs text-[var(--m-accent)] font-semibold block">
               Sensor Metric Diagnostic
             </span>
             <h3 className="font-h4 text-base font-bold text-[var(--m-text-primary)]">
@@ -66,7 +66,7 @@ export const TelemetryDetailModal: React.FC<TelemetryDetailModalProps> = ({
             <span className="text-[11px] text-[var(--m-text-secondary)] font-semibold block mb-1">
               Reference Standards &amp; Safe Exposure Band
             </span>
-            <p className="text-xs text-[#4FA8E0] font-medium">
+            <p className="text-xs text-[var(--m-accent)] font-medium">
               {telemetry.normRange}
             </p>
           </div>
@@ -104,10 +104,10 @@ export const TelemetryDetailModal: React.FC<TelemetryDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-1)] flex justify-end">
+        <div className="p-3.5 card-header-divider border-t border-[rgba(226, 219, 200,0.12)] bg-[var(--m-surface-1)] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[var(--m-accent-hover)] transition-colors cursor-pointer"
           >
             Close
           </button>

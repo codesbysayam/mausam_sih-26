@@ -183,11 +183,11 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               }
             }}
             className={`${
-              isExplore ? 'spatial-hud-surface rounded-xl px-3' : 'rounded-lg px-1.5 hover:bg-[var(--m-surface-2)]'
+              isExplore ? 'spatial-hud-surface rounded-[11px] px-3' : 'rounded-[7px] px-1.5 hover:bg-[var(--m-surface-2)]'
             } min-h-[44px] sm:min-h-[40px] flex items-center gap-2.5 transition-colors cursor-pointer m-focus-ring`}
             title={isExplore ? 'Recenter 3D Atmospheric Observatory over India (R)' : 'Return to MAUSAM Overview'}
           >
-            <span className="w-7 h-7 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)] shrink-0">
+            <span className="w-7 h-7 rounded-[7px] bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 flex items-center justify-center text-[var(--m-accent)] shrink-0">
               <Compass className="w-4 h-4" />
             </span>
             <span className="flex flex-col text-left leading-none">
@@ -210,7 +210,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                 isExplore
                   ? 'spatial-hud-surface'
                   : 'bg-[var(--m-surface-2)]/75 border border-[var(--m-border)] focus-within:border-[var(--m-accent)] focus-within:bg-[var(--m-surface-1)]'
-              } rounded-xl flex items-center min-h-[44px] sm:min-h-[40px] px-2.5 gap-1.5 w-[176px] sm:w-[240px] md:w-[270px] transition-colors`}
+              } rounded-[11px] flex items-center min-h-[44px] sm:min-h-[40px] px-2.5 gap-1.5 w-[176px] sm:w-[240px] md:w-[270px] transition-colors`}
             >
               <Search className="w-3.5 h-3.5 text-[var(--m-text-muted)] shrink-0" />
               <input
@@ -242,7 +242,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             </div>
 
             {isSearchOpen && (
-              <div className="absolute top-12 left-0 w-[290px] sm:w-[320px] spatial-hud-surface-elevated rounded-xl p-1.5 z-50">
+              <div className="absolute top-12 left-0 w-[290px] sm:w-[320px] spatial-hud-surface-elevated rounded-[11px] p-1.5 z-50">
                 <div className="px-2.5 py-1.5 flex items-center justify-between border-b border-[var(--m-border)]">
                   <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[var(--m-text-muted)]">
                     {searchQuery.trim() ? 'Matching Locations' : 'Observational Anchors'}
@@ -298,7 +298,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             isExplore
               ? 'spatial-hud-surface'
               : 'bg-[var(--m-surface-2)] border border-[var(--m-border)]'
-          } pointer-events-auto rounded-xl p-1 flex items-center gap-0.5`}
+          } pointer-events-auto rounded-[11px] p-1 flex items-center gap-0.5`}
         >
           {(
             [
@@ -314,9 +314,9 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                 type="button"
                 onClick={() => onSwitchMode(item.id)}
                 aria-pressed={active}
-                className={`px-3 min-h-[36px] sm:min-h-[32px] rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
+                className={`px-3 min-h-[36px] sm:min-h-[32px] rounded-[7px] text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   active
-                    ? 'bg-[var(--m-text-primary)] text-[var(--m-canvas)]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)]/60'
                 }`}
               >
@@ -334,7 +334,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               onClick={recenterIndia}
               title="Recenter India view (Shortcut: R)"
               aria-label="Recenter India view"
-              className="spatial-hud-surface rounded-xl min-h-[40px] px-2.5 hidden md:inline-flex items-center gap-1.5 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
+              className="spatial-hud-surface rounded-[11px] min-h-[40px] px-2.5 hidden md:inline-flex items-center gap-1.5 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
             >
               <RotateCcw className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>India</span>
@@ -344,7 +344,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           <button
             type="button"
             onClick={() => setIsAlertDrawerOpen(true)}
-            className={`rounded-xl min-h-[44px] sm:min-h-[40px] px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer m-focus-ring ${alertSummary.tone}`}
+            className={`rounded-[11px] min-h-[44px] sm:min-h-[40px] px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer m-focus-ring ${alertSummary.tone}`}
             title="Open SACHET / IMD Hazard Alerts"
           >
             {alertSummary.kind === 'warning' ? (
@@ -365,7 +365,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               isExplore
                 ? 'spatial-hud-surface text-[var(--m-text-primary)]'
                 : 'bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
-            } rounded-xl min-h-[40px] px-3 hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring`}
+            } rounded-[11px] min-h-[40px] px-3 hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring`}
             title="Open Ask MAUSAM Brief"
           >
             <span className="text-[var(--m-accent)]">Ask MAUSAM</span>
@@ -382,13 +382,13 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                 isExplore
                   ? 'spatial-hud-surface'
                   : 'bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] hover:bg-[var(--m-surface-2)]'
-              } rounded-xl min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring`}
+              } rounded-[11px] min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] transition-colors cursor-pointer m-focus-ring`}
             >
               <SlidersHorizontal className="w-4 h-4" />
             </button>
 
             {isSettingsOpen && (
-              <div className="absolute right-0 top-12 w-72 spatial-hud-surface-elevated rounded-xl p-3.5 z-50 flex flex-col gap-3 text-xs">
+              <div className="absolute right-0 top-12 w-72 spatial-hud-surface-elevated rounded-[11px] p-3.5 z-50 flex flex-col gap-3 text-xs">
                 <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-2">
                   <span className="font-semibold text-[var(--m-text-primary)]">
                     Display &amp; Accessibility
@@ -527,7 +527,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               onClick={openControlsGuide}
               title="Observatory controls & guided tours (Shortcut: ?)"
               aria-label="Open controls guide and guided tours"
-              className="spatial-hud-surface rounded-xl min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
+              className="spatial-hud-surface rounded-[11px] min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
             >
               <HelpCircle className="w-4 h-4" />
             </button>

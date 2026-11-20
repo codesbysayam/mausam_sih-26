@@ -324,7 +324,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
               type="button"
               onClick={() => refreshRadarProvider(true)}
               disabled={isLoadingRadar}
-              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
+              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] text-xs font-semibold flex items-center gap-1.5 transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 m-focus-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRadar ? 'animate-spin' : ''}`} />
               <span>{isLoadingRadar ? 'Syncing…' : 'Refresh Radar'}</span>

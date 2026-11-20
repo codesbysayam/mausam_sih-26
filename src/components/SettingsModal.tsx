@@ -25,7 +25,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Header */}
         <div className="p-4 card-header-divider flex justify-between items-center bg-[var(--m-surface-1)]">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">
               settings
             </span>
             <h3 className="text-xs uppercase text-[var(--m-text-primary)] tracking-wider font-bold">
@@ -89,7 +89,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <select
               value={telemetryInterval}
               onChange={(e) => setTelemetryInterval(e.target.value)}
-              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[#0B72B9]"
+              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
             >
               <option value="10s">10 seconds</option>
               <option value="30s">30 seconds (Default)</option>
@@ -111,7 +111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <select
               value={aqiAlertThreshold}
               onChange={(e) => setAqiAlertThreshold(e.target.value)}
-              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[#0B72B9]"
+              className="bg-[var(--m-surface-1)] card-border rounded-lg px-2.5 py-1.5 text-xs text-[var(--m-text-primary)] focus:outline-none focus:border-[var(--m-accent)]"
             >
               <option value="50">50 µg/m³ (WHO)</option>
               <option value="100">100 µg/m³ (Standard)</option>
@@ -133,16 +133,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               type="checkbox"
               checked={soundAlerts}
               onChange={(e) => setSoundAlerts(e.target.checked)}
-              className="w-4 h-4 accent-[#0B72B9] cursor-pointer"
+              className="w-4 h-4 accent-[var(--m-accent)] cursor-pointer"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-1)] flex justify-end">
+        <div className="p-3.5 card-header-divider border-t border-[rgba(226, 219, 200,0.12)] bg-[var(--m-surface-1)] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[var(--m-accent-hover)] transition-colors cursor-pointer"
           >
             Save &amp; Apply
           </button>

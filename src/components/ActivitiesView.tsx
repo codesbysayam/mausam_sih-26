@@ -29,7 +29,7 @@ export const ActivitiesView: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)] flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">cardio_load</span>
+              <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">cardio_load</span>
               Fitness &amp; Outdoor Physiological Intelligence
             </h2>
             <p className="text-xs text-[var(--m-text-secondary)] mt-0.5">
@@ -54,13 +54,13 @@ export const ActivitiesView: React.FC = () => {
                 onClick={() => setSelectedSportKey(sport.key)}
                 className={`p-3 rounded-lg flex flex-col items-center gap-2 card-border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[var(--m-accent-soft)] border-[#0B72B9] text-[var(--m-text-primary)] shadow-md'
+                    ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-text-primary)] shadow-md'
                     : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
                 }`}
               >
                 <span
                   className="material-symbols-outlined text-[24px]"
-                  style={{ color: isSelected ? '#4FA8E0' : '#8A94A6' }}
+                  style={{ color: isSelected ? '#C5A46D' : '#898B83' }}
                 >
                   {sport.icon}
                 </span>
@@ -135,7 +135,7 @@ export const ActivitiesView: React.FC = () => {
       <section className="col-span-1 md:col-span-4 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
         <div>
           <div className="p-4 card-header-divider bg-[var(--m-surface-1)] rounded-t-xl -m-6 mb-6">
-            <span className="text-xs uppercase text-[#4FA8E0] font-bold">
+            <span className="text-xs uppercase text-[var(--m-accent)] font-bold">
               Metabolic Hydration Planner
             </span>
             <h3 className="font-h3 text-base font-bold text-[var(--m-text-primary)] mt-1">
@@ -148,7 +148,7 @@ export const ActivitiesView: React.FC = () => {
             <div>
               <div className="flex justify-between text-xs text-[var(--m-text-secondary)] mb-1">
                 <span>Body Weight</span>
-                <span className="font-bold text-[#4FA8E0]">{userWeightKg} kg</span>
+                <span className="font-bold text-[var(--m-accent)]">{userWeightKg} kg</span>
               </div>
               <input
                 type="range"
@@ -156,7 +156,7 @@ export const ActivitiesView: React.FC = () => {
                 max="120"
                 value={userWeightKg}
                 onChange={(e) => setUserWeightKg(Number(e.target.value))}
-                className="w-full accent-[#0B72B9] cursor-pointer"
+                className="w-full accent-[var(--m-accent)] cursor-pointer"
               />
             </div>
 
@@ -183,12 +183,12 @@ export const ActivitiesView: React.FC = () => {
 
             {/* Calculated Output Card */}
             <div className="bg-[var(--m-surface-1)] p-4 rounded-xl card-border mt-2 flex flex-col items-center text-center">
-              <span className="text-xs uppercase text-[#4FA8E0] font-bold">
+              <span className="text-xs uppercase text-[var(--m-accent)] font-bold">
                 Target Hourly Intake
               </span>
               <span className="text-4xl font-bold text-[var(--m-text-primary)] my-1">
                 {calculatedHydration}
-                <span className="text-xl font-normal text-[#4FA8E0] ml-1">mL/h</span>
+                <span className="text-xl font-normal text-[var(--m-accent)] ml-1">mL/h</span>
               </span>
               <p className="text-xs text-[var(--m-text-secondary)] mt-1 leading-relaxed">
                 Includes electrolytes (450mg Sodium/L) to prevent hyponatremia at 24.8°C with 64% ambient RH.

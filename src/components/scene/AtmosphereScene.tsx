@@ -93,9 +93,9 @@ function createSoftCloudFieldTexture(): THREE.CanvasTexture {
     const cx = w.x * canvas.width;
     const cy = w.y * canvas.height;
     const grad = ctx.createRadialGradient(cx, cy, 8, cx, cy, w.r);
-    grad.addColorStop(0, `rgba(234, 245, 250, ${w.a})`);
-    grad.addColorStop(0.55, `rgba(182, 199, 212, ${w.a * 0.42})`);
-    grad.addColorStop(1, 'rgba(182, 199, 212, 0)');
+    grad.addColorStop(0, `rgba(240, 238, 231, ${w.a})`);
+    grad.addColorStop(0.55, `rgba(195, 201, 197, ${w.a * 0.42})`);
+    grad.addColorStop(1, 'rgba(195, 201, 197, 0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(cx, cy, w.r, 0, Math.PI * 2);
@@ -252,10 +252,10 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 2. Scene, Horizon Fog, Camera, RoomEnvironment IBL & Calibrated Lighting
+    // 2. Scene, Horizon Fog, Camera, RoomEnvironment IBL & Physically Plausible Warm Sunlight
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#071A2B');
-    scene.fog = new THREE.FogExp2('#071A2B', 0.0115);
+    scene.background = new THREE.Color('#0B0C0D');
+    scene.fog = new THREE.FogExp2('#0B0C0D', 0.011);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.25, 160);
     camera.position.copy(DEFAULT_CAMERA_POS);
@@ -267,14 +267,14 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     roomEnv.dispose();
     pmrem.dispose();
 
-    const hemiLight = new THREE.HemisphereLight('#8FC9F5', '#061421', 0.92);
+    const hemiLight = new THREE.HemisphereLight('#D4DDD8', '#0D0E0F', 0.88);
     scene.add(hemiLight);
 
-    const keySun = new THREE.DirectionalLight('#F4FAFF', 2.05);
+    const keySun = new THREE.DirectionalLight('#F7ECD9', 2.15);
     keySun.position.set(18, 28, 16);
     scene.add(keySun);
 
-    const rimLight = new THREE.DirectionalLight('#35C5E8', 0.85);
+    const rimLight = new THREE.DirectionalLight('#A7C5C5', 0.55);
     rimLight.position.set(-18, 12, -16);
     scene.add(rimLight);
 
@@ -294,26 +294,26 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     controls.target.copy(DEFAULT_CAMERA_TARGET);
     controls.update();
 
-    // 4. Extended Seamless Ocean Horizon & Subtle Observatory Reference Frame
+    // 4. Extended Seamless Obsidian Ocean Horizon & Subtle Observatory Reference Frame
     const oceanGeo = new THREE.PlaneGeometry(180, 180, 1, 1);
     oceanGeo.rotateX(-Math.PI / 2);
     const oceanMat = new THREE.MeshStandardMaterial({
-      color: '#061524',
-      roughness: 0.88,
-      metalness: 0.1,
-      envMapIntensity: 0.45,
+      color: '#0A0D0E',
+      roughness: 0.9,
+      metalness: 0.08,
+      envMapIntensity: 0.35,
     });
     const oceanPlane = new THREE.Mesh(oceanGeo, oceanMat);
     oceanPlane.position.y = -0.025;
     scene.add(oceanPlane);
 
-    // Subtle scientific grid framing the observatory basin
-    const basinGrid = new THREE.GridHelper(64, 32, '#1A3B54', '#0F263A');
+    // Subtle charcoal reference grid framing the observatory basin
+    const basinGrid = new THREE.GridHelper(64, 32, '#2B2F2D', '#181B1A');
     basinGrid.position.y = -0.015;
     const gridMats = Array.isArray(basinGrid.material) ? basinGrid.material : [basinGrid.material];
     gridMats.forEach((m) => {
       m.transparent = true;
-      m.opacity = 0.24;
+      m.opacity = 0.22;
       m.depthWrite = false;
     });
     scene.add(basinGrid);
@@ -329,14 +329,14 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     const terrainGeo = buildIndiaTerrainGeometry(terrainSegments);
     const terrainMat = new THREE.MeshStandardMaterial({
       map: terrainTexture,
-      roughness: 0.78,
-      metalness: 0.08,
-      envMapIntensity: 0.55,
+      roughness: 0.82,
+      metalness: 0.05,
+      envMapIntensity: 0.45,
     });
     const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
     scene.add(terrainMesh);
 
-    // Thin illuminated domain perimeter border around the 3D subcontinent relief plate
+    // Thin brass domain perimeter border around the 3D subcontinent relief plate
     const framePts = [
       new THREE.Vector3(-WORLD_WIDTH * 0.5, 0.01, -WORLD_DEPTH * 0.5),
       new THREE.Vector3(WORLD_WIDTH * 0.5, 0.01, -WORLD_DEPTH * 0.5),
@@ -346,9 +346,9 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     ];
     const frameGeo = new THREE.BufferGeometry().setFromPoints(framePts);
     const frameMat = new THREE.LineBasicMaterial({
-      color: '#35C5E8',
+      color: '#C5A46D',
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.24,
     });
     const frameLine = new THREE.Line(frameGeo, frameMat);
     scene.add(frameLine);
@@ -417,7 +417,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const basePos = latLngToTerrain(pt.lat, pt.lng, 0.015, new THREE.Vector3());
 
       const plinthMat = new THREE.MeshStandardMaterial({
-        color: '#152A3C',
+        color: '#202424',
         roughness: 0.55,
         metalness: 0.35,
       });
@@ -425,21 +425,21 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       plinth.position.set(basePos.x, basePos.y + 0.035, basePos.z);
 
       const pylonMat = new THREE.MeshStandardMaterial({
-        color: '#35C5E8',
-        emissive: '#35C5E8',
-        emissiveIntensity: 0.25,
+        color: '#C5A46D',
+        emissive: '#C5A46D',
+        emissiveIntensity: 0.22,
         roughness: 0.35,
-        metalness: 0.2,
+        metalness: 0.25,
       });
       const pylon = new THREE.Mesh(pylonGeo, pylonMat);
 
-      const capMat = new THREE.MeshBasicMaterial({ color: '#35C5E8' });
+      const capMat = new THREE.MeshBasicMaterial({ color: '#C5A46D' });
       const cap = new THREE.Mesh(beaconCapGeo, capMat);
 
       const haloMat = new THREE.MeshBasicMaterial({
-        color: '#35C5E8',
+        color: '#C5A46D',
         transparent: true,
-        opacity: 0.45,
+        opacity: 0.42,
         side: THREE.DoubleSide,
         depthWrite: false,
       });
@@ -448,13 +448,13 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
 
       stateGroup.add(plinth, pylon, cap, halo);
 
-      // Data-backed precipitation column (only shown when rainfall > 0 in rain layer)
+      // Data-backed precipitation column (only shown when rainfall > 0 in rain layer; semantic --weather-rain)
       const rainBarMat = new THREE.MeshStandardMaterial({
-        color: '#35C5E8',
-        emissive: '#0C5E8A',
-        emissiveIntensity: 0.45,
+        color: '#78AEB6',
+        emissive: '#3E6A72',
+        emissiveIntensity: 0.42,
         transparent: true,
-        opacity: 0.72,
+        opacity: 0.78,
         roughness: 0.3,
         metalness: 0.1,
       });
@@ -503,7 +503,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       if (pt.state.warningLevel && pt.state.warningLevel !== 'normal') {
         const level = pt.state.warningLevel;
         const hex =
-          level === 'severe' ? '#F06B68' : level === 'alert' ? '#F18A4B' : '#F2B84B';
+          level === 'severe' ? '#C94F4B' : level === 'alert' ? '#D98548' : '#D8B14F';
         const ringRadii =
           level === 'severe'
             ? [0.46, 0.68, 0.92]
@@ -542,7 +542,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const basePos = latLngToTerrain(dwr.lat, dwr.lng, 0.015, new THREE.Vector3());
 
       const rPlinthMat = new THREE.MeshStandardMaterial({
-        color: '#1B3448',
+        color: '#292E2D',
         roughness: 0.45,
         metalness: 0.4,
       });
@@ -550,11 +550,11 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       rPlinth.position.set(basePos.x, basePos.y + 0.04, basePos.z);
 
       const domeMat = new THREE.MeshStandardMaterial({
-        color: '#EAF5FA',
-        emissive: '#35C5E8',
-        emissiveIntensity: 0.35,
-        roughness: 0.3,
-        metalness: 0.15,
+        color: '#F0EEE7',
+        emissive: '#A7C5C5',
+        emissiveIntensity: 0.24,
+        roughness: 0.35,
+        metalness: 0.12,
       });
       const dome = new THREE.Mesh(radarDomeGeo, domeMat);
       dome.position.set(basePos.x, basePos.y + 0.07, basePos.z);
@@ -566,9 +566,9 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const circlePts = createTerrainConformedRingPoints(dwr.lat, dwr.lng, rx, rz, 0.045, 36);
       const ringGeo = new THREE.BufferGeometry().setFromPoints(circlePts);
       const ringMat = new THREE.LineBasicMaterial({
-        color: '#35C5E8',
+        color: '#A7C5C5',
         transparent: true,
-        opacity: 0.45,
+        opacity: 0.42,
       });
       const ringLine = new THREE.Line(ringGeo, ringMat);
       radarGroup.add(ringLine);
@@ -595,13 +595,13 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       });
     }
 
-    // 10. Composite 4-Part Active Location Observatory Tower
+    // 10. Composite 4-Part Active Location Observatory Tower (Graphite & Warm Brass)
     const towerBaseGeo = new THREE.CylinderGeometry(0.24, 0.32, 0.08, 20);
     const towerBaseMat = new THREE.MeshStandardMaterial({
-      color: '#152A3C',
-      emissive: '#35C5E8',
-      emissiveIntensity: 0.2,
-      roughness: 0.4,
+      color: '#202424',
+      emissive: '#C5A46D',
+      emissiveIntensity: 0.18,
+      roughness: 0.42,
       metalness: 0.45,
     });
     const towerBase = new THREE.Mesh(towerBaseGeo, towerBaseMat);
@@ -609,26 +609,26 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
 
     const towerMastGeo = new THREE.CylinderGeometry(0.032, 0.065, 1.05, 12);
     const towerMastMat = new THREE.MeshStandardMaterial({
-      color: '#EAF5FA',
-      emissive: '#35C5E8',
-      emissiveIntensity: 0.38,
+      color: '#F0EEE7',
+      emissive: '#C5A46D',
+      emissiveIntensity: 0.32,
       roughness: 0.25,
-      metalness: 0.35,
+      metalness: 0.38,
     });
     const towerMast = new THREE.Mesh(towerMastGeo, towerMastMat);
     towerMast.position.y = 0.56;
 
     const towerOrbGeo = new THREE.SphereGeometry(0.145, 18, 14);
-    const towerOrbMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
+    const towerOrbMat = new THREE.MeshBasicMaterial({ color: '#F0EEE7' });
     const towerOrb = new THREE.Mesh(towerOrbGeo, towerOrbMat);
     towerOrb.position.y = 1.12;
 
     const towerRingGeo = new THREE.RingGeometry(0.36, 0.48, 36);
     towerRingGeo.rotateX(-Math.PI / 2);
     const towerRingMat = new THREE.MeshBasicMaterial({
-      color: '#35C5E8',
+      color: '#C5A46D',
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.88,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
@@ -638,9 +638,9 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     const towerPulseGeo = new THREE.RingGeometry(0.52, 0.62, 36);
     towerPulseGeo.rotateX(-Math.PI / 2);
     const towerPulseMat = new THREE.MeshBasicMaterial({
-      color: '#35C5E8',
+      color: '#E0C18A',
       transparent: true,
-      opacity: 0.48,
+      opacity: 0.44,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
@@ -679,9 +679,9 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
           const pts = createTerrainConformedRingPoints(b.lat, b.lng, 2.2, 2.0, 0.06, 44);
           const geo = new THREE.BufferGeometry().setFromPoints(pts);
           const mat = new THREE.LineBasicMaterial({
-            color: '#35C5E8',
+            color: '#A7C5C5',
             transparent: true,
-            opacity: 0.28,
+            opacity: 0.24,
           });
           cycloneGroup.add(new THREE.Line(geo, mat));
         }
@@ -709,11 +709,11 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
         cycloneGroup.add(
           new THREE.Line(
             new THREE.BufferGeometry().setFromPoints(eyePtsInner),
-            new THREE.LineBasicMaterial({ color: '#F06B68', transparent: true, opacity: 0.95 })
+            new THREE.LineBasicMaterial({ color: '#C94F4B', transparent: true, opacity: 0.95 })
           ),
           new THREE.Line(
             new THREE.BufferGeometry().setFromPoints(eyePtsOuter),
-            new THREE.LineBasicMaterial({ color: '#F18A4B', transparent: true, opacity: 0.72 })
+            new THREE.LineBasicMaterial({ color: '#D98548', transparent: true, opacity: 0.72 })
           )
         );
 
@@ -727,7 +727,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
           if (trackPts.length > 1) {
             const trackGeo = new THREE.BufferGeometry().setFromPoints(trackPts);
             const trackMat = new THREE.LineBasicMaterial({
-              color: '#F18A4B',
+              color: '#D98548',
               transparent: true,
               opacity: 0.88,
             });

@@ -136,49 +136,49 @@ export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLay
   switch (layer) {
     case 'conditions': {
       const t = state.temperature;
-      if (t >= 35) return '#E0525B';
-      if (t >= 31) return '#F28B45';
-      if (t >= 27) return '#E8B64D';
-      if (t >= 22) return '#26B982';
-      return '#35C7E8';
+      if (t >= 35) return '#E27B55';
+      if (t >= 31) return '#D98548';
+      if (t >= 27) return '#E6B96B';
+      if (t >= 22) return '#89977B';
+      return '#91B6CC';
     }
     case 'wind': {
       const w = state.windSpeed;
-      if (w >= 24) return '#E8B64D';
-      if (w >= 16) return '#35C7E8';
-      return '#36C6B0';
+      if (w >= 24) return '#E6B96B';
+      if (w >= 16) return '#C5A46D';
+      return '#9CAF9A';
     }
     case 'rain':
     case 'radar':
     case 'satellite': {
       const r = state.rainfall;
-      if (r >= 25) return '#E8B64D';
-      if (r >= 12) return '#35C7E8';
-      if (r >= 3) return '#3189D8';
-      return '#4E6B8A';
+      if (r >= 25) return '#E6B96B';
+      if (r >= 12) return '#78AEB6';
+      if (r >= 3) return '#A7C5C5';
+      return '#5F6662';
     }
     case 'aqi': {
       const aqi = state.aqi;
-      if (aqi <= 50) return '#26B982';
-      if (aqi <= 100) return '#84CC16';
-      if (aqi <= 150) return '#E8B64D';
-      if (aqi <= 250) return '#F28B45';
-      return '#E0525B';
+      if (aqi <= 50) return '#5C9A79';
+      if (aqi <= 100) return '#89977B';
+      if (aqi <= 150) return '#D8B14F';
+      if (aqi <= 250) return '#D98548';
+      return '#C94F4B';
     }
     case 'warnings':
     case 'cyclones': {
-      if (state.warningLevel === 'severe') return '#E0525B';
-      if (state.warningLevel === 'alert') return '#F28B45';
-      if (state.warningLevel === 'watch') return '#E8B64D';
-      return '#26B982';
+      if (state.warningLevel === 'severe') return '#C94F4B';
+      if (state.warningLevel === 'alert') return '#D98548';
+      if (state.warningLevel === 'watch') return '#D8B14F';
+      return '#5C9A79';
     }
     case 'agromet': {
-      if (state.humidity >= 82 || state.rainfall >= 18) return '#3189D8';
-      if (state.humidity >= 60) return '#26B982';
-      return '#E8B64D';
+      if (state.humidity >= 82 || state.rainfall >= 18) return '#78AEB6';
+      if (state.humidity >= 60) return '#89977B';
+      return '#E6B96B';
     }
     default:
-      return '#35C7E8';
+      return '#C5A46D';
   }
 }
 
@@ -208,8 +208,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
     ctx.stroke();
   };
 
-  const landmassFill = '#0F1F32';
-  const landmassStroke = 'rgba(132, 168, 204, 0.22)';
+  const landmassFill = '#1A1E1C';
+  const landmassStroke = 'rgba(226, 219, 200, 0.16)';
 
   // Arabian Peninsula + Middle East + Iran/Pakistan/Central Asia landmass connecting smoothly north of India
   drawPoly(
@@ -254,8 +254,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [80.6, 5.95],
       [79.8, 7.1],
     ],
-    '#12263C',
-    'rgba(132, 168, 204, 0.35)'
+    '#242A25',
+    'rgba(197, 164, 109, 0.30)'
   );
 
   // East Africa Horn (for Arabian Sea context)
@@ -276,8 +276,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [10, 37],
       [25, 32],
     ],
-    '#0C1A2B',
-    'rgba(132, 168, 204, 0.16)'
+    '#151817',
+    'rgba(226, 219, 200, 0.12)'
   );
 
   // Maritime SE Asia / Sumatra / Malay / Borneo
@@ -314,8 +314,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [130, -32],
       [115, -34],
     ],
-    '#0C1A2B',
-    'rgba(132, 168, 204, 0.16)'
+    '#151817',
+    'rgba(226, 219, 200, 0.12)'
   );
 
   // Americas & Europe faint global context so rotating full globe remains geographically grounded
@@ -330,8 +330,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [28, 38],
       [12, 42],
     ],
-    '#0C1A2B',
-    'rgba(132, 168, 204, 0.14)'
+    '#151817',
+    'rgba(226, 219, 200, 0.10)'
   );
   drawPoly(
     [
@@ -343,8 +343,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [-105, 22],
       [-118, 33],
     ],
-    '#0C1A2B',
-    'rgba(132, 168, 204, 0.14)'
+    '#151817',
+    'rgba(226, 219, 200, 0.10)'
   );
   drawPoly(
     [
@@ -357,8 +357,8 @@ function drawSurroundingLandmasses(ctx: CanvasRenderingContext2D, width: number,
       [-72, -18],
       [-80, -4],
     ],
-    '#0C1A2B',
-    'rgba(132, 168, 204, 0.14)'
+    '#151817',
+    'rgba(226, 219, 200, 0.10)'
   );
 }
 
@@ -383,13 +383,13 @@ export function buildProceduralEarthTextures(): {
   bumpCanvas.height = height;
   const bctx = bumpCanvas.getContext('2d')!;
 
-  // 1. Deep ocean bathymetry base
+  // 1. Deep obsidian ocean base
   const oceanGrad = ctx.createLinearGradient(0, 0, 0, height);
-  oceanGrad.addColorStop(0, '#06101B');
-  oceanGrad.addColorStop(0.35, '#081524');
-  oceanGrad.addColorStop(0.5, '#0A192A');
-  oceanGrad.addColorStop(0.65, '#081524');
-  oceanGrad.addColorStop(1, '#06101B');
+  oceanGrad.addColorStop(0, '#0B0C0D');
+  oceanGrad.addColorStop(0.35, '#0F1214');
+  oceanGrad.addColorStop(0.5, '#121618');
+  oceanGrad.addColorStop(0.65, '#0F1214');
+  oceanGrad.addColorStop(1, '#0B0C0D');
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, 0, width, height);
 
@@ -407,14 +407,14 @@ export function buildProceduralEarthTextures(): {
     indiaCenterY,
     210
   );
-  shelfGlow.addColorStop(0, 'rgba(53, 199, 232, 0.14)');
-  shelfGlow.addColorStop(0.55, 'rgba(49, 137, 216, 0.06)');
-  shelfGlow.addColorStop(1, 'rgba(7, 17, 29, 0)');
+  shelfGlow.addColorStop(0, 'rgba(167, 197, 197, 0.10)');
+  shelfGlow.addColorStop(0.55, 'rgba(137, 151, 123, 0.05)');
+  shelfGlow.addColorStop(1, 'rgba(11, 12, 13, 0)');
   ctx.fillStyle = shelfGlow;
   ctx.fillRect(0, 0, width, height);
 
   // 2. Scientific 15-degree graticule grid
-  ctx.strokeStyle = 'rgba(132, 168, 204, 0.08)';
+  ctx.strokeStyle = 'rgba(226, 219, 200, 0.06)';
   ctx.lineWidth = 1;
   for (let lng = -180; lng <= 180; lng += 15) {
     const x = ((lng + 180) / 360) * width;
@@ -431,8 +431,8 @@ export function buildProceduralEarthTextures(): {
     ctx.stroke();
   }
 
-  // Equator & Tropic of Cancer subtle scientific highlight
-  ctx.strokeStyle = 'rgba(53, 199, 232, 0.16)';
+  // Tropic of Cancer subtle warm-brass reference line
+  ctx.strokeStyle = 'rgba(197, 164, 109, 0.18)';
   ctx.setLineDash([6, 6]);
   const tropicY = ((90 - 23.437) / 180) * height;
   ctx.beginPath();
@@ -462,14 +462,13 @@ export function buildProceduralEarthTextures(): {
     ctx.translate(westX, northY);
     ctx.scale(scaleX, scaleY);
 
-    // Outer glow rim for Indian Subcontinent
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     for (const loc of locations) {
       const p = new Path2D(loc.path);
-      ctx.fillStyle = '#142940';
+      ctx.fillStyle = '#2B302C';
       ctx.fill(p);
-      ctx.strokeStyle = 'rgba(53, 199, 232, 0.42)';
+      ctx.strokeStyle = 'rgba(197, 164, 109, 0.45)';
       ctx.lineWidth = 1.65;
       ctx.stroke(p);
     }

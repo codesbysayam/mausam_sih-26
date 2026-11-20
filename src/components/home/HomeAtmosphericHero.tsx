@@ -142,7 +142,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : `${feelsLike > currentTemp ? '+' : ''}${feelsLike - currentTemp}°C apparent delta`
           : 'Apparent temperature',
       icon: Thermometer,
-      colorVar: 'var(--m-accent)',
+      colorVar: 'var(--weather-hot)',
     },
     {
       label: 'HUMIDITY',
@@ -150,7 +150,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       unit: '%',
       sub: dewPoint ? `Dew point ${dewPoint}` : 'Relative moisture',
       icon: Droplets,
-      colorVar: 'var(--m-accent)',
+      colorVar: 'var(--weather-rain)',
     },
     {
       label: 'WIND',
@@ -158,7 +158,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       unit: 'km/h',
       sub: windDir && windDir !== '—' ? `${windDir} surface flow` : 'Surface vector',
       icon: Wind,
-      colorVar: 'var(--m-ok)',
+      colorVar: 'var(--weather-wind)',
     },
     {
       label: 'PRESSURE',
@@ -171,7 +171,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             : 'Barometric normal'
           : 'Mean sea level',
       icon: Gauge,
-      colorVar: 'var(--m-watch)',
+      colorVar: 'var(--m-accent)',
     },
     {
       label: 'RAINFALL',
@@ -182,7 +182,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
           ? `${Math.round(weather.precipitationProbability)}% probability`
           : 'Hourly accumulation',
       icon: CloudRain,
-      colorVar: 'var(--m-accent)',
+      colorVar: 'var(--weather-rain)',
     },
     {
       label: 'VISIBILITY',
@@ -190,7 +190,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       unit: 'km',
       sub: 'Horizontal atmospheric range',
       icon: Eye,
-      colorVar: 'var(--m-ok)',
+      colorVar: 'var(--m-info)',
     },
   ];
 
@@ -228,7 +228,10 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
             </div>
 
             <div className="flex flex-col">
-              <div className="flex items-baseline leading-none font-mono tabular-nums">
+              <div
+                className="flex items-baseline leading-none tabular-nums"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
                 {currentTemp !== null ? (
                   <>
                     <span className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[var(--m-text-primary)] tracking-tight">
@@ -274,11 +277,11 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                 id="hero-primary-location-cta"
                 onClick={handleDetectLocation}
                 disabled={isLocating}
-                className="w-full min-h-[44px] py-2.5 px-4 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed m-focus-ring"
+                className="w-full min-h-[44px] py-2.5 px-4 rounded-[7px] bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed m-focus-ring"
               >
                 {isLocating ? (
                   <>
-                    <Loader2 className="w-4 h-4 text-white animate-spin" aria-hidden="true" />
+                    <Loader2 className="w-4 h-4 text-[var(--m-on-accent)] animate-spin" aria-hidden="true" />
                     <span>
                       {locatePhase === 'prompting'
                         ? 'Requesting Geolocation Permission...'
@@ -291,7 +294,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                   </>
                 ) : (
                   <>
-                    <Crosshair className="w-4 h-4 text-white shrink-0" aria-hidden="true" />
+                    <Crosshair className="w-4 h-4 text-[var(--m-on-accent)] shrink-0" aria-hidden="true" />
                     <span>Check Weather for My Location</span>
                   </>
                 )}

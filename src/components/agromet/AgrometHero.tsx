@@ -51,12 +51,12 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="agriGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#38BDF8" strokeWidth="0.5" strokeOpacity="0.3" />
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#C5A46D" strokeWidth="0.5" strokeOpacity="0.3" />
               <circle cx="20" cy="20" r="0.75" fill="#10B981" fillOpacity="0.4" />
             </pattern>
             <linearGradient id="heroGlow" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#10B981" stopOpacity="0.12" />
-              <stop offset="50%" stopColor="#38BDF8" stopOpacity="0.08" />
+              <stop offset="50%" stopColor="#C5A46D" stopOpacity="0.08" />
               <stop offset="100%" stopColor="#0B131D" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -88,7 +88,7 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
               Agricultural Weather <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#38BDF8] via-[#2ECC71] to-[#10B981]">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--m-accent)] via-[#2ECC71] to-[#10B981]">
                 Decision Intelligence
               </span>
             </h1>
@@ -174,7 +174,7 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
             {/* Visual Cross-Section Graphic */}
             <div className="space-y-3">
               {/* Atmospheric Canopy Layer */}
-              <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#38BDF8]/10 to-[#10B981]/5 border border-[var(--m-accent)]/20">
+              <div className="p-3.5 rounded-xl bg-gradient-to-b from-[var(--m-accent)]/10 to-[#10B981]/5 border border-[var(--m-accent)]/20">
                 <div className="flex items-center justify-between text-xs mb-2">
                   <div className="flex items-center gap-1.5 text-[var(--m-accent)] font-mono font-bold">
                     <Sun className="w-3.5 h-3.5" />
@@ -189,10 +189,10 @@ export const AgrometHero: React.FC<AgrometHeroProps> = ({
                 <div className="h-16 w-full relative overflow-hidden rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-end justify-between px-3 pb-1">
                   {/* Rain drops simulation vector */}
                   <div className="absolute inset-0 flex justify-around opacity-40">
-                    <div className="w-0.5 h-3 bg-[#38BDF8] animate-pulse self-start mt-2"></div>
-                    <div className="w-0.5 h-4 bg-[#38BDF8] animate-pulse self-start mt-4 delay-100"></div>
-                    <div className="w-0.5 h-3 bg-[#38BDF8] animate-pulse self-start mt-1 delay-200"></div>
-                    <div className="w-0.5 h-4 bg-[#38BDF8] animate-pulse self-start mt-3 delay-300"></div>
+                    <div className="w-0.5 h-3 bg-[var(--m-accent)] animate-pulse self-start mt-2"></div>
+                    <div className="w-0.5 h-4 bg-[var(--m-accent)] animate-pulse self-start mt-4 delay-100"></div>
+                    <div className="w-0.5 h-3 bg-[var(--m-accent)] animate-pulse self-start mt-1 delay-200"></div>
+                    <div className="w-0.5 h-4 bg-[var(--m-accent)] animate-pulse self-start mt-3 delay-300"></div>
                   </div>
 
                   {/* Crop Canopy Stems */}

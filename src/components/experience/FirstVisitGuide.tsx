@@ -41,7 +41,7 @@ export const FirstVisitGuide: React.FC = () => {
     <>
       {/* Active Guided Tour Narration Banner */}
       {activeTour && activeStep && (
-        <div className="fixed top-[68px] left-1/2 -translate-x-1/2 z-30 w-[min(460px,calc(100vw-24px))] spatial-hud-surface-elevated rounded-xl px-4 py-3 pointer-events-auto">
+        <div className="fixed top-[68px] left-1/2 -translate-x-1/2 z-30 w-[min(460px,calc(100vw-24px))] spatial-hud-surface-elevated rounded-[11px] px-4 py-3 pointer-events-auto">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-accent)] tabular-nums">
@@ -74,7 +74,7 @@ export const FirstVisitGuide: React.FC = () => {
             <button
               type="button"
               onClick={nextTourStep}
-              className="px-3.5 min-h-[36px] sm:min-h-[32px] rounded-lg bg-[var(--m-accent)] text-[#07111B] text-xs font-semibold flex items-center gap-1 cursor-pointer m-focus-ring"
+              className="px-3.5 min-h-[36px] sm:min-h-[32px] rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold flex items-center gap-1 cursor-pointer m-focus-ring"
             >
               <span>
                 {tourStepIndex + 1 >= activeTour.steps.length ? 'Finish' : 'Next Sector'}
@@ -104,7 +104,7 @@ export const FirstVisitGuide: React.FC = () => {
           role="dialog"
           aria-modal="false"
           aria-label="MAUSAM 3D Atmospheric Observatory Controls"
-          className="fixed bottom-[104px] left-1/2 -translate-x-1/2 z-40 w-[min(580px,calc(100vw-20px))] spatial-hud-surface-elevated rounded-2xl p-4 pointer-events-auto"
+          className="fixed bottom-[104px] left-1/2 -translate-x-1/2 z-40 w-[min(580px,calc(100vw-20px))] spatial-hud-surface-elevated rounded-[11px] p-4 pointer-events-auto"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -245,7 +245,7 @@ export const FirstVisitGuide: React.FC = () => {
             <button
               type="button"
               onClick={dismissControlsGuide}
-              className="px-4 min-h-[40px] sm:min-h-[36px] rounded-lg bg-[var(--m-accent)] text-[#07111B] text-xs font-bold hover:opacity-95 cursor-pointer m-focus-ring"
+              className="px-4 min-h-[40px] sm:min-h-[36px] rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-bold hover:opacity-95 cursor-pointer m-focus-ring"
             >
               Resume Exploring
             </button>

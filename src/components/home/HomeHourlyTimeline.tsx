@@ -42,7 +42,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                 onClick={() => setRangeMode('8h')}
                 className={`px-3 min-h-[32px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   rangeMode === '8h'
-                    ? 'bg-[#35C7E8] text-[#05101C]'
+                    ? 'bg-[var(--m-accent)] text-[#05101C]'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -53,7 +53,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                 onClick={() => setRangeMode('24h')}
                 className={`px-3 min-h-[32px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   rangeMode === '24h'
-                    ? 'bg-[#35C7E8] text-[#05101C]'
+                    ? 'bg-[var(--m-accent)] text-[#05101C]'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -147,7 +147,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                   </div>
                   <div className="w-full h-1 bg-[var(--m-surface-2)] rounded overflow-hidden">
                     <div
-                      className="h-full bg-[#35C7E8] rounded"
+                      className="h-full bg-[var(--m-accent)] rounded"
                       style={{ width: `${rain !== null ? Math.min(100, Math.max(0, rain)) : 0}%` }}
                     />
                   </div>

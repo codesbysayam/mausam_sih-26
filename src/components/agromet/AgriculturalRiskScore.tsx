@@ -26,9 +26,9 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
   const farmStatus = 'Favorable Conditions';
 
   const breakdownMetrics = [
-    { name: 'Weather Index', score: 82, color: '#38BDF8' },
+    { name: 'Weather Index', score: 82, color: '#C5A46D' },
     { name: 'Soil State', score: 68, color: '#2ECC71' },
-    { name: 'Rainfall Influx', score: 74, color: '#0284C7' },
+    { name: 'Rainfall Influx', score: 74, color: '#78AEB6' },
     { name: 'Disease Inoculum', score: 56, color: '#EF4444' },
     { name: 'Field Operations', score: 79, color: '#A855F7' },
   ];
@@ -89,7 +89,7 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
 
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-xs text-[var(--m-accent)] font-mono self-start sm:self-auto">
           <span>Model-Derived Ensemble</span>
-          <span className="text-[#334155]">•</span>
+          <span className="text-[var(--m-text-muted)]">•</span>
           <span className="text-[#2ECC71]">Verified</span>
         </div>
       </div>
@@ -118,7 +118,7 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
                   cx="55"
                   cy="55"
                   r={radius}
-                  className="stroke-[#1E293B]"
+                  className="stroke-[var(--m-surface-2)]"
                   strokeWidth="8"
                   fill="transparent"
                 />
@@ -245,7 +245,7 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
                 {/* Radar Fill Area */}
                 <polygon
                   points={polygonPoints}
-                  className="fill-[#38BDF8]/25 stroke-[#38BDF8]"
+                  className="fill-[var(--m-accent)]/25 stroke-[var(--m-accent)]"
                   strokeWidth="2.5"
                 />
 
@@ -258,7 +258,7 @@ export const AgriculturalRiskScore: React.FC<AgriculturalRiskScoreProps> = ({ bu
                       cx={x}
                       cy={y}
                       r="4.5"
-                      className="fill-[#38BDF8] stroke-[#0B131C]"
+                      className="fill-[var(--m-accent)] stroke-[#0B131C]"
                       strokeWidth="1.5"
                     />
                   );

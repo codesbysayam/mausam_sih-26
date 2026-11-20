@@ -40,14 +40,14 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
               key={idx}
               className={`flex-1 bg-[var(--m-surface-2)] border rounded p-2.5 flex flex-col items-center text-center justify-between min-w-[85px] ${
                 item.isNow
-                  ? 'border-[#4FA8E0] bg-[var(--m-accent-soft)]'
+                  ? 'border-[var(--m-accent)] bg-[var(--m-accent-soft)]'
                   : 'border-[var(--m-border-strong)]'
               }`}
             >
               <div className="text-xs font-bold text-[var(--m-text-primary)]">
                 {item.time}
                 {item.isNow && (
-                  <span className="block text-[10px] text-[#4FA8E0] font-normal">
+                  <span className="block text-[10px] text-[var(--m-accent)] font-normal">
                     ({language === 'hi' ? 'अब' : language === 'or' ? 'ଏବେ' : 'Now'})
                   </span>
                 )}
@@ -65,7 +65,7 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
               <div className="w-full pt-1.5 border-t border-[var(--m-border-strong)] text-[11px] text-[var(--m-text-secondary)] flex flex-col gap-0.5">
                 <div className="flex items-center justify-between text-[10px]">
                   <span>{language === 'hi' ? 'वर्षा' : language === 'or' ? 'ବର୍ଷା' : 'Rain'}</span>
-                  <span className="text-[#4FA8E0] font-bold font-mono">
+                  <span className="text-[var(--m-accent)] font-bold font-mono">
                     {item.precipitationProbability || 0}%
                   </span>
                 </div>

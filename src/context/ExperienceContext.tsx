@@ -62,8 +62,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: '12°C',
     legendMid: '27°C',
     legendMax: '42°C',
-    gradientCss: 'linear-gradient(90deg, #35C7E8 0%, #22C7A0 42%, #F59E0B 74%, #EF4444 100%)',
-    accentHex: '#35C7E8',
+    gradientCss: 'linear-gradient(90deg, #91B6CC 0%, #89977B 42%, #E6B96B 74%, #E27B55 100%)',
+    accentHex: '#E6B96B',
   },
   {
     id: 'wind',
@@ -77,8 +77,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: '5 km/h',
     legendMid: '22 km/h',
     legendMax: '55+ km/h',
-    gradientCss: 'linear-gradient(90deg, #26394B 0%, #22C7A0 48%, #35C7E8 78%, #F59E0B 100%)',
-    accentHex: '#22C7A0',
+    gradientCss: 'linear-gradient(90deg, #292E2D 0%, #9CAF9A 48%, #F0EEE7 78%, #E6B96B 100%)',
+    accentHex: '#9CAF9A',
   },
   {
     id: 'rain',
@@ -92,8 +92,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: '0 mm',
     legendMid: '15 mm',
     legendMax: '40+ mm',
-    gradientCss: 'linear-gradient(90deg, #101F2E 0%, #0B72B9 45%, #35C7E8 75%, #F59E0B 100%)',
-    accentHex: '#0B72B9',
+    gradientCss: 'linear-gradient(90deg, #202424 0%, #78AEB6 50%, #A7C5C5 78%, #E6B96B 100%)',
+    accentHex: '#78AEB6',
   },
   {
     id: 'radar',
@@ -107,8 +107,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: 'X-Band 100km',
     legendMid: 'C-Band 150km',
     legendMax: 'S-Band 250km',
-    gradientCss: 'linear-gradient(90deg, #172A3D 0%, #35C7E8 55%, #22C7A0 100%)',
-    accentHex: '#35C7E8',
+    gradientCss: 'linear-gradient(90deg, #292E2D 0%, #A7C5C5 55%, #C5A46D 100%)',
+    accentHex: '#A7C5C5',
   },
   {
     id: 'satellite',
@@ -122,8 +122,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: '0%',
     legendMid: '50%',
     legendMax: '100%',
-    gradientCss: 'linear-gradient(90deg, #08131F 0%, #647C94 50%, #F3F6FA 100%)',
-    accentHex: '#B5C3D1',
+    gradientCss: 'linear-gradient(90deg, #191C1D 0%, #898B83 50%, #F0EEE7 100%)',
+    accentHex: '#C3C9C5',
   },
   {
     id: 'aqi',
@@ -137,8 +137,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: 'Good (0–50)',
     legendMid: 'Mod (101–200)',
     legendMax: 'Poor (201+)',
-    gradientCss: 'linear-gradient(90deg, #22C7A0 0%, #F59E0B 45%, #F97316 72%, #EF4444 100%)',
-    accentHex: '#22C7A0',
+    gradientCss: 'linear-gradient(90deg, #5C9A79 0%, #D8B14F 45%, #D98548 72%, #C94F4B 100%)',
+    accentHex: '#5C9A79',
   },
   {
     id: 'warnings',
@@ -152,8 +152,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: 'Normal',
     legendMid: 'Watch / Alert',
     legendMax: 'Red Warning',
-    gradientCss: 'linear-gradient(90deg, #22C7A0 0%, #F59E0B 42%, #F97316 72%, #EF4444 100%)',
-    accentHex: '#F59E0B',
+    gradientCss: 'linear-gradient(90deg, #5C9A79 0%, #D8B14F 42%, #D98548 72%, #C94F4B 100%)',
+    accentHex: '#D8B14F',
   },
   {
     id: 'cyclones',
@@ -167,8 +167,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: 'Calm Basin',
     legendMid: 'Depression',
     legendMax: 'Cyclonic Storm',
-    gradientCss: 'linear-gradient(90deg, #0B72B9 0%, #F59E0B 50%, #EF4444 100%)',
-    accentHex: '#F97316',
+    gradientCss: 'linear-gradient(90deg, #78AEB6 0%, #D8B14F 50%, #C94F4B 100%)',
+    accentHex: '#D98548',
   },
   {
     id: 'agromet',
@@ -182,8 +182,8 @@ export const SPATIAL_LAYERS: SpatialLayerDefinition[] = [
     legendMin: 'Arid <45%',
     legendMid: 'Moist 65%',
     legendMax: 'Wet >85%',
-    gradientCss: 'linear-gradient(90deg, #F59E0B 0%, #22C7A0 55%, #0B72B9 100%)',
-    accentHex: '#22C7A0',
+    gradientCss: 'linear-gradient(90deg, #E6B96B 0%, #89977B 55%, #78AEB6 100%)',
+    accentHex: '#89977B',
   },
 ];
 

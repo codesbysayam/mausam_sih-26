@@ -37,7 +37,7 @@ export const HomeQuickActionBar: React.FC<HomeQuickActionBarProps> = ({
               onClick={() => onNavigate(item.id)}
               className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer select-none ${
                 isActive
-                  ? 'bg-[var(--m-accent)] text-white border-[#0B72B9] shadow-md'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border-[var(--m-accent)] shadow-md'
                   : `bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border-[var(--m-border-strong)] ${item.bgHover} hover:text-[var(--m-text-primary)]`
               }`}
             >

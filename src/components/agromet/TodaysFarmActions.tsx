@@ -75,7 +75,7 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
       category: 'FIELD WORK & SPRAYING',
       icon: Tractor,
       priority: 'ACTIONABLE WINDOW',
-      priorityColor: '#38BDF8',
+      priorityColor: '#C5A46D',
       action: 'Unclog Drainage Furrows & Avoid Heavy Machinery in Wet Soils',
       reason: 'Ensure bund outlets allow excess runoff to escape freely. Keep heavy tractors off soft mud to avoid compaction rutting.',
       bestTime: 'Afternoon bund inspection (14:00 – 17:00 PM)',
@@ -91,7 +91,7 @@ export const TodaysFarmActions: React.FC<TodaysFarmActionsProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--m-border)]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#38BDF8] animate-ping"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--m-accent)] animate-ping"></span>
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-accent)]">
               Decisive Field Action Plan
             </span>

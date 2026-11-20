@@ -43,7 +43,7 @@ export const OpenDataApi: React.FC<OpenDataApiProps> = ({ onNavigateHome }) => {
               href="/docs/api_specification.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] hover:text-white px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-mono font-semibold transition-colors"
+              className="inline-flex items-center gap-2 bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] hover:text-[var(--m-on-accent)] px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-mono font-semibold transition-colors"
               title="Open full interactive OpenAPI & WMO data interchange specification"
             >
               <BookOpen className="w-3.5 h-3.5" />

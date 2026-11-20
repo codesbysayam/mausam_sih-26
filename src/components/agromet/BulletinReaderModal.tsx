@@ -113,7 +113,7 @@ For real-time weather updates visit mausam.imd.gov.in
               onClick={() => setViewFormat('formatted')}
               className={`px-3 py-1 rounded-md font-semibold transition-all ${
                 viewFormat === 'formatted'
-                  ? 'bg-[#2ECC71] text-[#0A1017]'
+                  ? 'bg-[#2ECC71] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
@@ -124,7 +124,7 @@ For real-time weather updates visit mausam.imd.gov.in
               onClick={() => setViewFormat('raw')}
               className={`px-3 py-1 rounded-md font-semibold transition-all ${
                 viewFormat === 'raw'
-                  ? 'bg-[#2ECC71] text-[#0A1017]'
+                  ? 'bg-[#2ECC71] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
             >
@@ -154,7 +154,7 @@ For real-time weather updates visit mausam.imd.gov.in
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2ECC71] text-[#0A1017] font-bold hover:bg-[#27AE60] transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2ECC71] text-[var(--m-on-accent)] font-bold hover:bg-[#27AE60] transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print</span>
@@ -182,9 +182,9 @@ For real-time weather updates visit mausam.imd.gov.in
 
                 <div className="flex flex-wrap justify-center gap-4 mt-3 text-[11px] font-mono">
                   <span className="text-white">Bulletin No: <strong className="text-[var(--m-accent)]">{bulletin.bulletinNo}</strong></span>
-                  <span className="text-[#334155]">|</span>
+                  <span className="text-[var(--m-text-muted)]">|</span>
                   <span className="text-white">Issue Date: <strong>{bulletin.issueDate}</strong></span>
-                  <span className="text-[#334155]">|</span>
+                  <span className="text-[var(--m-text-muted)]">|</span>
                   <span className="text-white">Validity: <strong className="text-[var(--m-watch)]">{bulletin.validPeriod}</strong></span>
                 </div>
               </div>

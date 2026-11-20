@@ -118,7 +118,7 @@ export const AstronomicalEphemeris: React.FC<AstronomicalEphemerisProps> = ({
             <span className="font-mono uppercase tracking-wider font-semibold">
               Local Sunrise
             </span>
-            <Sunrise className="w-4 h-4 text-[#2C7BE5]" />
+            <Sunrise className="w-4 h-4 text-[var(--m-accent)]" />
           </div>
           <div className="font-mono tabular-nums text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)] tracking-tight">
             {displaySunrise}
@@ -183,7 +183,7 @@ export const AstronomicalEphemeris: React.FC<AstronomicalEphemerisProps> = ({
           >
             <defs>
               <linearGradient id="mausamSolarArcGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#2C7BE5" />
+                <stop offset="0%" stopColor="#C5A46D" />
                 <stop offset="50%" stopColor="#D98A2B" />
                 <stop offset="100%" stopColor="#C65D21" />
               </linearGradient>
@@ -300,7 +300,7 @@ export const AstronomicalEphemeris: React.FC<AstronomicalEphemerisProps> = ({
               Solar Azimuth
             </span>
             <strong className="text-sm font-bold text-[var(--m-text-primary)] flex items-center gap-1 mt-0.5">
-              <Compass className="w-3.5 h-3.5 text-[#2C7BE5]" />
+              <Compass className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               <span>{solar.solarAzimuthDeg.toFixed(1)}°</span>
             </strong>
             <span className="text-[10px] font-sans text-[var(--m-text-muted)]">

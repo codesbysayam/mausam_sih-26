@@ -33,10 +33,10 @@ export function getCategoryTheme(pub: MeteorologicalPublication): CategoryTheme 
   if (cat === 'National Weather Observation' || type === 'PDF Bulletin') {
     return {
       label: 'Official Synoptic Bulletin',
-      badgeBg: 'bg-[#0B72B9]/15',
-      badgeText: 'text-[#38BDF8]',
-      badgeBorder: 'border-[#38BDF8]/30',
-      accentColor: '#38BDF8',
+      badgeBg: 'bg-[var(--m-accent-soft)]',
+      badgeText: 'text-[var(--m-accent)]',
+      badgeBorder: 'border-[var(--m-accent)]/30',
+      accentColor: '#C5A46D',
       icon: CloudRain,
       classification: 'OFFICIAL',
     };
@@ -118,9 +118,9 @@ export function getCategoryTheme(pub: MeteorologicalPublication): CategoryTheme 
     return {
       label: 'Scientific Monograph',
       badgeBg: 'bg-[#6366F1]/15',
-      badgeText: 'text-[#818CF8]',
-      badgeBorder: 'border-[#818CF8]/30',
-      accentColor: '#818CF8',
+      badgeText: 'text-[var(--m-accent)]',
+      badgeBorder: 'border-[var(--m-accent)]/30',
+      accentColor: '#C5A46D',
       icon: BookOpen,
       classification: 'RESEARCH',
     };

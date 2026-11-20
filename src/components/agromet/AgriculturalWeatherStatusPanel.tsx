@@ -84,7 +84,7 @@ export const AgriculturalWeatherStatusPanel: React.FC<AgriculturalWeatherStatusP
             type="button"
             id="btn-view-agri-advisory"
             onClick={handleScrollToAdvisories}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] sm:min-h-[40px] bg-[var(--m-accent)] hover:bg-[#0D84D6] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] sm:min-h-[40px] bg-[var(--m-accent)] hover:bg-[#0D84D6] text-[var(--m-on-accent)] rounded-lg text-xs font-semibold transition-colors cursor-pointer m-focus-ring"
           >
             <span>View Advisory</span>
             <ArrowRight className="w-3.5 h-3.5" />

@@ -184,7 +184,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
           <button
             type="button"
             onClick={() => setIsCollapsed(false)}
-            className="pointer-events-auto spatial-hud-surface rounded-xl px-3 min-h-[40px] flex items-center gap-2 text-xs text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] cursor-pointer m-focus-ring"
+            className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 min-h-[40px] flex items-center gap-2 text-xs text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] cursor-pointer m-focus-ring"
           >
             <ChevronLeft className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span className="font-mono font-semibold tabular-nums">
@@ -195,7 +195,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             </span>
           </button>
         ) : (
-          <div className="pointer-events-auto w-[304px] spatial-hud-surface rounded-xl p-3.5 flex flex-col gap-3">
+          <div className="pointer-events-auto w-[304px] spatial-hud-surface rounded-[11px] p-3.5 flex flex-col gap-3">
             {/* Header Row */}
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -243,7 +243,10 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
 
             {/* Primary Temperature & Condition */}
             <div className="flex items-baseline justify-between gap-2 pb-2.5 border-b border-[var(--m-border)]">
-              <div className="text-3xl font-bold font-mono text-[var(--m-text-primary)] tabular-nums tracking-tight">
+              <div
+                className="text-3xl font-bold text-[var(--m-text-primary)] tabular-nums tracking-tight"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
                 {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : 'Unavailable'}
               </div>
               <div className="text-right min-w-0">
@@ -369,7 +372,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
 
         {/* Contextual Spatial Feature Inspector Card (Appears when user clicks any State or DWR marker) */}
         {inspectedFeature && (
-          <div className="pointer-events-auto w-[304px] spatial-hud-surface-elevated rounded-xl p-3.5 flex flex-col gap-2.5">
+          <div className="pointer-events-auto w-[304px] spatial-hud-surface-elevated rounded-[11px] p-3.5 flex flex-col gap-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-accent)]">
@@ -423,7 +426,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                 <button
                   type="button"
                   onClick={handleAnchorInspectedState}
-                  className="flex-1 min-h-[36px] px-2.5 rounded-lg bg-[var(--m-accent)] text-[#07111B] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
+                  className="flex-1 min-h-[36px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
                 >
                   Anchor Location
                 </button>
@@ -432,7 +435,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                 <button
                   type="button"
                   onClick={() => onInspectInAnalyze('radar')}
-                  className="flex-1 min-h-[36px] px-2.5 rounded-lg bg-[var(--m-accent)] text-[#07111B] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
+                  className="flex-1 min-h-[36px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
                 >
                   Radar Scope →
                 </button>
@@ -444,9 +447,12 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
 
       {/* Mobile Viewport: Compact Floating Summary + Expandable Bottom Sheet */}
       <div className="md:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
-        <div className="pointer-events-auto spatial-hud-surface rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+        <div className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 py-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-lg font-bold font-mono text-[var(--m-text-primary)] tabular-nums">
+            <span
+              className="text-lg font-bold text-[var(--m-text-primary)] tabular-nums"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
               {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : '—'}
             </span>
             <div className="min-w-0">
@@ -462,7 +468,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             <button
               type="button"
               onClick={() => onInspectInAnalyze(targetAnalyzeTab)}
-              className="px-3 min-h-[42px] rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/45 text-xs font-semibold text-[var(--m-accent)] cursor-pointer m-focus-ring"
+              className="px-3 min-h-[42px] rounded-[7px] bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/45 text-xs font-semibold text-[var(--m-accent)] cursor-pointer m-focus-ring"
             >
               Analyze
             </button>
@@ -470,7 +476,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
               type="button"
               onClick={() => setIsMobileSheetOpen((v) => !v)}
               aria-label="Toggle weather details sheet"
-              className="min-w-[42px] min-h-[42px] flex items-center justify-center rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-secondary)] cursor-pointer m-focus-ring"
+              className="min-w-[42px] min-h-[42px] flex items-center justify-center rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-secondary)] cursor-pointer m-focus-ring"
             >
               {isMobileSheetOpen ? (
                 <ChevronDown className="w-4 h-4" />
@@ -482,7 +488,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
         </div>
 
         {isMobileSheetOpen && (
-          <div className="pointer-events-auto spatial-hud-surface-elevated rounded-xl p-3 flex flex-col gap-2 text-xs">
+          <div className="pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3 flex flex-col gap-2 text-xs">
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <div className="text-[10px] text-[var(--m-text-muted)]">Humidity</div>

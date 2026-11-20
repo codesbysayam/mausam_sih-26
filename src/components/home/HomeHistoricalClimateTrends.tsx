@@ -147,7 +147,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 onClick={() => setActiveTab('temperature')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'temperature'
-                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -160,7 +160,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 onClick={() => setActiveTab('rainfall')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'rainfall'
-                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -173,7 +173,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 onClick={() => setActiveTab('decadal')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-md text-xs font-semibold transition-colors cursor-pointer m-focus-ring ${
                   activeTab === 'decadal'
-                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -278,12 +278,12 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={monthlyData} margin={{ top: 10, right: 15, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1c2b3d" vertical={false} />
-                <XAxis dataKey="month" stroke="#718096" fontSize={11} tickLine={false} />
-                <YAxis stroke="#718096" fontSize={11} domain={['auto', 'auto']} tickLine={false} unit="°C" />
+                <XAxis dataKey="month" stroke="#898B83" fontSize={11} tickLine={false} />
+                <YAxis stroke="#898B83" fontSize={11} domain={['auto', 'auto']} tickLine={false} unit="°C" />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0F1722',
-                    borderColor: '#1E293B',
+                    borderColor: '#202424',
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                     fontSize: '12px',
@@ -298,9 +298,9 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                   type="monotone"
                   dataKey="tempNormal"
                   name="30-Year Normal (1991–2020)"
-                  fill="#1499E8"
+                  fill="#C5A46D"
                   fillOpacity={0.12}
-                  stroke="#1499E8"
+                  stroke="#C5A46D"
                   strokeWidth={2}
                 />
                 <Line
@@ -323,12 +323,12 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={monthlyData} margin={{ top: 10, right: 15, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1c2b3d" vertical={false} />
-                <XAxis dataKey="month" stroke="#718096" fontSize={11} tickLine={false} />
-                <YAxis stroke="#718096" fontSize={11} domain={[0, 'auto']} tickLine={false} unit="mm" />
+                <XAxis dataKey="month" stroke="#898B83" fontSize={11} tickLine={false} />
+                <YAxis stroke="#898B83" fontSize={11} domain={[0, 'auto']} tickLine={false} unit="mm" />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0F1722',
-                    borderColor: '#1E293B',
+                    borderColor: '#202424',
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                     fontSize: '12px',
@@ -342,13 +342,13 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                 <Bar
                   dataKey="rainNormal"
                   name="Normal Monthly Rain (1991–2020)"
-                  fill="#1E3A5F"
+                  fill="#2F3534"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey={`rain${compareYear}`}
                   name={`Recorded Rain (${compareYear})`}
-                  fill="#43C7F4"
+                  fill="#C5A46D"
                   radius={[4, 4, 0, 0]}
                 />
                 <Line
@@ -370,13 +370,13 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={ANNUAL_DECADE_TREND} margin={{ top: 10, right: 15, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1c2b3d" vertical={false} />
-                <XAxis dataKey="year" stroke="#718096" fontSize={11} tickLine={false} />
-                <YAxis yAxisId="left" stroke="#718096" fontSize={11} domain={[25, 28]} tickLine={false} unit="°C" />
-                <YAxis yAxisId="right" orientation="right" stroke="#718096" fontSize={11} domain={[0, 40]} tickLine={false} unit="d" />
+                <XAxis dataKey="year" stroke="#898B83" fontSize={11} tickLine={false} />
+                <YAxis yAxisId="left" stroke="#898B83" fontSize={11} domain={[25, 28]} tickLine={false} unit="°C" />
+                <YAxis yAxisId="right" orientation="right" stroke="#898B83" fontSize={11} domain={[0, 40]} tickLine={false} unit="d" />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0F1722',
-                    borderColor: '#1E293B',
+                    borderColor: '#202424',
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                     fontSize: '12px',
@@ -399,7 +399,7 @@ export const HomeHistoricalClimateTrends: React.FC<HomeHistoricalClimateTrendsPr
                   type="monotone"
                   dataKey="normalTemp"
                   name="Decadal Baseline Normal (25.8°C)"
-                  stroke="#718096"
+                  stroke="#898B83"
                   strokeDasharray="4 4"
                   strokeWidth={2}
                   dot={false}

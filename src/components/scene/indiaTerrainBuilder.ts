@@ -283,24 +283,24 @@ export function buildIndiaObservatoryTexture(
     return [u * resolution, v * resolution];
   };
 
-  // 1. Deep Ocean Gradient (Explore Palette: #071A2B -> #0B2338)
+  // 1. Deep Basalt-Obsidian Ocean Gradient (Zero Neon Navy)
   const oceanGrad = ctx.createRadialGradient(
     resolution * 0.5,
     resolution * 0.52,
     resolution * 0.08,
     resolution * 0.5,
     resolution * 0.5,
-    resolution * 0.72
+    resolution * 0.74
   );
-  oceanGrad.addColorStop(0, '#0C263D');
-  oceanGrad.addColorStop(0.55, '#081D30');
-  oceanGrad.addColorStop(1, '#061524');
+  oceanGrad.addColorStop(0, '#13191B');
+  oceanGrad.addColorStop(0.55, '#0D1113');
+  oceanGrad.addColorStop(1, '#090B0C');
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, 0, resolution, resolution);
 
-  // 2. Subtle Lat/Lon Graticule Lines
+  // 2. Subtle Warm-Stone Lat/Lon Graticule Lines
   ctx.save();
-  ctx.strokeStyle = 'rgba(85, 216, 242, 0.08)';
+  ctx.strokeStyle = 'rgba(226, 219, 200, 0.055)';
   ctx.lineWidth = Math.max(1, resolution / 1400);
   for (let lat = 5; lat <= 40; lat += 5) {
     const [, y] = toXY(lat, TERRAIN_BOUNDS.west);
@@ -318,7 +318,7 @@ export function buildIndiaObservatoryTexture(
   }
   ctx.restore();
 
-  // 3. Surrounding Continental Context (Muted Deep Slate)
+  // 3. Surrounding Continental Context (Quiet Graphite-Basalt)
   const drawPoly = (coords: Array<[number, number]>, fill: string, stroke: string) => {
     ctx.save();
     ctx.beginPath();
@@ -336,7 +336,7 @@ export function buildIndiaObservatoryTexture(
     ctx.restore();
   };
 
-  // Surrounding Eurasian landmass (quiet background context)
+  // Surrounding Eurasian landmass (quiet neutral context)
   drawPoly(
     [
       [58, 41],
@@ -352,8 +352,8 @@ export function buildIndiaObservatoryTexture(
       [61, 25],
       [58, 26],
     ],
-    '#0E2233',
-    'rgba(85, 216, 242, 0.14)'
+    '#151817',
+    'rgba(226, 219, 200, 0.11)'
   );
 
   // Sri Lanka
@@ -366,11 +366,11 @@ export function buildIndiaObservatoryTexture(
       [79.7, 7.2],
       [79.8, 9.1],
     ],
-    '#1A3346',
-    'rgba(85, 216, 242, 0.28)'
+    '#242A25',
+    'rgba(197, 164, 109, 0.30)'
   );
 
-  // 4. Authentic India Subcontinent SVG Layer with Continental Shelf Halo & Physiographic Shading
+  // 4. Authentic India Subcontinent SVG Layer with Subtle Bathymetric Shelf & Natural Earth Relief
   const { u: uMin, v: vMin } = latLngToTerrainUV(INDIA_SVG_BOUNDS.north, INDIA_SVG_BOUNDS.west);
   const { u: uMax, v: vMax } = latLngToTerrainUV(INDIA_SVG_BOUNDS.south, INDIA_SVG_BOUNDS.east);
   const x0 = uMin * resolution;
@@ -391,27 +391,26 @@ export function buildIndiaObservatoryTexture(
     }
   }
 
-  // 4a. Soft glacial cyan continental shelf glow around India's coast
+  // 4a. Restrained Atmospheric-Ice Continental Shelf Halo
   ctx.save();
   ctx.translate(x0, y0);
   ctx.scale(scaleX, scaleY);
-  ctx.shadowColor = 'rgba(85, 216, 242, 0.42)';
-  ctx.shadowBlur = resolution * 0.018;
-  ctx.fillStyle = '#244154';
+  ctx.shadowColor = 'rgba(167, 197, 197, 0.22)';
+  ctx.shadowBlur = resolution * 0.014;
+  ctx.fillStyle = '#252B26';
   for (const p of path2ds) ctx.fill(p);
   ctx.restore();
 
-  // 4b. Clip inside India silhouette to paint physiographic shading (Himalayas, Thar, Deccan, Ghats)
+  // 4b. Natural Desaturated Earth & Olive-Mineral Physiographic Base
   ctx.save();
   ctx.beginPath();
   ctx.translate(x0, y0);
   ctx.scale(scaleX, scaleY);
-  // Paint base terrain slate (#315165 -> #45677A)
   const landGrad = ctx.createLinearGradient(0, 0, 0, INDIA_SVG_BOUNDS.svgHeight);
-  landGrad.addColorStop(0, '#5B7C90'); // Northern alpine foothills
-  landGrad.addColorStop(0.28, '#395A6E'); // Indo-Gangetic plain
-  landGrad.addColorStop(0.62, '#45677A'); // Deccan slate
-  landGrad.addColorStop(1, '#36586C'); // Southern peninsula
+  landGrad.addColorStop(0, '#5A5E56'); // Northern alpine stone
+  landGrad.addColorStop(0.28, '#363E35'); // Indo-Gangetic alluvial plains
+  landGrad.addColorStop(0.62, '#3E3F35'); // Deccan basalt plateau
+  landGrad.addColorStop(1, '#313A32'); // Southern peninsula forest/coastal
   ctx.fillStyle = landGrad;
   for (const p of path2ds) ctx.fill(p);
   ctx.restore();
@@ -434,27 +433,27 @@ export function buildIndiaObservatoryTexture(
     ctx.fill();
   };
 
-  // Apply subtle physiographic accents inside India bounds
+  // Apply natural physiographic accents inside India bounds
   ctx.save();
-  // Thar Desert warm highlight (#B8A77A)
-  paintTerrainHighlight(26.8, 71.8, 0.09, 'rgba(184, 167, 122, 0.34)');
-  // Deccan Plateau warm ochre-slate highlight
-  paintTerrainHighlight(17.5, 76.8, 0.13, 'rgba(184, 167, 122, 0.22)');
-  // Western Ghats emerald-slate ridge
-  paintTerrainHighlight(14.5, 75.0, 0.075, 'rgba(53, 201, 138, 0.18)');
-  paintTerrainHighlight(10.5, 76.8, 0.055, 'rgba(53, 201, 138, 0.18)');
-  // Himalayan snow-ice crest (#EAF5FA)
-  paintTerrainHighlight(34.3, 76.2, 0.085, 'rgba(234, 245, 250, 0.42)');
-  paintTerrainHighlight(31.0, 79.4, 0.075, 'rgba(234, 245, 250, 0.36)');
-  paintTerrainHighlight(28.0, 88.5, 0.065, 'rgba(234, 245, 250, 0.30)');
-  paintTerrainHighlight(28.4, 94.6, 0.06, 'rgba(234, 245, 250, 0.30)');
+  // Thar Desert warm sandstone ochre
+  paintTerrainHighlight(26.8, 71.8, 0.095, 'rgba(197, 164, 109, 0.34)');
+  // Deccan Plateau warm mineral ochre
+  paintTerrainHighlight(17.5, 76.8, 0.13, 'rgba(176, 152, 112, 0.20)');
+  // Western Ghats mineral moss ridge
+  paintTerrainHighlight(14.5, 75.0, 0.075, 'rgba(137, 151, 123, 0.28)');
+  paintTerrainHighlight(10.5, 76.8, 0.055, 'rgba(137, 151, 123, 0.26)');
+  // Himalayan snow-mineral crest
+  paintTerrainHighlight(34.3, 76.2, 0.085, 'rgba(240, 238, 231, 0.44)');
+  paintTerrainHighlight(31.0, 79.4, 0.075, 'rgba(240, 238, 231, 0.38)');
+  paintTerrainHighlight(28.0, 88.5, 0.065, 'rgba(240, 238, 231, 0.32)');
+  paintTerrainHighlight(28.4, 94.6, 0.06, 'rgba(240, 238, 231, 0.32)');
   ctx.restore();
 
-  // 4c. Crisp State Boundaries & Coastline Outline
+  // 4c. Crisp Warm-Brass State Boundaries & Coastline Outline
   ctx.save();
   ctx.translate(x0, y0);
   ctx.scale(scaleX, scaleY);
-  ctx.strokeStyle = 'rgba(139, 230, 255, 0.34)';
+  ctx.strokeStyle = 'rgba(197, 164, 109, 0.42)';
   ctx.lineWidth = 1.05;
   ctx.lineJoin = 'round';
   for (const p of path2ds) ctx.stroke(p);
@@ -475,24 +474,23 @@ export function buildIndiaObservatoryTexture(
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Render spaced uppercase cartographic text
     const spaced = letterSpacing > 0 ? text.split('').join(' ') : text;
     ctx.fillText(spaced, x, y);
     ctx.restore();
   };
 
   const scaleF = resolution / 2048;
-  drawMapLabel('ARABIAN SEA', 15.2, 66.8, Math.round(24 * scaleF), 'rgba(130, 175, 205, 0.42)');
-  drawMapLabel('BAY OF BENGAL', 15.2, 88.8, Math.round(24 * scaleF), 'rgba(130, 175, 205, 0.42)');
-  drawMapLabel('INDIAN OCEAN', 5.2, 78.2, Math.round(24 * scaleF), 'rgba(130, 175, 205, 0.34)');
-  drawMapLabel('HIMALAYAS', 31.8, 80.5, Math.round(17 * scaleF), 'rgba(234, 245, 250, 0.62)');
-  drawMapLabel('DECCAN PLATEAU', 16.8, 77.6, Math.round(14 * scaleF), 'rgba(234, 245, 250, 0.44)');
-  drawMapLabel('WESTERN GHATS', 13.5, 73.2, Math.round(13 * scaleF), 'rgba(139, 230, 255, 0.48)');
+  drawMapLabel('ARABIAN SEA', 15.2, 66.8, Math.round(24 * scaleF), 'rgba(167, 197, 197, 0.34)');
+  drawMapLabel('BAY OF BENGAL', 15.2, 88.8, Math.round(24 * scaleF), 'rgba(167, 197, 197, 0.34)');
+  drawMapLabel('INDIAN OCEAN', 5.2, 78.2, Math.round(24 * scaleF), 'rgba(167, 197, 197, 0.28)');
+  drawMapLabel('HIMALAYAS', 31.8, 80.5, Math.round(17 * scaleF), 'rgba(240, 238, 231, 0.62)');
+  drawMapLabel('DECCAN PLATEAU', 16.8, 77.6, Math.round(14 * scaleF), 'rgba(240, 238, 231, 0.42)');
+  drawMapLabel('WESTERN GHATS', 13.5, 73.2, Math.round(13 * scaleF), 'rgba(197, 164, 109, 0.50)');
 
   // Coordinate edge ticks (subtle scientific telemetry markers)
   ctx.save();
   ctx.font = `500 ${Math.round(14 * scaleF)}px "IBM Plex Mono", monospace`;
-  ctx.fillStyle = 'rgba(130, 153, 170, 0.38)';
+  ctx.fillStyle = 'rgba(193, 191, 181, 0.36)';
   for (const lat of [10, 20, 30]) {
     const [, y] = toXY(lat, TERRAIN_BOUNDS.west);
     ctx.fillText(`${lat}°N`, 22 * scaleF, y - 6 * scaleF);

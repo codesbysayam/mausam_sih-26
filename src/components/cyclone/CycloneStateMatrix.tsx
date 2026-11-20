@@ -193,11 +193,11 @@ export const CycloneStateMatrix: React.FC<CycloneStateMatrixProps> = ({
             <div className="w-full lg:w-auto flex items-center gap-1.5 overflow-x-auto pb-0.5 shrink-0 font-mono tabular-nums">
               {(
                 [
-                  { id: 'ALL', label: 'All', count: counts.total, active: 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)]' },
+                  { id: 'ALL', label: 'All', count: counts.total, active: 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)]' },
                   { id: 'RED', label: 'Red', count: counts.red, active: 'bg-[#EF4444] border-[#F87171] text-white', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-danger)]/35 text-[var(--m-danger)]' },
                   { id: 'ORANGE', label: 'Orange', count: counts.orange, active: 'bg-[#F97316] border-[#FB923C] text-white', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-alert)]/35 text-[var(--m-alert)]' },
-                  { id: 'YELLOW', label: 'Yellow', count: counts.yellow, active: 'bg-[#F59E0B] border-[#FCD34D] text-[#07111D]', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-watch)]/35 text-[var(--m-watch)]' },
-                  { id: 'NO_WARNING', label: 'No Warning', count: counts.noWarning, active: 'bg-[#22C7A0] border-[#6EE7B7] text-[#07111D]', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-ok)]/35 text-[var(--m-ok)]' },
+                  { id: 'YELLOW', label: 'Yellow', count: counts.yellow, active: 'bg-[#F59E0B] border-[#FCD34D] text-[var(--m-on-accent)]', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-watch)]/35 text-[var(--m-watch)]' },
+                  { id: 'NO_WARNING', label: 'No Warning', count: counts.noWarning, active: 'bg-[#22C7A0] border-[#6EE7B7] text-[var(--m-on-accent)]', idle: 'bg-[var(--m-surface-inset)] border-[var(--m-ok)]/35 text-[var(--m-ok)]' },
                 ] as const
               ).map((tab) => (
                 <button

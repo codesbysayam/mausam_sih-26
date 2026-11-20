@@ -84,7 +84,7 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ alerts, onSelectAlert 
 
           {alerts.length > 1 && (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-[#87929a] hidden sm:inline font-medium">
+              <span className="text-xs text-[var(--m-text-muted)] hidden sm:inline font-medium">
                 {currentIndex + 1} of {alerts.length}
               </span>
               <button

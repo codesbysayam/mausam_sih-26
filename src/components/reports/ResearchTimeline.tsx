@@ -90,7 +90,7 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({
               onClick={() => setSelectedPeriod(group.period)}
               className={`min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-colors shrink-0 flex items-center gap-2 cursor-pointer m-focus-ring tabular-nums ${
                 isSelected
-                  ? 'bg-[var(--m-accent)] text-white border border-[var(--m-accent)]/50'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border border-[var(--m-accent)]/50'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] border border-[var(--m-border)]'
               }`}
             >

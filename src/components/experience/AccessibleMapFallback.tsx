@@ -137,14 +137,14 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
       />
 
       {reason && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-lg px-3.5 py-2 flex items-center gap-3 text-xs text-[#F3F6FA]">
-          <span className="text-[#F59E0B] font-medium">2D Map Mode active:</span>
-          <span className="text-[#B5C3D1]">{reason}</span>
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-[11px] px-3.5 py-2 flex items-center gap-3 text-xs text-[var(--m-text-primary)]">
+          <span className="text-[var(--m-watch)] font-medium">2D Map Mode active:</span>
+          <span className="text-[var(--m-text-secondary)]">{reason}</span>
           {onSwitchBackTo3D && (
             <button
               type="button"
               onClick={onSwitchBackTo3D}
-              className="text-[#35C7E8] hover:underline font-semibold cursor-pointer min-h-[32px] px-1"
+              className="text-[var(--m-accent)] hover:underline font-semibold cursor-pointer min-h-[32px] px-1"
             >
               Retry 3D
             </button>

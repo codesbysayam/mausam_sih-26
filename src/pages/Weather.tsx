@@ -308,7 +308,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="px-3 py-2 min-h-[38px] bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-white rounded-lg flex items-center gap-1.5 transition-opacity cursor-pointer disabled:opacity-50"
+              className="px-3 py-2 min-h-[38px] bg-[var(--m-accent)] hover:opacity-95 text-xs font-semibold text-[var(--m-on-accent)] rounded-lg flex items-center gap-1.5 transition-opacity cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{isRefreshing ? 'Syncing…' : 'Refresh'}</span>
@@ -417,7 +417,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateToTab('radar')}
-                  className="w-full py-2 px-3 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs text-[var(--m-on-accent)] font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Open Doppler Radar</span>
                   <ArrowRight className="w-3.5 h-3.5" />

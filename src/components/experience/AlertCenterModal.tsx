@@ -53,7 +53,7 @@ export const AlertCenterModal: React.FC<AlertCenterModalProps> = ({
       onClick={() => setIsAlertDrawerOpen(false)}
     >
       <div
-        className="w-full max-w-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] shadow-2xl rounded-2xl p-4 sm:p-5 flex flex-col gap-3.5 max-h-[85dvh] overflow-y-auto scrollbar-thin"
+        className="w-full max-w-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] shadow-2xl rounded-[11px] p-4 sm:p-5 flex flex-col gap-3.5 max-h-[85dvh] overflow-y-auto scrollbar-thin"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-2 pb-3 border-b border-[var(--m-border)]">
@@ -142,7 +142,7 @@ export const AlertCenterModal: React.FC<AlertCenterModalProps> = ({
             setIsAlertDrawerOpen(false);
             onOpenFullWarningsPage();
           }}
-          className="w-full min-h-[44px] sm:min-h-[40px] px-4 rounded-xl bg-[var(--m-accent)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-95 cursor-pointer m-focus-ring"
+          className="w-full min-h-[44px] sm:min-h-[40px] px-4 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-95 cursor-pointer m-focus-ring"
         >
           <span>Open Full Warnings Matrix</span>
           <ArrowUpRight className="w-4 h-4" />

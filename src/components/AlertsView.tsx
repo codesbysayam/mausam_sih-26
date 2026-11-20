@@ -93,7 +93,7 @@ export const AlertsView: React.FC = () => {
                 <div className="flex items-center gap-3 text-xs text-[var(--m-text-secondary)]">
                   <span>Issued: {alert.issuedAt}</span>
                   <span>•</span>
-                  <span className="text-[#4FA8E0] font-bold">Valid Until: {alert.validUntil}</span>
+                  <span className="text-[var(--m-accent)] font-bold">Valid Until: {alert.validUntil}</span>
                 </div>
               </div>
 
@@ -102,7 +102,7 @@ export const AlertsView: React.FC = () => {
               </p>
 
               {/* Action Item & Affected Zones */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[rgba(225,230,235,0.12)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[rgba(226, 219, 200,0.12)]">
                 <div className="bg-[var(--m-surface-1)] p-3 rounded-lg card-border">
                   <p className="text-[10px] uppercase text-[var(--m-text-secondary)] font-bold mb-1">
                     Action Item / Directive

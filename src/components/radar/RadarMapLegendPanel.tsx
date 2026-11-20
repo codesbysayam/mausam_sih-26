@@ -54,7 +54,7 @@ export const PRECIP_INTERVALS: PrecipInterval[] = [
     rateRangeIn: '< 0.02',
     label: 'Trace / Drizzle',
     shortLabel: 'Drizzle',
-    color: '#0284C7',
+    color: '#78AEB6',
     textColor: '#FFFFFF',
     description: 'Very light drizzle, mist, or non-precipitating cloud echoes',
     minDbz: 0,
@@ -89,7 +89,7 @@ export const PRECIP_INTERVALS: PrecipInterval[] = [
     label: 'Moderate Rain',
     shortLabel: 'Moderate',
     color: '#FACC15',
-    textColor: '#0B1E30',
+    textColor: '#0B0C0D',
     description: 'Moderate steady showers; reduced visibility on roadways',
     minDbz: 30,
     maxDbz: 40,
@@ -106,7 +106,7 @@ export const PRECIP_INTERVALS: PrecipInterval[] = [
     label: 'Heavy Rain',
     shortLabel: 'Heavy',
     color: '#FB923C',
-    textColor: '#0B1E30',
+    textColor: '#0B0C0D',
     description: 'Heavy downpour, convective thunderstorm cores, localized waterlogging',
     minDbz: 40,
     maxDbz: 50,
@@ -158,8 +158,8 @@ export const WIND_INTERVALS: WindInterval[] = [
     ktRange: '< 11',
     mphRange: '< 12',
     label: 'Light Breeze',
-    color: '#38BDF8',
-    textColor: '#0B1E30',
+    color: '#C5A46D',
+    textColor: '#0B0C0D',
     description: 'Gentle breeze; leaves rustle; normal outdoor activity',
   },
   {
@@ -169,7 +169,7 @@ export const WIND_INTERVALS: WindInterval[] = [
     mphRange: '12 – 25',
     label: 'Moderate Wind',
     color: '#00C897',
-    textColor: '#0B1E30',
+    textColor: '#0B0C0D',
     description: 'Moderate to fresh breeze; dust raised; small branches move',
   },
   {
@@ -179,7 +179,7 @@ export const WIND_INTERVALS: WindInterval[] = [
     mphRange: '25 – 37',
     label: 'Strong / Squall',
     color: '#F59E0B',
-    textColor: '#0B1E30',
+    textColor: '#0B0C0D',
     description: 'Strong breeze to near-gale; umbrella difficult; choppy coastal waters',
   },
   {
@@ -379,18 +379,18 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
         <button
           type="button"
           onClick={() => setIsCollapsed(false)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B1927]/95 hover:bg-[#101F2E] backdrop-blur-md border text-[#F3F6FA] shadow-xl transition-colors cursor-pointer max-w-[calc(100vw-24px)] ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--m-surface-inset)]/95 hover:bg-[var(--m-surface-1)] backdrop-blur-md border text-[var(--m-text-primary)] shadow-xl transition-colors cursor-pointer max-w-[calc(100vw-24px)] ${
             isFilteringActive
               ? 'border-[#F59E0B]'
-              : 'border-[#26394B]'
+              : 'border-[var(--m-border)]'
           }`}
           title="Expand persistent radar intensity legend panel and filter map layers"
           aria-expanded={false}
         >
-          <Layers className="w-4 h-4 text-[#35C7E8] shrink-0" />
+          <Layers className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
           <div className="flex flex-col text-left">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono font-bold tracking-wider text-[#F3F6FA]">
+              <span className="text-[10px] font-mono font-bold tracking-wider text-[var(--m-text-primary)]">
                 RADAR LEGEND
               </span>
               {isFilteringActive && (
@@ -399,7 +399,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                 </span>
               )}
             </div>
-            <span className="text-[9px] text-[#8295A8] font-mono">
+            <span className="text-[9px] text-[var(--m-text-muted)] font-mono">
               Precip ({precipUnit === 'in/h' ? 'in/hr' : precipUnit === 'mm/h' ? 'mm/hr' : 'dBZ'}) · Wind ({windUnit})
             </span>
           </div>
@@ -433,7 +433,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                 handleExportCsv();
               }
             }}
-            className="w-6 h-6 rounded hover:bg-[#101F2E] text-[#35C7E8] hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-0.5"
+            className="w-6 h-6 rounded hover:bg-[var(--m-surface-1)] text-[var(--m-accent)] hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-0.5"
             title="Download currently filtered radar intensity data as CSV"
             aria-label="Export filtered data as CSV"
           >
@@ -443,25 +443,25 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               <Download className="w-3.5 h-3.5" />
             )}
           </span>
-          <ChevronDown className="w-4 h-4 text-[#35C7E8] shrink-0" />
+          <ChevronDown className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
         </button>
       ) : (
-        <div className="w-[300px] sm:w-[340px] max-w-[calc(100vw-24px)] rounded-xl bg-[#0B1927]/95 backdrop-blur-md border border-[#26394B] text-[#F3F6FA] shadow-xl p-3 flex flex-col gap-2.5">
+        <div className="w-[300px] sm:w-[340px] max-w-[calc(100vw-24px)] rounded-xl bg-[var(--m-surface-inset)]/95 backdrop-blur-md border border-[var(--m-border)] text-[var(--m-text-primary)] shadow-xl p-3 flex flex-col gap-2.5">
           {/* Header */}
-          <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[#26394B]">
+          <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[var(--m-border)]">
             <div className="flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#35C7E8] shrink-0" />
+              <Layers className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
               <div className="flex flex-col">
-                <span className="font-mono text-[11px] font-bold text-[#F3F6FA] tracking-wider leading-none">
+                <span className="font-mono text-[11px] font-bold text-[var(--m-text-primary)] tracking-wider leading-none">
                   RADAR INTENSITY
                 </span>
-                <span className="text-[9px] text-[#8295A8] font-mono leading-tight">
+                <span className="text-[9px] text-[var(--m-text-muted)] font-mono leading-tight">
                   Layer Filter
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center bg-[#08131F] p-0.5 rounded-md border border-[#26394B]">
+            <div className="flex items-center bg-[var(--m-surface-inset)] p-0.5 rounded-md border border-[var(--m-border)]">
               {(['all', 'precipitation', 'wind'] as LegendMetricMode[]).map((mode) => (
                 <button
                   key={mode}
@@ -469,8 +469,8 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   onClick={() => handleSelectMetric(mode)}
                   className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold transition-colors cursor-pointer uppercase ${
                     metricMode === mode
-                      ? 'bg-[#0B72B9] text-white'
-                      : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
+                      : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   {mode === 'precipitation' ? 'PRECIP' : mode}
@@ -481,7 +481,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
             <button
               type="button"
               onClick={() => setIsCollapsed(true)}
-              className="w-6 h-6 rounded hover:bg-[#101F2E] text-[#8295A8] hover:text-[#F3F6FA] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded hover:bg-[var(--m-surface-1)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] flex items-center justify-center transition-colors cursor-pointer"
               title="Collapse legend panel"
               aria-label="Collapse legend panel"
               aria-expanded={true}
@@ -495,13 +495,13 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-bold text-[#35C7E8]">PRECIPITATION</span>
-                  <span className="text-[#8295A8] text-[9px] hidden xs:inline">
+                  <span className="font-mono font-bold text-[var(--m-accent)]">PRECIPITATION</span>
+                  <span className="text-[var(--m-text-muted)] text-[9px] hidden xs:inline">
                     ({precipUnit === 'dBZ' ? 'Reflectivity' : precipUnit === 'in/h' ? 'Imperial' : 'Metric'})
                   </span>
                 </div>
                 <div
-                  className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B] text-[9px] font-mono"
+                  className="flex items-center bg-[var(--m-surface-inset)] p-0.5 rounded border border-[var(--m-border)] text-[9px] font-mono"
                   role="group"
                   aria-label="Precipitation unit toggle"
                 >
@@ -512,8 +512,8 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       onClick={() => setPrecipUnit(u)}
                       className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer font-bold ${
                         precipUnit === u
-                          ? 'bg-[#35C7E8] text-[#07111D]'
-                          : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                          ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
+                          : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                       }`}
                     >
                       {u === 'dBZ' ? 'dBZ' : u === 'mm/h' ? 'mm/hr' : 'in/hr'}
@@ -522,9 +522,9 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-[#08131F] px-2 py-1 rounded-md border border-[#26394B] text-[9px] font-mono">
-                <span className="text-[#8295A8] font-semibold flex items-center gap-1">
-                  <SlidersHorizontal className="w-3 h-3 text-[#35C7E8]" />
+              <div className="flex items-center justify-between bg-[var(--m-surface-inset)] px-2 py-1 rounded-md border border-[var(--m-border)] text-[9px] font-mono">
+                <span className="text-[var(--m-text-muted)] font-semibold flex items-center gap-1">
+                  <SlidersHorizontal className="w-3 h-3 text-[var(--m-accent)]" />
                   <span>Filter:</span>
                   <strong className={isFilteringActive ? 'text-[#FCD34D]' : 'text-[#6EE7B7]'}>
                     {effectiveLevels.length}/6
@@ -537,8 +537,8 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                     onClick={() => handleSelectPreset('all')}
                     className={`px-1.5 py-0.5 rounded text-[9px] transition-colors cursor-pointer ${
                       effectiveLevels.length === 6
-                        ? 'bg-[#0B72B9] text-white font-bold'
-                        : 'text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E]'
+                        ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
+                        : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                     }`}
                   >
                     All
@@ -546,14 +546,14 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectPreset('modPlus')}
-                    className="px-1.5 py-0.5 rounded text-[9px] text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E] transition-colors cursor-pointer"
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-1)] transition-colors cursor-pointer"
                   >
                     {precipUnit === 'in/h' ? '≥0.16 in/hr' : precipUnit === 'mm/h' ? '≥4 mm/hr' : '≥30 dBZ'}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectPreset('severe')}
-                    className="px-1.5 py-0.5 rounded text-[9px] text-[#8295A8] hover:text-[#F3F6FA] bg-[#101F2E] transition-colors cursor-pointer"
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-1)] transition-colors cursor-pointer"
                   >
                     {precipUnit === 'in/h' ? '≥0.60 in/hr' : precipUnit === 'mm/h' ? '≥15 mm/hr' : '≥40 dBZ'}
                   </button>
@@ -569,7 +569,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   <button
                     type="button"
                     onClick={handleExportCsv}
-                    className="px-1.5 py-0.5 rounded text-[9px] text-[#35C7E8] hover:text-white bg-[#101F2E] border border-[#26394B] transition-colors cursor-pointer flex items-center gap-0.5"
+                    className="px-1.5 py-0.5 rounded text-[9px] text-[var(--m-accent)] hover:text-white bg-[var(--m-surface-1)] border border-[var(--m-border)] transition-colors cursor-pointer flex items-center gap-0.5"
                     title="Download currently filtered intensity data as CSV"
                   >
                     {exportStatus === 'success' ? (
@@ -583,10 +583,10 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               </div>
 
               <div
-                className="h-2 rounded-sm border border-[#26394B]"
+                className="h-2 rounded-sm border border-[var(--m-border)]"
                 style={{
                   background:
-                    'linear-gradient(to right, #0284C7 0%, #10B981 20%, #FACC15 40%, #FB923C 60%, #EF4444 80%, #C026D3 100%)',
+                    'linear-gradient(to right, #78AEB6 0%, #10B981 20%, #FACC15 40%, #FB923C 60%, #EF4444 80%, #C026D3 100%)',
                 }}
               />
 
@@ -613,9 +613,9 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       className={`p-1.5 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
                         isActive
                           ? isHovered
-                            ? 'bg-[#101F2E] border-[#35C7E8]'
-                            : 'bg-[#08131F] border-[#26394B]'
-                          : 'bg-[#07111D]/60 border-[#26394B]/50 opacity-50'
+                            ? 'bg-[var(--m-surface-1)] border-[var(--m-accent)]'
+                            : 'bg-[var(--m-surface-inset)] border-[var(--m-border)]'
+                          : 'bg-[var(--m-surface-inset)]/60 border-[var(--m-border)]/50 opacity-50'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1 w-full mb-1">
@@ -631,7 +631,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                           </span>
                           <span
                             className={`font-mono font-bold text-[9.5px] truncate tabular-nums ${
-                              isActive ? 'text-[#F3F6FA]' : 'text-[#8295A8] line-through'
+                              isActive ? 'text-[var(--m-text-primary)]' : 'text-[var(--m-text-muted)] line-through'
                             }`}
                           >
                             {displayValue}
@@ -641,20 +641,20 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                         <span
                           className={`text-[8px] font-mono font-bold px-1 rounded shrink-0 ${
                             isActive
-                              ? 'bg-[#0B72B9] text-white'
-                              : 'bg-[#101F2E] text-[#8295A8]'
+                              ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
+                              : 'bg-[var(--m-surface-1)] text-[var(--m-text-muted)]'
                           }`}
                         >
                           {isActive ? 'ON' : 'OFF'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[9px] text-[#8295A8] font-medium leading-tight truncate">
+                      <div className="flex items-center justify-between text-[9px] text-[var(--m-text-muted)] font-medium leading-tight truncate">
                         <span className="truncate">{interval.shortLabel}</span>
                         {isActive ? (
-                          <Eye className="w-3 h-3 text-[#B5C3D1] shrink-0" />
+                          <Eye className="w-3 h-3 text-[var(--m-text-secondary)] shrink-0" />
                         ) : (
-                          <EyeOff className="w-3 h-3 text-[#8295A8] shrink-0" />
+                          <EyeOff className="w-3 h-3 text-[var(--m-text-muted)] shrink-0" />
                         )}
                       </div>
                     </button>
@@ -668,18 +668,18 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
           {(metricMode === 'all' || metricMode === 'wind') && (
             <div
               className={`flex flex-col gap-1.5 ${
-                metricMode === 'all' ? 'pt-2 border-t border-[#26394B]' : ''
+                metricMode === 'all' ? 'pt-2 border-t border-[var(--m-border)]' : ''
               }`}
             >
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1">
                   <span className="font-mono font-bold text-[#6EE7B7]">WIND SPEED</span>
-                  <span className="text-[#8295A8] text-[9px] hidden xs:inline">
+                  <span className="text-[var(--m-text-muted)] text-[9px] hidden xs:inline">
                     ({windUnit === 'km/h' ? 'Radial Vel.' : windUnit === 'mph' ? 'Statute' : 'Knots'})
                   </span>
                 </div>
                 <div
-                  className="flex items-center bg-[#08131F] p-0.5 rounded border border-[#26394B] text-[9px] font-mono"
+                  className="flex items-center bg-[var(--m-surface-inset)] p-0.5 rounded border border-[var(--m-border)] text-[9px] font-mono"
                   role="group"
                   aria-label="Wind speed unit toggle"
                 >
@@ -690,8 +690,8 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       onClick={() => setWindUnit(u)}
                       className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer font-bold ${
                         windUnit === u
-                          ? 'bg-[#22C7A0] text-[#07111D]'
-                          : 'text-[#8295A8] hover:text-[#F3F6FA]'
+                          ? 'bg-[#22C7A0] text-[var(--m-on-accent)]'
+                          : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                       }`}
                     >
                       {u}
@@ -701,10 +701,10 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               </div>
 
               <div
-                className="h-2 rounded-sm border border-[#26394B]"
+                className="h-2 rounded-sm border border-[var(--m-border)]"
                 style={{
                   background:
-                    'linear-gradient(to right, #38BDF8 0%, #00C897 20%, #F59E0B 40%, #EA580C 60%, #DC2626 80%, #7E22CE 100%)',
+                    'linear-gradient(to right, #C5A46D 0%, #00C897 20%, #F59E0B 40%, #EA580C 60%, #DC2626 80%, #7E22CE 100%)',
                 }}
               />
 
@@ -725,8 +725,8 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                       onMouseLeave={() => setHoveredInterval(null)}
                       className={`p-1 rounded border transition-colors cursor-default ${
                         isHovered
-                          ? 'bg-[#101F2E] border-[#6EE7B7]'
-                          : 'bg-[#08131F] border-[#26394B]'
+                          ? 'bg-[var(--m-surface-1)] border-[#6EE7B7]'
+                          : 'bg-[var(--m-surface-inset)] border-[var(--m-border)]'
                       }`}
                       title={`${interval.label} (${interval.kmhRange} km/h | ${interval.ktRange} kt | ${interval.mphRange} mph): ${interval.description}`}
                     >
@@ -735,11 +735,11 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                           className="w-2.5 h-2.5 rounded-xs shrink-0"
                           style={{ backgroundColor: interval.color }}
                         />
-                        <span className="font-mono font-bold text-[9px] text-[#F3F6FA] truncate tabular-nums">
+                        <span className="font-mono font-bold text-[9px] text-[var(--m-text-primary)] truncate tabular-nums">
                           {displayValue}
                         </span>
                       </div>
-                      <div className="text-[8.5px] text-[#8295A8] font-medium leading-tight truncate">
+                      <div className="text-[8.5px] text-[var(--m-text-muted)] font-medium leading-tight truncate">
                         {interval.label}
                       </div>
                     </div>
@@ -750,20 +750,20 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
           )}
 
           {activeHoverInfo && (
-            <div className="bg-[#08131F] border border-[#35C7E8]/40 p-1.5 rounded-md text-[9.5px] text-[#B5C3D1] flex items-center gap-1.5">
+            <div className="bg-[var(--m-surface-inset)] border border-[var(--m-accent)]/40 p-1.5 rounded-md text-[9.5px] text-[var(--m-text-secondary)] flex items-center gap-1.5">
               <span
                 className="w-2.5 h-2.5 rounded-xs shrink-0"
                 style={{ backgroundColor: activeHoverInfo.color }}
               />
               <div className="truncate">
-                <strong className="text-[#F3F6FA] mr-1">{activeHoverInfo.title}:</strong>
+                <strong className="text-[var(--m-text-primary)] mr-1">{activeHoverInfo.title}:</strong>
                 <span>{activeHoverInfo.description}</span>
               </div>
             </div>
           )}
 
           {/* Export Filtered Data Action */}
-          <div className="pt-2 border-t border-[#26394B] flex flex-col gap-1.5">
+          <div className="pt-2 border-t border-[var(--m-border)] flex flex-col gap-1.5">
             <button
               type="button"
               id="btn-export-radar-legend-csv"
@@ -771,14 +771,14 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-[10px] font-mono font-bold transition-colors cursor-pointer select-none ${
                 exportStatus === 'success'
                   ? 'bg-[#22C7A0]/15 border-[#22C7A0]/45 text-[#6EE7B7]'
-                  : 'bg-[#08131F] hover:bg-[#101F2E] border-[#26394B] hover:border-[#35C7E8] text-[#F3F6FA]'
+                  : 'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] border-[var(--m-border)] hover:border-[var(--m-accent)] text-[var(--m-text-primary)]'
               }`}
               title="Download currently filtered precipitation intensity, reflectivity thresholds & synoptic observations as CSV"
             >
               {exportStatus === 'success' ? (
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#6EE7B7]" />
               ) : (
-                <Download className="w-3.5 h-3.5 text-[#35C7E8]" />
+                <Download className="w-3.5 h-3.5 text-[var(--m-accent)]" />
               )}
               <span>
                 {exportStatus === 'success'
@@ -794,7 +794,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between text-[8.5px] font-mono text-[#8295A8] pt-0.5">
+            <div className="flex items-center justify-between text-[8.5px] font-mono text-[var(--m-text-muted)] pt-0.5">
               <span>
                 {isFilteringActive ? (
                   <span className="text-[#FCD34D] font-bold">
@@ -804,7 +804,7 @@ export const RadarMapLegendPanel: React.FC<RadarMapLegendPanelProps> = ({
                   <span>IMD Doppler DWR Standard</span>
                 )}
               </span>
-              <span className="text-[#35C7E8]">Calibrated S/C-Band</span>
+              <span className="text-[var(--m-accent)]">Calibrated S/C-Band</span>
             </div>
           </div>
         </div>

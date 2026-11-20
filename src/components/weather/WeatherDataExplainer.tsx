@@ -51,7 +51,7 @@ const EXPLAINER_ITEMS: ExplainerItem[] = [
       'Probability of Precipitation equals forecaster confidence multiplied by expected areal coverage over the target grid cell during the forecast period.',
     practicalTip:
       '60% PoP means a 6-in-10 chance of measurable rain at your station location—not 60% of the day.',
-    icon: <CloudRain className="w-4 h-4 text-[#818CF8]" />,
+    icon: <CloudRain className="w-4 h-4 text-[var(--m-accent)]" />,
   },
   {
     id: 'heat_index',

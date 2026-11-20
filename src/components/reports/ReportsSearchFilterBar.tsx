@@ -149,7 +149,7 @@ export const ReportsSearchFilterBar: React.FC<ReportsSearchFilterBarProps> = ({
               onClick={() => onViewModeChange('list')}
               className={`min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md transition-colors cursor-pointer m-focus-ring ${
                 viewMode === 'list'
-                  ? 'bg-[#35C7E8] text-[#07111D]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
               title="Row List View"
@@ -162,7 +162,7 @@ export const ReportsSearchFilterBar: React.FC<ReportsSearchFilterBarProps> = ({
               onClick={() => onViewModeChange('table')}
               className={`min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md transition-colors cursor-pointer m-focus-ring ${
                 viewMode === 'table'
-                  ? 'bg-[#35C7E8] text-[#07111D]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
               title="Table View"
@@ -175,7 +175,7 @@ export const ReportsSearchFilterBar: React.FC<ReportsSearchFilterBarProps> = ({
               onClick={() => onViewModeChange('grid')}
               className={`min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md transition-colors cursor-pointer m-focus-ring ${
                 viewMode === 'grid'
-                  ? 'bg-[#35C7E8] text-[#07111D]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
               }`}
               title="Grid View"
@@ -198,20 +198,20 @@ export const ReportsSearchFilterBar: React.FC<ReportsSearchFilterBarProps> = ({
               onClick={() => onCategoryChange(cat.id)}
               className={`min-h-[44px] sm:min-h-[40px] px-3.5 py-2 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring tabular-nums ${
                 isSelected
-                  ? 'bg-[#35C7E8] text-[#07111D] border border-[var(--m-accent)]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border border-[var(--m-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] border border-[var(--m-border)]'
               }`}
             >
               {cat.id === 'SAVED' && (
                 <Bookmark
-                  className={`w-3.5 h-3.5 ${isSelected ? 'fill-[#07111D]' : 'text-[var(--m-watch)]'}`}
+                  className={`w-3.5 h-3.5 ${isSelected ? 'fill-[var(--m-surface-inset)]' : 'text-[var(--m-watch)]'}`}
                 />
               )}
               <span>{cat.label}</span>
               {typeof cat.countSuffix === 'number' && (
                 <span
                   className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                    isSelected ? 'bg-black/20 text-[#07111D]' : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)]'
+                    isSelected ? 'bg-black/20 text-[var(--m-on-accent)]' : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)]'
                   }`}
                 >
                   {cat.countSuffix}

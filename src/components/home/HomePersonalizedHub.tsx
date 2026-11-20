@@ -69,7 +69,7 @@ export const HomePersonalizedHub: React.FC<HomePersonalizedHubProps> = ({
               onClick={() => setActivePersona(pKey)}
               className={`px-3 min-h-[36px] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer m-focus-ring border ${
                 isSelected
-                  ? 'bg-[#35C7E8] text-[#05101C] border-[var(--m-accent)]'
+                  ? 'bg-[var(--m-accent)] text-[#05101C] border-[var(--m-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
             >

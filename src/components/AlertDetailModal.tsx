@@ -24,12 +24,12 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[var(--m-surface-2)] card-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(225,230,235,0.12)]"
+        className="bg-[var(--m-surface-2)] card-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(226, 219, 200,0.12)]"
         style={{ borderColor: alert.color || (isSevere ? '#E74C3C' : '#FFB703') }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-start gap-3 border-b border-[rgba(225,230,235,0.12)] pb-4">
+        <div className="flex justify-between items-start gap-3 border-b border-[rgba(226, 219, 200,0.12)] pb-4">
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold"
@@ -66,7 +66,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] card-border flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[#0B72B9] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] card-border flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-accent)] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -80,7 +80,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
           </div>
           <div>
             <span className="text-[var(--m-text-secondary)] block text-xs font-medium mb-0.5">Valid Until</span>
-            <span className="font-semibold text-[#4FA8E0]">{alert.validUntil}</span>
+            <span className="font-semibold text-[var(--m-accent)]">{alert.validUntil}</span>
           </div>
         </div>
 
@@ -104,7 +104,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
               {alert.affectedDistricts.map((district, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 rounded-lg bg-[var(--m-surface-1)] border border-[rgba(225,230,235,0.12)] text-xs text-[var(--m-text-primary)]"
+                  className="px-3 py-1 rounded-lg bg-[var(--m-surface-1)] border border-[rgba(226, 219, 200,0.12)] text-xs text-[var(--m-text-primary)]"
                 >
                   📍 {district}
                 </span>
@@ -131,7 +131,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
         )}
 
         {/* Actions Footer */}
-        <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-[rgba(225,230,235,0.12)]">
+        <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-[rgba(226, 219, 200,0.12)]">
           {onDismissAlert && (
             <button
               onClick={() => {
@@ -151,7 +151,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
                   onClose();
                   if (onNavigateTab) onNavigateTab('agromet');
                 }}
-                className="px-4 py-2 rounded-xl bg-[#2ECC71] text-[#0F141A] text-xs font-semibold hover:bg-[#27AE60] transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[#2ECC71] text-[var(--m-on-accent)] text-xs font-semibold hover:bg-[#27AE60] transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">agriculture</span>
                 <span>Open Agromet Tab</span>
@@ -162,7 +162,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
                   onClose();
                   if (onNavigateTab) onNavigateTab('radar');
                 }}
-                className="px-4 py-2 rounded-xl bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[var(--m-accent-hover)] transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">radar</span>
                 <span>Track on Radar</span>

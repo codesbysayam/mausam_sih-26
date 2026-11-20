@@ -140,7 +140,7 @@ export const HealthCard: React.FC<HealthCardProps> = ({
           <div className="p-3 bg-[var(--m-surface-1)] rounded-lg border border-[var(--m-border)]">
             <div className="flex items-center justify-between gap-1">
               <span className="text-[10px] font-sans uppercase font-bold text-[var(--m-text-muted)]">Humidity</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[#0B72B9]/35">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35">
                 {humVal === null ? '—' : humVal > 70 ? 'High' : humVal > 40 ? 'Normal' : 'Dry'}
               </span>
             </div>

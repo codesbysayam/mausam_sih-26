@@ -55,7 +55,7 @@ export const BestFieldWindows: React.FC<BestFieldWindowsProps> = ({
       title: 'LATE AFTERNOON / EVENING',
       time: '16:30 – 19:00 PM',
       rating: 'GOOD FOR FIELD WORK',
-      ratingColor: '#38BDF8',
+      ratingColor: '#C5A46D',
       icon: Sunset,
       spraying: 'Good Window',
       fertilizer: 'Suitable for Top-Dress',

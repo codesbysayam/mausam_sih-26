@@ -97,7 +97,7 @@ export const HomeWeatherInsight: React.FC<HomeWeatherInsightProps> = ({
         <div className="m-panel-inset p-3.5 flex flex-col justify-between gap-2">
           <div
             className="flex items-center gap-2 text-xs font-semibold"
-            style={{ color: aqiInfo ? aqiInfo.severityColor : '#8295A8' }}
+            style={{ color: aqiInfo ? aqiInfo.severityColor : '#898B83' }}
           >
             <HeartPulse className="w-4 h-4" />
             <span>Respiratory Health</span>

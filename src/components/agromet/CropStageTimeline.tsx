@@ -66,7 +66,7 @@ export const CropStageTimeline: React.FC<CropStageTimelineProps> = ({
                 <span
                   className={`text-[10px] font-mono tabular-nums font-bold w-5 h-5 rounded-md flex items-center justify-center ${
                     isSelected
-                      ? 'bg-[#22C7A0] text-[#07111D]'
+                      ? 'bg-[#22C7A0] text-[var(--m-on-accent)]'
                       : isPassed
                       ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)]'
                       : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)]'

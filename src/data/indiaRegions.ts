@@ -615,7 +615,7 @@ export function getAqiCategory(aqi: number | null): {
   label: string;
   color: string;
 } {
-  if (aqi === null) return { label: "Unavailable", color: "#64748B" };
+  if (aqi === null) return { label: "Unavailable", color: "#898B83" };
   if (aqi <= 50) return { label: "Good", color: "#10B981" };
   if (aqi <= 100) return { label: "Satisfactory", color: "#84CC16" };
   if (aqi <= 200) return { label: "Moderate", color: "#EAB308" };

@@ -180,7 +180,7 @@ export const WarningCard: React.FC<WarningCardProps> = ({
           id={`btn-view-details-${warning.id}`}
           type="button"
           onClick={() => onViewDetails(warning)}
-          className="h-[42px] px-4 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 m-focus-ring"
+          className="h-[42px] px-4 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 m-focus-ring"
         >
           <span>View Advisory</span>
           <ArrowRight className="w-3.5 h-3.5" />

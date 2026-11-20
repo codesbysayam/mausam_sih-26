@@ -67,7 +67,7 @@ export const FarmWeatherCalendar: React.FC<FarmWeatherCalendarProps> = ({ bullet
 
         <div className="text-xs text-[var(--m-text-muted)] self-start sm:self-auto font-mono flex items-center gap-2">
           <span>Connected Synoptic Sequence</span>
-          <span className="text-[#334155]">•</span>
+          <span className="text-[var(--m-text-muted)]">•</span>
           <span className="text-[var(--m-accent)]">5-Day Horizon</span>
         </div>
       </div>
@@ -75,7 +75,7 @@ export const FarmWeatherCalendar: React.FC<FarmWeatherCalendarProps> = ({ bullet
       {/* Connected Horizontal Timeline Container (Horizontally scrollable on mobile) */}
       <div className="relative mb-6">
         {/* Continuous connector line behind nodes (desktop) */}
-        <div className="hidden lg:block absolute top-[52px] left-[5%] right-[5%] h-1 bg-gradient-to-r from-[#2ECC71] via-[#38BDF8] to-[var(--m-surface-2)] rounded-full z-0" />
+        <div className="hidden lg:block absolute top-[52px] left-[5%] right-[5%] h-1 bg-gradient-to-r from-[#2ECC71] via-[var(--m-accent)] to-[var(--m-surface-2)] rounded-full z-0" />
 
         <div className="flex lg:grid lg:grid-cols-5 gap-3.5 overflow-x-auto pb-4 pt-2 scrollbar-none relative z-10">
           {calendarDays.map((item, idx) => {
@@ -89,7 +89,7 @@ export const FarmWeatherCalendar: React.FC<FarmWeatherCalendarProps> = ({ bullet
                 onClick={() => setSelectedDayIdx(idx)}
                 className={`min-w-[210px] lg:min-w-0 flex-1 rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 text-left cursor-pointer focus:outline-none relative group ${
                   isSelected
-                    ? 'bg-[var(--m-surface-2)] border-2 border-[var(--m-accent)] shadow-xl shadow-[#38BDF8]/10 scale-[1.02]'
+                    ? 'bg-[var(--m-surface-2)] border-2 border-[var(--m-accent)] shadow-xl shadow-[#C5A46D]/10 scale-[1.02]'
                     : isToday
                     ? 'bg-[var(--m-surface-2)] border-2 border-[#2ECC71]/60 hover:border-[#2ECC71]'
                     : 'bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] hover:bg-[var(--m-surface-2)]'
@@ -101,9 +101,9 @@ export const FarmWeatherCalendar: React.FC<FarmWeatherCalendarProps> = ({ bullet
                     <span
                       className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black font-mono transition-colors ${
                         isToday
-                          ? 'bg-[#2ECC71] text-[#0A1017]'
+                          ? 'bg-[#2ECC71] text-[var(--m-on-accent)]'
                           : isSelected
-                          ? 'bg-[#38BDF8] text-[#0A1017]'
+                          ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                           : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border border-[var(--m-border-strong)]'
                       }`}
                     >

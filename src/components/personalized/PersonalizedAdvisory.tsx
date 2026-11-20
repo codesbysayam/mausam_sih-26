@@ -88,7 +88,7 @@ export const PersonalizedAdvisory: React.FC<PersonalizedAdvisoryProps> = ({ weat
             <div>
               <div className="flex justify-between items-center pb-2 border-b border-[var(--m-border-strong)]">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[20px] text-[#4FA8E0]">
+                  <span className="material-symbols-outlined text-[20px] text-[var(--m-accent)]">
                     {adv.icon}
                   </span>
                   <span className="font-bold text-white text-xs sm:text-sm">

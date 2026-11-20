@@ -111,8 +111,8 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
   const getSeverityBadge = (sev: AlertSeverity) => {
     if (isUnavailable) {
       return {
-        bg: 'bg-[#8295A8]/12 text-[var(--m-text-secondary)] border-[var(--m-border-strong)]',
-        dot: 'bg-[#8295A8]',
+        bg: 'bg-[var(--m-text-muted)]/12 text-[var(--m-text-secondary)] border-[var(--m-border-strong)]',
+        dot: 'bg-[var(--m-text-muted)]',
         label: 'UNVERIFIED',
       };
     }
@@ -138,7 +138,7 @@ export const StateWatchlistPanel: React.FC<StateWatchlistPanelProps> = ({
       case 'purple':
         return {
           bg: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/45',
-          dot: 'bg-[#35C7E8]',
+          dot: 'bg-[var(--m-accent)]',
           label: 'ADVISORY',
         };
       default:

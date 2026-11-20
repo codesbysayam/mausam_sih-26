@@ -80,7 +80,7 @@ export const DailyForecast: React.FC<DailyForecastProps> = ({ daily }) => {
         const prob = item.rainProb || 0;
         return (
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-mono font-bold ${prob > 40 ? 'text-[#4FA8E0]' : 'text-[var(--m-text-secondary)]'}`}>
+            <span className={`text-xs font-mono font-bold ${prob > 40 ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-secondary)]'}`}>
               {prob}%
             </span>
             {prob > 60 && (

@@ -424,9 +424,9 @@ export const WeatherEffects: React.FC<WeatherEffectsProps> = ({
             }
 
             const mistGrad = ctx.createLinearGradient(p.x - 150, p.y, p.x + 150, p.y);
-            mistGrad.addColorStop(0, 'rgba(180, 200, 220, 0)');
-            mistGrad.addColorStop(0.5, `rgba(180, 200, 220, ${p.opacity * opacity})`);
-            mistGrad.addColorStop(1, 'rgba(180, 200, 220, 0)');
+            mistGrad.addColorStop(0, 'rgba(167, 197, 197, 0)');
+            mistGrad.addColorStop(0.5, `rgba(167, 197, 197, ${p.opacity * opacity})`);
+            mistGrad.addColorStop(1, 'rgba(167, 197, 197, 0)');
 
             ctx.fillStyle = mistGrad;
             ctx.fillRect(0, p.y - p.size / 2, width, p.size);

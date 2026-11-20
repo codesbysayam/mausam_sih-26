@@ -65,7 +65,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
 
   const aqiInfo = aqiVal !== null
     ? getAqiMeaning(aqiVal)
-    : { category: 'Unavailable', severityColor: '#93A4B8' };
+    : { category: 'Unavailable', severityColor: '#898B83' };
   const humidityInfo = humidity !== null
     ? getHumidityMeaning(humidity)
     : { headline: 'Unavailable' };
@@ -94,7 +94,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
       {/* Visual Composition Matrix */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* 1. Thermal Trajectory & Temperature Range */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[#FF9F43]/15 text-[#FF9F43] flex items-center justify-center">
@@ -134,7 +134,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
           <div>
             <div className="w-full h-2 bg-[var(--m-surface-2)] rounded-full overflow-hidden flex">
               <div
-                className="h-full bg-gradient-to-r from-[#43C7F4] via-[#FFC857] to-[#EF5350] rounded-full"
+                className="h-full bg-gradient-to-r from-[var(--m-accent)] via-[#FFC857] to-[#EF5350] rounded-full"
                 style={{ width: currentTemp !== null ? '100%' : '0%' }}
               />
             </div>
@@ -147,7 +147,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
         </div>
 
         {/* 2. Precipitation Risk & Hydrometeors */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[var(--m-accent-soft)] text-[var(--m-accent)] flex items-center justify-center">
@@ -183,7 +183,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
           <div>
             <div className="w-full h-2 bg-[var(--m-surface-2)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#1499E8] to-[#43C7F4] transition-all duration-500 rounded-full"
+                className="h-full bg-gradient-to-r from-[var(--m-accent)] to-[var(--m-accent)] transition-all duration-500 rounded-full"
                 style={{ width: `${rainProb !== null ? Math.max(5, rainProb) : 0}%` }}
               />
             </div>
@@ -196,7 +196,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
         </div>
 
         {/* 3. Wind Vector & Surface Aerodynamics */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[var(--m-ok-soft)] text-[var(--m-ok)] flex items-center justify-center">
@@ -237,7 +237,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
         </div>
 
         {/* 4. Air Quality & National AQI */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[#FFC857]/15 text-[#FFC857] flex items-center justify-center">
@@ -284,7 +284,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
         </div>
 
         {/* 5. Relative Humidity & Dew Point */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[var(--m-accent-soft)] text-[var(--m-accent)] flex items-center justify-center">
@@ -324,7 +324,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
         </div>
 
         {/* 6. Solar UV Index & Optical Visibility */}
-        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[#1499E8]/30 transition-colors">
+        <div className="rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-5 flex flex-col justify-between gap-3 hover:border-[var(--m-accent)]/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[#FFC857]/15 text-[#FFC857] flex items-center justify-center">
@@ -350,7 +350,7 @@ export const HomeTodayAtAGlance: React.FC<HomeTodayAtAGlanceProps> = ({
                 <span>{visibility !== null ? `${visibility} km` : '—'} Visibility</span>
               </div>
               <div className="flex items-center gap-1 justify-end text-[var(--m-text-muted)] mt-0.5">
-                <Gauge className="w-3.5 h-3.5 text-[#1499E8]" />
+                <Gauge className="w-3.5 h-3.5 text-[var(--m-accent)]" />
                 <span>{pressure !== null ? `${pressure} hPa` : '—'} Pressure</span>
               </div>
             </div>

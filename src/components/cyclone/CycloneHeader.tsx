@@ -114,7 +114,7 @@ export const CycloneHeader: React.FC<CycloneHeaderProps> = ({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed m-focus-ring"
+            className="px-3.5 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] disabled:opacity-50 text-[var(--m-on-accent)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:cursor-not-allowed m-focus-ring"
             title="Force ingest latest synoptic bulletins"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />

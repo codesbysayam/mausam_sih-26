@@ -63,7 +63,7 @@ export const WeatherDecisionCenter: React.FC<WeatherDecisionCenterProps> = ({
       case 'driving_conditions':
         return <Car className="w-4 h-4 text-[var(--m-accent)]" />;
       case 'rain_protection':
-        return <Umbrella className="w-4 h-4 text-[#818CF8]" />;
+        return <Umbrella className="w-4 h-4 text-[var(--m-accent)]" />;
       case 'heat_exposure':
         return <Flame className="w-4 h-4 text-[var(--m-danger)]" />;
       case 'uv_exposure':

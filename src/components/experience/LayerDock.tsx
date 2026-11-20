@@ -147,7 +147,7 @@ export const LayerDock: React.FC = () => {
             type="button"
             onClick={() => setIsDesktopCollapsed(false)}
             aria-label="Expand layer dock"
-            className="pointer-events-auto spatial-hud-surface rounded-xl px-3 min-h-[40px] flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] cursor-pointer m-focus-ring"
+            className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 min-h-[40px] flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] cursor-pointer m-focus-ring"
           >
             <LayerIcon layerId={activeLayerDef.id} color={activeLayerDef.accentHex} />
             <span>{activeLayerDef.shortLabel}</span>
@@ -156,7 +156,7 @@ export const LayerDock: React.FC = () => {
         ) : (
           <div className="pointer-events-auto flex flex-col gap-2 w-[252px]">
             {/* Rail Header: Layers / Stations Tabs + Collapse */}
-            <div className="spatial-hud-surface rounded-xl p-1.5 flex items-center gap-1">
+            <div className="spatial-hud-surface rounded-[11px] p-1.5 flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setActiveRailTab('layers')}
@@ -195,7 +195,7 @@ export const LayerDock: React.FC = () => {
 
             {activeRailTab === 'layers' ? (
               <>
-                <div className="spatial-hud-surface rounded-xl p-2 flex flex-col gap-2 max-h-[calc(100dvh-258px)] overflow-y-auto scrollbar-thin">
+                <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2 max-h-[calc(100dvh-258px)] overflow-y-auto scrollbar-thin">
                   {CATEGORY_ORDER.map((category) => {
                     const items = SPATIAL_LAYERS.filter((l) => l.category === category);
                     return (
@@ -240,7 +240,7 @@ export const LayerDock: React.FC = () => {
                 </div>
 
                 {/* Active Layer Scientific Scale Legend */}
-                <div className="spatial-hud-surface rounded-xl px-3 py-2.5 flex flex-col gap-1.5">
+                <div className="spatial-hud-surface rounded-[11px] px-3 py-2.5 flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-semibold text-[var(--m-text-primary)] truncate">
                       {activeLayerDef.label}
@@ -265,7 +265,7 @@ export const LayerDock: React.FC = () => {
               </>
             ) : (
               /* Accessible 36-Station List Equivalent for All 3D Observatory Beacons */
-              <div className="spatial-hud-surface rounded-xl p-2 flex flex-col gap-2 max-h-[calc(100dvh-160px)]">
+              <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2 max-h-[calc(100dvh-160px)]">
                 <input
                   type="text"
                   value={stationFilter}
@@ -331,7 +331,7 @@ export const LayerDock: React.FC = () => {
           type="button"
           onClick={() => setIsDrawerOpen((v) => !v)}
           aria-expanded={isDrawerOpen}
-          className="pointer-events-auto spatial-hud-surface rounded-xl px-3 min-h-[42px] flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] cursor-pointer m-focus-ring"
+          className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 min-h-[42px] flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] cursor-pointer m-focus-ring"
         >
           <LayerIcon layerId={activeLayerDef.id} color={activeLayerDef.accentHex} />
           <span>Layer: {activeLayerDef.shortLabel}</span>
@@ -346,7 +346,7 @@ export const LayerDock: React.FC = () => {
         </button>
 
         {isDrawerOpen && (
-          <div className="pointer-events-auto w-full spatial-hud-surface-elevated rounded-xl p-2.5 flex flex-col gap-2 max-h-[60dvh] overflow-y-auto scrollbar-thin">
+          <div className="pointer-events-auto w-full spatial-hud-surface-elevated rounded-[11px] p-2.5 flex flex-col gap-2 max-h-[60dvh] overflow-y-auto scrollbar-thin">
             <div className="flex items-center gap-1 border-b border-[var(--m-border)] pb-2">
               <button
                 type="button"

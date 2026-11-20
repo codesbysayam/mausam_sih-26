@@ -99,7 +99,7 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                   onClick={() => setHorizonFilter(h)}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                     horizonFilter === h
-                      ? 'bg-[var(--m-accent)] text-white font-semibold'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                       : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
@@ -115,12 +115,12 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
         {activePoint ? (
           <div className="flex items-center gap-2 bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-2.5 py-0.5 rounded-lg text-[var(--m-text-primary)]">
             <span className="text-[var(--m-accent)] font-bold">{formatHour(activePoint.validTime)}</span>
-            <span className="text-[#26394B]">·</span>
-            <span className="text-[var(--m-ok)] font-bold">
+            <span className="text-[var(--m-border-strong)]">·</span>
+            <span className="text-[var(--weather-rain)] font-bold">
               Rain: {typeof activePoint.precipitation === 'number' ? `${activePoint.precipitation} mm` : '—'}
             </span>
-            <span className="text-[#26394B]">·</span>
-            <span className="text-[var(--m-watch)]">
+            <span className="text-[var(--m-border-strong)]">·</span>
+            <span className="text-[var(--weather-sun)]">
               Prob: {typeof activePoint.precipitationProbability === 'number' ? `${activePoint.precipitationProbability}%` : '—'}
             </span>
           </div>
@@ -131,12 +131,12 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
         )}
 
         <div className="flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1.5 text-[var(--m-ok)]">
-            <span className="w-2.5 h-2.5 rounded-xs bg-[#22C7A0]" />
+          <span className="flex items-center gap-1.5 text-[var(--weather-rain)]">
+            <span className="w-2.5 h-2.5 rounded-xs bg-[#78AEB6]" />
             <span>Rain (mm)</span>
           </span>
-          <span className="flex items-center gap-1.5 text-[var(--m-watch)]">
-            <span className="w-3 h-0.5 bg-[#F59E0B]" />
+          <span className="flex items-center gap-1.5 text-[var(--weather-sun)]">
+            <span className="w-3 h-0.5 bg-[#E6B96B]" />
             <span>Probability (%)</span>
           </span>
         </div>
@@ -159,14 +159,13 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                   y1={y}
                   x2={svgWidth - paddingX}
                   y2={y}
-                  stroke="#26394B"
-                  strokeOpacity="0.6"
+                  stroke="rgba(226, 219, 200, 0.14)"
                   strokeDasharray="3 3"
                 />
-                <text x={paddingX - 6} y={y + 3} textAnchor="end" fill="#22C7A0" fontSize="9" fontFamily="monospace">
+                <text x={paddingX - 6} y={y + 3} textAnchor="end" fill="#78AEB6" fontSize="9" fontFamily="monospace">
                   {mmVal}
                 </text>
-                <text x={svgWidth - paddingX + 6} y={y + 3} textAnchor="start" fill="#F59E0B" fontSize="9" fontFamily="monospace">
+                <text x={svgWidth - paddingX + 6} y={y + 3} textAnchor="start" fill="#E6B96B" fontSize="9" fontFamily="monospace">
                   {pctVal}%
                 </text>
               </g>
@@ -189,7 +188,7 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                   width={barW}
                   height={Math.max(barH, val > 0 ? 2 : 0)}
                   rx="1.5"
-                  fill={isHovered ? '#6EE7B7' : '#22C7A0'}
+                  fill={isHovered ? '#A7C5C5' : '#78AEB6'}
                   opacity={val > 0 ? (isHovered ? 1 : 0.85) : 0.12}
                 />
 
@@ -210,7 +209,7 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
             <path
               d={probLinePath}
               fill="none"
-              stroke="#F59E0B"
+              stroke="#E6B96B"
               strokeWidth="2"
               strokeDasharray="3 2"
             />
@@ -224,8 +223,8 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                 cx={hoveredProb.x}
                 cy={hoveredProb.y}
                 r="4"
-                fill="#F3F6FA"
-                stroke="#F59E0B"
+                fill="#F0EEE7"
+                stroke="#E6B96B"
                 strokeWidth="2"
               />
             );
@@ -242,7 +241,7 @@ export const PrecipitationPanel: React.FC<PrecipitationPanelProps> = ({ points }
                 x={x}
                 y={svgHeight - 6}
                 textAnchor="middle"
-                fill="#8295A8"
+                fill="#898B83"
                 fontSize="9"
                 fontFamily="monospace"
               >

@@ -6,12 +6,12 @@
     <title>MAUSAM — Atmospheric Intelligence</title>
     <meta name="description" content="National meteorological observation, radar nowcasting, and environmental intelligence platform." />
     <meta name="application-name" content="MAUSAM" />
-    <meta name="theme-color" content="#F7F6F1" />
+    <meta name="theme-color" content="#0B0C0D" />
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="MAUSAM" />
-    <meta property="og:title" content="MAUSAM — Atmospheric Intelligence" />
+    <meta property="og:title" content="MAUSAM — The Atmospheric Observatory" />
     <meta property="og:description" content="National meteorological observation, radar nowcasting, and environmental intelligence platform." />
     <meta property="og:url" content="https://mausamgovt.vercel.app/" />
     <meta property="og:image" content="https://mausamgovt.vercel.app/og-image.png" />
@@ -22,7 +22,7 @@
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="MAUSAM — Atmospheric Intelligence" />
+    <meta name="twitter:title" content="MAUSAM — The Atmospheric Observatory" />
     <meta name="twitter:description" content="National meteorological observation, radar nowcasting, and environmental intelligence platform." />
     <meta name="twitter:image" content="https://mausamgovt.vercel.app/og-image.png" />
     <meta name="twitter:image:alt" content="MAUSAM Weather and Radar Network" />
@@ -38,18 +38,18 @@
     <!-- Application Stylesheet -->
     <link rel="stylesheet" href="/src/index.css" />
 
-    <!-- Critical Editorial Atmospheric Intelligence Shell (Zero Flash) -->
+    <!-- Critical Atmospheric Observatory Shell (Zero Flash) -->
     <style>
       :root {
-        color-scheme: light dark;
+        color-scheme: dark light;
       }
       html, body {
-        background-color: #F7F6F1;
-        color: #14212B;
+        background-color: #0B0C0D;
+        color: #F0EEE7;
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        font-family: "DM Sans", "Inter", "IBM Plex Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: "Inter", "Manrope", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         -webkit-font-smoothing: antialiased;
       }
       .skip-link {
@@ -67,13 +67,13 @@
         width: auto !important;
         height: auto !important;
         z-index: 99999 !important;
-        background: #1678B8 !important;
-        color: #FFFEFA !important;
+        background: #C5A46D !important;
+        color: #0B0C0D !important;
         padding: 8px 16px !important;
-        border-radius: 6px !important;
+        border-radius: 7px !important;
         text-decoration: none !important;
-        font-weight: 600 !important;
-        box-shadow: 0 4px 14px rgba(16, 26, 36, 0.22);
+        font-weight: 700 !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
       }
       @keyframes mausamSpin {
         to { transform: rotate(360deg); }
@@ -83,7 +83,7 @@
     <!-- Fonts & Icons Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Noto+Sans+Oriya:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Noto+Sans+Oriya:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
     <!-- Vanilla Client Scripts (Deferred, Privacy-Preserving) -->
@@ -92,22 +92,22 @@
     <script src="/js/formValidation.js" defer></script>
     <script src="/js/seo.js" defer></script>
   </head>
-  <body class="bg-[#F7F6F1] text-[#14212B] antialiased selection:bg-[#1678B8]/20 selection:text-[#14212B]">
+  <body class="bg-[#0B0C0D] text-[#F0EEE7] antialiased selection:bg-[#C5A46D]/25 selection:text-[#F0EEE7]">
     <!-- Accessible Skip to Main Content Link -->
     <a
       href="#main-content"
       id="skip-link"
-      class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#1678B8] focus:text-white focus:font-semibold focus:text-sm focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#1678B8]"
+      class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#C5A46D] focus:text-[#0B0C0D] focus:font-bold focus:text-sm focus:rounded-[7px] focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#E0C18A]"
     >
       Skip to main content
     </a>
 
     <div id="root">
-      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #F7F6F1; color: #14212B; font-family: 'DM Sans', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 16px;">
-        <div style="width: 36px; height: 36px; border: 2px solid rgba(20, 33, 43, 0.14); border-top-color: #1678B8; border-radius: 50%; animation: mausamSpin 0.9s linear infinite;"></div>
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0B0C0D; color: #F0EEE7; font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 16px;">
+        <div style="width: 34px; height: 34px; border: 2px solid rgba(226, 219, 200, 0.14); border-top-color: #C5A46D; border-radius: 50%; animation: mausamSpin 0.9s linear infinite;"></div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
-          <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #14212B;">MAUSAM</div>
-          <div style="font-size: 12px; color: #5D6C77; font-family: 'IBM Plex Mono', monospace;">Initializing atmospheric intelligence...</div>
+          <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: #F0EEE7;">MAUSAM</div>
+          <div style="font-size: 11px; color: #898B83; font-family: 'IBM Plex Mono', monospace;">Initializing atmospheric observatory...</div>
         </div>
       </div>
     </div>

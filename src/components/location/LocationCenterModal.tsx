@@ -466,7 +466,7 @@ export const LocationCenterModal: React.FC<LocationCenterModalProps> = ({
                 type="button"
                 onClick={takeSnapshot}
                 disabled={isSnapping}
-                className="w-full px-4 min-h-[44px] sm:min-h-[38px] rounded-xl bg-[#22C7A0] hover:opacity-95 text-[#07111D] font-bold text-xs flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 cursor-pointer"
+                className="w-full px-4 min-h-[44px] sm:min-h-[38px] rounded-xl bg-[#22C7A0] hover:opacity-95 text-[var(--m-on-accent)] font-bold text-xs flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 cursor-pointer"
               >
                 {isSnapping ? (
                   <>

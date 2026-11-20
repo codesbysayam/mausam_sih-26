@@ -339,7 +339,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
                 onClick={() => setActiveTab(tab.id)}
                 className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer shrink-0 m-focus-ring ${
                   activeTab === tab.id
-                    ? 'bg-[#35C7E8] text-[#07111D]'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
                 }`}
               >
@@ -352,7 +352,7 @@ export const ReportPreviewDrawer: React.FC<ReportPreviewDrawerProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] hover:text-[var(--m-on-accent)] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
               title="Print official report"
             >
               <Printer className="w-3.5 h-3.5" />

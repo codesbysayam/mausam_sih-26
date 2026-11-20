@@ -81,7 +81,7 @@ export const CropSelector: React.FC<CropSelectorProps> = ({
               }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer focus:outline-none ${
                 isSelected
-                  ? 'bg-[#2ECC71] text-[#0A1017] shadow-md shadow-[#2ECC71]/25 font-black scale-[1.02]'
+                  ? 'bg-[#2ECC71] text-[var(--m-on-accent)] shadow-md shadow-[#2ECC71]/25 font-black scale-[1.02]'
                   : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)]'
               }`}
             >

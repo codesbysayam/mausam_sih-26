@@ -153,7 +153,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
               }}
               className={`py-2 px-3 min-h-[40px] rounded-lg border text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 m-focus-ring ${
                 selectedLanguage === 'en'
-                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white font-semibold'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                   : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
@@ -168,7 +168,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
               }}
               className={`py-2 px-3 min-h-[40px] rounded-lg border text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 m-focus-ring ${
                 selectedLanguage === 'hi'
-                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white font-semibold'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                   : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
@@ -196,7 +196,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
                 ? 'bg-[#D97706] border-[#F59E0B] text-white'
                 : !hasNativeVoice
                 ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] cursor-not-allowed border-[var(--m-border)]'
-                : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-white'
+                : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-[var(--m-on-accent)]'
             }`}
           >
             {ttsStatus === 'SPEAKING' ? (

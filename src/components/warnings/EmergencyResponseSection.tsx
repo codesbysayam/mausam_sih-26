@@ -60,7 +60,7 @@ export const EmergencyResponseSection: React.FC<EmergencyResponseSectionProps> =
       desc: 'State Disaster Management Authority 24x7 Emergency Operations Command.',
       Icon: AlertTriangle,
       accentColor: 'text-[var(--m-accent)]',
-      btnBg: 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white',
+      btnBg: 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)]',
     },
     {
       id: 'imd-1800',
@@ -73,7 +73,7 @@ export const EmergencyResponseSection: React.FC<EmergencyResponseSectionProps> =
       desc: 'Official meteorological bulletins, synoptic radar updates & cyclone inquiries.',
       Icon: CloudCog,
       accentColor: 'text-[var(--m-ok)]',
-      btnBg: 'bg-[#22C7A0] hover:bg-[#1BA885] text-[#07111D]',
+      btnBg: 'bg-[#22C7A0] hover:bg-[#1BA885] text-[var(--m-on-accent)]',
     },
   ];
 

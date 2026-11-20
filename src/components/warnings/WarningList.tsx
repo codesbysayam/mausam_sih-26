@@ -58,7 +58,7 @@ export const WarningList: React.FC<WarningListProps> = ({
           id="btn-empty-reset-filters"
           type="button"
           onClick={onResetFilters}
-          className="mt-1 px-4 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 m-focus-ring"
+          className="mt-1 px-4 py-2 min-h-[40px] rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 m-focus-ring"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Reset All Filters</span>

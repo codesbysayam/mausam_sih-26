@@ -62,7 +62,7 @@ const NAV_CONFIG: NavItemConfig[] = [
     labelKey: 'forecast',
     defaultLabel: 'Forecast & NWP',
     icon: TrendingUp,
-    accentColor: 'text-[#60A5FA]',
+    accentColor: 'text-[var(--m-info)]',
   },
   {
     id: 'warnings',
@@ -97,7 +97,7 @@ const NAV_CONFIG: NavItemConfig[] = [
     labelKey: 'weather',
     defaultLabel: 'Local Detail',
     icon: ThermometerSun,
-    accentColor: 'text-[#FB923C]',
+    accentColor: 'text-[var(--weather-hot)]',
   },
   {
     id: 'reports',

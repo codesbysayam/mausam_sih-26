@@ -300,8 +300,8 @@ const getStationDivIcon = () =>
         className: 'custom-radar-station-pin',
         html: `
           <div style="position: relative; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;">
-            <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(67, 199, 244, 0.85); background: rgba(20, 153, 232, 0.25);"></div>
-            <div style="width: 10px; height: 10px; border-radius: 50%; background: #1499E8; border: 2px solid #FFFFFF; box-shadow: 0 0 8px rgba(20,153,232,0.9);"></div>
+            <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(197, 164, 109, 0.85); background: rgba(197, 164, 109, 0.25);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: #C5A46D; border: 2px solid #FFFFFF; box-shadow: 0 0 8px rgba(197, 164, 109,0.9);"></div>
           </div>
         `,
         iconSize: [26, 26],
@@ -880,7 +880,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 }}
                 className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
                   viewMode === 'station' && !focusTarget
-                    ? 'bg-[var(--m-accent)] text-white shadow-sm'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -894,7 +894,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 }}
                 className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
                   viewMode === 'all-india'
-                    ? 'bg-[var(--m-accent)] text-white shadow-sm'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -957,13 +957,13 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
           {/* Leaflet Map Canvas Container — intentional dark spatial stage */}
           <div
             data-theme="dark-workspace"
-            className={`h-[360px] sm:h-[400px] rounded-xl bg-[#070C14] border border-[var(--m-border)] relative overflow-hidden shadow-inner flex flex-col ${
+            className={`h-[360px] sm:h-[400px] rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] relative overflow-hidden shadow-inner flex flex-col ${
               isMapLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
             }`}
           >
             {/* On-Map Floating Lock Indicator Badge */}
             {isMapLocked && (
-              <div className="absolute top-2.5 right-2.5 z-[400] flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#070C14]/90 border border-[#FF8C42]/70 text-[#FF8C42] text-[10px] font-mono backdrop-blur-md shadow-md pointer-events-auto">
+              <div className="absolute top-2.5 right-2.5 z-[400] flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--m-surface-inset)]/90 border border-[#FF8C42]/70 text-[#FF8C42] text-[10px] font-mono backdrop-blur-md shadow-md pointer-events-auto">
                 <Lock className="w-3 h-3" />
                 <span className="font-bold">LOCKED: {focusTarget ? 'ECHO CELL' : `${currentStation.city} SECTOR`}</span>
                 <button
@@ -1023,7 +1023,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 >
                   <Popup className="custom-radar-popup">
                     <div className="text-xs p-1">
-                      <strong className="block text-[#1499E8]">
+                      <strong className="block text-[var(--m-accent)]">
                         DWR {currentStation.city}
                       </strong>
                       <div className="text-[#333] text-[10px] mt-0.5">
@@ -1073,7 +1073,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                       <div className="text-[10px] text-[#333] mt-0.5 font-mono">
                         {probedPoint.distanceKm} km @ {probedPoint.bearing}° {probedPoint.compass} from DWR {currentStation.city}
                       </div>
-                      <div className="text-[10px] text-[#1499E8] font-bold mt-1">
+                      <div className="text-[10px] text-[var(--m-accent)] font-bold mt-1">
                         Est. Reflectivity: {probedPoint.reflectivityEst}
                       </div>
                       <div className="text-[9px] text-[#666]">
@@ -1093,12 +1093,12 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               id="badge-latest-echo-trigger"
               onClick={handleLatestEchoAction}
               title="Click to inspect latest echo telemetry & active storm cells"
-              className="absolute top-3 left-3 bg-[#101820]/95 border border-[#354653] hover:border-[#2C7BE5] px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[520] backdrop-blur-sm cursor-pointer transition-colors group shadow-lg"
+              className="absolute top-3 left-3 bg-[#101820]/95 border border-[#354653] hover:border-[var(--m-accent)] px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[520] backdrop-blur-sm cursor-pointer transition-colors group shadow-lg"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
                   isPlaying
-                    ? 'bg-[#2C7BE5]'
+                    ? 'bg-[var(--m-accent)]'
                     : isLatestFrame
                     ? 'bg-[#2E7D5B]'
                     : 'bg-[#D98A2B]'
@@ -1110,12 +1110,12 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               <span className="text-[#D8D4C9] text-[11px] font-mono tabular-nums">
                 {activeFrame ? formatTimestamp(activeFrame.time) : 'Syncing…'}
               </span>
-              <Crosshair className="w-3.5 h-3.5 text-[#2C7BE5] ml-0.5 opacity-80 group-hover:opacity-100" />
+              <Crosshair className="w-3.5 h-3.5 text-[var(--m-accent)] ml-0.5 opacity-80 group-hover:opacity-100" />
             </button>
 
             {/* Temporary Feedback Banner when jumping or refreshing */}
             {echoFeedback && (
-              <div className="absolute top-12 left-3 bg-[#2C7BE5] text-[#F5F3ED] px-3 py-1 rounded text-xs font-semibold z-[530] flex items-center gap-1.5 pointer-events-none shadow-md">
+              <div className="absolute top-12 left-3 bg-[var(--m-accent)] text-[#F5F3ED] px-3 py-1 rounded text-xs font-semibold z-[530] flex items-center gap-1.5 pointer-events-none shadow-md">
                 <Zap className="w-3.5 h-3.5" />
                 <span>{echoFeedback}</span>
               </div>
@@ -1125,20 +1125,20 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
             {showEchoInspector && (
               <div
                 id="panel-latest-echo-inspector"
-                className="absolute top-14 left-3 w-80 max-w-[calc(100%-24px)] bg-[#101820]/96 border border-[#2C7BE5]/50 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5 shadow-2xl"
+                className="absolute top-14 left-3 w-80 max-w-[calc(100%-24px)] bg-[#101820]/96 border border-[var(--m-accent)]/50 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5 shadow-2xl"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[#26394B]">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-[#22C7A0]" />
-                    <span className="text-xs font-bold text-[#F3F6FA] font-mono uppercase tracking-wider">
+                    <span className="text-xs font-bold text-[var(--m-text-primary)] font-mono uppercase tracking-wider">
                       Latest Radar Sweep Sector
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowEchoInspector(false)}
-                    className="text-[#93A4B8] hover:text-white p-0.5 rounded cursor-pointer"
+                    className="text-[var(--m-text-muted)] hover:text-white p-0.5 rounded cursor-pointer"
                     title="Close Inspector"
                   >
                     <X className="w-4 h-4" />
@@ -1147,9 +1147,9 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
                 {/* Sweep Telemetry Specs */}
                 <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
-                  <div className="bg-[#0B1927] p-2 rounded border border-[#26394B]">
-                    <span className="text-[#8295A8] text-[9px] block">SCAN TIME</span>
-                    <span className="text-[#F3F6FA] font-bold">
+                  <div className="bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
+                    <span className="text-[var(--m-text-muted)] text-[9px] block">SCAN TIME</span>
+                    <span className="text-[var(--m-text-primary)] font-bold">
                       {radarTimestamp
                         ? new Date(radarTimestamp * 1000).toLocaleTimeString('en-IN', {
                             hour: '2-digit',
@@ -1159,8 +1159,8 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                         : 'Checking…'}
                     </span>
                   </div>
-                  <div className="bg-[#0B1927] p-2 rounded border border-[#26394B]">
-                    <span className="text-[#8295A8] text-[9px] block">FRESHNESS</span>
+                  <div className="bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
+                    <span className="text-[var(--m-text-muted)] text-[9px] block">FRESHNESS</span>
                     <span className="text-[#22C7A0] font-bold">
                       {getEchoAgeText(radarTimestamp)}
                     </span>
@@ -1168,22 +1168,22 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 </div>
 
                 {/* Detected Echo Zone Details */}
-                <div className="bg-[#0B1927] p-2.5 rounded-lg border border-[#26394B] flex flex-col gap-1 text-xs">
+                <div className="bg-[var(--m-surface-inset)] p-2.5 rounded-lg border border-[var(--m-border)] flex flex-col gap-1 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-[#93A4B8] font-mono">
+                    <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
                       PRIMARY ECHO SECTOR
                     </span>
                     <span className="text-[10px] font-bold text-[#FF8C42]">
                       {echoProfile.reflectivity}
                     </span>
                   </div>
-                  <div className="font-semibold text-[#F4F7FA] text-xs">
+                  <div className="font-semibold text-[var(--m-text-primary)] text-xs">
                     {echoProfile.regionName}
                   </div>
-                  <div className="text-[11px] text-[#93A4B8]">
+                  <div className="text-[11px] text-[var(--m-text-muted)]">
                     {echoProfile.precipitationClass} • Cloud top ~{echoProfile.cloudTopKm}
                   </div>
-                  <div className="text-[10px] text-[#43C7F4] font-mono pt-1">
+                  <div className="text-[10px] text-[var(--m-accent)] font-mono pt-1">
                     Vector: {echoProfile.cellMotion}
                   </div>
                 </div>
@@ -1200,7 +1200,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                         label: echoProfile.regionName,
                       });
                     }}
-                    className="flex-1 bg-[#1499E8] hover:bg-[#0F7DC0] text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                    className="flex-1 bg-[var(--m-accent)] hover:bg-[#0F7DC0] text-[var(--m-on-accent)] px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                   >
                     <Target className="w-3.5 h-3.5" />
                     <span>Focus Active Cell</span>
@@ -1210,7 +1210,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                     type="button"
                     onClick={() => fetchRadarData(undefined, true)}
                     disabled={isRefreshing}
-                    className="bg-[#0B1927] hover:bg-[#101F2E] text-[#35C7E8] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-[#26394B] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    className="bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-accent)] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-[var(--m-border)] flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     title="Poll RainViewer API for newest radar sweep"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -1218,7 +1218,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                   </button>
                 </div>
 
-                <div className="text-[10px] text-[#93A4B8] font-mono flex items-center gap-1 pt-0.5 border-t border-[#162331]">
+                <div className="text-[10px] text-[var(--m-text-muted)] font-mono flex items-center gap-1 pt-0.5 border-t border-[var(--m-border-strong)]">
                   <Crosshair className="w-3 h-3 text-[#22C7A0]" />
                   <span>Click map anywhere to probe echo metrics</span>
                 </div>
@@ -1227,12 +1227,12 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
             {/* Loading State Overlay */}
             {radarStatus === 'loading' && frames.length === 0 && (
-              <div className="absolute inset-0 bg-[#070C14]/85 z-[600] flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
-                <RefreshCw className="w-7 h-7 text-[#43C7F4] animate-spin" />
-                <span className="text-sm font-semibold text-[#F4F7FA]">
+              <div className="absolute inset-0 bg-[var(--m-surface-inset)]/85 z-[600] flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
+                <RefreshCw className="w-7 h-7 text-[var(--m-accent)] animate-spin" />
+                <span className="text-sm font-semibold text-[var(--m-text-primary)]">
                   Loading radar imagery…
                 </span>
-                <span className="text-xs text-[#93A4B8]">
+                <span className="text-xs text-[var(--m-text-muted)]">
                   Connecting to RainViewer public weather radar feed
                 </span>
               </div>
@@ -1240,21 +1240,21 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
             {/* Error State Overlay */}
             {radarStatus === 'error' && frames.length === 0 && (
-              <div className="absolute inset-0 bg-[#070C14]/90 z-[600] flex flex-col items-center justify-center gap-2.5 p-4 text-center">
+              <div className="absolute inset-0 bg-[var(--m-surface-inset)]/90 z-[600] flex flex-col items-center justify-center gap-2.5 p-4 text-center">
                 <AlertCircle className="w-8 h-8 text-[#EF4444]" />
-                <span className="text-sm font-bold text-[#F4F7FA]">
+                <span className="text-sm font-bold text-[var(--m-text-primary)]">
                   Radar imagery unavailable
                 </span>
-                <p className="text-xs text-[#93A4B8] max-w-sm">
+                <p className="text-xs text-[var(--m-text-muted)] max-w-sm">
                   {fetchError || 'Unable to retrieve latest radar mosaic from source.'}
                 </p>
-                <div className="text-[11px] text-[#43C7F4] font-mono">
+                <div className="text-[11px] text-[var(--m-accent)] font-mono">
                   Source: RainViewer
                 </div>
                 <button
                   type="button"
                   onClick={() => fetchRadarData(undefined, true)}
-                  className="mt-2 px-3.5 py-1.5 bg-[#1499E8] hover:bg-[#0F7DC0] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                  className="mt-2 px-3.5 py-1.5 bg-[var(--m-accent)] hover:bg-[#0F7DC0] text-[var(--m-on-accent)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
                 >
                   Retry Connection
                 </button>
@@ -1274,7 +1274,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
             {/* On-Map Precipitation Filter Banner when active */}
             {isPrecipFiltered && (
-              <div className="absolute top-12 right-3 z-[500] bg-[#08131F]/95 border border-[#F59E0B]/80 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F3F6FA] flex items-center gap-2 pointer-events-auto">
+              <div className="absolute top-12 right-3 z-[500] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/80 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
                 <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
                 <span className="text-[#FCD34D] font-bold text-[10px] uppercase">
                   FILTER: {activePrecipLevels.length}/6 ON
@@ -1282,7 +1282,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActivePrecipLevels(ALL_PRECIP_LEVEL_IDS)}
-                  className="text-[10px] text-[#35C7E8] hover:text-[#F3F6FA] underline font-sans cursor-pointer font-bold"
+                  className="text-[10px] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] underline font-sans cursor-pointer font-bold"
                   title="Reset precipitation intensity filter"
                 >
                   Reset
@@ -1345,7 +1345,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                   className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
                     isPlaying
                       ? 'bg-[var(--m-alert)] text-white'
-                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-white'
+                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)]'
                   } disabled:opacity-40`}
                 >
                   {isPlaying ? (
@@ -1384,7 +1384,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                       onClick={() => setPlaybackSpeed(spd)}
                       className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
                         playbackSpeed === spd
-                          ? 'bg-[var(--m-accent)] text-white font-bold'
+                          ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
                           : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                       }`}
                       title={`Playback Speed: ${spd}x`}
@@ -1420,7 +1420,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                   className={`text-xs font-mono font-semibold px-3 py-1.5 min-h-[36px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 m-focus-ring ${
                     isLatestFrame
                       ? 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[var(--m-accent)]/50 text-[var(--m-accent)] hover:text-[var(--m-text-primary)]'
-                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-transparent text-white'
+                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-transparent text-[var(--m-on-accent)]'
                   }`}
                 >
                   <Radio

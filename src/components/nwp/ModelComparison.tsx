@@ -111,7 +111,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
                   onClick={() => setSelectedLeadHour(opt.lead)}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                     selectedLeadHour === opt.lead
-                      ? 'bg-[var(--m-accent)] text-white font-semibold'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                       : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
@@ -208,7 +208,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
                     ? 'bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35 text-[var(--m-watch)]'
                     : ag.level === 'LOW'
                     ? 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35 text-[var(--m-danger)]'
-                    : 'bg-[#8295A8]/12 border-[var(--m-border-strong)] text-[var(--m-text-secondary)]';
+                    : 'bg-[var(--m-text-muted)]/12 border-[var(--m-border-strong)] text-[var(--m-text-secondary)]';
 
                 return (
                   <div
@@ -282,7 +282,7 @@ export const ModelComparison: React.FC<ModelComparisonProps> = ({ dataset }) => 
                 </div>
                 <div className="w-full h-2.5 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#35C7E8] via-[#22C7A0] to-[#F59E0B]"
+                    className="h-full bg-gradient-to-r from-[var(--m-accent)] via-[#22C7A0] to-[#F59E0B]"
                     style={{ width: `${Math.min(Math.max((tempSpread.max - tempSpread.min) * 12, 16), 100)}%` }}
                   />
                 </div>

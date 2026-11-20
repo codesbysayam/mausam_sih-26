@@ -1,112 +1,116 @@
 /**
- * MAUSAM DESIGN SYSTEM TOKENS
- * Product: MAUSAM - Atmospheric Intelligence & Citizen Weather Platform
- * Human-designed, Indian atmospheric aesthetic with refined information hierarchy.
+ * MAUSAM DESIGN SYSTEM TOKENS — OBSIDIAN × ATMOSPHERIC OBSERVATORY
+ * Palette: Void (#0B0C0D) · Graphite (#191C1D) · Brass (#C5A46D) · Mineral Green (#89977B) · Atmospheric Ice (#A7C5C5)
+ * Brass is brand accent only — official weather severity colors remain strictly meteorological.
  */
 
 export const MAUSAM_BRAND = {
   name: 'MAUSAM',
-  tagline: 'Atmospheric Intelligence & Citizen Weather Platform',
-  descriptor: 'Personalized Atmospheric & Environmental Intelligence for India',
+  tagline: 'The Atmospheric Observatory',
+  descriptor: 'National Atmospheric Intelligence & Environmental Observation for India',
 } as const;
 
 export const tokens = {
   colors: {
-    // 1. Core Brand Colors
-    primary: '#0B3D91', // Deep Government Blue
-    primaryDark: '#062A63',
-    primaryLight: '#E3F2FD', // Ice/Sky Blue
-    secondary: '#1565C0', // Royal Blue
+    // 1. Core Brand & Surface Tokens (Obsidian × Graphite × Brass)
+    primary: '#C5A46D',        // Restrained Brass Accent
+    primaryDark: '#9C7B42',    // Deep Aged Brass (light theme / borders)
+    primaryLight: '#E0C18A',   // Bright Brass (focus / emphasis)
+    secondary: '#89977B',      // Mineral Green (Moss)
+    ice: '#A7C5C5',            // Atmospheric Ice
 
-    // 2. Calibrated Weather Severity Colors
+    // 2. Official Warning Severity Colors (IMD / NDMA Calibrated)
     severity: {
-      normal: '#22C7A0',
-      watch: '#F59E0B',
-      alert: '#F97316',
-      warning: '#EF4444',
+      normal: '#5C9A79',       // Green — No Warning
+      watch: '#D8B14F',        // Yellow — Watch / Be Aware
+      alert: '#D98548',        // Orange — Alert / Be Prepared
+      warning: '#C94F4B',      // Red — Severe Warning / Take Action
+      unknown: '#898B83',      // Unknown / Unavailable
     },
 
-    // 3. Atmospheric States
+    // 3. Semantic Weather Data Colors (Strictly for Weather Telemetry)
     weather: {
-      clear: '#F59E0B',
-      sunny: '#F59E0B',
-      cloudy: '#8295A8',
-      rain: '#0B72B9',
-      rainy: '#35C7E8',
-      storm: '#F97316',
-      snow: '#7DD3FC',
-      fog: '#8295A8',
-      mist: '#8295A8',
-      heat: '#EF4444',
-      cold: '#35C7E8',
-      duststorm: '#F59E0B',
-      unknown: '#8295A8',
+      clear: '#E6B96B',        // --weather-sun
+      sunny: '#E6B96B',
+      cloudy: '#C3C9C5',       // --weather-cloud
+      rain: '#78AEB6',         // --weather-rain
+      rainy: '#78AEB6',
+      storm: '#D98548',        // --severity-orange
+      snow: '#A7C5C5',         // --mausam-ice
+      fog: '#C3C9C5',          // --weather-cloud
+      mist: '#C3C9C5',
+      heat: '#E27B55',         // --weather-hot
+      cold: '#91B6CC',         // --weather-cold
+      wind: '#9CAF9A',         // --weather-wind
+      duststorm: '#D8B14F',
+      unknown: '#898B83',
     },
 
     // 4. Semantic Status System
     status: {
-      good: '#22C7A0',     // Normal / Good AQI / Live
-      warning: '#F59E0B',  // Watch / Moderate / Stale
-      prepare: '#F97316',  // Alert / Poor AQI
-      danger: '#EF4444',   // Warning / Red Alert / Error
-      info: '#35C7E8',     // Telemetry Cyan
+      good: '#5C9A79',
+      warning: '#D8B14F',
+      prepare: '#D98548',
+      danger: '#C94F4B',
+      info: '#A7C5C5',
     },
 
-    // 5. Canonical v3.0.0 Calibrated Observatory Dark Surfaces
+    // 5. Obsidian × Graphite Observatory Dark Surfaces
     dark: {
-      background: '#07111D',
-      backgroundAlt: '#08131F',
-      surface: '#0B1927',
-      surfaceSecondary: '#101F2E',
-      surfaceHover: '#172A3B',
-      textPrimary: '#F3F6FA',
-      textSecondary: '#B5C3D1',
-      textMuted: '#8295A8',
-      border: '#26394B',
-      borderSubtle: 'rgba(38, 57, 75, 0.7)',
-      borderHover: '#38536A',
+      background: '#0B0C0D',
+      backgroundAlt: '#111314',
+      surface: '#191C1D',
+      surfaceSecondary: '#202424',
+      surfaceHover: '#292E2D',
+      textPrimary: '#F0EEE7',
+      textSecondary: '#C1BFB5',
+      textMuted: '#898B83',
+      border: 'rgba(226, 219, 200, 0.13)',
+      borderSubtle: 'rgba(226, 219, 200, 0.08)',
+      borderHover: 'rgba(226, 219, 200, 0.25)',
     },
 
-    // 6. Light Surfaces (Print & Export Palette)
+    // 6. Warm Editorial Paper Light Surfaces (Classic & Paper Modes)
     light: {
-      background: '#F5F9FC',
-      surface: '#FFFFFF',
-      surfaceRaised: '#EEF4F9',
-      textPrimary: '#172B4D',
-      textSecondary: '#475569',
-      textMuted: '#64748B',
-      border: '#CBD5E1',
+      background: '#F1F0EA',
+      surface: '#FAF9F5',
+      surfaceRaised: '#FFFFFF',
+      textPrimary: '#171B19',
+      textSecondary: '#48504A',
+      textMuted: '#6A716A',
+      border: 'rgba(23, 27, 25, 0.13)',
     },
 
-    // 7. Atmospheric Gradients
+    // 7. Restrained Atmospheric Gradients (Zero Cyan Glow)
     gradients: {
-      daySky: 'linear-gradient(145deg, rgba(53, 199, 232, 0.08) 0%, #0B1927 100%)',
-      sunset: 'linear-gradient(145deg, rgba(245, 158, 11, 0.10) 0%, #0B1927 100%)',
-      night: 'linear-gradient(145deg, #101F2E 0%, #07111D 100%)',
-      storm: 'linear-gradient(145deg, rgba(239, 68, 68, 0.10) 0%, #0B1927 100%)',
+      daySky: 'linear-gradient(145deg, rgba(230, 185, 107, 0.07) 0%, #191C1D 100%)',
+      sunset: 'linear-gradient(145deg, rgba(226, 123, 85, 0.09) 0%, #191C1D 100%)',
+      night: 'linear-gradient(145deg, #191C1D 0%, #0B0C0D 100%)',
+      storm: 'linear-gradient(145deg, rgba(201, 79, 75, 0.10) 0%, #191C1D 100%)',
     },
 
-    // 8. Spatial 3D Atmospheric Canvas & Floating HUD Tokens
+    // 8. Spatial 3D Atmospheric Observatory Canvas & Instrument HUD Tokens
     spatial: {
-      canvasVoid: '#07111D',
-      oceanBase: '#0B1927',
-      landRelief: '#101F2E',
-      hudSurface: 'rgba(11, 25, 39, 0.94)',
-      hudSurfaceElevated: 'rgba(16, 31, 46, 0.97)',
-      hudBorder: '#26394B',
-      hudBorderStrong: '#38536A',
-      primaryCyan: '#35C7E8',
-      precipitationBlue: '#0B72B9',
-      windTeal: '#22C7A0',
-      clearGreen: '#22C7A0',
-      watchAmber: '#F59E0B',
-      alertOrange: '#F97316',
-      severeRed: '#EF4444',
+      canvasVoid: '#0B0C0D',
+      oceanBase: '#0E1214',
+      landRelief: '#2B302C',
+      hudSurface: 'rgba(17, 19, 20, 0.94)',
+      hudSurfaceElevated: 'rgba(25, 28, 29, 0.97)',
+      hudBorder: 'rgba(226, 219, 200, 0.13)',
+      hudBorderStrong: 'rgba(226, 219, 200, 0.25)',
+      primaryBrass: '#C5A46D',
+      precipitationTeal: '#78AEB6',
+      windMoss: '#9CAF9A',
+      clearGreen: '#5C9A79',
+      watchAmber: '#D8B14F',
+      alertOrange: '#D98548',
+      severeRed: '#C94F4B',
     },
   },
 
   typography: {
-    fontFamily: "'IBM Plex Sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    displayFamily: "'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily: "'Inter', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     monoFamily: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
     display: 'font-display',
   },
@@ -123,14 +127,15 @@ export const tokens = {
   },
 
   radii: {
-    button: '8px',
-    card: '12px',
-    panel: '14px',
+    button: '7px',
+    card: '11px',
+    panel: '11px',
+    hero: '15px',
     pill: '9999px',
   },
 } as const;
 
-export type WeatherVisualState = 
+export type WeatherVisualState =
   | 'clear'
   | 'cloudy'
   | 'rainy'
@@ -159,99 +164,99 @@ export const WEATHER_VISUAL_CONFIGS: Record<WeatherVisualState, VisualStateConfi
     label: 'Clear Skies',
     icon: 'sunny',
     accentColor: tokens.colors.weather.clear,
-    badgeBg: 'rgba(255, 200, 87, 0.12)',
-    badgeText: '#FFC857',
+    badgeBg: 'rgba(230, 185, 107, 0.14)',
+    badgeText: '#E6B96B',
     gradient: tokens.colors.gradients.daySky,
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(255, 200, 87, 0.08)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(230, 185, 107, 0.08)',
   },
   cloudy: {
     state: 'cloudy',
     label: 'Partly Cloudy',
     icon: 'partly_cloudy_day',
     accentColor: tokens.colors.weather.cloudy,
-    badgeBg: 'rgba(147, 164, 184, 0.14)',
-    badgeText: '#CBD5E1',
-    gradient: 'linear-gradient(135deg, rgba(22, 35, 49, 0.8) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(147, 164, 184, 0.06)',
+    badgeBg: 'rgba(195, 201, 197, 0.12)',
+    badgeText: '#C3C9C5',
+    gradient: 'linear-gradient(135deg, rgba(41, 46, 45, 0.72) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(195, 201, 197, 0.06)',
   },
   rainy: {
     state: 'rainy',
     label: 'Rain Showers',
     icon: 'rainy',
     accentColor: tokens.colors.weather.rainy,
-    badgeBg: 'rgba(20, 153, 232, 0.18)',
-    badgeText: '#43C7F4',
-    gradient: 'linear-gradient(135deg, rgba(20, 153, 232, 0.15) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(20, 153, 232, 0.12)',
+    badgeBg: 'rgba(120, 174, 182, 0.16)',
+    badgeText: '#78AEB6',
+    gradient: 'linear-gradient(135deg, rgba(120, 174, 182, 0.12) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(120, 174, 182, 0.10)',
   },
   storm: {
     state: 'storm',
     label: 'Thunderstorm',
     icon: 'thunderstorm',
     accentColor: tokens.colors.weather.storm,
-    badgeBg: 'rgba(239, 83, 80, 0.18)',
-    badgeText: '#FF9F43',
+    badgeBg: 'rgba(217, 133, 72, 0.16)',
+    badgeText: '#D98548',
     gradient: tokens.colors.gradients.storm,
-    surfaceBg: '#162331',
-    ambientGlow: 'rgba(239, 83, 80, 0.14)',
+    surfaceBg: '#202424',
+    ambientGlow: 'rgba(217, 133, 72, 0.12)',
   },
   snow: {
     state: 'snow',
     label: 'Snow / Flurries',
     icon: 'ac_unit',
     accentColor: tokens.colors.weather.snow,
-    badgeBg: 'rgba(67, 199, 244, 0.15)',
-    badgeText: '#DCEEFB',
-    gradient: 'linear-gradient(135deg, rgba(67, 199, 244, 0.15) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(67, 199, 244, 0.10)',
+    badgeBg: 'rgba(167, 197, 197, 0.15)',
+    badgeText: '#A7C5C5',
+    gradient: 'linear-gradient(135deg, rgba(167, 197, 197, 0.12) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(167, 197, 197, 0.08)',
   },
   fog: {
     state: 'fog',
     label: 'Dense Fog & Mist',
     icon: 'foggy',
     accentColor: tokens.colors.weather.fog,
-    badgeBg: 'rgba(147, 164, 184, 0.16)',
-    badgeText: '#E2E8F0',
-    gradient: 'linear-gradient(135deg, rgba(22, 35, 49, 0.7) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(147, 164, 184, 0.08)',
+    badgeBg: 'rgba(195, 201, 197, 0.14)',
+    badgeText: '#C3C9C5',
+    gradient: 'linear-gradient(135deg, rgba(41, 46, 45, 0.7) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(195, 201, 197, 0.07)',
   },
   heat: {
     state: 'heat',
     label: 'Heatwave Alert',
     icon: 'local_fire_department',
     accentColor: tokens.colors.weather.heat,
-    badgeBg: 'rgba(239, 83, 80, 0.18)',
-    badgeText: '#EF5350',
-    gradient: 'linear-gradient(135deg, rgba(239, 83, 80, 0.16) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(239, 83, 80, 0.12)',
+    badgeBg: 'rgba(226, 123, 85, 0.18)',
+    badgeText: '#E27B55',
+    gradient: 'linear-gradient(135deg, rgba(226, 123, 85, 0.14) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(226, 123, 85, 0.12)',
   },
   cold: {
     state: 'cold',
     label: 'Coldwave Advisory',
     icon: 'severe_cold',
     accentColor: tokens.colors.weather.cold,
-    badgeBg: 'rgba(67, 199, 244, 0.16)',
-    badgeText: '#43C7F4',
-    gradient: 'linear-gradient(135deg, rgba(67, 199, 244, 0.14) 0%, #111C27 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(67, 199, 244, 0.10)',
+    badgeBg: 'rgba(145, 182, 204, 0.16)',
+    badgeText: '#91B6CC',
+    gradient: 'linear-gradient(135deg, rgba(145, 182, 204, 0.12) 0%, #191C1D 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(145, 182, 204, 0.10)',
   },
   unknown: {
     state: 'unknown',
     label: 'Observational',
     icon: 'thermostat',
     accentColor: tokens.colors.weather.unknown,
-    badgeBg: 'rgba(147, 164, 184, 0.12)',
-    badgeText: '#93A4B8',
-    gradient: 'linear-gradient(135deg, #162331 0%, #071018 100%)',
-    surfaceBg: '#111C27',
-    ambientGlow: 'rgba(147, 164, 184, 0.05)',
+    badgeBg: 'rgba(137, 139, 131, 0.14)',
+    badgeText: '#C1BFB5',
+    gradient: 'linear-gradient(135deg, #202424 0%, #111314 100%)',
+    surfaceBg: '#191C1D',
+    ambientGlow: 'rgba(137, 139, 131, 0.05)',
   },
 };
 

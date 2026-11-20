@@ -56,14 +56,14 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
   hideMetricSelector = false,
 }) => {
   return (
-    <div className="bg-[#0B1927] border border-[#26394B] rounded-t-xl px-3 py-2 flex items-center justify-between gap-2.5 text-xs overflow-x-auto no-scrollbar">
+    <div className="bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-t-xl px-3 py-2 flex items-center justify-between gap-2.5 text-xs overflow-x-auto no-scrollbar">
       {/* Left: Layer Selector Buttons (or active sector summary when rail is visible) */}
       {!hideMetricSelector ? (
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-semibold text-[#8295A8] uppercase tracking-wider mr-1 hidden sm:inline">
+          <span className="text-[11px] font-semibold text-[var(--m-text-muted)] uppercase tracking-wider mr-1 hidden sm:inline">
             Layer:
           </span>
-          <div className="flex items-center gap-1 bg-[#08131F] p-0.5 rounded-lg border border-[#26394B]">
+          <div className="flex items-center gap-1 bg-[var(--m-surface-inset)] p-0.5 rounded-lg border border-[var(--m-border)]">
             {METRICS.map((m) => {
               const isActive = activeMetric === m.id;
               const Icon = m.Icon;
@@ -74,8 +74,8 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                   onClick={() => onSelectMetric(m.id)}
                   className={`min-h-[36px] px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer m-focus-ring ${
                     isActive
-                      ? 'bg-[#0B72B9] text-white font-semibold'
-                      : 'text-[#B5C3D1] hover:text-[#F3F6FA]'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
+                      : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -87,10 +87,10 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
         </div>
       ) : (
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-[#8295A8] shrink-0">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-text-muted)] shrink-0">
             Sector
           </span>
-          <span className="text-xs font-semibold text-[#F3F6FA] truncate">
+          <span className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
             {sectorName || 'India Meteorological Sector'}
           </span>
         </div>
@@ -112,7 +112,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           className={`min-h-[36px] px-2.5 flex items-center gap-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 m-focus-ring ${
             isLocked
               ? 'bg-[#F59E0B]/15 text-[#FCD34D] border border-[#F59E0B]/55'
-              : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border border-[#26394B]'
+              : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)]'
           }`}
         >
           {isLocked ? (
@@ -125,7 +125,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           </span>
         </button>
 
-        <div className="h-4 w-px bg-[#26394B] mx-0.5 hidden sm:block" />
+        <div className="h-4 w-px bg-[var(--m-surface-2)] mx-0.5 hidden sm:block" />
 
         <button
           type="button"
@@ -135,8 +135,8 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           title={isLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom In'}
           className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors m-focus-ring ${
             isLocked
-              ? 'bg-[#08131F]/60 text-[#8295A8]/40 border-[#26394B]/50 cursor-not-allowed'
-              : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B] cursor-pointer'
+              ? 'bg-[var(--m-surface-inset)]/60 text-[var(--m-text-muted)]/40 border-[var(--m-border)]/50 cursor-not-allowed'
+              : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border-[var(--m-border)] cursor-pointer'
           }`}
         >
           <Plus className="w-4 h-4" />
@@ -150,8 +150,8 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           title={isLocked ? 'Map is locked to sector. Unlock to zoom.' : 'Zoom Out'}
           className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors m-focus-ring ${
             isLocked
-              ? 'bg-[#08131F]/60 text-[#8295A8]/40 border-[#26394B]/50 cursor-not-allowed'
-              : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B] cursor-pointer'
+              ? 'bg-[var(--m-surface-inset)]/60 text-[var(--m-text-muted)]/40 border-[var(--m-border)]/50 cursor-not-allowed'
+              : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border-[var(--m-border)] cursor-pointer'
           }`}
         >
           <Minus className="w-4 h-4" />
@@ -164,8 +164,8 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
           title={isLocked ? 'Map is locked to sector. Unlock to reset view.' : 'Reset Map to All India View'}
           className={`min-h-[36px] px-2.5 flex items-center gap-1 rounded-lg border text-[11px] font-medium transition-colors whitespace-nowrap shrink-0 m-focus-ring ${
             isLocked
-              ? 'bg-[#08131F]/60 text-[#8295A8]/40 border-[#26394B]/50 cursor-not-allowed'
-              : 'bg-[#08131F] text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border-[#26394B] cursor-pointer'
+              ? 'bg-[var(--m-surface-inset)]/60 text-[var(--m-text-muted)]/40 border-[var(--m-border)]/50 cursor-not-allowed'
+              : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border-[var(--m-border)] cursor-pointer'
           }`}
         >
           <RotateCcw className="w-3.5 h-3.5 shrink-0" />
@@ -180,8 +180,8 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
             title={isLocked ? 'Map is locked to sector. Unlock to pan to location.' : 'Pan to My Detected Coordinates'}
             className={`min-h-[36px] px-2.5 flex items-center gap-1 rounded-lg border text-[11px] font-semibold transition-colors whitespace-nowrap shrink-0 m-focus-ring ${
               isLocked
-                ? 'bg-[#0B72B9]/10 text-[#35C7E8]/40 border-[#0B72B9]/20 cursor-not-allowed'
-                : 'bg-[#0B72B9]/20 text-[#35C7E8] hover:bg-[#0B72B9] hover:text-white border-[#35C7E8]/40 cursor-pointer'
+                ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)]/40 border-[var(--m-accent)]/20 cursor-not-allowed'
+                : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] hover:text-white border-[var(--m-accent)]/40 cursor-pointer'
             }`}
           >
             <Crosshair className="w-3.5 h-3.5 shrink-0" />

@@ -182,7 +182,7 @@ export const CycloneTrackerPage: React.FC = () => {
             onClick={() => setSelectedSystemId('ALL_CLEAR_SURVEILLANCE')}
             className={`px-3.5 py-2 min-h-[40px] rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer flex items-center gap-2 shrink-0 border m-focus-ring ${
               selectedSystemId === 'ALL_CLEAR_SURVEILLANCE'
-                ? 'bg-[var(--m-accent)] text-white border-[var(--m-accent)]'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border-[var(--m-accent)]'
                 : 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
             }`}
           >
@@ -204,7 +204,7 @@ export const CycloneTrackerPage: React.FC = () => {
                   isSelected
                     ? isHistorical
                       ? 'bg-[var(--m-surface-3)] border-[var(--m-border-strong)] text-[var(--m-text-primary)]'
-                      : 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+                      : 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
                 }`}
               >

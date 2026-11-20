@@ -129,7 +129,7 @@ export const CropHealthOverview: React.FC<CropHealthOverviewProps> = ({
                 className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   isSelected
                     ? 'bg-[#10B981] text-[#07130E] hover:bg-[#0EA271]'
-                    : 'bg-[var(--m-surface-2)] text-[var(--m-accent)] border border-[var(--m-accent)]/30 hover:bg-[#38BDF8] hover:text-[#0A1017]'
+                    : 'bg-[var(--m-surface-2)] text-[var(--m-accent)] border border-[var(--m-accent)]/30 hover:bg-[var(--m-accent-hover)] hover:text-[var(--m-on-accent)]'
                 }`}
               >
                 <span>View {crop.cropName.split(' ')[0]} Advisory</span>

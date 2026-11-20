@@ -91,7 +91,7 @@ export const HourlyForecastTable: React.FC<HourlyForecastTableProps> = ({
                 onClick={() => setHorizonFilter(opt.val)}
                 className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                   horizonFilter === opt.val
-                    ? 'bg-[var(--m-accent)] text-white font-semibold'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >

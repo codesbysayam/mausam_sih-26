@@ -43,7 +43,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
             type="button"
             id="not-found-home-btn"
             onClick={onNavigateHome}
-            className="w-full sm:w-auto px-6 min-h-[44px] sm:min-h-[40px] rounded-xl bg-[var(--m-accent)] hover:opacity-95 text-white font-semibold text-sm transition-opacity flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
+            className="w-full sm:w-auto px-6 min-h-[44px] sm:min-h-[40px] rounded-xl bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] font-semibold text-sm transition-opacity flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
           >
             <Home className="w-4 h-4" aria-hidden="true" />
             <span>Back to MAUSAM</span>

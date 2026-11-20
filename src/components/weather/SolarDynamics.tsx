@@ -274,8 +274,8 @@ export const SolarDynamics: React.FC<SolarDynamicsProps> = ({
               style={{
                 width: `${progressPercent}%`,
                 background: isDay
-                  ? 'linear-gradient(90deg, #F59E0B 0%, #35C7E8 50%, #EF4444 100%)'
-                  : 'linear-gradient(90deg, #0B72B9 0%, #22C7A0 100%)',
+                  ? 'linear-gradient(90deg, #F59E0B 0%, #C5A46D 50%, #EF4444 100%)'
+                  : 'linear-gradient(90deg, #C5A46D 0%, #22C7A0 100%)',
               }}
             />
           </div>

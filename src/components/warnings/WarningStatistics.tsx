@@ -13,31 +13,31 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
       className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5"
     >
       {/* 1. Total Active Warnings */}
-      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
-        <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
+      <div className="bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded p-3 flex flex-col justify-between shadow-sm">
+        <span className="text-[10px] font-bold text-[var(--m-text-secondary)] uppercase tracking-wider">
           Active Warnings
         </span>
         <div className="flex items-baseline gap-1.5 mt-1">
           <span className="text-2xl font-bold font-mono text-white">
             {stats.totalActive}
           </span>
-          <span className="text-[10px] text-[#E3F2FD]">bulletins</span>
+          <span className="text-[10px] text-[var(--m-text-primary)]">bulletins</span>
         </div>
-        <span className="text-[10px] text-[#B8C7D9] mt-1">
+        <span className="text-[10px] text-[var(--m-text-secondary)] mt-1">
           All categories
         </span>
       </div>
 
       {/* 2. States / UTs Under Watch */}
-      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
-        <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
+      <div className="bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded p-3 flex flex-col justify-between shadow-sm">
+        <span className="text-[10px] font-bold text-[var(--m-text-secondary)] uppercase tracking-wider">
           States Affected
         </span>
         <div className="flex items-baseline gap-1.5 mt-1">
           <span className="text-2xl font-bold font-mono text-white">
             {stats.statesAffected}
           </span>
-          <span className="text-[10px] text-[#B8C7D9]">/ 36</span>
+          <span className="text-[10px] text-[var(--m-text-secondary)]">/ 36</span>
         </div>
         <span className="text-[10px] text-[#008000] font-semibold">
           {stats.greenNormalStates} states normal
@@ -58,7 +58,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
           </span>
           <span className="text-[10px] text-[#FF4D4D]">Emergency</span>
         </div>
-        <span className="text-[10px] text-[#B8C7D9] mt-1">
+        <span className="text-[10px] text-[var(--m-text-secondary)] mt-1">
           Immediate action
         </span>
       </div>
@@ -74,7 +74,7 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
           </span>
           <span className="text-[10px] text-[#FFA500]">Watch</span>
         </div>
-        <span className="text-[10px] text-[#B8C7D9] mt-1">
+        <span className="text-[10px] text-[var(--m-text-secondary)] mt-1">
           Be prepared
         </span>
       </div>
@@ -88,22 +88,22 @@ export const WarningStatistics: React.FC<WarningStatisticsProps> = ({ stats }) =
           <span className="text-2xl font-bold font-mono text-[#FFFF00]">
             {stats.advisoryYellow + stats.infoPurple}
           </span>
-          <span className="text-[10px] text-[#B8C7D9]">Yellow/Purple</span>
+          <span className="text-[10px] text-[var(--m-text-secondary)]">Yellow/Purple</span>
         </div>
-        <span className="text-[10px] text-[#B8C7D9] mt-1">
+        <span className="text-[10px] text-[var(--m-text-secondary)] mt-1">
           Stay updated
         </span>
       </div>
 
       {/* 6. Synoptic Telemetry Sync */}
-      <div className="bg-[var(--m-surface-2)] border border-[#1D4E73] rounded p-3 flex flex-col justify-between shadow-sm">
-        <span className="text-[10px] font-bold text-[#B8C7D9] uppercase tracking-wider">
+      <div className="bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded p-3 flex flex-col justify-between shadow-sm">
+        <span className="text-[10px] font-bold text-[var(--m-text-secondary)] uppercase tracking-wider">
           Last Synoptic Sync
         </span>
         <div className="text-xs font-mono font-bold text-[var(--m-text-primary)] mt-1 truncate">
           {stats.lastUpdatedIst}
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-[#E3F2FD] mt-1">
+        <div className="flex items-center gap-1 text-[10px] text-[var(--m-text-primary)] mt-1">
           <span className="material-symbols-outlined text-[12px]">sync</span>
           <span>IMD GTS Network</span>
         </div>

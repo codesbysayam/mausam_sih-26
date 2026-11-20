@@ -63,7 +63,7 @@ export const NWP_MODELS: Record<NWPModelType, NWPModelMetadata> = {
     updateCycle: '00Z & 12Z Operational IMD NWP Pipeline',
     primaryApplication: 'Mesoscale severe convection, local cloudbursts, squall lines, coastal sea-breeze fronts',
     confidenceScore: 94,
-    badgeColor: '#0B72B9',
+    badgeColor: '#C5A46D',
     description: 'Convection-permitting 3km dynamical downscaling over India. Explicitly resolves convective updrafts and localized precipitation cells without hydrostatic assumptions.',
     sourceProvider: 'IMD Numerical Weather Prediction Division / NCMRWF High Performance Computing Grid',
     sourceEndpoint: 'IMD-NWP WRF-ARW 3km Open Forecast Dataset / Open-Meteo High-Resolution Grid',

@@ -104,7 +104,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               <span className="material-symbols-outlined text-[22px]">travel_explore</span>
             </div>
             <div>
-              <h3 className="font-h3 text-sm text-[#dae2fd] font-bold">
+              <h3 className="font-h3 text-sm text-[var(--m-text-primary)] font-bold">
                 All-India Synoptic Meteorological Network
               </h3>
               <p className="font-body-md text-xs text-[var(--m-text-secondary)]">
@@ -115,7 +115,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-[var(--m-text-secondary)] hover:text-[#dae2fd] p-1.5 rounded-lg hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
+            className="text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] p-1.5 rounded-lg hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
@@ -124,7 +124,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
         {/* Search & Filter Bar */}
         <div className="p-4 bg-[var(--m-surface-1)] border-b border-[var(--m-border-strong)] flex flex-col gap-3">
           <div className="relative w-full">
-            <span className="material-symbols-outlined absolute left-3 top-2.5 text-[#87929a] text-[18px]">
+            <span className="material-symbols-outlined absolute left-3 top-2.5 text-[var(--m-text-muted)] text-[18px]">
               search
             </span>
             <input
@@ -132,7 +132,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search state, district, city, pin (e.g. Delhi, Mumbai, Bengaluru, Puri, Kolkata)..."
-              className="w-full bg-[var(--m-surface-1)] card-border rounded-lg pl-9 pr-3 py-2 text-xs text-[#dae2fd] placeholder-[#87929a] focus:outline-none focus:border-[var(--m-accent)]"
+              className="w-full bg-[var(--m-surface-1)] card-border rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)]"
             />
           </div>
 
@@ -141,7 +141,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'all'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -151,7 +151,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('odisha')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'odisha'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -161,7 +161,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('north')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'north'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -171,7 +171,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('south')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'south'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -181,7 +181,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('west')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'west'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -191,7 +191,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('east')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'east'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -201,7 +201,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('ne_islands')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'ne_islands'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -211,7 +211,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('coastal')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'coastal'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -221,7 +221,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
               onClick={() => setSelectedFilter('radar')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedFilter === 'radar'
-                  ? 'bg-[#38bdf8] text-[#00354a]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)]'
               }`}
             >
@@ -262,7 +262,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
                 }}
                 className={`p-3.5 rounded-xl card-border transition-all cursor-pointer flex justify-between items-center ${
                   isSelected
-                    ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-md ring-1 ring-[#38bdf8]'
+                    ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-md ring-1 ring-[var(--m-focus)]'
                     : 'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border-[var(--m-border-strong)]'
                 }`}
               >
@@ -272,7 +272,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
                       {loc.imdStation || `AWS-${loc.district.substring(0, 3).toUpperCase()}`}
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
-                    <span className="font-h3 text-sm font-semibold text-[#dae2fd]">
+                    <span className="font-h3 text-sm font-semibold text-[var(--m-text-primary)]">
                       {loc.displayName}
                     </span>
                     {loc.isPrimary && (
@@ -287,7 +287,7 @@ export const SavedPlacesModal: React.FC<SavedPlacesModalProps> = ({
                     )}
                   </div>
                   <p className="font-body-md text-xs text-[var(--m-text-secondary)] mt-1">
-                    State: <strong className="text-[#dae2fd]">{loc.state}</strong> • District:{' '}
+                    State: <strong className="text-[var(--m-text-primary)]">{loc.state}</strong> • District:{' '}
                     {loc.district} • Elev: {loc.elevation} • Radar: {loc.radarCoverage}
                   </p>
                 </div>

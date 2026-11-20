@@ -268,7 +268,7 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
                 }}
                 className={`py-1.5 text-xs font-mono font-semibold rounded-lg transition-colors cursor-pointer ${
                   viewMonth === idx
-                    ? 'bg-[var(--m-accent)] text-white font-bold'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
                     : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)]'
                 }`}
               >
@@ -292,7 +292,7 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
                 }}
                 className={`py-1 text-xs font-mono font-semibold rounded-lg transition-colors cursor-pointer ${
                   viewYear === y
-                    ? 'bg-[var(--m-accent)] text-white font-bold'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
                     : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)]'
                 }`}
               >
@@ -328,15 +328,15 @@ export const DateCalendar: React.FC<DateCalendarProps> = ({
                 'relative h-8 sm:h-9 rounded-xl text-xs font-mono font-semibold flex flex-col items-center justify-center transition-all cursor-pointer';
 
               if (cell.isDisabled) {
-                cellClass += ' text-[#334155] opacity-40 cursor-not-allowed bg-transparent';
+                cellClass += ' text-[var(--m-text-muted)] opacity-40 cursor-not-allowed bg-transparent';
               } else if (cell.isSelected) {
                 cellClass +=
-                  ' bg-[var(--m-accent)] text-white font-bold shadow-[0_0_12px_rgba(20,153,232,0.5)] scale-[1.03] z-10';
+                  ' bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold shadow-[0_0_12px_rgba(197, 164, 109,0.5)] scale-[1.03] z-10';
               } else if (cell.isToday) {
                 cellClass +=
                   ' text-[var(--m-accent)] bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 hover:bg-[var(--m-accent-soft)]';
               } else if (!cell.isCurrentMonth) {
-                cellClass += ' text-[#475569] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-muted)]';
+                cellClass += ' text-[var(--m-text-muted)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-muted)]';
               } else {
                 cellClass += ' text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-2)] hover:text-[var(--m-text-primary)]';
               }

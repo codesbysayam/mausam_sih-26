@@ -30,7 +30,7 @@ export const PollenSection: React.FC<PollenSectionProps> = ({ weather }) => {
     if (!available) {
       return {
         rating: 'Unavailable',
-        color: '#8295A8',
+        color: '#898B83',
         badgeClass: 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]',
         description: 'Bio-pollen spore telemetry is not currently available for this station.',
         healthAdvice: 'Monitor local surface wind and humidity conditions before prolonged outdoor exertion.',
@@ -50,7 +50,7 @@ export const PollenSection: React.FC<PollenSectionProps> = ({ weather }) => {
     if (level === 2) {
       return {
         rating: 'Low to Moderate',
-        color: '#35C7E8',
+        color: '#C5A46D',
         badgeClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35',
         description: 'Low botanical pollen dispersion with minor background spore presence.',
         healthAdvice: 'Safe for most outdoor activities. Hypersensitive individuals should wash eyes/face after long exposure.',

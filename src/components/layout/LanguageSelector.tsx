@@ -67,9 +67,9 @@ export const LanguageSelector: React.FC = () => {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label={`Current language: ${currentLanguageInfo.name}. Click to change language.`}
-        className="flex items-center justify-between gap-1.5 h-10 px-2.5 sm:px-3 bg-[var(--m-surface-2)] hover:bg-[#102D47] border border-[#1D4E73] hover:border-[#1565C0]/60 rounded-xl text-white text-xs font-semibold tracking-wide transition-colors focus:outline-none focus:ring-1 focus:ring-[#1565C0] shrink-0 whitespace-nowrap cursor-pointer"
+        className="flex items-center justify-between gap-1.5 h-10 px-2.5 sm:px-3 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/60 rounded-xl text-white text-xs font-semibold tracking-wide transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--m-focus)] shrink-0 whitespace-nowrap cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">
+        <span className="material-symbols-outlined text-[16px] text-[var(--m-accent)]">
           translate
         </span>
         
@@ -99,7 +99,7 @@ export const LanguageSelector: React.FC = () => {
         <div
           role="listbox"
           aria-label="Select platform language"
-          className="absolute right-0 mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-24px)] bg-[var(--m-surface-2)] border border-[#1D4E73] rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col"
+          className="absolute right-0 mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-24px)] bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col"
           style={{ maxHeight: '380px' }}
         >
           {/* Search Header */}
@@ -114,7 +114,7 @@ export const LanguageSelector: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('searchLanguage', 'Search language...')}
-                className="w-full h-8 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded text-[var(--m-text-primary)] text-xs pl-7 pr-7 focus:outline-none focus:border-[#0B72B9]"
+                className="w-full h-8 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded text-[var(--m-text-primary)] text-xs pl-7 pr-7 focus:outline-none focus:border-[var(--m-accent)]"
                 aria-label={t('searchLanguage', 'Search language...')}
               />
               {searchQuery && (
@@ -149,7 +149,7 @@ export const LanguageSelector: React.FC = () => {
                     onClick={() => handleSelect(item.code)}
                     className={`w-full px-3 py-2 text-left flex items-center justify-between text-xs transition-colors border-b border-[var(--m-border-strong)] last:border-0 ${
                       isSelected
-                        ? 'bg-[var(--m-accent)] text-white font-bold'
+                        ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
                         : 'text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] hover:text-[var(--m-text-primary)]'
                     }`}
                   >

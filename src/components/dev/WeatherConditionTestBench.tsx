@@ -220,7 +220,7 @@ export const WeatherConditionTestBench: React.FC<WeatherConditionTestBenchProps>
               value={animationOpacity}
               onChange={(e) => setAnimationOpacity(parseFloat(e.target.value))}
               aria-label="Effect opacity"
-              className="w-full accent-[#35C7E8] cursor-pointer"
+              className="w-full accent-[var(--m-accent)] cursor-pointer"
             />
           </div>
 

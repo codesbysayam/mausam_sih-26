@@ -165,7 +165,7 @@ export const FieldOperationsAndFertilizer: React.FC<FieldOperationsAndFertilizer
                   onClick={() => setSelectedActivity(act.id)}
                   className={`px-4 py-2.5 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer focus:outline-none flex items-center gap-2 ${
                     isSelected
-                      ? 'bg-[#38BDF8] text-[#0A1017] shadow-lg shadow-[#38BDF8]/20 scale-[1.02]'
+                      ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-lg shadow-[#C5A46D]/20 scale-[1.02]'
                       : 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)]'
                   }`}
                 >

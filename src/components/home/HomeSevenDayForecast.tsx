@@ -134,7 +134,7 @@ export const HomeSevenDayForecast: React.FC<HomeSevenDayForecastProps> = ({
                     <div className="flex-1 h-2 bg-[var(--m-surface-3)] rounded-full relative overflow-hidden">
                       {hasRange && lowNum !== null && highNum !== null && (
                         <div
-                          className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-[#35C7E8] via-[#F59E0B] to-[#EF4444]"
+                          className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-[var(--m-accent)] via-[#F59E0B] to-[#EF4444]"
                           style={{
                             left: `${leftPercent}%`,
                             width: `${widthPercent}%`,

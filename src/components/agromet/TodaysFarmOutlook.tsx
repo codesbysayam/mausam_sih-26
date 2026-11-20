@@ -173,7 +173,7 @@ export const TodaysFarmOutlook: React.FC<TodaysFarmOutlookProps> = ({ bulletin }
               </div>
               <div className="w-full bg-[var(--m-surface-2)] h-2 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#38BDF8] to-[#2563EB] rounded-full"
+                  className="h-full bg-gradient-to-r from-[var(--m-accent)] to-[#2563EB] rounded-full"
                   style={{ width: `${Math.min(100, Math.max(10, (todayRain / 25) * 100))}%` }}
                 />
               </div>

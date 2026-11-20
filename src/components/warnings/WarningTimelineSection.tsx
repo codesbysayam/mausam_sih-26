@@ -67,7 +67,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
             onClick={() => setTemporalMode('PAST')}
             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
               temporalMode === 'PAST'
-                ? 'bg-[#1565C0] text-white shadow'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow'
                 : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
@@ -89,7 +89,7 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
             onClick={() => setTemporalMode('NEXT')}
             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
               temporalMode === 'NEXT'
-                ? 'bg-[#1565C0] text-white shadow'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow'
                 : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
@@ -114,8 +114,8 @@ export const WarningTimelineSection: React.FC<WarningTimelineSectionProps> = ({
               onClick={() => onSelectWarning && onSelectWarning(warn)}
               className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                 isSelected
-                  ? 'bg-[var(--m-surface-2)] border-[#1499E8] shadow-md ring-1 ring-[#1499E8]'
-                  : 'bg-[var(--m-surface-1)] border-[#1B3A5A] hover:border-[#1499E8]'
+                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-md ring-1 ring-[var(--m-focus)]'
+                  : 'bg-[var(--m-surface-1)] border-[#1B3A5A] hover:border-[var(--m-accent)]'
               }`}
             >
               {/* Left Column: Severity + Title + Region */}

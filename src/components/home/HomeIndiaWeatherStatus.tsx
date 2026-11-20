@@ -126,7 +126,7 @@ export const HomeIndiaWeatherStatus: React.FC<HomeIndiaWeatherStatusProps> = ({
       subtext: 'National baseline reference',
       source: 'Synoptic Snapshot',
       status: 'SNAPSHOT',
-      statusClass: 'text-[var(--m-text-secondary)] bg-[#8295A8]/12 border-[var(--m-border-strong)]',
+      statusClass: 'text-[var(--m-text-secondary)] bg-[var(--m-text-muted)]/12 border-[var(--m-border-strong)]',
       tab: 'radar',
     },
   ];

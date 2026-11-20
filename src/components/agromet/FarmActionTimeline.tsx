@@ -135,7 +135,7 @@ export const FarmActionTimeline: React.FC<FarmActionTimelineProps> = ({
               onClick={() => setSelectedDayIndex(idx)}
               className={`p-4 rounded-2xl text-left transition-all flex flex-col justify-between space-y-3 cursor-pointer border ${
                 isSelected
-                  ? 'bg-[var(--m-surface-1)] border-[var(--m-accent)] shadow-xl ring-1 ring-[#38BDF8]/40 scale-[1.02]'
+                  ? 'bg-[var(--m-surface-1)] border-[var(--m-accent)] shadow-xl ring-1 ring-[var(--m-focus)]/40 scale-[1.02]'
                   : 'bg-[var(--m-surface-1)] border-[var(--m-border)] hover:border-[var(--m-accent)]/40 hover:bg-[var(--m-surface-2)]'
               }`}
             >

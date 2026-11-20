@@ -102,8 +102,8 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           className: 'radar-station-marker',
           html: `
             <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-              <div style="width:10px;height:10px;border-radius:9999px;background:#35C7E8;border:2px solid #F3F6FA;"></div>
-              <div style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:1px 6px;border-radius:4px;background:rgba(8,19,31,0.92);border:1px solid #26394B;font-size:9px;font-family:monospace;color:#7DD3FC;pointer-events:none;">
+              <div style="width:10px;height:10px;border-radius:9999px;background:#A7C5C5;border:2px solid #F0EEE7;"></div>
+              <div style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:1px 6px;border-radius:4px;background:rgba(17, 19, 20,0.92);border:1px solid #2F3534;font-size:9px;font-family:monospace;color:#A7C5C5;pointer-events:none;">
                 ${station.name.replace(' DWR', '')}
               </div>
             </div>
@@ -114,21 +114,21 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
 
         const marker = L.marker([station.lat, station.lng], { icon: radarIcon });
         marker.bindPopup(`
-          <div style="font-family:monospace;font-size:12px;color:#0F172A;padding:4px;">
-            <strong style="color:#0B72B9;">${station.name}</strong><br/>
+          <div style="font-family:monospace;font-size:12px;color:#171B19;padding:4px;">
+            <strong style="color:#9C7B42;">${station.name}</strong><br/>
             <span>State: ${station.state}</span><br/>
             <span>Station Type: <strong>Coastal Doppler Radar</strong></span><br/>
-            <span style="font-size:10px;color:#475569;">Surveillance: 400 km · Doppler: 250 km</span>
+            <span style="font-size:10px;color:#6A716A;">Surveillance: 400 km · Doppler: 250 km</span>
           </div>
         `);
         layers.addLayer(marker);
 
         const dopplerRing = L.circle([station.lat, station.lng], {
           radius: 250000,
-          color: '#35C7E8',
+          color: '#A7C5C5',
           weight: 1,
           dashArray: '4, 4',
-          fillColor: '#35C7E8',
+          fillColor: '#A7C5C5',
           fillOpacity: 0.04,
         });
         layers.addLayer(dopplerRing);
@@ -138,14 +138,14 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
     if (activeSystem) {
       const isHistorical = activeSystem.status === 'DISSIPATED';
       const systemColor = isHistorical
-        ? '#8295A8'
+        ? '#898B83'
         : activeSystem.rainfallThreat === 'RED'
-        ? '#EF4444'
+        ? '#C94F4B'
         : activeSystem.rainfallThreat === 'ORANGE'
-        ? '#F97316'
+        ? '#D98548'
         : activeSystem.classification === 'Depression'
-        ? '#35C7E8'
-        : '#22C7A0';
+        ? '#78AEB6'
+        : '#5C9A79';
 
       if (showHistory && activeSystem.historicalTrack && activeSystem.historicalTrack.length > 0) {
         const histPoints: [number, number][] = activeSystem.historicalTrack.map((pt) => [
@@ -154,7 +154,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
         ]);
 
         const histLine = L.polyline(histPoints, {
-          color: isHistorical ? '#8295A8' : '#7DD3FC',
+          color: isHistorical ? '#898B83' : '#A7C5C5',
           weight: 2.5,
           dashArray: '3, 6',
           opacity: 0.85,
@@ -164,7 +164,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
         activeSystem.historicalTrack.forEach((pt) => {
           const ptIcon = L.divIcon({
             className: 'hist-pt-icon',
-            html: `<div style="width:9px;height:9px;border-radius:9999px;background:#8295A8;border:1.5px solid #F3F6FA;"></div>`,
+            html: `<div style="width:9px;height:9px;border-radius:9999px;background:#898B83;border:1.5px solid #F0EEE7;"></div>`,
             iconSize: [10, 10],
             iconAnchor: [5, 5],
           });
@@ -196,7 +196,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
         activeSystem.forecastTrack.forEach((pt) => {
           const ptIcon = L.divIcon({
             className: 'fc-pt-icon',
-            html: `<div style="width:11px;height:11px;border-radius:9999px;background:#07111D;border:2px solid ${systemColor};"></div>`,
+            html: `<div style="width:11px;height:11px;border-radius:9999px;background:#111314;border:2px solid ${systemColor};"></div>`,
             iconSize: [12, 12],
             iconAnchor: [6, 6],
           });
@@ -215,8 +215,8 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       const centerIcon = L.divIcon({
         className: 'cyclone-center-marker',
         html: `
-          <div style="width:26px;height:26px;border-radius:9999px;display:flex;align-items:center;justify-content:center;background:${systemColor};border:2px solid #F3F6FA;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#07111D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <div style="width:26px;height:26px;border-radius:9999px;display:flex;align-items:center;justify-content:center;background:${systemColor};border:2px solid #F0EEE7;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111314" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
               <path d="M12 2a10 10 0 0 1 7.07 2.93"></path>
               <path d="M12 22a10 10 0 0 1-7.07-2.93"></path>
@@ -232,9 +232,9 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       });
 
       centerMarker.bindPopup(`
-        <div style="font-family:monospace;font-size:12px;color:#0F172A;min-width:180px;">
+        <div style="font-family:monospace;font-size:12px;color:#111314;min-width:180px;">
           <strong style="color:${systemColor};">${activeSystem.classification}</strong><br/>
-          <span style="font-size:11px;color:#475569;">${activeSystem.name}</span><br/>
+          <span style="font-size:11px;color:#898B83;">${activeSystem.name}</span><br/>
           <hr style="margin:4px 0;border:0;border-top:1px solid #CBD5E1;"/>
           <span>Coords: <strong>${formatCoordinatePair(activeSystem.latitude, activeSystem.longitude, 1)}</strong></span><br/>
           <span>Wind: <strong>${activeSystem.maxSustainedWind || '—'}</strong></span><br/>
@@ -271,16 +271,16 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       }`}
     >
       {/* Top Map Control Bar */}
-      <div className="bg-[#08131F] border-b border-[#26394B] px-4 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
+      <div className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] px-4 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#101F2E] border border-[#26394B] flex items-center justify-center text-[#35C7E8] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <Compass className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#F3F6FA] tracking-tight">
+            <h2 className="text-sm font-bold text-[var(--m-text-primary)] tracking-tight">
               Synoptic Basin &amp; Doppler Surveillance Map
             </h2>
-            <p className="text-[11px] font-mono text-[#8295A8]">
+            <p className="text-[11px] font-mono text-[var(--m-text-muted)]">
               Bay of Bengal · Arabian Sea · 11 Coastal DWR Range Rings
             </p>
           </div>
@@ -292,8 +292,8 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
             onClick={() => setShowRadarRings((prev) => !prev)}
             className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
               showRadarRings
-                ? 'bg-[#35C7E8]/12 border-[#35C7E8]/45 text-[#7DD3FC]'
-                : 'bg-[#0B1927] border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA]'
+                ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
+                : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <Radio className="w-3.5 h-3.5" />
@@ -305,8 +305,8 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
             onClick={() => setShowForecast((prev) => !prev)}
             className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
               showForecast
-                ? 'bg-[#35C7E8]/12 border-[#35C7E8]/45 text-[#7DD3FC]'
-                : 'bg-[#0B1927] border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA]'
+                ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
+                : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -318,8 +318,8 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
             onClick={() => setShowHistory((prev) => !prev)}
             className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
               showHistory
-                ? 'bg-[#35C7E8]/12 border-[#35C7E8]/45 text-[#7DD3FC]'
-                : 'bg-[#0B1927] border-[#26394B] text-[#8295A8] hover:text-[#F3F6FA]'
+                ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
+                : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <History className="w-3.5 h-3.5" />
@@ -329,7 +329,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <button
             type="button"
             onClick={() => setIsFullscreen((prev) => !prev)}
-            className="w-9 h-9 rounded-lg bg-[#0B1927] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] hover:border-[#38536A] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+            className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             aria-label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
@@ -339,7 +339,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       </div>
 
       {/* Leaflet Map Canvas */}
-      <div className="relative flex-1 w-full bg-[#07111D]">
+      <div className="relative flex-1 w-full bg-[var(--m-surface-inset)]">
         <div ref={mapContainerRef} className="w-full h-full" />
 
         {/* Floating Zoom / Reset Controls */}
@@ -347,7 +347,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <button
             type="button"
             onClick={handleZoomIn}
-            className="w-10 h-10 rounded-lg bg-[#0B1927]/95 border border-[#26394B] text-[#F3F6FA] hover:border-[#35C7E8] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-text-primary)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
             title="Zoom In"
             aria-label="Zoom In"
           >
@@ -356,7 +356,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <button
             type="button"
             onClick={handleZoomOut}
-            className="w-10 h-10 rounded-lg bg-[#0B1927]/95 border border-[#26394B] text-[#F3F6FA] hover:border-[#35C7E8] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-text-primary)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
             title="Zoom Out"
             aria-label="Zoom Out"
           >
@@ -365,7 +365,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <button
             type="button"
             onClick={handleResetView}
-            className="w-10 h-10 rounded-lg bg-[#0B1927]/95 border border-[#26394B] text-[#35C7E8] hover:border-[#35C7E8] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-accent)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
             title="Reset View"
             aria-label="Reset View"
           >
@@ -374,15 +374,15 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
         </div>
 
         {/* Bottom Basin Status Overlay */}
-        <div className="absolute bottom-4 left-4 z-[400] bg-[#08131F]/95 border border-[#26394B] rounded-xl px-3.5 py-2 flex items-center gap-2.5 pointer-events-none max-w-[calc(100%-2rem)]">
+        <div className="absolute bottom-4 left-4 z-[400] bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] rounded-xl px-3.5 py-2 flex items-center gap-2.5 pointer-events-none max-w-[calc(100%-2rem)]">
           <ShieldCheck className="w-4 h-4 text-[#22C7A0] shrink-0" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-semibold text-[#F3F6FA] font-mono uppercase truncate">
+            <span className="text-[11px] font-semibold text-[var(--m-text-primary)] font-mono uppercase truncate">
               {activeSystem
                 ? `${activeSystem.classification} · ${activeSystem.name}`
                 : 'NORTH INDIAN OCEAN SURVEILLANCE'}
             </span>
-            <span className="text-[10px] text-[#8295A8] font-mono truncate">
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono truncate">
               {activeSystem?.status === 'DISSIPATED'
                 ? 'System Dissipated · Historical Archive'
                 : '11 IMD Coastal Doppler Stations Mapped (250 km Range)'}

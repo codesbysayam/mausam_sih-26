@@ -126,11 +126,11 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         }
 
         // 1. Dark Theme Background Fill
-        ctx.fillStyle = '#0F141A';
+        ctx.fillStyle = '#111314';
         ctx.fillRect(0, 0, width, height);
 
         // 2. Subtle Grid overlay
-        ctx.strokeStyle = 'rgba(225, 230, 235, 0.05)';
+        ctx.strokeStyle = 'rgba(226, 219, 200, 0.05)';
         ctx.lineWidth = 1;
         for (let x = 0; x < width; x += 40) {
           ctx.beginPath();
@@ -146,16 +146,16 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         }
 
         // 3. Draw Header Bar
-        ctx.fillStyle = '#1E2733';
+        ctx.fillStyle = '#202424';
         ctx.fillRect(0, 0, width, 80);
-        ctx.strokeStyle = 'rgba(225, 230, 235, 0.15)';
+        ctx.strokeStyle = 'rgba(226, 219, 200, 0.15)';
         ctx.beginPath();
         ctx.moveTo(0, 80);
         ctx.lineTo(width, 80);
         ctx.stroke();
 
         // MAUSAM Logo / Header text
-        ctx.fillStyle = '#0B72B9';
+        ctx.fillStyle = '#C5A46D';
         ctx.font = 'bold 22px "Noto Sans", sans-serif';
         ctx.fillText('MAUSAM', 32, 45);
 
@@ -164,7 +164,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         ctx.fillText('• Doppler Weather Radar (DWR) Live Mosaic', 135, 45);
 
         // Layer and Timestamp Badges
-        ctx.fillStyle = '#4FA8E0';
+        ctx.fillStyle = '#C5A46D';
         ctx.font = '500 14px "Noto Sans", sans-serif';
         const layerTitle = activeLayer === 'radar' 
           ? 'Doppler Echoes' 
@@ -182,7 +182,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         ctx.font = '600 14px "Noto Sans", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(`${selectedStation.name} (${selectedStation.code}) • ${selectedStation.temp}°C`, width - 32, 45);
-        ctx.fillStyle = '#8A94A6';
+        ctx.fillStyle = '#898B83';
         ctx.font = '400 12px "Noto Sans", sans-serif';
         ctx.fillText(`Reflectivity: ${selectedStation.reflectivityDbz || 40} dBZ | State: ${selectedStation.state}`, width - 32, 66);
         ctx.textAlign = 'left';
@@ -193,16 +193,16 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         ctx.drawImage(image, mapX, mapY, 800, 820);
 
         // 5. Draw Footer Bar & Attribution
-        ctx.fillStyle = '#1E2733';
+        ctx.fillStyle = '#202424';
         ctx.fillRect(0, height - 60, width, 60);
-        ctx.strokeStyle = 'rgba(225, 230, 235, 0.15)';
+        ctx.strokeStyle = 'rgba(226, 219, 200, 0.15)';
         ctx.beginPath();
         ctx.moveTo(0, height - 60);
         ctx.lineTo(width, height - 60);
         ctx.stroke();
 
         // Footer Metadata details
-        ctx.fillStyle = '#8A94A6';
+        ctx.fillStyle = '#898B83';
         ctx.font = '500 12px "Noto Sans", sans-serif';
         ctx.fillText('MAUSAM Atmospheric Intelligence • India Meteorological Department • Radar Composite', 32, height - 26);
 
@@ -249,8 +249,8 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
       {/* Top Map Toolbar */}
       <div className="p-4 card-header-divider bg-[var(--m-surface-2)] flex flex-wrap justify-between items-center gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/40 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[22px]">
+          <div className="w-9 h-9 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[22px]">
               radar
             </span>
           </div>
@@ -300,7 +300,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             onClick={handleCaptureRadarImage}
             disabled={isCapturing}
             title="Capture current radar view as an image and download to share"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold shadow-md transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[#FFFFFF] text-xs font-semibold shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[16px]">
               {isCapturing ? 'hourglass_top' : 'photo_camera'}
@@ -312,7 +312,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
 
       {/* Snapshot Toast Confirmation */}
       {captureMessage && (
-        <div className="absolute top-18 right-6 z-40 bg-[#2ECC71] text-[#0F141A] px-4 py-2 rounded-lg font-semibold text-xs shadow-2xl flex items-center gap-2 animate-bounce">
+        <div className="absolute top-18 right-6 z-40 bg-[#2ECC71] text-[var(--m-on-accent)] px-4 py-2 rounded-lg font-semibold text-xs shadow-2xl flex items-center gap-2 animate-bounce">
           <span className="material-symbols-outlined text-[18px]">check_circle</span>
           {captureMessage}
         </div>
@@ -364,7 +364,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
           <button
             onClick={handleCaptureRadarImage}
             title="Download Radar Image"
-            className="w-8 h-8 rounded bg-[var(--m-accent-soft)] text-[#4FA8E0] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] flex items-center justify-center transition-all cursor-pointer font-bold"
+            className="w-8 h-8 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] flex items-center justify-center transition-all cursor-pointer font-bold"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
           </button>
@@ -373,7 +373,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         {/* Floating Active Station HUD */}
         <div className="absolute top-4 left-4 z-20 bg-[var(--m-surface-2)] backdrop-blur-md p-3.5 rounded-lg card-border shadow-2xl max-w-xs pointer-events-auto">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-[11px] font-bold text-[#4FA8E0]">
+            <span className="text-[11px] font-bold text-[var(--m-accent)]">
               {selectedStation.code}
             </span>
             <span className="px-2 py-0.5 rounded bg-[#2ECC71]/20 text-[#2ECC71] text-[10px] font-semibold">
@@ -387,7 +387,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             {selectedStation.state} • Elev: {selectedStation.elevation}
           </p>
 
-          <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-[rgba(225,230,235,0.12)] text-center">
+          <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-[rgba(226, 219, 200,0.12)] text-center">
             <div className="bg-[var(--m-surface-1)] p-1.5 rounded card-border">
               <span className="text-[10px] text-[var(--m-text-secondary)] block">Temp</span>
               <span className="text-sm font-bold text-[var(--m-text-primary)]">
@@ -396,7 +396,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             </div>
             <div className="bg-[var(--m-surface-1)] p-1.5 rounded card-border">
               <span className="text-[10px] text-[var(--m-text-secondary)] block">Reflectivity</span>
-              <span className="text-sm font-bold text-[#4FA8E0]">
+              <span className="text-sm font-bold text-[var(--m-accent)]">
                 {selectedStation.reflectivityDbz || 40} dBZ
               </span>
             </div>
@@ -431,21 +431,21 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             <defs>
               {/* Radial gradient for Radar Station Echoes */}
               <radialGradient id="radarSweepGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#4FA8E0" stopOpacity="0.85" />
+                <stop offset="0%" stopColor="#C5A46D" stopOpacity="0.85" />
                 <stop offset="40%" stopColor="#2ECC71" stopOpacity="0.55" />
                 <stop offset="75%" stopColor="#F1C40F" stopOpacity="0.45" />
                 <stop offset="100%" stopColor="#E74C3C" stopOpacity="0" />
               </radialGradient>
 
               <linearGradient id="indiaLandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#1E2733" />
+                <stop offset="0%" stopColor="#202424" />
                 <stop offset="50%" stopColor="#18202B" />
                 <stop offset="100%" stopColor="#121820" />
               </linearGradient>
 
               <linearGradient id="monsoonPlume" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#4FA8E0" stopOpacity="0.5" />
-                <stop offset="50%" stopColor="#0B72B9" stopOpacity="0.35" />
+                <stop offset="0%" stopColor="#C5A46D" stopOpacity="0.5" />
+                <stop offset="50%" stopColor="#C5A46D" stopOpacity="0.35" />
                 <stop offset="100%" stopColor="#2C2A38" stopOpacity="0.1" />
               </linearGradient>
             </defs>
@@ -478,8 +478,8 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             {/* Gujarat Kathiawar Peninsula */}
             <path
               d="M 100 370 Q 70 410 110 430 Q 150 435 170 400"
-              fill="#1E2733"
-              stroke="#4FA8E0"
+              fill="#202424"
+              stroke="#C5A46D"
               strokeWidth="1.5"
               strokeOpacity="0.5"
             />
@@ -493,14 +493,14 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             />
 
             {/* Andaman & Nicobar Islands */}
-            <g stroke="#4FA8E0" strokeWidth="1.5" fill="#18202B" opacity="0.8">
+            <g stroke="#C5A46D" strokeWidth="1.5" fill="#18202B" opacity="0.8">
               <ellipse cx="680" cy="680" rx="6" ry="18" />
               <ellipse cx="690" cy="730" rx="5" ry="15" />
               <ellipse cx="700" cy="780" rx="7" ry="20" />
             </g>
 
             {/* Lakshadweep Archipelago */}
-            <g stroke="#4FA8E0" strokeWidth="1.5" fill="#18202B" opacity="0.8">
+            <g stroke="#C5A46D" strokeWidth="1.5" fill="#18202B" opacity="0.8">
               <circle cx="210" cy="740" r="4" />
               <circle cx="215" cy="760" r="3" />
               <circle cx="220" cy="790" r="4" />
@@ -564,7 +564,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                   cx="220"
                   cy="520"
                   r="90"
-                  fill="#4FA8E0"
+                  fill="#C5A46D"
                   opacity="0.35"
                   filter="blur(20px)"
                 />
@@ -573,7 +573,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
 
             {/* 3. Wind Streamlines */}
             {activeLayer === 'wind' && (
-              <g stroke="#4FA8E0" strokeWidth="2" strokeDasharray="6,6" opacity="0.8" fill="none">
+              <g stroke="#C5A46D" strokeWidth="2" strokeDasharray="6,6" opacity="0.8" fill="none">
                 <path d="M 100 600 Q 250 520 400 480 T 600 380" />
                 <path d="M 80 500 Q 220 440 380 390 T 580 300" />
                 <path d="M 120 700 Q 280 620 440 560 T 650 480" />
@@ -590,7 +590,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                 {/* Deccan Warm Zone */}
                 <circle cx="340" cy="540" r="110" fill="#FFB703" filter="blur(35px)" />
                 {/* Himalayan Cool Zone */}
-                <ellipse cx="320" cy="110" rx="140" ry="40" fill="#4FA8E0" filter="blur(25px)" />
+                <ellipse cx="320" cy="110" rx="140" ry="40" fill="#C5A46D" filter="blur(25px)" />
               </g>
             )}
 
@@ -623,7 +623,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                   <circle
                     r="45"
                     fill="none"
-                    stroke={isSelected ? '#4FA8E0' : '#4A5568'}
+                    stroke={isSelected ? '#C5A46D' : '#4A5568'}
                     strokeWidth={isSelected ? '1.5' : '1'}
                     strokeDasharray={isSelected ? '3,3' : '2,2'}
                     opacity={isSelected ? '0.95' : '0.4'}
@@ -633,7 +633,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                   {isSelected && (
                     <circle
                       r="45"
-                      fill="#0B72B9"
+                      fill="#C5A46D"
                       opacity="0.2"
                       className="animate-ping duration-1000"
                     />
@@ -642,8 +642,8 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                   {/* Station Marker Node */}
                   <circle
                     r={isSelected || isHovered ? '7' : '5'}
-                    fill={isSelected ? '#0B72B9' : '#2ECC71'}
-                    stroke="#0F141A"
+                    fill={isSelected ? '#C5A46D' : '#2ECC71'}
+                    stroke="#111314"
                     strokeWidth="2"
                     className="transition-all"
                   />
@@ -652,7 +652,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
                   <text
                     x="12"
                     y="4"
-                    fill={isSelected ? '#4FA8E0' : '#FFFFFF'}
+                    fill={isSelected ? '#C5A46D' : '#FFFFFF'}
                     fontSize={isSelected ? '12' : '10'}
                     fontWeight={isSelected ? 'bold' : 'normal'}
                     fontFamily="Noto Sans, system-ui, sans-serif"
@@ -668,11 +668,11 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
 
         {/* Interactive Legend Box */}
         <div className="absolute bottom-4 left-4 z-20 bg-[var(--m-surface-2)] backdrop-blur-md p-3 rounded-lg card-border shadow-2xl flex flex-col gap-1.5">
-          <span className="text-[10px] uppercase text-[#4FA8E0] font-bold">
+          <span className="text-[10px] uppercase text-[var(--m-accent)] font-bold">
             Reflectivity Scale (dBZ)
           </span>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-2.5 rounded-xs bg-[#4FA8E0]" title="Light Rain (15-25 dBZ)"></div>
+            <div className="w-4 h-2.5 rounded-xs bg-[var(--m-accent)]" title="Light Rain (15-25 dBZ)"></div>
             <span className="text-[9px] text-[var(--m-text-secondary)]">15</span>
             <div className="w-4 h-2.5 rounded-xs bg-[#2ECC71]" title="Moderate Rain (25-35 dBZ)"></div>
             <span className="text-[9px] text-[var(--m-text-secondary)]">30</span>
@@ -689,7 +689,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold transition-all cursor-pointer shadow-md"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[#FFFFFF] text-xs font-semibold transition-all cursor-pointer shadow-md"
           >
             <span className="material-symbols-outlined text-[18px]">
               {isPlaying ? 'pause' : 'play_arrow'}
@@ -697,7 +697,7 @@ export const DynamicIndiaMap: React.FC<DynamicIndiaMapProps> = ({
             {isPlaying ? 'Pause Loop' : 'Play Loop'}
           </button>
 
-          <span className="text-xs text-[#4FA8E0] font-semibold bg-[var(--m-surface-1)] px-3 py-1.5 rounded-lg card-border">
+          <span className="text-xs text-[var(--m-accent)] font-semibold bg-[var(--m-surface-1)] px-3 py-1.5 rounded-lg card-border">
             {timeLabels[timeIndex]}
           </span>
         </div>

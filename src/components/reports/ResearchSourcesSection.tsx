@@ -10,7 +10,7 @@ export const ResearchSourcesSection: React.FC = () => {
       ministry: 'Ministry of Earth Sciences, Govt. of India',
       role: 'National Weather Forecasting Centre, Climatological Baselines, Doppler Radar Network & Synoptic Bulletins.',
       tag: 'PRIMARY METEOROLOGICAL AUTHORITY',
-      color: '#35C7E8',
+      color: '#C5A46D',
     },
     {
       id: 'ncmrwf',
@@ -18,7 +18,7 @@ export const ResearchSourcesSection: React.FC = () => {
       ministry: 'National Centre for Medium Range Weather Forecasting',
       role: 'Unified Model (NCUM 12km), Ensemble Prediction Systems (NEPS), and 4D-Var Data Assimilation.',
       tag: 'NWP & SUPERCOMPUTING',
-      color: '#0B72B9',
+      color: '#C5A46D',
     },
     {
       id: 'cpcb',
@@ -34,7 +34,7 @@ export const ResearchSourcesSection: React.FC = () => {
       ministry: 'Department of Space, Govt. of India',
       role: 'INSAT-3D, INSAT-3DR Geostationary Imager & Sounder Payloads, OceanSat Scatterometer & Sea Surface Temperatures.',
       tag: 'EARTH OBSERVATION SATELLITES',
-      color: '#35C7E8',
+      color: '#C5A46D',
     },
     {
       id: 'wmo',

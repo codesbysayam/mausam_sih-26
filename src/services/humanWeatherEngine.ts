@@ -452,7 +452,7 @@ export function buildHumanWeatherStory(
         highlight: 'Awaiting Live Telemetry',
         advice: 'Guidance will populate automatically once station observations synchronize.',
         badge: 'Standby',
-        badgeColor: 'bg-[#101F2E] text-[#8EA3B8] border-[#26394B]',
+        badgeColor: 'bg-[var(--m-surface-1)] text-[var(--m-text-muted)] border-[var(--m-border)]',
       },
     };
   }
@@ -496,7 +496,7 @@ export function buildHumanWeatherStory(
     highlight: 'Standard Daily View',
     advice: 'Normal meteorological profile across your area.',
     badge: 'General',
-    badgeColor: 'bg-[#1499E8]/15 text-[#35C7E8] border-[#1499E8]/30',
+    badgeColor: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
   };
 
   switch (persona) {
@@ -516,7 +516,7 @@ export function buildHumanWeatherStory(
             highlight: `AQI Unavailable • Humidity ${humidity !== null ? `${humidity}%` : '—'}`,
             advice: 'Air quality sensor feed is currently unavailable for this location.',
             badge: 'Health Focus',
-            badgeColor: 'bg-[#101F2E] text-[#8EA3B8] border-[#26394B]',
+            badgeColor: 'bg-[var(--m-surface-1)] text-[var(--m-text-muted)] border-[var(--m-border)]',
           };
       break;
 
@@ -542,7 +542,7 @@ export function buildHumanWeatherStory(
           ? 'Wet roads and occasional spray expected on highways. Allow extra travel buffer time.'
           : 'Clear highway visibility with good driving conditions throughout the route.',
         badge: 'Travel Safe',
-        badgeColor: 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/30',
+        badgeColor: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
       };
       break;
 
@@ -578,7 +578,7 @@ export function buildHumanWeatherStory(
           ? 'Possible wet transit during evening commute. Keep rain covers ready for two-wheelers.'
           : 'Smooth commute conditions expected with dry roads.',
         badge: 'Commute Pulse',
-        badgeColor: 'bg-[#1499E8]/15 text-[#35C7E8] border-[#1499E8]/30',
+        badgeColor: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
       };
       break;
 
@@ -602,7 +602,7 @@ export function buildHumanWeatherStory(
           ? 'Choppy coastal surf and strong onshore breeze. Obey lifeguard flags.'
           : 'Pleasant sea breeze in the late afternoon. High UV during midday requires sunscreen.',
         badge: 'Coastal Watch',
-        badgeColor: 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/30',
+        badgeColor: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
       };
       break;
   }

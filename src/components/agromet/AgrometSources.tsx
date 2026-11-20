@@ -19,7 +19,7 @@ export const AgrometSources: React.FC<AgrometSourcesProps> = ({ bulletin }) => {
       name: 'India Meteorological Department (IMD)',
       role: 'Synoptic bulletins, Doppler radar nowcasting & AWS telemetry',
       badge: 'METEOROLOGICAL AUTHORITY',
-      color: '#38BDF8',
+      color: '#C5A46D',
     },
     {
       name: 'Gramin Krishi Mausam Sewa (GKMS)',

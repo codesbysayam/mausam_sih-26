@@ -54,7 +54,7 @@ export const FamilyCommuteCard: React.FC<FamilyCommuteCardProps> = ({
             </div>
           </div>
           {rainExpectedDuringCommute ? (
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[#0B72B9]/35 flex items-center gap-1">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 flex items-center gap-1">
               <Umbrella className="w-3 h-3" />
               Rain Alert
             </span>
@@ -66,7 +66,7 @@ export const FamilyCommuteCard: React.FC<FamilyCommuteCardProps> = ({
         </div>
 
         {rainExpectedDuringCommute && (
-          <div className="mt-3.5 p-3 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/35 flex items-start gap-2.5 text-xs">
+          <div className="mt-3.5 p-3 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 flex items-start gap-2.5 text-xs">
             <Umbrella className="w-4 h-4 shrink-0 text-[var(--m-accent)] mt-0.5" />
             <div>
               <strong className="block font-bold text-[var(--m-text-primary)]">

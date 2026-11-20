@@ -27,7 +27,7 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
         return {
           icon: <Droplet className="w-6 h-6 text-[var(--m-accent)]" />,
           statusColor: 'text-[var(--m-accent)] bg-[var(--m-accent-soft)] border-[var(--m-accent)]/40',
-          accentBorder: 'border-l-4 border-l-[#38BDF8]',
+          accentBorder: 'border-l-4 border-l-[#C5A46D]',
           badgeText: 'WAIT / POSTPONE',
           categoryTitle: 'IRRIGATION DECISION',
         };
@@ -63,13 +63,13 @@ export const FarmActionPlan: React.FC<FarmActionPlanProps> = ({ bulletin, select
     <section className="rounded-3xl bg-gradient-to-b from-[var(--m-surface-1)] via-[var(--m-surface-1)] to-[var(--m-surface-inset)] border-2 border-[var(--m-border-strong)] p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden">
       {/* Glow Effect */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#2ECC71]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#38BDF8]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--m-accent-soft)] rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-[var(--m-border-strong)] gap-3 relative z-10">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#2ECC71] flex items-center justify-center text-[#0A1017] shadow-lg shadow-[#2ECC71]/25">
+            <div className="w-8 h-8 rounded-xl bg-[#2ECC71] flex items-center justify-center text-[var(--m-on-accent)] shadow-lg shadow-[#2ECC71]/25">
               <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
             </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight uppercase">

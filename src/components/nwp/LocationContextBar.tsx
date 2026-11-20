@@ -32,7 +32,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
     >
       {/* Left: Location Identity & Coordinates */}
       <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-        <div className="w-7 h-7 rounded-lg bg-[#0E2D4A] border border-[var(--m-border)] flex items-center justify-center text-[#29B6F6] shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
           <MapPin className="w-4 h-4" />
         </div>
 
@@ -41,7 +41,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider ${
             isGps
               ? 'bg-[#00E676]/15 border border-[#00E676]/40 text-[#00E676]'
-              : 'bg-[#29B6F6]/15 border border-[#29B6F6]/40 text-[#29B6F6]'
+              : 'bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)]'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -56,7 +56,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
         <span className="text-slate-500 hidden sm:inline">•</span>
 
         {/* Nearest Observation */}
-        <span className="text-[#AFC4D8] text-[11px] truncate hidden md:inline">
+        <span className="text-[var(--m-text-secondary)] text-[11px] truncate hidden md:inline">
           Nearest Observation:{' '}
           <span className="text-slate-200">
             {location.district || location.city || 'Bhubaneswar'}, {location.state || 'Odisha'}
@@ -66,7 +66,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
         <span className="text-slate-500 hidden md:inline">•</span>
 
         {/* Coordinates */}
-        <span className="text-[#AFC4D8] text-[11px] font-mono shrink-0">
+        <span className="text-[var(--m-text-secondary)] text-[11px] font-mono shrink-0">
           {Math.abs(lat).toFixed(2)}°{lat >= 0 ? 'N' : 'S'}, {Math.abs(lon).toFixed(2)}°{lon >= 0 ? 'E' : 'W'}
         </span>
       </div>
@@ -78,10 +78,10 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
             type="button"
             onClick={onDetectLocation}
             disabled={isLocating}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer disabled:opacity-50"
             title="Detect GPS location"
           >
-            <Navigation className={`w-3.5 h-3.5 text-[#29B6F6] ${isLocating ? 'animate-spin' : ''}`} />
+            <Navigation className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLocating ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Detect GPS</span>
           </button>
         )}
@@ -90,10 +90,10 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
           <button
             type="button"
             onClick={onOpenLocationCenter}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] text-xs font-sans transition-colors cursor-pointer"
             title="Change Location"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#29B6F6]" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span>Change Location</span>
           </button>
         )}
@@ -103,7 +103,7 @@ export const LocationContextBar: React.FC<LocationContextBarProps> = ({
             type="button"
             onClick={onRefresh}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1565C0] hover:bg-[#0B3D91] text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
             title="Refresh numerical weather forecast"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />

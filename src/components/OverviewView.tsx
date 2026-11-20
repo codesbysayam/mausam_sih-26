@@ -108,7 +108,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
         <div className="md:col-span-4 bg-[var(--m-surface-2)] card-border rounded-xl p-3.5 flex items-center justify-between shadow-md">
           <div className="flex flex-col">
-            <span className="text-[12px] text-[#4FA8E0] font-semibold flex items-center gap-1.5">
+            <span className="text-[12px] text-[var(--m-accent)] font-semibold flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${weather.isLive ? 'bg-[#2ECC71] animate-pulse' : 'bg-[#E67E22]'}`}></span>
               {weather.isLive ? `Live ${weather.source || 'Operational'} Telemetry Feed` : 'Local Sensor Model'}
             </span>
@@ -122,7 +122,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               onClick={onRefreshWeather}
               disabled={isRefreshing}
               title="Synchronize Live Surface Telemetry"
-              className="p-2 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/30 hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] text-[#4FA8E0] transition-all cursor-pointer disabled:opacity-50"
+              className="p-2 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 hover:bg-[var(--m-accent)] hover:text-[#FFFFFF] text-[var(--m-accent)] transition-all cursor-pointer disabled:opacity-50"
             >
               <span className={`material-symbols-outlined text-[18px] ${isRefreshing ? 'animate-spin' : ''}`}>
                 refresh
@@ -172,7 +172,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div>
             <div className="flex justify-between items-start gap-4 mb-3">
               <div>
-                <span className="text-xs text-[#4FA8E0] font-semibold block mb-1">
+                <span className="text-xs text-[var(--m-accent)] font-semibold block mb-1">
                   IMD Synoptic Surface Station • ID: {weather.stationCode}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold text-[var(--m-text-primary)]">
@@ -196,7 +196,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   {hasTemp ? weather.temp : '—'}
                 </span>
                 {hasTemp && (
-                  <span className="text-3xl sm:text-4xl text-[#4FA8E0] font-light">
+                  <span className="text-3xl sm:text-4xl text-[var(--m-accent)] font-light">
                     °C
                   </span>
                 )}
@@ -234,13 +234,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               className={`mt-3 py-2.5 px-3.5 rounded-lg border flex items-center justify-between text-xs ${
                 weather.isRainingNow
                   ? 'bg-[#3A6EA5]/25 border-[#3A6EA5]/50 text-[#FFFFFF]'
-                  : 'bg-[var(--m-surface-1)] border-[rgba(225,230,235,0.12)] text-[var(--m-text-secondary)]'
+                  : 'bg-[var(--m-surface-1)] border-[rgba(226, 219, 200,0.12)] text-[var(--m-text-secondary)]'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span
                   className={`material-symbols-outlined text-[20px] ${
-                    weather.isRainingNow ? 'text-[#4FA8E0]' : 'text-[var(--m-text-secondary)]'
+                    weather.isRainingNow ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-secondary)]'
                   }`}
                 >
                   {weather.isRainingNow ? 'water_drop' : 'cloud_sync'}
@@ -263,17 +263,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-[10px] uppercase text-[#4FA8E0] font-semibold">
+                <span className="text-[10px] uppercase text-[var(--m-accent)] font-semibold">
                   Rain Probability
                 </span>
-                <span className="block text-sm font-bold text-[#4FA8E0]">
+                <span className="block text-sm font-bold text-[var(--m-accent)]">
                   {hasRainProb ? `${weather.precipitationProbability}%` : '—'}
                 </span>
               </div>
             </div>
 
             {/* Contextual Solar & Day Cycle Indicators (Noto Sans & font-metadata styling from weather payload) */}
-            <div className="mt-3 p-3.5 bg-[var(--m-surface-1)] rounded-lg border border-[rgba(225,230,235,0.12)] flex flex-col gap-2.5 font-metadata text-xs text-[var(--m-text-secondary)]">
+            <div className="mt-3 p-3.5 bg-[var(--m-surface-1)] rounded-lg border border-[rgba(226, 219, 200,0.12)] flex flex-col gap-2.5 font-metadata text-xs text-[var(--m-text-secondary)]">
               <div className="flex flex-wrap items-center justify-between gap-2.5">
                 {/* Sunrise Indicator */}
                 <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   </div>
                 </div>
 
-                <div className="hidden sm:block h-6 w-px bg-[rgba(225,230,235,0.12)]"></div>
+                <div className="hidden sm:block h-6 w-px bg-[rgba(226, 219, 200,0.12)]"></div>
 
                 {/* Solar Noon / Zenith */}
                 <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   </div>
                 </div>
 
-                <div className="hidden sm:block h-6 w-px bg-[rgba(225,230,235,0.12)]"></div>
+                <div className="hidden sm:block h-6 w-px bg-[rgba(226, 219, 200,0.12)]"></div>
 
                 {/* Sunset Indicator */}
                 <div className="flex items-center gap-2">
@@ -324,23 +324,23 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   </div>
                 </div>
 
-                <div className="hidden sm:block h-6 w-px bg-[rgba(225,230,235,0.12)]"></div>
+                <div className="hidden sm:block h-6 w-px bg-[rgba(226, 219, 200,0.12)]"></div>
 
                 {/* Daylight Duration */}
-                <div className="flex items-center gap-1.5 bg-[var(--m-surface-2)] px-2.5 py-1.5 rounded-md border border-[rgba(225,230,235,0.12)] text-[11px]">
-                  <span className="material-symbols-outlined text-[#4FA8E0] text-[15px]">schedule</span>
+                <div className="flex items-center gap-1.5 bg-[var(--m-surface-2)] px-2.5 py-1.5 rounded-md border border-[rgba(226, 219, 200,0.12)] text-[11px]">
+                  <span className="material-symbols-outlined text-[var(--m-accent)] text-[15px]">schedule</span>
                   <span>Daylight: <strong className="text-[var(--m-text-primary)]">{weather.daylightDuration || '—'}</strong></span>
                 </div>
               </div>
 
               {/* Daylight Progress Trajectory Bar */}
-              <div className="pt-1.5 border-t border-[rgba(225,230,235,0.08)] flex items-center justify-between text-[11px] text-[var(--m-text-secondary)]">
+              <div className="pt-1.5 border-t border-[rgba(226, 219, 200,0.08)] flex items-center justify-between text-[11px] text-[var(--m-text-secondary)]">
                 <span className="flex items-center gap-1.5">
                   <span>Dawn: <strong className="text-[var(--m-text-primary)]">{weather.dawnTime || '—'}</strong></span>
                   <span>•</span>
                   <span>Dusk: <strong className="text-[#FFB703]">{weather.duskTime || '—'}</strong></span>
                 </span>
-                <span className="text-[#4FA8E0] font-medium flex items-center gap-1">
+                <span className="text-[var(--m-accent)] font-medium flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">explore</span>
                   Solar Elevation: {weather.solarElevationDeg !== undefined ? `${weather.solarElevationDeg > 0 ? `+${weather.solarElevationDeg}` : weather.solarElevationDeg}°` : '—'}
                 </span>
@@ -349,20 +349,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </div>
 
           {/* Quick Atmospheric Metrics Strip (Clickable for diagnostic details) */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-4 border-t border-[rgba(225,230,235,0.12)]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-4 border-t border-[rgba(226, 219, 200,0.12)]">
             {/* 1. Real-time Temperature */}
             <div
               onClick={() =>
                 onOpenTelemetry &&
                 onOpenTelemetry('Temperature & Heat Index', hasTemp ? `${weather.temp}°C` : 'Unavailable', '°C')
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Temperature</span>
               <span className="text-base font-bold text-[var(--m-text-primary)] my-0.5">
                 {hasTemp ? `${weather.temp}°C` : '—'}
               </span>
-              <span className="text-[10px] text-[#4FA8E0] block truncate">
+              <span className="text-[10px] text-[var(--m-accent)] block truncate">
                 H: {isNum(weather.high) ? `${weather.high}°` : '—'} | L: {isNum(weather.low) ? `${weather.low}°` : '—'}
               </span>
             </div>
@@ -373,7 +373,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 onOpenTelemetry &&
                 onOpenTelemetry('Relative Humidity', hasHum ? `${weather.humidity}%` : 'Unavailable', '%')
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Humidity</span>
               <span className="text-base font-bold text-[var(--m-text-primary)] my-0.5">
@@ -390,7 +390,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 onOpenTelemetry &&
                 onOpenTelemetry('Air Quality PM2.5', isNum(weather.aqiPm25) ? weather.aqiPm25 : 'Unavailable', 'µg/m³')
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Air Quality</span>
               <span
@@ -417,7 +417,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   'grains/m³'
                 )
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Pollen Count</span>
               <span className="text-base font-bold text-[#FFB703] my-0.5">
@@ -437,14 +437,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 onOpenTelemetry &&
                 onOpenTelemetry('Wind Velocity', hasWind ? `${weather.windSpeed} km/h` : 'Unavailable', 'km/h')
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Wind Velocity</span>
               <span className="text-base font-bold text-[var(--m-text-primary)] my-0.5">
                 {hasWind ? weather.windSpeed : '—'}{' '}
                 {hasWind && <span className="text-[10px] font-normal text-[var(--m-text-secondary)]">km/h</span>}
               </span>
-              <span className="text-[10px] text-[#4FA8E0] block truncate">
+              <span className="text-[10px] text-[var(--m-accent)] block truncate">
                 {weather.windDirection || '—'}
               </span>
             </div>
@@ -455,7 +455,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 onOpenTelemetry &&
                 onOpenTelemetry('Barometric Pressure', hasPressure ? `${weather.pressure} hPa` : 'Unavailable', 'hPa')
               }
-              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[#0B72B9] transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-[var(--m-surface-1)] p-2.5 rounded-lg card-border hover:border-[var(--m-accent)] transition-colors cursor-pointer flex flex-col justify-between"
             >
               <span className="text-[11px] text-[var(--m-text-secondary)] block font-medium">Air Pressure</span>
               <span className="text-base font-bold text-[var(--m-text-primary)] my-0.5">
@@ -476,7 +476,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <div>
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#0B72B9] text-[20px]">
+                  <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">
                     insights
                   </span>
                   <h3 className="font-h3 text-sm font-bold text-[var(--m-text-primary)]">
@@ -505,7 +505,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               </div>
 
               {/* Context Content based on active persona */}
-              <div className="bg-[var(--m-surface-1)] p-3.5 rounded-lg border border-[rgba(225,230,235,0.12)]">
+              <div className="bg-[var(--m-surface-1)] p-3.5 rounded-lg border border-[rgba(226, 219, 200,0.12)]">
                 {selectedPersona === 'fitness' && (
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
@@ -529,7 +529,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 {selectedPersona === 'commuting' && (
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-[#4FA8E0] font-semibold flex items-center gap-1">
+                      <span className="text-[var(--m-accent)] font-semibold flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">traffic</span>
                         {weather.isRainingNow ? 'Wet Surface Caution' : 'Dry Surface Guidance'}
                       </span>
@@ -596,11 +596,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               </div>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-[rgba(225,230,235,0.12)] flex justify-between items-center text-xs">
+            <div className="mt-3 pt-3 border-t border-[rgba(226, 219, 200,0.12)] flex justify-between items-center text-xs">
               <span className="text-[var(--m-text-secondary)]">Personalized via AI Logic</span>
               <button
                 onClick={() => onNavigateTab && onNavigateTab('tools')}
-                className="text-[#0B72B9] hover:text-[#4FA8E0] font-semibold flex items-center gap-1 cursor-pointer"
+                className="text-[var(--m-accent)] hover:text-[var(--m-accent-strong)] font-semibold flex items-center gap-1 cursor-pointer"
               >
                 <span>View Full Analysis &rarr;</span>
               </button>
@@ -612,10 +612,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             {/* Crowdsource Shortcut */}
             <div
               onClick={() => onNavigateTab && onNavigateTab('crowdsource')}
-              className="p-4 rounded-xl card-border bg-[var(--m-surface-2)] hover:border-[#0B72B9] shadow-md transition-all cursor-pointer flex flex-col justify-between"
+              className="p-4 rounded-xl card-border bg-[var(--m-surface-2)] hover:border-[var(--m-accent)] shadow-md transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
+                <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">
                   groups
                 </span>
                 <span className="text-xs font-bold text-[var(--m-text-primary)]">Crowd Source</span>
@@ -623,7 +623,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               <p className="text-[11px] text-[var(--m-text-secondary)] leading-snug">
                 Submit live local weather ground-truth to IMD.
               </p>
-              <span className="text-[11px] text-[#4FA8E0] font-semibold mt-2 block">
+              <span className="text-[11px] text-[var(--m-accent)] font-semibold mt-2 block">
                 Report Weather &rarr;
               </span>
             </div>
@@ -653,10 +653,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       {/* 5. 24-Hour Historical Trends Chart Card */}
       <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col gap-5">
         {/* Header & Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[rgba(225,230,235,0.12)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[rgba(226, 219, 200,0.12)]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-[#0B72B9] text-[22px]">
+              <span className="material-symbols-outlined text-[var(--m-accent)] text-[22px]">
                 show_chart
               </span>
               <h3 className="font-h3 text-lg font-semibold text-[var(--m-text-primary)]">
@@ -669,7 +669,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </div>
 
           {/* Toggle buttons for chart view mode */}
-          <div className="flex items-center gap-1.5 bg-[var(--m-surface-1)] p-1 rounded-lg border border-[rgba(225,230,235,0.12)] self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 bg-[var(--m-surface-1)] p-1 rounded-lg border border-[rgba(226, 219, 200,0.12)] self-start sm:self-auto">
             <button
               onClick={() => setChartMode('combined')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
@@ -684,7 +684,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               onClick={() => setChartMode('temp')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 chartMode === 'temp'
-                  ? 'bg-[#FFB703] text-[#0F141A]'
+                  ? 'bg-[#FFB703] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
               }`}
             >
@@ -694,7 +694,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               onClick={() => setChartMode('humidity')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 chartMode === 'humidity'
-                  ? 'bg-[#2ECC71] text-[#0F141A]'
+                  ? 'bg-[#2ECC71] text-[var(--m-on-accent)]'
                   : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
               }`}
             >
@@ -705,7 +705,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
         {/* 24-Hour Statistical Summary Chips */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
+          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(226, 219, 200,0.12)]">
             <span className="text-[11px] text-[var(--m-text-secondary)] block">24h Max Temp</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-lg font-bold text-[#FFB703]">{maxTemp !== null ? `${maxTemp}°C` : '—'}</span>
@@ -713,15 +713,15 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </div>
           </div>
 
-          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
+          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(226, 219, 200,0.12)]">
             <span className="text-[11px] text-[var(--m-text-secondary)] block">24h Min Temp</span>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-lg font-bold text-[#4FA8E0]">{minTemp !== null ? `${minTemp}°C` : '—'}</span>
+              <span className="text-lg font-bold text-[var(--m-accent)]">{minTemp !== null ? `${minTemp}°C` : '—'}</span>
               <span className="text-[10px] text-[var(--m-text-secondary)]">(Dawn IST)</span>
             </div>
           </div>
 
-          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
+          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(226, 219, 200,0.12)]">
             <span className="text-[11px] text-[var(--m-text-secondary)] block">Mean Humidity</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-lg font-bold text-[#2ECC71]">{avgHumidity !== null ? `${avgHumidity}%` : '—'}</span>
@@ -729,7 +729,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </div>
           </div>
 
-          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(225,230,235,0.12)]">
+          <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[rgba(226, 219, 200,0.12)]">
             <span className="text-[11px] text-[var(--m-text-secondary)] block">24h Cumulative Rain</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-lg font-bold text-[#9B59B6]">{totalRain24h !== null ? `${totalRain24h} mm` : '—'}</span>
@@ -758,15 +758,15 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(225,230,235,0.12)"
+                stroke="rgba(226, 219, 200,0.12)"
                 opacity={0.6}
               />
 
               <XAxis
                 dataKey="time"
-                stroke="#8A94A6"
-                tick={{ fill: '#8A94A6', fontSize: 11, fontFamily: 'Noto Sans, sans-serif' }}
-                tickLine={{ stroke: 'rgba(225,230,235,0.12)' }}
+                stroke="#898B83"
+                tick={{ fill: '#898B83', fontSize: 11, fontFamily: 'Noto Sans, sans-serif' }}
+                tickLine={{ stroke: 'rgba(226, 219, 200,0.12)' }}
                 interval={2}
               />
 
@@ -775,7 +775,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 domain={[15, 42]}
                 stroke="#FFB703"
                 tick={{ fill: '#FFB703', fontSize: 11, fontFamily: 'Noto Sans, sans-serif' }}
-                tickLine={{ stroke: 'rgba(225,230,235,0.12)' }}
+                tickLine={{ stroke: 'rgba(226, 219, 200,0.12)' }}
                 unit="°"
                 hide={chartMode === 'humidity'}
               />
@@ -786,7 +786,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 domain={[30, 100]}
                 stroke="#2ECC71"
                 tick={{ fill: '#2ECC71', fontSize: 11, fontFamily: 'Noto Sans, sans-serif' }}
-                tickLine={{ stroke: 'rgba(225,230,235,0.12)' }}
+                tickLine={{ stroke: 'rgba(226, 219, 200,0.12)' }}
                 unit="%"
                 hide={chartMode === 'temp'}
               />
@@ -796,8 +796,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-[var(--m-surface-1)] border border-[rgba(225,230,235,0.15)] p-3 rounded-lg shadow-2xl text-xs font-sans">
-                        <div className="text-[#4FA8E0] font-semibold mb-1.5 pb-1 border-b border-[rgba(225,230,235,0.12)]">
+                      <div className="bg-[var(--m-surface-1)] border border-[rgba(226, 219, 200,0.15)] p-3 rounded-lg shadow-2xl text-xs font-sans">
+                        <div className="text-[var(--m-accent)] font-semibold mb-1.5 pb-1 border-b border-[rgba(226, 219, 200,0.12)]">
                           {label} (IST)
                         </div>
                         <div className="flex flex-col gap-1">
@@ -813,7 +813,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                             <span>Air Pressure:</span>
                             <span className="font-bold">{data.pressure} hPa</span>
                           </div>
-                          <div className="flex justify-between gap-4 text-[#4FA8E0]">
+                          <div className="flex justify-between gap-4 text-[var(--m-accent)]">
                             <span>Wind Speed:</span>
                             <span className="font-bold">{data.windSpeed} km/h</span>
                           </div>

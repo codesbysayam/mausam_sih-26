@@ -160,7 +160,7 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
               onClick={() => setIsCompareMode((v) => !v)}
               className={`min-h-[40px] px-3 py-2 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
                 isCompareMode
-                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+                  ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[var(--m-border)] text-[var(--m-text-primary)]'
               }`}
             >
@@ -179,7 +179,7 @@ export const NWPWorkspace: React.FC<NWPWorkspaceProps> = ({
               type="button"
               onClick={handleRefresh}
               disabled={isLoading}
-              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] border border-[var(--m-accent)]/40 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
+              className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] border border-[var(--m-accent)]/40 text-xs font-semibold text-[var(--m-on-accent)] inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 m-focus-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>

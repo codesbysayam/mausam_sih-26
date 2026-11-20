@@ -8,13 +8,13 @@ export const NWPFooter: React.FC = () => {
       className="w-full pt-5 pb-8 border-t border-[var(--m-border)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--m-text-muted)]"
     >
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-md bg-[var(--m-accent)] flex items-center justify-center text-white font-bold text-[10px] font-mono">
+        <div className="w-5 h-5 rounded-md bg-[var(--m-accent)] flex items-center justify-center text-[var(--m-on-accent)] font-bold text-[10px] font-mono">
           M
         </div>
         <span className="font-semibold text-[var(--m-text-primary)] tracking-tight">
           MAUSAM Atmospheric Intelligence Platform
         </span>
-        <span className="text-[#26394B] hidden sm:inline">·</span>
+        <span className="text-[var(--m-text-muted)] hidden sm:inline">·</span>
         <span className="text-[var(--m-text-muted)] hidden sm:inline">Numerical Weather Prediction</span>
       </div>
 
@@ -23,7 +23,7 @@ export const NWPFooter: React.FC = () => {
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Statutory Warning Priority Active</span>
         </span>
-        <span className="text-[#26394B]">·</span>
+        <span className="text-[var(--m-text-muted)]">·</span>
         <span>Open Data Physical Ingestion</span>
       </div>
     </footer>

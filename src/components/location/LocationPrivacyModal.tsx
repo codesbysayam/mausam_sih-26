@@ -155,7 +155,7 @@ export const LocationPrivacyModal: React.FC<LocationPrivacyModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 min-h-[44px] sm:min-h-[36px] rounded-xl bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] font-semibold text-xs transition-colors cursor-pointer shrink-0"
+            className="px-4 min-h-[44px] sm:min-h-[36px] rounded-xl bg-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] font-semibold text-xs transition-colors cursor-pointer shrink-0"
           >
             Understood &amp; Close
           </button>

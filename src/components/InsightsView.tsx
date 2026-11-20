@@ -38,7 +38,7 @@ export const InsightsView: React.FC = () => {
       <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">analytics</span>
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">analytics</span>
             <h2 className="font-h3 text-base font-bold text-[var(--m-text-primary)]">
               Atmospheric &amp; Environmental Intelligence Diagnostics
             </h2>
@@ -75,15 +75,15 @@ export const InsightsView: React.FC = () => {
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={historicalData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(225,230,235,0.12)" />
-                <XAxis dataKey="day" stroke="#8A94A6" tick={{ fill: '#8A94A6', fontSize: 11 }} />
-                <YAxis stroke="#8A94A6" tick={{ fill: '#8A94A6', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 219, 200,0.12)" />
+                <XAxis dataKey="day" stroke="#898B83" tick={{ fill: '#898B83', fontSize: 11 }} />
+                <YAxis stroke="#898B83" tick={{ fill: '#898B83', fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F141A',
-                    borderColor: 'rgba(225,230,235,0.12)',
+                    backgroundColor: '#111314',
+                    borderColor: 'rgba(226, 219, 200,0.12)',
                     borderRadius: 8,
-                    color: '#F4F7FA',
+                    color: '#F0EEE7',
                     fontSize: 12,
                   }}
                 />
@@ -98,11 +98,11 @@ export const InsightsView: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="humidity"
-                  stroke="#4FA8E0"
+                  stroke="#C5A46D"
                   name="Humidity (%)"
                   strokeWidth={2}
                   strokeDasharray="4 4"
-                  dot={{ r: 3, fill: '#4FA8E0' }}
+                  dot={{ r: 3, fill: '#C5A46D' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -121,19 +121,19 @@ export const InsightsView: React.FC = () => {
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={gasDispersion} layout="vertical" margin={{ left: 10, right: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(225,230,235,0.12)" />
-                <XAxis type="number" stroke="#8A94A6" tick={{ fill: '#8A94A6', fontSize: 10 }} />
-                <YAxis dataKey="gas" type="category" stroke="#8A94A6" tick={{ fill: '#F4F7FA', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 219, 200,0.12)" />
+                <XAxis type="number" stroke="#898B83" tick={{ fill: '#898B83', fontSize: 10 }} />
+                <YAxis dataKey="gas" type="category" stroke="#898B83" tick={{ fill: '#F0EEE7', fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F141A',
-                    borderColor: 'rgba(225,230,235,0.12)',
+                    backgroundColor: '#111314',
+                    borderColor: 'rgba(226, 219, 200,0.12)',
                     borderRadius: 8,
-                    color: '#F4F7FA',
+                    color: '#F0EEE7',
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="value" fill="#0B72B9" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="#C5A46D" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -143,7 +143,7 @@ export const InsightsView: React.FC = () => {
       {/* Atmospheric Inversion & Ventilation Index Analysis */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-5 shadow-xl">
-          <span className="text-xs uppercase text-[#4FA8E0] font-bold">
+          <span className="text-xs uppercase text-[var(--m-accent)] font-bold">
             Boundary Layer Height
           </span>
           <p className="text-2xl font-bold text-[var(--m-text-primary)] mt-1">

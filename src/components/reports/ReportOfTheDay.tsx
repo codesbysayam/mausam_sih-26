@@ -69,7 +69,7 @@ export const ReportOfTheDay: React.FC<ReportOfTheDayProps> = ({
           <button
             type="button"
             onClick={() => onOpenReport(publication)}
-            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] text-white hover:text-[#07111D] font-bold text-xs font-mono transition-colors flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] hover:text-[var(--m-on-accent)] font-bold text-xs font-mono transition-colors flex items-center justify-center gap-2 cursor-pointer m-focus-ring"
           >
             <Eye className="w-4 h-4" />
             <span>Explore Report</span>

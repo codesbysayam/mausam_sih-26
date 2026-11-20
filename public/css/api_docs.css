@@ -1,22 +1,23 @@
 /**
  * ====================================================================
- * MAUSAM - Atmospheric Intelligence Platform
+ * MAUSAM - The Atmospheric Observatory
  * API Specification & WMO Data Exchange Stylesheet
  * ====================================================================
  */
 
 :root {
-  --docs-bg: #0B1120;
-  --sidebar-bg: #0F172A;
-  --card-bg: #1E293B;
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --border-color: #334155;
-  --accent-cyan: #38BDF8;
-  --accent-emerald: #10B981;
-  --accent-amber: #F59E0B;
-  --accent-rose: #F43F5E;
-  --code-bg: #030712;
+  --docs-bg: #0B0C0D;
+  --sidebar-bg: #111314;
+  --card-bg: #191C1D;
+  --text-main: #F0EEE7;
+  --text-muted: #898B83;
+  --border-color: rgba(226, 219, 200, 0.14);
+  --accent-brass: #C5A46D;
+  --accent-ice: #A7C5C5;
+  --accent-emerald: #5C9A79;
+  --accent-amber: #D8B14F;
+  --accent-rose: #C94F4B;
+  --code-bg: #111314;
 }
 
 * {
@@ -26,7 +27,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--docs-bg);
   color: var(--text-main);
   line-height: 1.6;
@@ -49,7 +50,7 @@ body {
   font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--accent-cyan);
+  color: var(--accent-brass);
   margin-bottom: 24px;
 }
 
@@ -69,14 +70,14 @@ body {
 .docs-nav-link {
   display: block;
   font-size: 13.5px;
-  color: #CBD5E1;
+  color: #C1BFB5;
   text-decoration: none;
   padding: 6px 0;
   transition: color 0.15s ease;
 }
 
 .docs-nav-link:hover {
-  color: var(--accent-cyan);
+  color: var(--accent-brass);
 }
 
 .docs-main {
@@ -101,7 +102,7 @@ body {
 .api-endpoint-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 11px;
   padding: 24px;
   margin-bottom: 32px;
 }
@@ -117,36 +118,36 @@ body {
   font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
-  border-radius: 4px;
-  font-family: monospace;
+  border-radius: 7px;
+  font-family: "IBM Plex Mono", monospace;
 }
 
 .http-method.get {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(92, 154, 121, 0.18);
+  color: #89977B;
+  border: 1px solid rgba(92, 154, 121, 0.4);
 }
 
 .http-method.post {
-  background: rgba(56, 189, 248, 0.2);
-  color: #38BDF8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(197, 164, 109, 0.18);
+  color: #C5A46D;
+  border: 1px solid rgba(197, 164, 109, 0.4);
 }
 
 .endpoint-path {
-  font-family: monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 14px;
-  color: #F1F5F9;
+  color: #F0EEE7;
 }
 
 .code-block {
   background-color: var(--code-bg);
-  border: 1px solid #1E293B;
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
   padding: 16px;
-  font-family: "JetBrains Mono", Consolas, monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-size: 12.5px;
-  color: #E2E8F0;
+  color: #F0EEE7;
   overflow-x: auto;
   margin-top: 12px;
 }

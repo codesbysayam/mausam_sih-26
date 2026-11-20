@@ -291,10 +291,10 @@ class WarningService {
         };
       case 'purple':
         return {
-          color: '#1565C0',
-          borderClass: 'border-[#1565C0]',
-          bgBadgeClass: 'bg-[#1565C0]/20 border border-[#1565C0]/60',
-          textBadgeClass: 'text-[#E3F2FD]',
+          color: '#C5A46D',
+          borderClass: 'border-[var(--m-accent)]',
+          bgBadgeClass: 'bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/60',
+          textBadgeClass: 'text-[var(--m-text-primary)]',
           icon: 'info',
           label: 'ADVISORY BULLETIN',
         };

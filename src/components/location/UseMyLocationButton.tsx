@@ -79,16 +79,16 @@ export const UseMyLocationButton: React.FC<UseMyLocationButtonProps> = ({
   let baseStyle = '';
   if (effectiveVariant === 'primary') {
     baseStyle =
-      'bg-[var(--m-accent)] hover:bg-[#0B72B9]/85 text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 focus:ring-2 focus:ring-[var(--m-focus)]';
   } else if (effectiveVariant === 'secondary') {
     baseStyle =
-      'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 hover:border-[var(--m-accent)] focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 hover:border-[var(--m-accent)] focus:ring-2 focus:ring-[var(--m-focus)]';
   } else if (effectiveVariant === 'toolbar') {
     baseStyle =
-      'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 focus:ring-2 focus:ring-[#35C7E8]';
+      'bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 focus:ring-2 focus:ring-[var(--m-focus)]';
   } else if (effectiveVariant === 'dropdown') {
     baseStyle =
-      'w-full bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 hover:border-[var(--m-accent)]/60 focus:ring-2 focus:ring-[#35C7E8] justify-center';
+      'w-full bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35 hover:border-[var(--m-accent)]/60 focus:ring-2 focus:ring-[var(--m-focus)] justify-center';
   } else {
     baseStyle =
       'bg-transparent hover:bg-[var(--m-accent-soft)] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] border border-transparent hover:border-[var(--m-accent)]/35';

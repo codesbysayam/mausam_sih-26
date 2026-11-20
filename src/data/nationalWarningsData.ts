@@ -15,12 +15,12 @@ export const HAZARD_DEFINITIONS: {
   { id: 'heavy_rain', label: 'Heavy Rain', icon: 'rainy', color: '#3A6EA5' },
   { id: 'thunderstorm', label: 'Thunderstorm', icon: 'thunderstorm', color: '#FFB703' },
   { id: 'cyclone', label: 'Cyclone', icon: 'cyclone', color: '#E74C3C' },
-  { id: 'flood', label: 'Flood Watch', icon: 'flood', color: '#4FA8E0' },
+  { id: 'flood', label: 'Flood Watch', icon: 'flood', color: '#C5A46D' },
   { id: 'heatwave', label: 'Heatwave', icon: 'local_fire_department', color: '#E85D4C' },
   { id: 'cold_wave', label: 'Cold Wave', icon: 'ac_unit', color: '#5AC8E0' },
   { id: 'dense_fog', label: 'Dense Fog', icon: 'foggy', color: '#B8C2CC' },
   { id: 'strong_wind', label: 'Strong Wind', icon: 'air', color: '#8D9CB8' },
-  { id: 'coastal_warning', label: 'Coastal Warning', icon: 'tsunami', color: '#0B72B9' },
+  { id: 'coastal_warning', label: 'Coastal Warning', icon: 'tsunami', color: '#C5A46D' },
   { id: 'agromet_advisory', label: 'Agromet Advisory', icon: 'agriculture', color: '#2ECC71' },
 ];
 

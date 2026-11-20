@@ -112,7 +112,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
                       isExpanded
-                        ? 'bg-[#2ECC71] text-[#0A1017]'
+                        ? 'bg-[#2ECC71] text-[var(--m-on-accent)]'
                         : 'bg-[var(--m-surface-2)] text-[#2ECC71] border border-[var(--m-border-strong)]'
                     }`}
                   >
@@ -142,7 +142,7 @@ export const CropAdvisoryAccordion: React.FC<CropAdvisoryAccordionProps> = ({
                       <span className="text-[var(--m-accent)] font-medium font-mono">
                         Stage: {crop.stage}
                       </span>
-                      <span className="text-[#334155]">•</span>
+                      <span className="text-[var(--m-text-muted)]">•</span>
                       <span className="truncate hidden sm:inline">{crop.riskAlert}</span>
                     </div>
                   </div>

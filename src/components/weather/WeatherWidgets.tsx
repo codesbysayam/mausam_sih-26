@@ -96,7 +96,7 @@ export const WeatherWidgets: React.FC<WeatherWidgetsProps> = ({
           variant: 'neutral',
           advice: 'Solar UV index reading is currently unavailable.',
           levelPercentage: 0,
-          colorHex: '#8295A8',
+          colorHex: '#898B83',
         }
       : rawUv <= 2
       ? {

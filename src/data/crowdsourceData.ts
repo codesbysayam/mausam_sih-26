@@ -1,8 +1,8 @@
 import { CrowdsourceReport, WeatherEventType, DamageAssessmentType } from '../types';
 
 export const WEATHER_EVENT_OPTIONS: { type: WeatherEventType; icon: string; description: string; color: string }[] = [
-  { type: 'Rain', icon: 'rainy', description: 'Moderate to steady continuous downpour', color: '#38bdf8' },
-  { type: 'Drizzle', icon: 'water_drop', description: 'Fine light mist or small water droplets', color: '#7dd3fc' },
+  { type: 'Rain', icon: 'rainy', description: 'Moderate to steady continuous downpour', color: '#C5A46D' },
+  { type: 'Drizzle', icon: 'water_drop', description: 'Fine light mist or small water droplets', color: '#A7C5C5' },
   { type: 'Thunder / Lightning', icon: 'thunderstorm', description: 'Audible thunderclaps with lightning discharges', color: '#c084fc' },
   { type: 'Hailstorm', icon: 'grain', description: 'Ice pellets or hailstones striking ground', color: '#93c5fd' },
   { type: 'Dust Storm', icon: 'air', description: 'High winds carrying thick dust / sand wall', color: '#fb923c' },

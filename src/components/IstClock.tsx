@@ -70,7 +70,7 @@ export const IstClock: React.FC<IstClockProps> = ({
 
   if (compact) {
     return (
-      <div className={`flex items-center gap-2 font-mono text-xs text-[#dae2fd] ${className}`}>
+      <div className={`flex items-center gap-2 font-mono text-xs text-[var(--m-text-primary)] ${className}`}>
         <span className="material-symbols-outlined text-[16px] text-[var(--m-accent)]">schedule</span>
         <span className="font-bold">{istTimeString}</span>
         <span className="px-1.5 py-0.5 text-[10px] bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-bold rounded border border-[var(--m-accent)]/30">
@@ -89,14 +89,14 @@ export const IstClock: React.FC<IstClockProps> = ({
         {clockMode === 'analog' ? (
           <div className="relative w-12 h-12 rounded-full border-2 border-[var(--m-accent)]/40 bg-[var(--m-surface-1)] flex items-center justify-center shrink-0 shadow-inner">
             {/* Hour tick markers */}
-            <div className="absolute top-1 w-0.5 h-1.5 bg-[#87929a] rounded"></div>
-            <div className="absolute bottom-1 w-0.5 h-1.5 bg-[#87929a] rounded"></div>
-            <div className="absolute left-1 h-0.5 w-1.5 bg-[#87929a] rounded"></div>
-            <div className="absolute right-1 h-0.5 w-1.5 bg-[#87929a] rounded"></div>
+            <div className="absolute top-1 w-0.5 h-1.5 bg-[var(--m-text-muted)] rounded"></div>
+            <div className="absolute bottom-1 w-0.5 h-1.5 bg-[var(--m-text-muted)] rounded"></div>
+            <div className="absolute left-1 h-0.5 w-1.5 bg-[var(--m-text-muted)] rounded"></div>
+            <div className="absolute right-1 h-0.5 w-1.5 bg-[var(--m-text-muted)] rounded"></div>
 
             {/* Hour hand */}
             <div
-              className="absolute w-1 bg-[#dae2fd] rounded-full origin-bottom"
+              className="absolute w-1 bg-[var(--m-text-primary)] rounded-full origin-bottom"
               style={{
                 height: '14px',
                 bottom: '24px',
@@ -107,7 +107,7 @@ export const IstClock: React.FC<IstClockProps> = ({
 
             {/* Minute hand */}
             <div
-              className="absolute w-0.5 bg-[#38bdf8] rounded-full origin-bottom"
+              className="absolute w-0.5 bg-[var(--m-accent)] rounded-full origin-bottom"
               style={{
                 height: '18px',
                 bottom: '24px',
@@ -137,7 +137,7 @@ export const IstClock: React.FC<IstClockProps> = ({
 
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base font-bold text-[#dae2fd] tracking-tight font-mono">
+            <span className="text-sm sm:text-base font-bold text-[var(--m-text-primary)] tracking-tight font-mono">
               {istTimeString}
             </span>
             <span className="px-1.5 py-0.5 text-[10px] bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-bold rounded border border-[var(--m-accent)]/40">
@@ -160,8 +160,8 @@ export const IstClock: React.FC<IstClockProps> = ({
             title="Digital Clock View"
             className={`px-2 py-1 text-xs rounded transition-all cursor-pointer ${
               clockMode === 'digital'
-                ? 'bg-[#38bdf8] text-[#00354a] font-bold shadow'
-                : 'text-[var(--m-text-secondary)] hover:text-[#dae2fd]'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold shadow'
+                : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             Digital
@@ -172,8 +172,8 @@ export const IstClock: React.FC<IstClockProps> = ({
             title="Analog Clock View"
             className={`px-2 py-1 text-xs rounded transition-all cursor-pointer ${
               clockMode === 'analog'
-                ? 'bg-[#38bdf8] text-[#00354a] font-bold shadow'
-                : 'text-[var(--m-text-secondary)] hover:text-[#dae2fd]'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold shadow'
+                : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             Analog

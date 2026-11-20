@@ -31,33 +31,33 @@ export const PrintReportHeader: React.FC<PrintReportHeaderProps> = ({
   return (
     <div
       id="mausam-official-print-bulletin-header"
-      className="mausam-print-official-header hidden print:block mb-6 pb-4 border-b-2 border-[#0B3D91] select-none"
+      className="mausam-print-official-header hidden print:block mb-6 pb-4 border-b-2 border-[var(--m-accent)] select-none"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[10pt] font-extrabold tracking-widest text-[#0B3D91] uppercase">
+          <div className="text-[10pt] font-extrabold tracking-widest text-[var(--m-accent)] uppercase">
             Government of India • Ministry of Earth Sciences
           </div>
-          <div className="text-[17pt] font-black tracking-tight text-[#0F172A] uppercase leading-tight mt-0.5">
+          <div className="text-[17pt] font-black tracking-tight text-[var(--m-on-accent)] uppercase leading-tight mt-0.5">
             India Meteorological Department
           </div>
-          <div className="text-[12pt] font-bold text-[#1565C0] uppercase tracking-wide mt-1">
+          <div className="text-[12pt] font-bold text-[var(--m-accent)] uppercase tracking-wide mt-1">
             {reportTitle}
           </div>
-          <div className="text-[9pt] text-[#475569] mt-0.5">
+          <div className="text-[9pt] text-[var(--m-text-muted)] mt-0.5">
             {reportSubtitle}
           </div>
         </div>
 
-        <div className="text-right text-[8.5pt] font-mono text-[#334155] border-l border-[#CBD5E1] pl-4 flex flex-col gap-0.5 shrink-0">
+        <div className="text-right text-[8.5pt] font-mono text-[var(--m-text-muted)] border-l border-[#CBD5E1] pl-4 flex flex-col gap-0.5 shrink-0">
           <div>
-            <strong className="text-[#0F172A]">Station:</strong> {location.city}, {location.state}
+            <strong className="text-[var(--m-on-accent)]">Station:</strong> {location.city}, {location.state}
           </div>
           <div>
-            <strong className="text-[#0F172A]">Coords:</strong> {coordsLabel}
+            <strong className="text-[var(--m-on-accent)]">Coords:</strong> {coordsLabel}
           </div>
           <div>
-            <strong className="text-[#0F172A]">Station ID:</strong> {location.id || location.imdStation || 'AWS-IND-01'}
+            <strong className="text-[var(--m-on-accent)]">Station ID:</strong> {location.id || location.imdStation || 'AWS-IND-01'}
           </div>
           <div className="text-[8pt] text-[var(--m-text-muted)] mt-1 pt-1 border-t border-[#E2E8F0]">
             Generated: {formattedDate} IST

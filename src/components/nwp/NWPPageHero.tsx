@@ -23,56 +23,56 @@ export const NWPPageHero: React.FC<NWPPageHeroProps> = ({
   return (
     <div
       id="nwp-page-hero"
-      className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4 pt-1 pb-3 border-b border-[#1D5278]/60"
+      className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4 pt-1 pb-3 border-b border-[var(--m-border)]/60"
     >
       {/* Left: Titles & Subtitles */}
       <div className="flex flex-col gap-1.5 max-w-3xl">
         {/* Eyebrow */}
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1565C0]/20 border border-[#1565C0]/40 text-[#29B6F6] text-[11px] font-mono font-bold tracking-wider uppercase">
-            <Cpu className="w-3 h-3 text-[#29B6F6]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] text-[11px] font-mono font-bold tracking-wider uppercase">
+            <Cpu className="w-3 h-3 text-[var(--m-accent)]" />
             NUMERICAL WEATHER PREDICTION
           </span>
-          <span className="text-[11px] text-[#AFC4D8] font-sans">
+          <span className="text-[11px] text-[var(--m-text-secondary)] font-sans">
             Operational Multi-Model Analysis Suite
           </span>
         </div>
 
         {/* Main Title: 38–46px desktop, 32–38px tablet, 26–32px mobile */}
-        <h1 className="text-[26px] sm:text-[34px] lg:text-[40px] font-extrabold text-[#F5F9FC] tracking-tight leading-tight">
+        <h1 className="text-[26px] sm:text-[34px] lg:text-[40px] font-extrabold text-[var(--m-text-primary)] tracking-tight leading-tight">
           Atmospheric Model Forecast
-          <span className="text-[#29B6F6] font-normal text-xl sm:text-2xl lg:text-3xl block sm:inline sm:ml-3">
+          <span className="text-[var(--m-accent)] font-normal text-xl sm:text-2xl lg:text-3xl block sm:inline sm:ml-3">
             — {location.city || 'Chandaka'}, {location.state || 'Odisha'}
           </span>
         </h1>
 
         {/* Description subhead */}
-        <p className="text-xs sm:text-sm text-[#AFC4D8] leading-relaxed font-sans">
+        <p className="text-xs sm:text-sm text-[var(--m-text-secondary)] leading-relaxed font-sans">
           Compare numerical weather models for temperature, rainfall, wind, pressure and forecast uncertainty.
         </p>
 
         {/* Metadata Chips: Latitude, Longitude, Horizon, Last Updated */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
-            <Compass className="w-3 h-3 text-[#29B6F6]" />
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] font-mono">
+            <Compass className="w-3 h-3 text-[var(--m-accent)]" />
             <span className="text-slate-400">Lat:</span>
             <span className="text-white font-medium">{Math.abs(lat).toFixed(4)}°{lat >= 0 ? 'N' : 'S'}</span>
           </div>
 
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
-            <Compass className="w-3 h-3 text-[#29B6F6]" />
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] font-mono">
+            <Compass className="w-3 h-3 text-[var(--m-accent)]" />
             <span className="text-slate-400">Lon:</span>
             <span className="text-white font-medium">{Math.abs(lon).toFixed(4)}°{lon >= 0 ? 'E' : 'W'}</span>
           </div>
 
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] font-mono">
             <Calendar className="w-3 h-3 text-[#00E676]" />
             <span className="text-slate-400">Horizon:</span>
             <span className="text-white font-medium">{forecastHorizon}</span>
           </div>
 
           {lastUpdated && (
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[#AFC4D8] font-mono">
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] font-mono">
               <Clock className="w-3 h-3 text-amber-400" />
               <span className="text-slate-400">Updated:</span>
               <span className="text-white font-medium">{lastUpdated}</span>
@@ -89,8 +89,8 @@ export const NWPPageHero: React.FC<NWPPageHeroProps> = ({
             onClick={onOpenCompare}
             className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer shadow-sm ${
               isCompareMode
-                ? 'bg-[#1565C0] border-[#29B6F6] text-white'
-                : 'bg-[var(--m-surface-1)] border-[var(--m-border)] text-[#AFC4D8] hover:text-[var(--m-text-primary)] hover:border-[#29B6F6]'
+                ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]'
+                : 'bg-[var(--m-surface-1)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-accent)]'
             }`}
           >
             <span>{isCompareMode ? 'Exit Comparison' : 'Compare All Models'}</span>

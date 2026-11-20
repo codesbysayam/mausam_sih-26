@@ -305,7 +305,7 @@ export const ModelOverview: React.FC<ModelOverviewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] text-white font-semibold transition-colors flex items-center gap-1.5 cursor-pointer font-sans"
+                  className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] text-[var(--m-on-accent)] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer font-sans"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>Save & Apply</span>

@@ -104,18 +104,18 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
   return (
     <aside
       aria-label="Map Location Inspector"
-      className="m-panel p-4 flex flex-col gap-3.5 text-[#F3F6FA] h-full"
+      className="m-panel p-4 flex flex-col gap-3.5 text-[var(--m-text-primary)] h-full"
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-[#26394B]">
+      <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-[var(--m-border)]">
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-[#8295A8]">
-            <MapPin className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+          <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--m-text-muted)]">
+            <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
             <span>{inspectedCoords ? 'Point Inspection' : isRadar ? station?.id || 'DWR' : 'Regional Reference'}</span>
           </div>
-          <h3 className="text-sm font-bold text-[#F3F6FA] mt-0.5 truncate">{heading}</h3>
+          <h3 className="text-sm font-bold text-[var(--m-text-primary)] mt-0.5 truncate">{heading}</h3>
           {typeof targetLat === 'number' && typeof targetLng === 'number' && (
-            <div className="text-[11px] font-mono tabular-nums text-[#8295A8] mt-0.5">
+            <div className="text-[11px] font-mono tabular-nums text-[var(--m-text-muted)] mt-0.5">
               {formatCoordinatePair(targetLat, targetLng, 3)}
             </div>
           )}
@@ -127,7 +127,7 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
             <button
               type="button"
               onClick={onClearInspectedCoords}
-              className="w-8 h-8 rounded-lg bg-[#08131F] hover:bg-[#101F2E] border border-[#26394B] text-[#B5C3D1] hover:text-[#F3F6FA] flex items-center justify-center cursor-pointer m-focus-ring"
+              className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center justify-center cursor-pointer m-focus-ring"
               title="Clear custom map pin"
               aria-label="Clear custom map pin"
             >
@@ -140,31 +140,31 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
       {/* Live Point Meteorology (Open-Meteo) */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="font-semibold uppercase tracking-wider text-[#B5C3D1]">
+          <span className="font-semibold uppercase tracking-wider text-[var(--m-text-secondary)]">
             Point Conditions
           </span>
-          <span className="font-mono text-[10px] text-[#35C7E8]">Open-Meteo Point Query</span>
+          <span className="font-mono text-[10px] text-[var(--m-accent)]">Open-Meteo Point Query</span>
         </div>
 
         {isLoadingPoint ? (
-          <div className="p-3 rounded-lg bg-[#08131F] border border-[#26394B] text-xs text-[#8295A8] flex items-center gap-2">
-            <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#35C7E8]" />
+          <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-muted)] flex items-center gap-2">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-[var(--m-accent)]" />
             <span>Querying coordinates...</span>
           </div>
         ) : pointError ? (
-          <div className="p-3 rounded-lg bg-[#08131F] border border-[#F59E0B]/40 text-xs text-[#FCD34D]">
+          <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[#F59E0B]/40 text-xs text-[#FCD34D]">
             {pointError}
           </div>
         ) : pointWeather ? (
           <div className="flex flex-col gap-2.5">
-            <div className="p-3 rounded-lg bg-[#08131F] border border-[#26394B] flex items-baseline justify-between gap-2">
+            <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-baseline justify-between gap-2">
               <div>
-                <div className="text-2xl font-bold font-mono tabular-nums text-[#F3F6FA]">
+                <div className="text-2xl font-bold font-mono tabular-nums text-[var(--m-text-primary)]">
                   {fmtVal(pointWeather.temperatureC, '°C')}
                 </div>
-                <div className="text-xs text-[#B5C3D1] mt-0.5">{pointWeather.condition || '—'}</div>
+                <div className="text-xs text-[var(--m-text-secondary)] mt-0.5">{pointWeather.condition || '—'}</div>
               </div>
-              <div className="text-right text-[11px] text-[#8295A8] font-mono tabular-nums">
+              <div className="text-right text-[11px] text-[var(--m-text-muted)] font-mono tabular-nums">
                 <div>Feels {fmtVal(pointWeather.feelsLikeC, '°C')}</div>
                 <div className="mt-0.5">
                   {pointWeather.observedAt ? formatTimestampIST(pointWeather.observedAt).split(',')[0] : '—'}
@@ -173,41 +173,41 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center gap-2">
-                <Wind className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+              <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center gap-2">
+                <Wind className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-[10px] text-[#8295A8]">Wind</div>
-                  <div className="font-mono tabular-nums font-semibold text-[#F3F6FA] truncate">
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Wind</div>
+                  <div className="font-mono tabular-nums font-semibold text-[var(--m-text-primary)] truncate">
                     {fmtVal(pointWeather.windSpeedKmh, ' km/h')} {pointWeather.windDirection || ''}
                   </div>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center gap-2">
-                <Droplets className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+              <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center gap-2">
+                <Droplets className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-[10px] text-[#8295A8]">Humidity / Rain</div>
-                  <div className="font-mono tabular-nums font-semibold text-[#F3F6FA] truncate">
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Humidity / Rain</div>
+                  <div className="font-mono tabular-nums font-semibold text-[var(--m-text-primary)] truncate">
                     {fmtVal(pointWeather.relativeHumidity, '%')} · {fmtVal(pointWeather.precipitationMm, ' mm')}
                   </div>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center gap-2">
-                <Gauge className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+              <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center gap-2">
+                <Gauge className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-[10px] text-[#8295A8]">Pressure</div>
-                  <div className="font-mono tabular-nums font-semibold text-[#F3F6FA]">
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Pressure</div>
+                  <div className="font-mono tabular-nums font-semibold text-[var(--m-text-primary)]">
                     {fmtVal(pointWeather.pressureHpa, ' hPa')}
                   </div>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] flex items-center gap-2">
-                <Cloud className="w-3.5 h-3.5 text-[#35C7E8] shrink-0" />
+              <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center gap-2">
+                <Cloud className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-[10px] text-[#8295A8]">Cloud / AQI</div>
-                  <div className="font-mono tabular-nums font-semibold text-[#F3F6FA] truncate">
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Cloud / AQI</div>
+                  <div className="font-mono tabular-nums font-semibold text-[var(--m-text-primary)] truncate">
                     {fmtVal(pointWeather.cloudCoverPercent, '%')} ·{' '}
                     {pointAqi?.aqi !== null && pointAqi?.aqi !== undefined ? `AQI ${pointAqi.aqi}` : 'AQI —'}
                   </div>
@@ -217,18 +217,18 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
 
             {pointDaily.length > 0 && (
               <div className="pt-1">
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-[#8295A8] mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-[var(--m-text-muted)] mb-1.5">
                   Multi-Day Outlook (Point Forecast)
                 </div>
-                <div className="divide-y divide-[#26394B] bg-[#08131F] border border-[#26394B] rounded-lg px-2.5">
+                <div className="divide-y divide-[var(--m-border)] bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg px-2.5">
                   {pointDaily.map((d) => (
                     <div
                       key={d.date}
                       className="py-1.5 flex items-center justify-between text-[11px] gap-2"
                     >
-                      <span className="font-medium text-[#F3F6FA] w-16 shrink-0">{d.dayName}</span>
-                      <span className="text-[#8295A8] truncate flex-1">{d.condition}</span>
-                      <span className="font-mono tabular-nums text-[#F3F6FA] shrink-0">
+                      <span className="font-medium text-[var(--m-text-primary)] w-16 shrink-0">{d.dayName}</span>
+                      <span className="text-[var(--m-text-muted)] truncate flex-1">{d.condition}</span>
+                      <span className="font-mono tabular-nums text-[var(--m-text-primary)] shrink-0">
                         {fmtVal(d.tempMinC, '°')} / {fmtVal(d.tempMaxC, '°')}
                       </span>
                     </div>
@@ -238,7 +238,7 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
             )}
           </div>
         ) : (
-          <div className="p-3 rounded-lg bg-[#08131F] border border-[#26394B] text-xs text-[#8295A8]">
+          <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-xs text-[var(--m-text-muted)]">
             Tap anywhere on the map to inspect local conditions and forecast.
           </div>
         )}
@@ -246,18 +246,18 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
 
       {/* Station or Regional Reference Context */}
       {isRadar && station ? (
-        <div className="pt-2.5 border-t border-[#26394B]">
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-[#8295A8] mb-1.5">
+        <div className="pt-2.5 border-t border-[var(--m-border)]">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-[var(--m-text-muted)] mb-1.5">
             <span>DWR Station Specs</span>
-            <span className="font-mono text-[#B5C3D1]">{station.band.split(' ')[0]}</span>
+            <span className="font-mono text-[var(--m-text-secondary)]">{station.band.split(' ')[0]}</span>
           </div>
           <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-            <div className="p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-              <span className="text-[#8295A8] block text-[10px]">Range</span>
+            <div className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)] block text-[10px]">Range</span>
               <span className="font-mono tabular-nums font-semibold">{station.maxRangeKm} km</span>
             </div>
-            <div className="p-2 rounded-lg bg-[#08131F] border border-[#26394B]">
-              <span className="text-[#8295A8] block text-[10px]">Elevation</span>
+            <div className="p-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)]">
+              <span className="text-[var(--m-text-muted)] block text-[10px]">Elevation</span>
               <span className="font-mono tabular-nums font-semibold">
                 {station.elevationM !== undefined && station.elevationM !== null ? `${station.elevationM} m` : '—'}
               </span>
@@ -265,29 +265,29 @@ export const MapLocationInspector: React.FC<MapLocationInspectorProps> = ({
           </div>
         </div>
       ) : stateData ? (
-        <div className="pt-2.5 border-t border-[#26394B]">
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-[#8295A8] mb-1.5">
+        <div className="pt-2.5 border-t border-[var(--m-border)]">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-[var(--m-text-muted)] mb-1.5">
             <span>Regional Reference Baseline</span>
-            <span className="font-mono text-[#8295A8]">{stateData.updatedAt || 'Reference'}</span>
+            <span className="font-mono text-[var(--m-text-muted)]">{stateData.updatedAt || 'Reference'}</span>
           </div>
-          <div className="p-2.5 rounded-lg bg-[#08131F] border border-[#26394B] grid grid-cols-2 gap-y-1 gap-x-2 text-[11px]">
-            <span className="text-[#8295A8]">
-              Ref Temp: <strong className="text-[#F3F6FA] font-mono tabular-nums">{fmtVal(stateData.temperature, '°C')}</strong>
+          <div className="p-2.5 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] grid grid-cols-2 gap-y-1 gap-x-2 text-[11px]">
+            <span className="text-[var(--m-text-muted)]">
+              Ref Temp: <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{fmtVal(stateData.temperature, '°C')}</strong>
             </span>
-            <span className="text-[#8295A8]">
-              Ref Rain: <strong className="text-[#F3F6FA] font-mono tabular-nums">{fmtVal(stateData.rainfall, ' mm')}</strong>
+            <span className="text-[var(--m-text-muted)]">
+              Ref Rain: <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{fmtVal(stateData.rainfall, ' mm')}</strong>
             </span>
-            <span className="text-[#8295A8]">
-              Ref Wind: <strong className="text-[#F3F6FA] font-mono tabular-nums">{fmtVal(stateData.windSpeed, ' km/h')}</strong>
+            <span className="text-[var(--m-text-muted)]">
+              Ref Wind: <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{fmtVal(stateData.windSpeed, ' km/h')}</strong>
             </span>
-            <span className="text-[#8295A8]">
-              Ref AQI: <strong className="text-[#F3F6FA] font-mono tabular-nums">{fmtVal(stateData.aqi)}</strong>
+            <span className="text-[var(--m-text-muted)]">
+              Ref AQI: <strong className="text-[var(--m-text-primary)] font-mono tabular-nums">{fmtVal(stateData.aqi)}</strong>
             </span>
           </div>
         </div>
       ) : null}
 
-      <div className="mt-auto pt-2 border-t border-[#26394B] text-[10px] text-[#8295A8]">
+      <div className="mt-auto pt-2 border-t border-[var(--m-border)] text-[10px] text-[var(--m-text-muted)]">
         {observationTime
           ? `Overlay sweep: ${observationTime}`
           : 'Sources separated: Radar mosaic, Open-Meteo point query, and regional reference.'}

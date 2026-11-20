@@ -277,7 +277,7 @@ export const DAILY_FORECAST: DailyForecastItem[] = [
     aqi: 112,
     humidity: 64,
     wind: '18 km/h WNW',
-    barProgress: { startPercent: 30, widthPercent: 40, color: '#38bdf8' },
+    barProgress: { startPercent: 30, widthPercent: 40, color: '#C5A46D' },
   },
   {
     day: 'Tue',
@@ -319,7 +319,7 @@ export const DAILY_FORECAST: DailyForecastItem[] = [
     aqi: 58,
     humidity: 58,
     wind: '15 km/h ENE',
-    barProgress: { startPercent: 40, widthPercent: 42, color: '#38bdf8' },
+    barProgress: { startPercent: 40, widthPercent: 42, color: '#C5A46D' },
   },
   {
     day: 'Fri',

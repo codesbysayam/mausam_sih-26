@@ -84,7 +84,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             onClick={onToggleCompareMode}
             className={`min-h-[38px] px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring ${
               isCompareMode
-                ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+                ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]'
                 : 'bg-[var(--m-surface-1)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
             }`}
           >
@@ -124,7 +124,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               onClick={() => onSelectModel(m.id)}
               className={`group relative text-left rounded-xl p-4 transition-colors cursor-pointer flex flex-col justify-between gap-3 border m-focus-ring ${
                 isSelected
-                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-[inset_0_2px_0_0_#35C7E8]'
+                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] shadow-[inset_0_2px_0_0_#C5A46D]'
                   : 'bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
               }`}
             >
@@ -150,7 +150,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                       {m.title}
                     </span>
                     {isSelected && (
-                      <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[var(--m-accent)] text-white uppercase tracking-wider">
+                      <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[var(--m-accent)] text-[var(--m-on-accent)] uppercase tracking-wider">
                         Active
                       </span>
                     )}

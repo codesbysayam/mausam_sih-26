@@ -158,10 +158,10 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
             <>
               <div className="w-full">
                 <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
-                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#26394B" strokeDasharray="3 3" />
-                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#26394B" strokeDasharray="3 3" />
-                  <path d={pressPath} fill="none" stroke="#A78BFA" strokeWidth="2" />
-                  <circle cx={pressCoords[0].x} cy={pressCoords[0].y} r="3.5" fill="#A78BFA" />
+                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="rgba(226, 219, 200, 0.14)" strokeDasharray="3 3" />
+                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="rgba(226, 219, 200, 0.14)" strokeDasharray="3 3" />
+                  <path d={pressPath} fill="none" stroke="#C5A46D" strokeWidth="2" />
+                  <circle cx={pressCoords[0].x} cy={pressCoords[0].y} r="3.5" fill="#C5A46D" />
                 </svg>
               </div>
               <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">
@@ -192,10 +192,10 @@ export const WindPressureCharts: React.FC<WindPressureChartsProps> = ({ points }
             <>
               <div className="w-full">
                 <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto">
-                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="#26394B" strokeDasharray="3 3" />
-                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="#26394B" strokeDasharray="3 3" />
-                  <path d={humidPath} fill="none" stroke="#35C7E8" strokeWidth="2" />
-                  <circle cx={humidCoords[0].x} cy={humidCoords[0].y} r="3.5" fill="#35C7E8" />
+                  <line x1={padX} y1={padY} x2={svgW - padX} y2={padY} stroke="rgba(226, 219, 200, 0.14)" strokeDasharray="3 3" />
+                  <line x1={padX} y1={svgH - padY} x2={svgW - padX} y2={svgH - padY} stroke="rgba(226, 219, 200, 0.14)" strokeDasharray="3 3" />
+                  <path d={humidPath} fill="none" stroke="#78AEB6" strokeWidth="2" />
+                  <circle cx={humidCoords[0].x} cy={humidCoords[0].y} r="3.5" fill="#78AEB6" />
                 </svg>
               </div>
               <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)] pt-2 border-t border-[var(--m-border)] tabular-nums">

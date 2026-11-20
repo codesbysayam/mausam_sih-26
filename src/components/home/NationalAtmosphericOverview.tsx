@@ -82,9 +82,9 @@ export const NationalAtmosphericOverview: React.FC = () => {
         <div className="bg-[var(--m-surface-1)] p-3 rounded-lg border border-[var(--m-border)] space-y-1">
           <div className="flex items-center justify-between text-[var(--m-text-muted)]">
             <span className="text-[10px] font-bold uppercase">24h Max Rainfall</span>
-            <CloudRain className="w-4 h-4 text-[#60A5FA]" />
+            <CloudRain className="w-4 h-4 text-[var(--m-accent)]" />
           </div>
-          <div className="text-xl font-extrabold text-[#60A5FA]">
+          <div className="text-xl font-extrabold text-[var(--m-accent)]">
             112.4 mm
           </div>
           <div className="text-xs font-semibold text-white truncate">Mawsynram, Meghalaya</div>

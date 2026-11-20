@@ -350,7 +350,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                       : aqiVal! > 100
                       ? '#FCD34D'
                       : '#6EE7B7'
-                    : '#8295A8',
+                    : '#898B83',
                 }}
               >
                 {hasAqi ? `${aqiVal} (${aqiCat || 'AQI'})` : '—'}
@@ -447,7 +447,7 @@ I am your **National Meteorological Assistant**, providing verified atmospheric,
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isLoading}
-                className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] disabled:opacity-40 text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring shrink-0"
+                className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] disabled:opacity-40 text-[var(--m-on-accent)] hover:text-[var(--m-on-accent)] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring shrink-0"
               >
                 <span>Send</span>
                 <Send className="w-3.5 h-3.5" />

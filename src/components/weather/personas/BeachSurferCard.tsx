@@ -22,7 +22,7 @@ export const BeachSurferCard: React.FC<BeachSurferCardProps> = ({
       : marine.surfCondition === 'Calm & Safe'
       ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
       : marine.surfCondition === 'Moderate Swell'
-      ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[#0B72B9]/35'
+      ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
       : marine.surfCondition === 'Rough Waves'
       ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35'
       : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35';

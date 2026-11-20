@@ -270,9 +270,9 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
 
   switch (metric) {
     case 'temperature': {
-      if (!isNum(state.temperature)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      if (!isNum(state.temperature)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.temperature;
-      let bg = '#1565C0';
+      let bg = '#C5A46D';
       if (val >= 38) bg = '#EF4444';
       else if (val >= 32) bg = '#F97316';
       else if (val >= 25) bg = '#F59E0B';
@@ -280,17 +280,17 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `${val}°C`, bg, text: '#FFFFFF' };
     }
     case 'rainfall': {
-      if (!isNum(state.rainfall)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      if (!isNum(state.rainfall)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.rainfall;
-      let bg = '#334155';
+      let bg = '#2F3534';
       if (val >= 50) bg = '#8B5CF6';
-      else if (val >= 20) bg = '#1565C0';
-      else if (val >= 5) bg = '#0284C7';
+      else if (val >= 20) bg = '#C5A46D';
+      else if (val >= 5) bg = '#78AEB6';
       else if (val > 0) bg = '#065F46';
       return { value: `${val} mm`, bg, text: '#FFFFFF' };
     }
     case 'aqi': {
-      if (!isNum(state.aqi)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      if (!isNum(state.aqi)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.aqi;
       let bg = '#00C897';
       if (val > 250) bg = '#EF4444';
@@ -300,16 +300,16 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
       return { value: `AQI ${val}`, bg, text: '#FFFFFF' };
     }
     case 'humidity': {
-      if (!isNum(state.humidity)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      if (!isNum(state.humidity)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.humidity;
-      let bg = '#0284C7';
+      let bg = '#78AEB6';
       if (val >= 80) bg = '#1D4ED8';
       else if (val >= 60) bg = '#0EA5E9';
       else if (val >= 40) bg = '#14B8A6';
       return { value: `${val}%`, bg, text: '#FFFFFF' };
     }
     case 'wind': {
-      if (!isNum(state.windSpeed)) return { value: '—', bg: '#101F2E', text: '#8295A8' };
+      if (!isNum(state.windSpeed)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.windSpeed;
       let bg = '#0EA5E9';
       if (val >= 35) bg = '#EF4444';
@@ -335,7 +335,7 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
     default:
       return {
         value: isNum(state.temperature) ? `${state.temperature}°C` : '—',
-        bg: '#1565C0',
+        bg: '#C5A46D',
         text: '#FFFFFF',
       };
   }
@@ -493,7 +493,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
         <div class="cursor-pointer group flex flex-col items-center select-none" style="transform: translate(-50%, -50%); ${filterStyle}">
           <div class="flex items-center gap-1 px-1.5 py-0.5 rounded shadow-lg text-[10px] font-bold font-mono transition-transform duration-150 ${
             isSelected
-              ? 'ring-2 ring-white scale-110 shadow-[0_0_12px_rgba(21,101,192,0.8)]'
+              ? 'ring-2 ring-white scale-110 shadow-[0_0_12px_rgba(197, 164, 109,0.8)]'
               : 'group-hover:scale-105'
           }" style="background-color: ${metricInfo.bg}; color: ${metricInfo.text}; border: 1px solid rgba(255,255,255,0.3);">
             <span class="opacity-90">${code}</span>
@@ -520,15 +520,15 @@ export const MausamMap: React.FC<MausamMapProps> = ({
       const isS = station.band.includes('S-Band');
       const isC = station.band.includes('C-Band');
       const bandTag = isS ? 'S' : isC ? 'C' : 'X';
-      const badgeBg = isSelected ? '#0B72B9' : '#0B1927';
-      const borderCol = isSelected ? '#35C7E8' : '#26394B';
+      const badgeBg = isSelected ? '#C5A46D' : '#111314';
+      const borderCol = isSelected ? '#C5A46D' : '#2F3534';
 
       const html = `
         <div class="cursor-pointer group flex flex-col items-center select-none" style="transform: translate(-50%, -50%);">
           <div class="relative flex items-center justify-center">
             ${
               isSelected
-                ? '<div class="absolute -inset-1.5 rounded-full border border-[#38BDF8]/80 pointer-events-none"></div>'
+                ? '<div class="absolute -inset-1.5 rounded-full border border-[var(--m-accent)]/80 pointer-events-none"></div>'
                 : ''
             }
             <div class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-[10px] text-white transition-transform ${
@@ -545,8 +545,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               </svg>
             </div>
           </div>
-          <div class="bg-[#061A2B]/90 text-[9px] font-mono px-1 py-0.2 rounded border border-[#1D5278] text-[#F5F9FC] font-semibold mt-0.5 whitespace-nowrap shadow-sm">
-            ${station.id.replace('DWR-', '')} <span class="text-[#38BDF8]">${bandTag}</span>
+          <div class="bg-[#061A2B]/90 text-[9px] font-mono px-1 py-0.2 rounded border border-[var(--m-border)] text-[var(--m-text-primary)] font-semibold mt-0.5 whitespace-nowrap shadow-sm">
+            ${station.id.replace('DWR-', '')} <span class="text-[var(--m-accent)]">${bandTag}</span>
           </div>
         </div>
       `;
@@ -563,7 +563,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
   return (
     <div
-      className={`relative w-full ${heightClass} bg-[#07111D] rounded-none overflow-hidden select-none ${
+      className={`relative w-full ${heightClass} bg-[var(--m-surface-inset)] rounded-none overflow-hidden select-none ${
         isLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
       } ${className}`}
       style={{ zIndex: 0 }}
@@ -592,8 +592,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           }
           className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md transition-colors cursor-pointer m-focus-ring ${
             isLocked
-              ? 'bg-[#0B1927]/95 text-[#FCD34D] border border-[#F59E0B]/70'
-              : 'bg-[#0B1927]/90 text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] border border-[#26394B]'
+              ? 'bg-[var(--m-surface-inset)]/95 text-[#FCD34D] border border-[#F59E0B]/70'
+              : 'bg-[var(--m-surface-inset)]/90 text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)]'
           }`}
         >
           {isLocked ? (
@@ -609,7 +609,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* On-Map Sector Lock Notification Strip (Top-Left) */}
       {isLocked && (
-        <div className="absolute top-3 left-3 z-[400] bg-[#0B1927]/95 border border-[#F59E0B]/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[#F3F6FA] flex items-center gap-2 pointer-events-auto">
+        <div className="absolute top-3 left-3 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
           <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
           <span className="text-[#FCD34D] font-bold text-[10px] uppercase tracking-wider">LOCKED SECTOR:</span>
           <span className="text-[11px] font-semibold text-white truncate max-w-[150px] sm:max-w-[280px]">
@@ -621,7 +621,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               e.stopPropagation();
               onToggleLock?.();
             }}
-            className="ml-1 text-[10px] text-[#35C7E8] hover:text-white underline font-sans cursor-pointer shrink-0 font-semibold"
+            className="ml-1 text-[10px] text-[var(--m-accent)] hover:text-white underline font-sans cursor-pointer shrink-0 font-semibold"
             title="Unlock map to pan and zoom freely"
           >
             Unlock
@@ -631,9 +631,9 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* Notice tooltip when interacting with locked map */}
       {showLockNotice && isLocked && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[400] bg-[#0B1927]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none backdrop-blur-md">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none backdrop-blur-md">
           <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
-          <span className="text-[11px] font-medium text-[#F3F6FA]">
+          <span className="text-[11px] font-medium text-[var(--m-text-primary)]">
             Sector View is Locked — Accidental pan/zoom prevented. Click &quot;Unlock&quot; to adjust.
           </span>
         </div>
@@ -681,14 +681,14 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
       {/* On-Map Precipitation Filter Banner when active */}
       {isPrecipFiltered && (
-        <div className="absolute top-3 right-36 z-[400] bg-[#0B1927]/95 border border-[#F59E0B]/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#F3F6FA] flex items-center gap-2 pointer-events-auto">
+        <div className="absolute top-3 right-36 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
           <span className="text-[#FCD34D] font-bold text-[10px] uppercase">
             FILTER: {effectivePrecipLevels.length}/6 ON
           </span>
           <button
             type="button"
             onClick={() => handlePrecipLevelsChange(ALL_PRECIP_LEVEL_IDS)}
-            className="text-[10px] text-[#35C7E8] hover:text-white underline font-sans cursor-pointer font-bold"
+            className="text-[10px] text-[var(--m-accent)] hover:text-white underline font-sans cursor-pointer font-bold"
             title="Show all precipitation intensity layers"
           >
             Reset
@@ -768,8 +768,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                 center={[selectedStation.latitude, selectedStation.longitude]}
                 radius={selectedStation.maxRangeKm * 1000}
                 pathOptions={{
-                  color: '#1565C0',
-                  fillColor: '#0B3D91',
+                  color: '#C5A46D',
+                  fillColor: '#C5A46D',
                   fillOpacity: 0.08,
                   weight: 1.8,
                   dashArray: '4, 4',
@@ -800,8 +800,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                   <Tooltip direction="top" offset={[0, -14]} opacity={0.95}>
                     <div className="text-xs font-sans text-white py-0.5 px-1 font-semibold">
                       <span>{station.name}</span>
-                      <span className="text-[#38BDF8] ml-1">({station.id})</span>
-                      <div className="text-[10px] text-[#AFC4D8] font-normal">
+                      <span className="text-[var(--m-accent)] ml-1">({station.id})</span>
+                      <div className="text-[10px] text-[var(--m-text-secondary)] font-normal">
                         {station.band} • Max Range: {station.maxRangeKm} km
                       </div>
                     </div>
@@ -833,10 +833,10 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                 >
                   <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
                     <div className="text-xs font-sans text-white p-1">
-                      <div className="font-bold border-b border-[#334155] pb-0.5 mb-1 text-[#F5F9FC]">
+                      <div className="font-bold border-b border-[var(--m-border)] pb-0.5 mb-1 text-[var(--m-text-primary)]">
                         {state.name} ({coords.code})
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-[#B5C3D1]">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-[var(--m-text-secondary)]">
                         <span>Temp: <strong className="text-white">{state.temperature ?? '—'}°C</strong></span>
                         <span>Rain: <strong className="text-white">{state.rainfall ?? '—'} mm</strong></span>
                         <span>AQI: <strong className="text-white">{state.aqi ?? '—'}</strong></span>
@@ -880,8 +880,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               className: 'custom-inspect-marker',
               html: `
                 <div class="relative flex items-center justify-center" style="transform: translate(-50%, -50%);">
-                  <div class="w-6 h-6 rounded-full border-2 border-[#38BDF8] bg-[#0B1219]/60 flex items-center justify-center shadow-lg">
-                    <div class="w-2 h-2 rounded-full bg-[#38BDF8]"></div>
+                  <div class="w-6 h-6 rounded-full border-2 border-[var(--m-accent)] bg-[#0B1219]/60 flex items-center justify-center shadow-lg">
+                    <div class="w-2 h-2 rounded-full bg-[var(--m-accent)]"></div>
                   </div>
                 </div>
               `,

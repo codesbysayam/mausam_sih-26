@@ -42,7 +42,7 @@ export const CycloneThreatMatrix: React.FC<CycloneThreatMatrixProps> = ({
         return {
           bg: 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]',
           label: 'MONITORING',
-          dot: 'bg-[#35C7E8]',
+          dot: 'bg-[var(--m-accent)]',
         };
       default:
         return {

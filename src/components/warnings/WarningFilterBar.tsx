@@ -124,7 +124,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onClick={() => handleUpdate('severity', 'all')}
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'all'
-                ? 'bg-[var(--m-accent)] text-white border-[var(--m-accent)]'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border-[var(--m-accent)]'
                 : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border-[var(--m-border)]'
             }`}
           >
@@ -163,7 +163,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onClick={() => handleUpdate('severity', 'yellow')}
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'yellow'
-                ? 'bg-[#EAB308] text-[#07111D] border-[#FDE047]'
+                ? 'bg-[#EAB308] text-[var(--m-on-accent)] border-[#FDE047]'
                 : 'bg-[var(--m-surface-inset)] text-[var(--m-watch)] hover:bg-[var(--m-watch-soft)] border-[var(--m-watch)]/35'
             }`}
           >
@@ -176,7 +176,7 @@ export const WarningFilterBar: React.FC<WarningFilterBarProps> = ({
             onClick={() => handleUpdate('severity', 'green')}
             className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold transition-colors cursor-pointer border whitespace-nowrap ${
               filter.severity === 'green'
-                ? 'bg-[#22C7A0] text-[#07111D] border-[#6EE7B7]'
+                ? 'bg-[#22C7A0] text-[var(--m-on-accent)] border-[#6EE7B7]'
                 : 'bg-[var(--m-surface-inset)] text-[var(--m-ok)] hover:bg-[var(--m-ok-soft)] border-[var(--m-ok)]/35'
             }`}
           >

@@ -160,7 +160,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
       {/* Top Bar: Title, Dynamic Station Time Display, Search & Refresh Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-3 border-b border-[var(--m-border-strong)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/40 flex items-center justify-center text-[#4FA8E0] shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
@@ -184,10 +184,10 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
           {/* Dynamic Station Local Time & Solar Meridian Widget */}
           <div
             id="station-dynamic-time-widget"
-            className="flex items-center gap-2.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0]/60 px-3 py-1.5 rounded-md transition-colors shadow-inner"
+            className="flex items-center gap-2.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] hover:border-[var(--m-accent)]/60 px-3 py-1.5 rounded-md transition-colors shadow-inner"
             title={`Station Coordinates: ${formatCoordinatePair(stationTimeDetails.lat, stationTimeDetails.lng, 2)} • Local Solar Time: ${stationTimeDetails.formattedSolarTime}`}
           >
-            <div className="p-1.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[#4FA8E0] shrink-0">
+            <div className="p-1.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[var(--m-accent)] shrink-0">
               <Clock className="w-4 h-4" />
             </div>
 
@@ -196,7 +196,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                 <span className="text-xs font-black font-mono text-white tracking-tight">
                   {stationTimeDetails.clockTime}
                 </span>
-                <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded bg-[var(--m-accent-soft)] text-[#4FA8E0] border border-[#0B72B9]/40">
+                <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/40">
                   {stationTimeDetails.timeZoneLabel}
                 </span>
               </div>
@@ -225,7 +225,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                   setIsSearchOpen(true);
                 }}
                 placeholder="Search station or city..."
-                className="w-full pl-9 pr-8 py-1.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-md text-xs text-[var(--m-text-primary)] placeholder-[#8A94A6] focus:outline-none focus:border-[#4FA8E0] transition-colors"
+                className="w-full pl-9 pr-8 py-1.5 bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] rounded-md text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)] transition-colors"
               />
               {searchQuery && (
                 <button
@@ -241,7 +241,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
 
             {/* Autocomplete Dropdown */}
             {isSearchOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--m-surface-2)] border border-[#4FA8E0]/60 rounded-md shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[var(--m-border-strong)]">
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--m-surface-2)] border border-[var(--m-accent)]/60 rounded-md shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-[var(--m-border-strong)]">
                 <div className="p-2 text-[10px] font-bold text-[var(--m-text-secondary)] uppercase tracking-wider bg-[var(--m-surface-1)]">
                   {searchQuery ? `Matching Stations (${searchResults.length})` : 'Popular Weather Stations'}
                 </div>
@@ -256,7 +256,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
                       type="button"
                       onClick={() => handleLocationPick(loc)}
                       className={`w-full p-2.5 text-left hover:bg-[var(--m-surface-2)] transition-colors flex items-center justify-between gap-2 text-xs ${
-                        loc.id === selectedLocation.id ? 'bg-[var(--m-accent-soft)] border-l-2 border-[#4FA8E0]' : ''
+                        loc.id === selectedLocation.id ? 'bg-[var(--m-accent-soft)] border-l-2 border-[var(--m-accent)]' : ''
                       }`}
                     >
                       <div>
@@ -286,10 +286,10 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
             type="button"
             onClick={handleTriggerRefresh}
             disabled={isLoading}
-            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shrink-0"
+            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[var(--m-accent)] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shrink-0"
             title="Fetch real-time calibrated observation data"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#4FA8E0] ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[var(--m-accent)] ${isLoading ? 'animate-spin' : ''}`} />
             <span>{isLoading ? 'Updating...' : refreshSuccess ? 'Updated' : 'Refresh Data'}</span>
           </button>
 
@@ -298,10 +298,10 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
             id="btn-print-weather-report"
             type="button"
             onClick={() => window.print()}
-            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[#4FA8E0] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+            className="px-3 py-1.5 bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border border-[var(--m-border-strong)] hover:border-[var(--m-accent)] text-[var(--m-text-primary)] rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
             title="Print current weather observation report"
           >
-            <Printer className="w-3.5 h-3.5 text-[#4FA8E0]" />
+            <Printer className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span className="hidden sm:inline">Print Report</span>
           </button>
         </div>
@@ -311,7 +311,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--m-text-secondary)]">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 text-white font-semibold">
-            <MapPin className="w-3.5 h-3.5 text-[#4FA8E0]" />
+            <MapPin className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             <span>
               {selectedLocation.city}, {selectedLocation.state}
             </span>
@@ -323,7 +323,7 @@ export const WeatherPageHeader: React.FC<WeatherPageHeaderProps> = ({
           <span className="text-[#314255]">|</span>
 
           <span className="font-mono bg-[var(--m-surface-2)] px-2 py-0.5 rounded border border-[var(--m-border-strong)] text-[11px] text-[#DCE3EB]">
-            Station: <strong className="text-[#4FA8E0]">{selectedLocation.imdStation || 'AWS-IND-01'}</strong>
+            Station: <strong className="text-[var(--m-accent)]">{selectedLocation.imdStation || 'AWS-IND-01'}</strong>
           </span>
 
           <span className="text-[#314255]">|</span>

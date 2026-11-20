@@ -99,7 +99,7 @@ export const AgrometView: React.FC = () => {
       <section id="chapter-farm-status" className="space-y-3">
         <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>01</span>
-          <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
+          <span className="w-8 h-[1px] bg-[var(--m-accent-soft)]" />
           <span>Today on the Farm</span>
         </div>
         <TodaysFarmOutlook bulletin={bulletin} />
@@ -119,7 +119,7 @@ export const AgrometView: React.FC = () => {
       <section id="chapter-causal-impact" className="space-y-3">
         <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>03</span>
-          <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
+          <span className="w-8 h-[1px] bg-[var(--m-accent-soft)]" />
           <span>Weather → Farm Impact Linkage</span>
         </div>
         <WeatherFarmImpactFlow bulletin={bulletin} />
@@ -129,7 +129,7 @@ export const AgrometView: React.FC = () => {
       <section id="chapter-rainfall-soil" className="space-y-3">
         <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>04</span>
-          <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
+          <span className="w-8 h-[1px] bg-[var(--m-accent-soft)]" />
           <span>Rainfall &amp; Soil Intelligence</span>
         </div>
         <RainfallAndSoilSection bulletin={bulletin} />
@@ -179,7 +179,7 @@ export const AgrometView: React.FC = () => {
       <section id="chapter-outlook-radar" className="space-y-6">
         <div className="flex items-center gap-2.5 text-xs font-mono font-bold text-[var(--m-accent)] uppercase tracking-widest px-1">
           <span>08</span>
-          <span className="w-8 h-[1px] bg-[#38BDF8]/40" />
+          <span className="w-8 h-[1px] bg-[var(--m-accent-soft)]" />
           <span>5-Day Farm Horizon &amp; Risk Radar</span>
         </div>
         <FarmWeatherCalendar bulletin={bulletin} />

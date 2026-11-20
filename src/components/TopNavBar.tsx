@@ -65,7 +65,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
       type: 'sunny',
       label: 'Clear',
       icon: 'sunny',
-      activeClass: 'bg-[#FFC93C] text-[#0F141A] font-semibold shadow-sm',
+      activeClass: 'bg-[#FFC93C] text-[var(--m-on-accent)] font-semibold shadow-sm',
     },
     {
       type: 'rain',
@@ -83,13 +83,13 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
       type: 'fog',
       label: 'Fog',
       icon: 'foggy',
-      activeClass: 'bg-[#B8C2CC] text-[#0F141A] font-semibold shadow-sm',
+      activeClass: 'bg-[#B8C2CC] text-[var(--m-on-accent)] font-semibold shadow-sm',
     },
     {
       type: 'duststorm',
       label: 'Dust',
       icon: 'air',
-      activeClass: 'bg-[#FFB703] text-[#0F141A] font-semibold shadow-sm',
+      activeClass: 'bg-[#FFB703] text-[var(--m-on-accent)] font-semibold shadow-sm',
     },
   ];
 
@@ -102,7 +102,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--m-surface-1)] backdrop-blur-md border-b border-[rgba(225,230,235,0.12)] select-none font-sans">
+    <header className="sticky top-0 z-40 bg-[var(--m-surface-1)] backdrop-blur-md border-b border-[rgba(226, 219, 200,0.12)] select-none font-sans">
       {/* 1. Dynamic Severe Weather Alert Ticker Ribbon */}
       <AlertTicker alerts={alerts} onSelectAlert={onSelectAlert} />
 
@@ -114,7 +114,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('today')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-lg bg-[var(--m-accent)] flex items-center justify-center text-[#FFFFFF] shadow-md group-hover:bg-[#0A5A94] transition-all shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-[var(--m-accent)] flex items-center justify-center text-[#FFFFFF] shadow-md group-hover:bg-[var(--m-accent-hover)] transition-all shrink-0">
               <span className="material-symbols-outlined text-[24px] font-bold">
                 cyclone
               </span>
@@ -124,7 +124,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 <h1 className="text-lg font-bold text-[var(--m-text-primary)] tracking-tight leading-tight">
                   MAUSAM
                 </h1>
-                <span className="px-1.5 py-0.5 rounded bg-[var(--m-accent-soft)] text-[#4FA8E0] text-[10px] font-semibold border border-[#0B72B9]/30">
+                <span className="px-1.5 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] text-[10px] font-semibold border border-[var(--m-accent)]/30">
                   OFFICIAL
                 </span>
               </div>
@@ -134,11 +134,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </div>
           </div>
 
-          <div className="hidden md:block h-6 w-px bg-[rgba(225,230,235,0.12)]"></div>
+          <div className="hidden md:block h-6 w-px bg-[rgba(226, 219, 200,0.12)]"></div>
 
           {/* Location & District Selector */}
           <div className="flex items-center gap-2 bg-[var(--m-surface-2)] px-3 py-1.5 rounded-lg card-border shadow-xs">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[18px]">
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[18px]">
               location_on
             </span>
             <select
@@ -186,7 +186,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 type="button"
                 onClick={onOpenPlacesModal}
                 title="Browse All India Districts & Radar Stations"
-                className="text-[#4FA8E0] hover:text-[var(--m-text-primary)] p-0.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
+                className="text-[var(--m-accent)] hover:text-[var(--m-text-primary)] p-0.5 rounded hover:bg-[var(--m-surface-3)] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">travel_explore</span>
               </button>
@@ -233,7 +233,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               title="Telemetry Calibration & Simulation"
               className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border transition-all cursor-pointer ${
                 currentDemo === 'LIVE'
-                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border-[rgba(225,230,235,0.12)] hover:bg-[var(--m-surface-3)]'
+                  ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] border-[rgba(226, 219, 200,0.12)] hover:bg-[var(--m-surface-3)]'
                   : 'bg-[#FFB703]/20 text-[#FFB703] border-[#FFB703]/40'
               }`}
             >
@@ -246,7 +246,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
             {showDemoMenu && (
               <div className="absolute right-0 mt-1 w-64 bg-[var(--m-surface-2)] card-border rounded-xl p-2 shadow-2xl z-50 animate-in fade-in duration-150">
-                <div className="p-2 border-b border-[rgba(225,230,235,0.12)] text-[11px] font-bold text-[#4FA8E0] uppercase tracking-wider">
+                <div className="p-2 border-b border-[rgba(226, 219, 200,0.12)] text-[11px] font-bold text-[var(--m-accent)] uppercase tracking-wider">
                   Atmospheric Mode Calibration
                 </div>
                 <div className="flex flex-col gap-1 py-1 text-xs">
@@ -305,7 +305,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
 
           {/* Top Utility Icons (Alerts, Settings, Help) */}
-          <div className="flex items-center gap-1.5 border-l border-[rgba(225,230,235,0.12)] pl-2">
+          <div className="flex items-center gap-1.5 border-l border-[rgba(226, 219, 200,0.12)] pl-2">
             {onOpenNotifications && (
               <button
                 type="button"
@@ -349,7 +349,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           {onOpenAskDrawer && (
             <button
               onClick={onOpenAskDrawer}
-              className="ask-mausam-cursor flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0A5A94] text-[#FFFFFF] text-xs font-semibold shadow-sm transition-all border border-[#4FA8E0]/40"
+              className="ask-mausam-cursor flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[#FFFFFF] text-xs font-semibold shadow-sm transition-all border border-[var(--m-accent)]/40"
             >
               <span className="material-symbols-outlined text-[16px]">smart_toy</span>
               <span className="hidden sm:inline">Ask Mausam</span>
@@ -359,14 +359,14 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
       </div>
 
       {/* 3. Main Navigation Tabs Ribbon */}
-      <div className="bg-[var(--m-surface-2)] border-t border-[rgba(225,230,235,0.12)] overflow-x-auto scrollbar-none">
+      <div className="bg-[var(--m-surface-2)] border-t border-[rgba(226, 219, 200,0.12)] overflow-x-auto scrollbar-none">
         <div className="max-w-[1440px] mx-auto px-4 flex items-center gap-1 relative">
           {/* Tab 1: Today / Overview */}
           <button
             onClick={() => setActiveTab('today')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'today'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -379,7 +379,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('forecast')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'forecast'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -392,7 +392,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('hourly')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'hourly'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -405,7 +405,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('insights')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'insights'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -418,7 +418,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('activities')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'activities'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -431,7 +431,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('radar')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'radar'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
@@ -447,11 +447,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('crowdsource')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'crowdsource'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >
-            <span className="material-symbols-outlined text-[17px] text-[#4FA8E0]">groups</span>
+            <span className="material-symbols-outlined text-[17px] text-[var(--m-accent)]">groups</span>
             <span>Citizen IMD</span>
           </button>
 
@@ -494,7 +494,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={() => setActiveTab('tools')}
             className={`px-3.5 py-2.5 text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 border-b-2 cursor-pointer ${
               activeTab === 'tools'
-                ? 'border-[#0B72B9] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
+                ? 'border-[var(--m-accent)] text-[var(--m-text-primary)] bg-[var(--m-surface-1)]'
                 : 'border-transparent text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)]'
             }`}
           >

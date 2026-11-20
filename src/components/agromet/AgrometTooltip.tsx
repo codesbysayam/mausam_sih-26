@@ -12,7 +12,7 @@ export const AgrometTooltip: React.FC<AgrometTooltipProps> = ({ term, explanatio
 
   return (
     <span className="relative inline-flex items-center gap-1 group cursor-help">
-      {children || <span className="underline decoration-dotted decoration-[#4FA8E0]/60 underline-offset-2">{term}</span>}
+      {children || <span className="underline decoration-dotted decoration-[var(--m-accent)]/60 underline-offset-2">{term}</span>}
       <button
         type="button"
         onMouseEnter={() => setIsVisible(true)}
@@ -21,7 +21,7 @@ export const AgrometTooltip: React.FC<AgrometTooltipProps> = ({ term, explanatio
           e.stopPropagation();
           setIsVisible(!isVisible);
         }}
-        className="text-[var(--m-text-muted)] hover:text-[#4FA8E0] transition-colors focus:outline-none"
+        className="text-[var(--m-text-muted)] hover:text-[var(--m-accent-strong)] transition-colors focus:outline-none"
         aria-label={`Explanation of ${term}`}
       >
         <HelpCircle className="w-3 h-3 inline-block" />
@@ -29,7 +29,7 @@ export const AgrometTooltip: React.FC<AgrometTooltipProps> = ({ term, explanatio
 
       {isVisible && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] rounded-lg shadow-2xl z-50 text-[11px] text-[var(--m-text-primary)] leading-relaxed pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-          <div className="font-bold text-[#4FA8E0] mb-0.5 flex items-center justify-between">
+          <div className="font-bold text-[var(--m-accent)] mb-0.5 flex items-center justify-between">
             <span>{term}</span>
             <span className="text-[9px] uppercase tracking-wider text-[#2ECC71] font-mono">Agro-Met Term</span>
           </div>

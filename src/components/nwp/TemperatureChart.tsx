@@ -111,7 +111,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
                 onClick={() => setHorizonFilter(opt.val)}
                 className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer text-xs font-medium ${
                   horizonFilter === opt.val
-                    ? 'bg-[var(--m-accent)] text-white font-semibold'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-semibold'
                     : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
@@ -128,13 +128,13 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
             <span className="text-[var(--m-accent)] font-bold">
               {formatDate(activePoint.validTime)} {formatHour(activePoint.validTime)}
             </span>
-            <span className="text-[#26394B]">·</span>
-            <span className="text-[var(--m-watch)] font-bold">
+            <span className="text-[var(--m-border-strong)]">·</span>
+            <span className="text-[var(--weather-hot)] font-bold">
               Temp: {activePoint.temperature2m}°C
             </span>
             {activePoint.apparentTemperature !== undefined && (
               <>
-                <span className="text-[#26394B]">·</span>
+                <span className="text-[var(--m-border-strong)]">·</span>
                 <span className="text-[var(--m-text-secondary)]">
                   Feels: {activePoint.apparentTemperature}°C
                 </span>
@@ -161,8 +161,8 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
         >
           <defs>
             <linearGradient id="nwpTempGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#0B72B9" stopOpacity="0.02" />
+              <stop offset="0%" stopColor="#E27B55" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#E6B96B" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 
@@ -176,15 +176,14 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
                   y1={y}
                   x2={svgWidth - paddingX}
                   y2={y}
-                  stroke="#26394B"
-                  strokeOpacity="0.65"
+                  stroke="rgba(226, 219, 200, 0.14)"
                   strokeDasharray="4 4"
                 />
                 <text
                   x={paddingX - 8}
                   y={y + 3}
                   textAnchor="end"
-                  fill="#8295A8"
+                  fill="#898B83"
                   fontSize="10"
                   fontFamily="monospace"
                 >
@@ -198,7 +197,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
           <path
             d={linePath}
             fill="none"
-            stroke="#F59E0B"
+            stroke="#E27B55"
             strokeWidth="2.25"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -206,8 +205,8 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
 
           {coords[maxIdx] && (
             <g transform={`translate(${coords[maxIdx].x}, ${coords[maxIdx].y})`}>
-              <circle r="4.5" fill="#F59E0B" stroke="#08131F" strokeWidth="2" />
-              <text y="-8" textAnchor="middle" fill="#FCD34D" fontSize="10" fontWeight="bold" fontFamily="monospace">
+              <circle r="4.5" fill="#E27B55" stroke="#0B0C0D" strokeWidth="2" />
+              <text y="-8" textAnchor="middle" fill="#E6B96B" fontSize="10" fontWeight="bold" fontFamily="monospace">
                 MAX {coords[maxIdx].pt.temperature2m}°
               </text>
             </g>
@@ -215,8 +214,8 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
 
           {coords[minIdx] && minIdx !== maxIdx && (
             <g transform={`translate(${coords[minIdx].x}, ${coords[minIdx].y})`}>
-              <circle r="4.5" fill="#35C7E8" stroke="#08131F" strokeWidth="2" />
-              <text y="16" textAnchor="middle" fill="#7DD3FC" fontSize="10" fontWeight="bold" fontFamily="monospace">
+              <circle r="4.5" fill="#91B6CC" stroke="#0B0C0D" strokeWidth="2" />
+              <text y="16" textAnchor="middle" fill="#A7C5C5" fontSize="10" fontWeight="bold" fontFamily="monospace">
                 MIN {coords[minIdx].pt.temperature2m}°
               </text>
             </g>
@@ -234,7 +233,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
                     x={c.x}
                     y={svgHeight - 10}
                     textAnchor="middle"
-                    fill="#8295A8"
+                    fill="#898B83"
                     fontSize="10"
                     fontFamily="monospace"
                   >
@@ -259,11 +258,11 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({
                       y1={paddingY}
                       x2={c.x}
                       y2={svgHeight - paddingY}
-                      stroke="#35C7E8"
+                      stroke="#C5A46D"
                       strokeWidth="1.5"
                       strokeDasharray="3 3"
                     />
-                    <circle cx={c.x} cy={c.y} r="5" fill="#F3F6FA" stroke="#F59E0B" strokeWidth="2.5" />
+                    <circle cx={c.x} cy={c.y} r="5" fill="#F0EEE7" stroke="#E27B55" strokeWidth="2.5" />
                   </g>
                 )}
               </g>

@@ -359,7 +359,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             <button
               type="button"
               onClick={() => handleOpenPublication(pub)}
-              className="min-h-[40px] px-3 rounded-lg bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] text-[var(--m-accent)] hover:text-white border border-[var(--m-accent)]/35 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
+              className="min-h-[40px] px-3 rounded-lg bg-[var(--m-accent-soft)] hover:bg-[var(--m-accent)] text-[var(--m-accent)] hover:text-[var(--m-on-accent)] border border-[var(--m-accent)]/35 text-xs font-mono font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
               <span>Read</span>
               <ExternalLink className="w-3 h-3" />
@@ -388,7 +388,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           <button
             type="button"
             onClick={() => handleOpenPublication(dynamicDistrictBulletin)}
-            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-2 m-focus-ring"
+            className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-2 m-focus-ring"
           >
             <span>Open District Bulletin ({selectedLocation.city})</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -499,7 +499,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
                 setSelectedCategory('ALL');
                 setDateRange([null, null]);
               }}
-              className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-white text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
+              className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-1.5 m-focus-ring"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Library Filters</span>

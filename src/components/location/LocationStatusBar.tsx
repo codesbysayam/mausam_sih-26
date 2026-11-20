@@ -43,15 +43,15 @@ function getBadgeConfig(status: GpsStatus) {
       };
     case 'LOCATION UNAVAILABLE':
       return {
-        badgeBg: 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border-[#475569]/50',
-        dotBg: 'bg-[#64748B]',
+        badgeBg: 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border-[var(--m-border-strong)]/50',
+        dotBg: 'bg-[var(--m-surface-2)]',
         animateDot: false,
       };
     case 'LOCATION DETECTED':
     default:
       return {
-        badgeBg: 'bg-[#0C2D48]/80 text-[var(--m-accent)] border-[#0284C7]/50',
-        dotBg: 'bg-[#38BDF8]',
+        badgeBg: 'bg-[#0C2D48]/80 text-[var(--m-accent)] border-[var(--m-accent)]/50',
+        dotBg: 'bg-[var(--m-accent)]',
         animateDot: false,
       };
   }
@@ -133,7 +133,7 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
         {/* Left Section: Icon + Structured Information */}
         <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           {/* Location Pin Icon Container */}
-          <div className="w-8 h-8 rounded-lg bg-[#0B3D91]/25 border border-[#1565C0]/40 text-[var(--m-accent)] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/40 text-[var(--m-accent)] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
             <MapPin className="w-4 h-4" />
           </div>
 
@@ -206,7 +206,7 @@ export const LocationStatusBar: React.FC<LocationStatusBarProps> = ({
             type="button"
             id="btn-location-change"
             onClick={handleChangeLocation}
-            className="h-8 px-3 rounded-lg bg-[#0B3D91] hover:bg-[#1565C0] text-white border border-[#1565C0] hover:border-[var(--m-accent)] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0"
+            className="h-8 px-3 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] border border-[var(--m-accent)] hover:border-[var(--m-accent)] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             title="Search or select a different observation location"
           >
             <Search className="w-3.5 h-3.5" />

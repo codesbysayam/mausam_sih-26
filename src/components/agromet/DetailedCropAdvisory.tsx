@@ -64,7 +64,7 @@ export const DetailedCropAdvisory: React.FC<DetailedCropAdvisoryProps> = ({
       action: 'Soil Aeration & Inter-Cultivation',
       detail: 'Tractor and manual weeders can enter fields safely as topsoil dries to ~55% field capacity without compaction damage.',
       status: 'Field Operations',
-      color: '#38BDF8',
+      color: '#C5A46D',
     },
   ];
 

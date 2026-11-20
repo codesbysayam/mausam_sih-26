@@ -59,7 +59,7 @@ export const SafetyGuidanceSection: React.FC<SafetyGuidanceSectionProps> = ({
               onClick={() => setSelectedCategory(cat.hazard)}
               className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 isSelected
-                  ? 'bg-[var(--m-accent)] text-white border-[var(--m-accent)]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border-[var(--m-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] border-[var(--m-border)]'
               }`}
             >

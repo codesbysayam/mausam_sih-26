@@ -253,7 +253,7 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
           aria-label="Alert audio settings"
           className={`w-[42px] h-[42px] rounded-lg border flex items-center justify-center transition-colors cursor-pointer m-focus-ring ${
             isSettingsOpen
-              ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-white'
+              ? 'bg-[var(--m-accent)] border-[var(--m-accent)] text-[var(--m-on-accent)]'
               : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
           }`}
         >
@@ -318,7 +318,7 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               aria-label="Alert audio volume"
-              className="w-full accent-[#35C7E8] bg-[var(--m-surface-inset)] h-2 rounded-lg cursor-pointer"
+              className="w-full accent-[var(--m-accent)] bg-[var(--m-surface-inset)] h-2 rounded-lg cursor-pointer"
             />
             <div className="flex justify-between text-[10px] text-[var(--m-text-muted)] font-mono">
               <span>10% (Soft)</span>
@@ -343,7 +343,7 @@ export const AudioAlertToggle: React.FC<AudioAlertToggleProps> = ({
                           ? 'bg-[#EF4444] text-white border-[#FCA5A5]'
                           : level === 'orange'
                           ? 'bg-[#F97316] text-white border-[#FDBA74]'
-                          : 'bg-[#EAB308] text-[#07111D] border-[#FDE047]'
+                          : 'bg-[#EAB308] text-[var(--m-on-accent)] border-[#FDE047]'
                         : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] border-[var(--m-border)] hover:bg-[var(--m-surface-2)]'
                     }`}
                   >

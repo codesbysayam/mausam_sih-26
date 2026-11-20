@@ -117,16 +117,16 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
     temp: {
       label: 'Temperature',
       unit: '°C',
-      color: '#35C7E8',
-      gradientFrom: '#35C7E8',
-      gradientTo: '#0B72B9',
+      color: '#C5A46D',
+      gradientFrom: '#C5A46D',
+      gradientTo: '#C5A46D',
       domain: ['auto', 'auto'],
     },
     rain: {
       label: 'Precipitation Probability',
       unit: '%',
-      color: '#0B72B9',
-      gradientFrom: '#0B72B9',
+      color: '#C5A46D',
+      gradientFrom: '#C5A46D',
       gradientTo: '#22C7A0',
       domain: [0, 100],
     },
@@ -135,15 +135,15 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       unit: 'km/h',
       color: '#22C7A0',
       gradientFrom: '#22C7A0',
-      gradientTo: '#0B1927',
+      gradientTo: '#111314',
       domain: [0, 'auto'],
     },
     humidity: {
       label: 'Relative Humidity',
       unit: '%',
-      color: '#7DD3FC',
-      gradientFrom: '#7DD3FC',
-      gradientTo: '#0B72B9',
+      color: '#A7C5C5',
+      gradientFrom: '#A7C5C5',
+      gradientTo: '#C5A46D',
       domain: [0, 100],
     },
   };
@@ -245,7 +245,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
         </div>
 
         <div className="m-panel-inset p-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[var(--m-accent-soft)] border border-[#0B72B9]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/35 text-[var(--m-accent)] flex items-center justify-center shrink-0">
             <CloudRain className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
@@ -284,7 +284,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
       {/* Horizontal Hourly Cards */}
       <div
         id="hourly-forecast-cards-scroll"
-        className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#26394B]"
+        className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#2F3534]"
       >
         <div className="flex gap-2.5 min-w-max">
           {displayItems.map((item, idx) => {
@@ -389,9 +389,9 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                     <stop offset="95%" stopColor={currentConf.gradientTo} stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" stroke="#8295A8" fontSize={10} tickLine={false} interval={2} />
+                <XAxis dataKey="time" stroke="#898B83" fontSize={10} tickLine={false} interval={2} />
                 <YAxis
-                  stroke="#8295A8"
+                  stroke="#898B83"
                   fontSize={10}
                   tickLine={false}
                   domain={currentConf.domain as any}
@@ -399,10 +399,10 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0B1927',
-                    borderColor: '#38536A',
+                    backgroundColor: '#111314',
+                    borderColor: '#2F3534',
                     borderRadius: '8px',
-                    color: '#F3F6FA',
+                    color: '#F0EEE7',
                     fontSize: '11px',
                   }}
                   formatter={(val: any) => [

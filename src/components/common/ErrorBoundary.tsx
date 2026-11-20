@@ -135,7 +135,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     this.handleReset();
                   }
                 }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-colors cursor-pointer"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--m-accent)] hover:bg-[#0369A1] text-[var(--m-on-accent)] text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>{isModuleLoadError ? 'Reload Application' : 'Resume Interface'}</span>

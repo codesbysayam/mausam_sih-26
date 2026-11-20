@@ -181,7 +181,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
             <div className="relative w-full h-7 flex items-center">
               <div className="w-full h-2 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-full overflow-hidden relative">
                 <div
-                  className="h-full bg-[#35C7E8] transition-all duration-100"
+                  className="h-full bg-[var(--m-accent)] transition-all duration-100"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -203,9 +203,9 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                     key={frame.id}
                     className={`w-2.5 h-2.5 rounded-full border transition-transform ${
                       idx === activeFrameIndex
-                        ? 'bg-[#F3F6FA] border-[var(--m-accent)] scale-125'
+                        ? 'bg-[var(--m-text-primary)] border-[var(--m-accent)] scale-125'
                         : idx < activeFrameIndex
-                        ? 'bg-[#35C7E8] border-[var(--m-border)]'
+                        ? 'bg-[var(--m-accent)] border-[var(--m-border)]'
                         : 'bg-[var(--m-surface-inset)] border-[var(--m-border-strong)]'
                     }`}
                     title={`${frame.relativeTime} (${frame.formattedTime})`}
@@ -250,7 +250,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                 className={`px-3.5 min-h-[38px] rounded-lg border flex items-center justify-center gap-1.5 font-semibold transition-colors cursor-pointer m-focus-ring ${
                   isPlaying
                     ? 'bg-[#EF4444] hover:bg-[#DC2626] border-[#F87171] text-white'
-                    : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-white'
+                    : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-[var(--m-on-accent)]'
                 }`}
                 title={isPlaying ? 'Pause Animation' : 'Play Animation'}
               >
@@ -312,7 +312,7 @@ export const CycloneTimeLapseController: React.FC<CycloneTimeLapseControllerProp
                     onClick={() => onChangeSpeed(spd)}
                     className={`px-2.5 py-1.5 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
                       playbackSpeed === spd
-                        ? 'bg-[var(--m-accent)] text-white'
+                        ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                         : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
                     }`}
                   >

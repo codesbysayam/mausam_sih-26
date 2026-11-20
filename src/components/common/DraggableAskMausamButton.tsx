@@ -258,12 +258,12 @@ export const DraggableAskMausamButton: React.FC<DraggableAskMausamButtonProps> =
       <div
         className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-full bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-3)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40 shadow-xl backdrop-blur-md transition-all select-none min-h-[40px] ${
           isDragging
-            ? 'scale-105 ring-2 ring-[#38BDF8] cursor-grabbing'
+            ? 'scale-105 ring-2 ring-[var(--m-focus)] cursor-grabbing'
             : 'cursor-grab'
         }`}
       >
         <span
-          className="text-[#8EA3B8] group-hover:text-[var(--m-text-secondary)] transition-colors hidden sm:flex items-center"
+          className="text-[var(--m-text-muted)] group-hover:text-[var(--m-text-secondary)] transition-colors hidden sm:flex items-center"
           title="Drag to adjust position"
         >
           <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />

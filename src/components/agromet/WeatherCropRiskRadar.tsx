@@ -96,7 +96,7 @@ export const WeatherCropRiskRadar: React.FC<WeatherCropRiskRadarProps> = ({
     if (color === 'rose') return 'bg-[#EF4444]';
     if (color === 'orange') return 'bg-[#F97316]';
     if (color === 'amber') return 'bg-[#F59E0B]';
-    if (color === 'slate') return 'bg-[#38536A]';
+    if (color === 'slate') return 'bg-[var(--m-surface-2)]';
     return 'bg-[#22C7A0]';
   };
 

@@ -132,11 +132,11 @@ export const MapLayerRail: React.FC<MapLayerRailProps> = ({
       aria-label="Weather Map Layers"
       className="m-panel p-3.5 flex flex-col gap-3 w-full lg:w-56 shrink-0"
     >
-      <div className="flex items-center justify-between border-b border-[#26394B] pb-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#B5C3D1]">
+      <div className="flex items-center justify-between border-b border-[var(--m-border)] pb-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--m-text-secondary)]">
           Map Layers
         </span>
-        <span className="text-[10px] font-mono text-[#35C7E8] tabular-nums">
+        <span className="text-[10px] font-mono text-[var(--m-accent)] tabular-nums">
           {activeOption.unit}
         </span>
       </div>
@@ -154,11 +154,11 @@ export const MapLayerRail: React.FC<MapLayerRailProps> = ({
               aria-pressed={isActive}
               className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors cursor-pointer border m-focus-ring ${
                 isActive
-                  ? 'bg-[#0B72B9]/25 text-[#F3F6FA] border-[#35C7E8]/60 font-semibold'
-                  : 'bg-[#08131F] text-[#B5C3D1] border-[#26394B] hover:text-[#F3F6FA]'
+                  ? 'bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] border-[var(--m-accent)]/60 font-semibold'
+                  : 'bg-[var(--m-surface-inset)] text-[var(--m-text-secondary)] border-[var(--m-border)] hover:text-[var(--m-text-primary)]'
               }`}
             >
-              <Icon className="w-4 h-4 text-[#35C7E8] shrink-0" />
+              <Icon className="w-4 h-4 text-[var(--m-accent)] shrink-0" />
               <span>{layer.label}</span>
             </button>
           );
@@ -171,7 +171,7 @@ export const MapLayerRail: React.FC<MapLayerRailProps> = ({
           const items = LAYER_OPTIONS.filter((o) => o.group === groupId);
           return (
             <div key={groupId} className="flex flex-col gap-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8295A8] px-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--m-text-muted)] px-1">
                 {GROUP_LABELS[groupId]}
               </span>
               <div className="flex flex-col gap-1">
@@ -188,19 +188,19 @@ export const MapLayerRail: React.FC<MapLayerRailProps> = ({
                       aria-pressed={isActive}
                       className={`w-full min-h-[38px] px-2.5 py-2 rounded-lg text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer border m-focus-ring ${
                         isActive
-                          ? 'bg-[#101F2E] text-[#F3F6FA] border-[#35C7E8]/55 font-semibold'
-                          : 'bg-transparent text-[#B5C3D1] border-transparent hover:bg-[#08131F] hover:text-[#F3F6FA]'
+                          ? 'bg-[var(--m-surface-1)] text-[var(--m-text-primary)] border-[var(--m-accent)]/55 font-semibold'
+                          : 'bg-transparent text-[var(--m-text-secondary)] border-transparent hover:bg-[var(--m-surface-inset)] hover:text-[var(--m-text-primary)]'
                       }`}
                     >
                       <span className="flex items-center gap-2 min-w-0">
                         <Icon
                           className={`w-4 h-4 shrink-0 ${
-                            isActive ? 'text-[#35C7E8]' : 'text-[#8295A8]'
+                            isActive ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-muted)]'
                           }`}
                         />
                         <span className="truncate">{layer.label}</span>
                       </span>
-                      <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">
+                      <span className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums shrink-0">
                         {layer.unit}
                       </span>
                     </button>
@@ -212,8 +212,8 @@ export const MapLayerRail: React.FC<MapLayerRailProps> = ({
         })}
       </div>
 
-      <div className="hidden lg:block mt-auto pt-3 border-t border-[#26394B] text-[11px] text-[#8295A8] leading-relaxed">
-        <div className="font-medium text-[#B5C3D1]">{activeOption.sourceHint}</div>
+      <div className="hidden lg:block mt-auto pt-3 border-t border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] leading-relaxed">
+        <div className="font-medium text-[var(--m-text-secondary)]">{activeOption.sourceHint}</div>
         <p className="mt-1">Click or tap anywhere on the map to inspect point meteorology.</p>
       </div>
     </aside>

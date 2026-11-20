@@ -33,9 +33,9 @@ const DOMAIN_BOUNDS = {
 };
 
 // Pre-allocated colors & vectors (zero GC per frame)
-const _cCalm = new THREE.Color('#35C98A');
-const _cMod = new THREE.Color('#55D8F2');
-const _cStrong = new THREE.Color('#F2B84B');
+const _cCalm = new THREE.Color('#9CAF9A');
+const _cMod = new THREE.Color('#F0EEE7');
+const _cStrong = new THREE.Color('#E6B96B');
 const _tmpColor = new THREE.Color();
 const _headPos = new THREE.Vector3();
 const _tailPos = new THREE.Vector3();

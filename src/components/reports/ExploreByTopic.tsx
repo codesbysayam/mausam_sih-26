@@ -41,7 +41,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'monsoon',
       icon: CloudRain,
       description: 'Seasonal rainfall, synoptic troughs, ENSO teleconnections & MJO variability.',
-      accentColor: '#35C7E8',
+      accentColor: '#C5A46D',
     },
     {
       id: 'climatology',
@@ -57,7 +57,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'radar',
       icon: Radio,
       description: 'Dual-polarization DWR, TITAN convective tracking & microburst warnings.',
-      accentColor: '#35C7E8',
+      accentColor: '#C5A46D',
     },
     {
       id: 'satellite',
@@ -65,7 +65,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'satellite',
       icon: Satellite,
       description: 'INSAT-3D/3DR radiometry, MOSDAC ocean winds & cloud-top thermal imaging.',
-      accentColor: '#0B72B9',
+      accentColor: '#C5A46D',
     },
     {
       id: 'air-quality',
@@ -89,7 +89,7 @@ export const ExploreByTopic: React.FC<ExploreByTopicProps> = ({
       query: 'ncmrwf',
       icon: Cpu,
       description: 'NCMRWF Unified Model (NCUM 12km), 4D-Var assimilation & NEPS ensembles.',
-      accentColor: '#35C7E8',
+      accentColor: '#C5A46D',
     },
     {
       id: 'standards',

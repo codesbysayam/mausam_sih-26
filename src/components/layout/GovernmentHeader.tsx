@@ -111,7 +111,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
             {/* Center: Search + Active Location Selector (Desktop/Tablet) */}
             <div className="relative hidden md:flex items-center flex-1 max-w-xl mx-2 min-w-0 gap-2">
               <div className="relative flex-1 min-w-0">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8EA3B8] text-[18px] pointer-events-none">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)] text-[18px] pointer-events-none">
                   search
                 </span>
                 <input
@@ -127,7 +127,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       handleSearchSubmit();
                     }
                   }}
-                  className="w-full h-10 bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/40 focus:border-[var(--m-accent)] rounded-lg text-[var(--m-text-primary)] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none transition-colors"
+                  className="w-full h-10 bg-[var(--m-surface-1)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/40 focus:border-[var(--m-accent)] rounded-lg text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] text-xs pl-9 pr-16 focus:outline-none transition-colors"
                   aria-label={t('searchPlaceholder', 'Search city, state, or PIN code...')}
                 />
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
@@ -135,7 +135,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1 text-[#8EA3B8] hover:text-[var(--m-text-primary)] rounded hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1 text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] rounded hover:bg-white/10 transition-colors cursor-pointer"
                       aria-label="Clear search"
                     >
                       <span className="material-symbols-outlined text-[16px]">close</span>
@@ -178,7 +178,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                         </div>
                       )}
 
-                      <div className="px-3 py-2 border-b border-[var(--m-border)] text-[11px] text-[#8EA3B8] font-medium flex justify-between">
+                      <div className="px-3 py-2 border-b border-[var(--m-border)] text-[11px] text-[var(--m-text-muted)] font-medium flex justify-between">
                         <span>{t('selectStation', 'Select Location')}</span>
                         <span className="text-[var(--m-text-secondary)] truncate max-w-[180px]">
                           {selectedLocation.city}, {selectedLocation.state}
@@ -209,18 +209,18 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-[#8EA3B8] truncate">{res.displaySubtitle}</div>
+                              <div className="text-[11px] text-[var(--m-text-muted)] truncate">{res.displaySubtitle}</div>
                             </div>
-                            <div className="text-[11px] text-[#8EA3B8] shrink-0">{res.location.state}</div>
+                            <div className="text-[11px] text-[var(--m-text-muted)] shrink-0">{res.location.state}</div>
                           </div>
                         ))
                       ) : searchQuery ? (
-                        <div className="p-4 text-xs text-[#8EA3B8] text-center">
+                        <div className="p-4 text-xs text-[var(--m-text-muted)] text-center">
                           {t('noStationsFound', 'No matching locations found.')}
                         </div>
                       ) : (
                         <div>
-                          <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
+                          <div className="px-3 py-1.5 text-[10px] text-[var(--m-text-muted)] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
                             Major Indian Cities
                           </div>
                           {[
@@ -247,7 +247,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                               className="px-3 py-2 text-xs text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center transition-colors"
                             >
                               <span className="font-medium">{hub.city}</span>
-                              <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>
+                              <span className="text-[var(--m-text-muted)] text-[11px]">{hub.state}</span>
                             </div>
                           ))}
                         </div>
@@ -273,7 +273,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
 
             {/* Right Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono tabular-nums text-[#8EA3B8] pr-2.5 border-r border-[var(--m-border)]">
+              <div className="hidden 2xl:flex items-center gap-1.5 text-xs font-mono tabular-nums text-[var(--m-text-muted)] pr-2.5 border-r border-[var(--m-border)]">
                 <span className="text-[var(--m-text-primary)] font-medium">{istTimeString}</span>
                 <span>IST</span>
               </div>
@@ -335,7 +335,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
           {/* Mobile Compact Search Strip */}
           <div className="md:hidden pb-2.5 relative">
             <div className="relative w-full">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8EA3B8] text-[18px] pointer-events-none">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--m-text-muted)] text-[18px] pointer-events-none">
                 search
               </span>
               <input
@@ -351,7 +351,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                     handleSearchSubmit();
                   }
                 }}
-                className="w-full h-11 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg text-[var(--m-text-primary)] placeholder-[#8EA3B8] text-xs pl-9 pr-16 focus:outline-none focus:border-[var(--m-accent)]"
+                className="w-full h-11 bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] text-xs pl-9 pr-16 focus:outline-none focus:border-[var(--m-accent)]"
                 aria-label={t('searchPlaceholder', 'Search city, district, or PIN...')}
               />
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
@@ -359,7 +359,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="w-9 h-9 flex items-center justify-center text-[#8EA3B8] hover:text-[var(--m-text-primary)] rounded-lg"
+                    className="w-9 h-9 flex items-center justify-center text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] rounded-lg"
                     aria-label="Clear search"
                   >
                     <span className="material-symbols-outlined text-[16px]">close</span>
@@ -418,18 +418,18 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                       >
                         <div className="flex-1 pr-2 min-w-0">
                           <div className="font-semibold text-[var(--m-text-primary)] truncate">{res.displayTitle}</div>
-                          <div className="text-[11px] text-[#8EA3B8] truncate">{res.displaySubtitle}</div>
+                          <div className="text-[11px] text-[var(--m-text-muted)] truncate">{res.displaySubtitle}</div>
                         </div>
-                        <div className="text-[11px] text-[#8EA3B8] shrink-0">{res.location.state}</div>
+                        <div className="text-[11px] text-[var(--m-text-muted)] shrink-0">{res.location.state}</div>
                       </div>
                     ))
                   ) : searchQuery ? (
-                    <div className="p-4 text-xs text-[#8EA3B8] text-center">
+                    <div className="p-4 text-xs text-[var(--m-text-muted)] text-center">
                       {t('noStationsFound', 'No matching locations found.')}
                     </div>
                   ) : (
                     <div>
-                      <div className="px-3 py-1.5 text-[10px] text-[#8EA3B8] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
+                      <div className="px-3 py-1.5 text-[10px] text-[var(--m-text-muted)] font-semibold uppercase tracking-wider bg-[var(--m-surface-2)]">
                         Major Cities
                       </div>
                       {[
@@ -456,7 +456,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({
                           className="px-3 py-2.5 text-xs text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-3)] cursor-pointer flex justify-between items-center border-b border-[var(--m-border)] min-h-[44px]"
                         >
                           <span className="font-medium">{hub.city}</span>
-                          <span className="text-[#8EA3B8] text-[11px]">{hub.state}</span>
+                          <span className="text-[var(--m-text-muted)] text-[11px]">{hub.state}</span>
                         </div>
                       ))}
                     </div>

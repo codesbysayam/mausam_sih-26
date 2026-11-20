@@ -32,16 +32,14 @@ export const ModelMetrics: React.FC<ModelMetricsProps> = ({
       value: isUnavailable || currentPoint?.temperature2m === undefined ? '—' : `${currentPoint.temperature2m}°C`,
       sub: currentPoint?.apparentTemperature !== undefined ? `Feels like ${currentPoint.apparentTemperature}°C` : 'Model Surface Point',
       icon: Thermometer,
-      accent: 'text-amber-400',
-      border: 'border-amber-500/20',
+      accent: 'text-[var(--weather-hot)]',
     },
     {
       label: 'Precipitation',
       value: isUnavailable || currentPoint?.precipitation === undefined ? '—' : `${currentPoint.precipitation} mm`,
       sub: currentPoint?.precipitationProbability !== undefined ? `${currentPoint.precipitationProbability}% Rain Probability` : 'Surface Accumulation',
       icon: CloudRain,
-      accent: 'text-sky-400',
-      border: 'border-sky-500/20',
+      accent: 'text-[var(--weather-rain)]',
     },
     {
       label: '10m Wind Velocity',
@@ -50,24 +48,21 @@ export const ModelMetrics: React.FC<ModelMetricsProps> = ({
         ? `Gusts to ${currentPoint.windGusts10m} km/h • ${getWindDirectionStr(currentPoint.windDirection10m)}`
         : getWindDirectionStr(currentPoint?.windDirection10m) || 'Vector Field',
       icon: Wind,
-      accent: 'text-teal-400',
-      border: 'border-teal-500/20',
+      accent: 'text-[var(--weather-wind)]',
     },
     {
       label: 'Surface Pressure (MSLP)',
       value: isUnavailable || currentPoint?.pressureMSL === undefined ? '—' : `${currentPoint.pressureMSL} hPa`,
       sub: 'Mean Sea Level Barometric',
       icon: Gauge,
-      accent: 'text-purple-400',
-      border: 'border-purple-500/20',
+      accent: 'text-[var(--m-accent)]',
     },
     {
       label: 'Relative Humidity',
       value: isUnavailable || currentPoint?.relativeHumidity === undefined ? '—' : `${currentPoint.relativeHumidity}%`,
       sub: currentPoint?.dewPoint2m !== undefined ? `Dew Point: ${currentPoint.dewPoint2m}°C` : 'Atmospheric Moisture',
       icon: Droplets,
-      accent: 'text-blue-400',
-      border: 'border-blue-500/20',
+      accent: 'text-[var(--weather-rain)]',
     },
     {
       label: 'Atmospheric CAPE',
@@ -78,8 +73,7 @@ export const ModelMetrics: React.FC<ModelMetricsProps> = ({
         ? `${currentPoint.cloudCover}% Cloud Cover`
         : 'Thermodynamic Potential',
       icon: Zap,
-      accent: 'text-yellow-400',
-      border: 'border-yellow-500/20',
+      accent: 'text-[var(--weather-sun)]',
     },
   ];
 
@@ -90,22 +84,22 @@ export const ModelMetrics: React.FC<ModelMetricsProps> = ({
         return (
           <div
             key={i}
-            className={`p-3.5 rounded-xl bg-[var(--m-surface-inset)] border ${c.border} flex flex-col justify-between gap-1 shadow-md`}
+            className="p-3.5 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col justify-between gap-1"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-mono text-slate-400 font-medium">
+              <span className="text-[10px] uppercase font-mono text-[var(--m-text-muted)] font-medium">
                 {c.label}
               </span>
               <Icon className={`w-3.5 h-3.5 ${c.accent}`} />
             </div>
 
             <div className="my-1">
-              <span className="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
+              <span className="text-xl sm:text-2xl font-bold font-mono text-[var(--m-text-primary)] tracking-tight tabular-nums">
                 {c.value}
               </span>
             </div>
 
-            <span className="text-[10px] text-slate-400 font-mono truncate">
+            <span className="text-[10px] text-[var(--m-text-muted)] font-mono truncate">
               {c.sub}
             </span>
           </div>

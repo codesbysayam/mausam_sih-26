@@ -85,7 +85,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             </code>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#0B72B9] pl-3 py-1 my-2 bg-[var(--m-accent-soft)] rounded-r text-[var(--m-text-secondary)] italic">
+            <blockquote className="border-l-2 border-[var(--m-accent)] pl-3 py-1 my-2 bg-[var(--m-accent-soft)] rounded-r text-[var(--m-text-secondary)] italic">
               {children}
             </blockquote>
           ),

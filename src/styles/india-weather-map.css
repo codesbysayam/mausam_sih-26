@@ -1,22 +1,16 @@
+/* ====================================================================
+   MAUSAM — India Weather Map Stylesheet
+   Obsidian × Graphite × Brass × Semantic Meteorological Scale
+   ==================================================================== */
+
 .india-weather-map {
   width: 100%;
   min-height: 620px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #071A2D 0%,
-      #0B2239 55%,
-      #102D47 100%
-    );
-
-  border: 1px solid #1D4E73;
-  border-radius: 14px;
-
+  background: var(--m-surface-1, #191C1D);
+  border: 1px solid var(--m-border, rgba(226, 219, 200, 0.13));
+  border-radius: var(--radius-panel, 11px);
   padding: 24px;
-
-  color: #ffffff;
-
+  color: var(--m-text-primary, #F0EEE7);
   box-sizing: border-box;
 }
 
@@ -24,110 +18,79 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-
   gap: 24px;
-
   margin-bottom: 20px;
 }
 
 .india-weather-map__eyebrow {
-  color: #E3F2FD;
-
-  font-size: 12px;
-  font-weight: 700;
-
+  color: var(--m-accent, #C5A46D);
+  font-family: var(--font-data, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.12em;
-
+  text-transform: uppercase;
   margin-bottom: 6px;
 }
 
 .india-weather-map__header h2 {
   margin: 0;
-
-  color: #ffffff;
-
-  font-family:
-    "Noto Sans",
-    Arial,
-    sans-serif;
-
+  color: var(--m-text-primary, #F0EEE7);
+  font-family: var(--font-display, "Manrope", "Inter", sans-serif);
   font-size: 24px;
   font-weight: 700;
-
-  line-height: 1.25;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .india-weather-map__header p {
   margin: 7px 0 0;
-
-  color: #B8C7D9;
-
-  font-family:
-    "Noto Sans",
-    Arial,
-    sans-serif;
-
+  color: var(--m-text-secondary, #C1BFB5);
+  font-family: var(--font-body, "Inter", sans-serif);
   font-size: 13px;
 }
 
 .india-weather-map__metric {
-  border: 1px solid #1D4E73;
-
-  background: #0B2239;
-
-  border-radius: 8px;
-
+  border: 1px solid var(--m-border, rgba(226, 219, 200, 0.13));
+  background: var(--m-surface-inset, #111314);
+  border-radius: var(--radius-control, 7px);
   padding: 9px 13px;
-
   min-width: 100px;
-
   text-align: right;
 }
 
 .india-weather-map__metric span {
   display: block;
-
-  color: #B8C7D9;
-
+  color: var(--m-text-muted, #898B83);
+  font-family: var(--font-data, "IBM Plex Mono", monospace);
   font-size: 9px;
-
   letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .india-weather-map__metric strong {
   display: block;
-
-  color: #E3F2FD;
-
+  color: var(--m-text-primary, #F0EEE7);
   font-size: 12px;
-
   margin-top: 3px;
 }
 
 .india-weather-map__body {
   position: relative;
-
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   min-height: 470px;
-
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(21, 101, 192, 0.12),
-      transparent 55%
-    );
-
-  border-top: 1px solid #1D4E73;
-  border-bottom: 1px solid #1D4E73;
+  background: radial-gradient(
+    circle at center,
+    rgba(197, 164, 109, 0.06),
+    transparent 58%
+  );
+  border-top: 1px solid var(--m-border, rgba(226, 219, 200, 0.13));
+  border-bottom: 1px solid var(--m-border, rgba(226, 219, 200, 0.13));
 }
 
 .india-map-wrapper {
   width: min(100%, 650px);
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -136,159 +99,115 @@
 .india-map-svg {
   width: 100%;
   height: auto;
-
   max-height: 520px;
 }
 
 /* All India map paths */
-
 .india-map-svg path {
-  fill: #102D47;
-
-  stroke: #1D4E73;
-
+  fill: var(--m-surface-2, #202424);
+  stroke: rgba(197, 164, 109, 0.34);
   stroke-width: 0.7;
-
   vector-effect: non-scaling-stroke;
-
   transition:
-    fill 160ms ease,
-    stroke 160ms ease,
-    opacity 160ms ease;
+    fill 160ms var(--ease-mausam, cubic-bezier(0.22, 1, 0.36, 1)),
+    stroke 160ms var(--ease-mausam, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity 160ms var(--ease-mausam, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .india-map-svg path:hover {
-  fill: #0B3D91;
-
-  stroke: #1565C0;
-
-  stroke-width: 1.2;
-
+  fill: var(--m-surface-3, #292E2D);
+  stroke: var(--m-accent, #C5A46D);
+  stroke-width: 1.25;
   cursor: pointer;
 }
 
 /* Selected state */
-
 .india-map-svg path.is-selected {
-  fill: #1565C0;
-
-  stroke: #ffffff;
-
+  fill: rgba(197, 164, 109, 0.28);
+  stroke: var(--m-accent-strong, #E0C18A);
   stroke-width: 1.5;
 }
 
 /* Tooltip */
-
 .india-map-tooltip {
   position: absolute;
-
   top: 24px;
   right: 24px;
-
   min-width: 190px;
-
   padding: 14px 16px;
-
-  background: #071A2D;
-
-  border: 1px solid #1565C0;
-
-  border-radius: 8px;
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.5);
-
+  background: var(--m-surface-inset, #111314);
+  border: 1px solid var(--m-border-strong, rgba(226, 219, 200, 0.25));
+  border-radius: var(--radius-panel, 11px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
   pointer-events: none;
-
   z-index: 10;
 }
 
 .tooltip-title {
-  color: #ffffff;
-
+  color: var(--m-text-primary, #F0EEE7);
+  font-family: var(--font-display, "Manrope", "Inter", sans-serif);
   font-size: 15px;
-
   font-weight: 700;
 }
 
 .tooltip-city {
-  color: #B8C7D9;
-
+  color: var(--m-text-muted, #898B83);
   font-size: 11px;
-
   margin-top: 3px;
 }
 
 .tooltip-value {
-  color: #E3F2FD;
-
+  color: var(--m-accent, #C5A46D);
+  font-family: var(--font-display, "Manrope", "Inter", sans-serif);
   font-size: 22px;
-
   font-weight: 700;
-
+  font-variant-numeric: tabular-nums;
   margin-top: 10px;
 }
 
 .tooltip-condition {
-  color: #D7DEE8;
-
+  color: var(--m-text-secondary, #C1BFB5);
   font-size: 12px;
-
   margin-top: 3px;
 }
 
-/* Legend */
-
+/* Legend — Semantic Meteorological Thermal Scale (Cold Ice → Mineral → Sun → Hot → Red) */
 .india-weather-map__legend {
   padding-top: 18px;
-
   max-width: 500px;
-
   margin: 0 auto;
 }
 
 .legend-title {
   display: block;
-
-  color: #ffffff;
-
+  color: var(--m-text-primary, #F0EEE7);
   font-size: 11px;
-
   font-weight: 600;
-
   margin-bottom: 7px;
 }
 
 .legend-gradient {
   height: 7px;
-
-  border-radius: 999px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #5ac8e0,
-      #3a6ea5,
-      #4fa8e0,
-      #ffc93c,
-      #ff8c42,
-      #e85d4c
-    );
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    #91B6CC,
+    #78AEB6,
+    #9CAF9A,
+    #E6B96B,
+    #D98548,
+    #C94F4B
+  );
 }
 
 .legend-labels {
   display: flex;
-
   justify-content: space-between;
-
   margin-top: 5px;
-
-  color: #8a94a6;
-
+  color: var(--m-text-muted, #898B83);
+  font-family: var(--font-data, "IBM Plex Mono", monospace);
   font-size: 10px;
 }
-
-/* Responsive */
 
 @media (max-width: 768px) {
   .india-weather-map {

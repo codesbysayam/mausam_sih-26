@@ -21,13 +21,13 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
       return <CloudRain className="w-5 h-5 text-[#E74C3C]" />;
     }
     if (c.includes('rain') || c.includes('drizzle') || c.includes('shower')) {
-      return <CloudRain className="w-5 h-5 text-[#4FA8E0]" />;
+      return <CloudRain className="w-5 h-5 text-[var(--m-accent)]" />;
     }
     if (c.includes('cloud') || c.includes('overcast')) {
       return <Cloud className="w-5 h-5 text-[var(--m-text-muted)]" />;
     }
     if (c.includes('wind') || c.includes('breeze')) {
-      return <Wind className="w-5 h-5 text-[#4FA8E0]" />;
+      return <Wind className="w-5 h-5 text-[var(--m-accent)]" />;
     }
     return <Sun className="w-5 h-5 text-[#F1C40F]" />;
   };
@@ -53,7 +53,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--m-border-strong)] pb-3 mb-4">
         <div className="flex items-center gap-2.5">
-          <Clock className="w-5 h-5 text-[#4FA8E0]" />
+          <Clock className="w-5 h-5 text-[var(--m-accent)]" />
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               ATMOSPHERIC TIMELINE (HOURLY)
@@ -68,8 +68,8 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--m-text-secondary)]">
           <span className="w-2 h-2 rounded-full bg-[#2ECC71]" />
           <span>IMD-GFS / WRF Surface Grid</span>
-          <span className="hidden md:inline text-[#334155]">|</span>
-          <span className="text-[#4FA8E0]">{modelRunTime}</span>
+          <span className="hidden md:inline text-[var(--m-text-muted)]">|</span>
+          <span className="text-[var(--m-accent)]">{modelRunTime}</span>
         </div>
       </div>
 
@@ -97,8 +97,8 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                   key={slot.label}
                   className={`flex-1 min-w-[95px] p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-all ${
                     isNow
-                      ? 'bg-[var(--m-accent-soft)] border-[#0B72B9] shadow-md ring-1 ring-[#0B72B9]/40'
-                      : 'bg-[var(--m-surface-1)] border-[var(--m-border-strong)] hover:border-[#4FA8E0]/60'
+                      ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] shadow-md ring-1 ring-[var(--m-focus)]/40'
+                      : 'bg-[var(--m-surface-1)] border-[var(--m-border-strong)] hover:border-[var(--m-accent)]/60'
                   }`}
                 >
                   {/* Step label & Status Badge */}
@@ -106,7 +106,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                     <span
                       className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
                         isNow
-                          ? 'bg-[var(--m-accent)] text-white'
+                          ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                           : 'bg-[var(--m-surface-2)] text-[var(--m-text-secondary)]'
                       }`}
                     >
@@ -116,7 +116,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                       className={`text-[8px] font-mono font-bold px-1 rounded uppercase ${
                         isNow
                           ? 'text-[#2ECC71] bg-[#008000]/20'
-                          : 'text-[#4FA8E0] bg-[var(--m-accent-soft)]'
+                          : 'text-[var(--m-accent)] bg-[var(--m-accent-soft)]'
                       }`}
                     >
                       {isNow ? 'OBSERVED' : 'FORECAST'}
@@ -149,7 +149,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                   {/* Metrics footer: Rain & Humidity */}
                   <div className="mt-2 pt-1.5 border-t border-[var(--m-border-strong)] w-full flex items-center justify-between text-[10px] font-mono">
                     <div
-                      className="flex items-center gap-0.5 text-[#4FA8E0]"
+                      className="flex items-center gap-0.5 text-[var(--m-accent)]"
                       title={typeof item?.rainProb === 'number' && Number.isFinite(item.rainProb) ? `Rain Probability: ${item.rainProb}%` : 'Rain Probability unavailable'}
                     >
                       <CloudRain className="w-3 h-3 shrink-0" />
@@ -157,7 +157,7 @@ export const HomeLiveTimeline: React.FC<HomeLiveTimelineProps> = ({
                     </div>
 
                     <div
-                      className="flex items-center gap-0.5 text-[#B8C7D9]"
+                      className="flex items-center gap-0.5 text-[var(--m-text-secondary)]"
                       title={typeof item?.humidity === 'number' && Number.isFinite(item.humidity) ? `Humidity: ${item.humidity}%` : 'Humidity unavailable'}
                     >
                       <Droplets className="w-3 h-3 shrink-0" />

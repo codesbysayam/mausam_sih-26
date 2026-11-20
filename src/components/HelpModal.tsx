@@ -14,7 +14,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="p-4 card-header-divider flex justify-between items-center bg-[var(--m-surface-1)]">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">
               menu_book
             </span>
             <h3 className="text-xs text-[var(--m-text-primary)] font-semibold">
@@ -32,7 +32,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         {/* Content */}
         <div className="p-6 flex flex-col gap-4 max-h-[460px] overflow-y-auto text-xs text-[var(--m-text-primary)] leading-relaxed">
           <div className="bg-[var(--m-surface-1)] p-3.5 rounded-lg card-border">
-            <h4 className="text-xs text-[#4FA8E0] font-semibold mb-1">
+            <h4 className="text-xs text-[var(--m-accent)] font-semibold mb-1">
               Particulate Matter (PM2.5) Standards
             </h4>
             <p className="text-[var(--m-text-secondary)]">
@@ -69,10 +69,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 card-header-divider border-t border-[rgba(225,230,235,0.12)] bg-[var(--m-surface-1)] flex justify-end">
+        <div className="p-3.5 card-header-divider border-t border-[rgba(226, 219, 200,0.12)] bg-[var(--m-surface-1)] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[#0A5A94] transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-[var(--m-accent)] text-[#FFFFFF] text-xs font-semibold hover:bg-[var(--m-accent-hover)] transition-colors cursor-pointer"
           >
             Got It
           </button>

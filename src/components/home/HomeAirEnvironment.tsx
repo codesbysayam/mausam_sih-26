@@ -95,9 +95,9 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
   const pollutants = [
     { label: 'PM 2.5', value: pm25, unit: 'µg/m³', limit: 60, limitLabel: 'CPCB: 60', barColor: '#22C7A0' },
     { label: 'PM 10', value: pm10, unit: 'µg/m³', limit: 100, limitLabel: 'CPCB: 100', barColor: '#F59E0B' },
-    { label: 'NO₂', value: no2, unit: 'µg/m³', limit: 80, limitLabel: 'CPCB: 80', barColor: '#35C7E8' },
+    { label: 'NO₂', value: no2, unit: 'µg/m³', limit: 80, limitLabel: 'CPCB: 80', barColor: '#C5A46D' },
     { label: 'SO₂', value: so2, unit: 'µg/m³', limit: 80, limitLabel: 'CPCB: 80', barColor: '#22C7A0' },
-    { label: 'CO', value: co, unit: 'mg/m³', limit: 4, limitLabel: 'CPCB: 4', barColor: '#35C7E8' },
+    { label: 'CO', value: co, unit: 'mg/m³', limit: 4, limitLabel: 'CPCB: 4', barColor: '#C5A46D' },
     { label: 'Ozone (O₃)', value: o3, unit: 'µg/m³', limit: 180, limitLabel: 'CPCB: 180', barColor: '#22C7A0' },
   ];
 
@@ -142,9 +142,9 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
                       borderColor: `${aqiInfo.severityColor}40`,
                     }
                   : {
-                      backgroundColor: 'rgba(130, 149, 168, 0.12)',
-                      color: '#8295A8',
-                      borderColor: '#26394B',
+                      backgroundColor: 'rgba(226, 219, 200, 0.12)',
+                      color: '#898B83',
+                      borderColor: '#2F3534',
                     }
               }
             >
@@ -155,7 +155,7 @@ export const HomeAirEnvironment: React.FC<HomeAirEnvironmentProps> = ({
           <div className="flex items-baseline gap-3 my-1">
             <span
               className="text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums"
-              style={{ color: aqiInfo ? aqiInfo.severityColor : '#8295A8' }}
+              style={{ color: aqiInfo ? aqiInfo.severityColor : '#898B83' }}
             >
               {safeAqi !== null ? safeAqi : '—'}
             </span>

@@ -53,7 +53,7 @@ interface MobileNavItem {
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [
   { id: 'home', labelKey: 'home', defaultLabel: 'Overview', icon: Home, color: 'text-[var(--m-accent)]' },
   { id: 'radar', labelKey: 'radar', defaultLabel: 'Weather Map', icon: Radio, color: 'text-[var(--m-ok)]' },
-  { id: 'forecast', labelKey: 'forecast', defaultLabel: 'Forecast & NWP', icon: TrendingUp, color: 'text-[#60A5FA]' },
+  { id: 'forecast', labelKey: 'forecast', defaultLabel: 'Forecast & NWP', icon: TrendingUp, color: 'text-[var(--m-accent)]' },
   { id: 'warnings', labelKey: 'warnings', defaultLabel: 'Alerts', icon: AlertTriangle, color: 'text-[var(--m-danger)]' },
   { id: 'aqi', labelKey: 'airQuality', defaultLabel: 'Air Quality', icon: Activity, color: 'text-[var(--m-watch)]' },
   { id: 'agromet', labelKey: 'agromet', defaultLabel: 'Agromet', icon: Wheat, color: 'text-[var(--m-ok)]' },
@@ -139,7 +139,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   <span>MAUSAM</span>
                   <span className="text-[10px] font-mono text-[var(--m-accent)]">IN</span>
                 </div>
-                <div className="text-[#8EA3B8] text-[11px] mt-0.5">Atmospheric Intelligence</div>
+                <div className="text-[var(--m-text-muted)] text-[11px] mt-0.5">Atmospheric Intelligence</div>
               </div>
             </div>
 
@@ -169,7 +169,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-[#8EA3B8] block truncate">
+                <span className="text-[11px] text-[var(--m-text-muted)] block truncate">
                   {formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
                 </span>
               </div>
@@ -244,7 +244,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? item.color : 'text-[#8EA3B8]'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? item.color : 'text-[var(--m-text-muted)]'}`} />
                     <span>{label}</span>
                   </div>
 
@@ -253,7 +253,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                       {badgeCount}
                     </span>
                   ) : (
-                    <span className="text-[#8EA3B8] text-sm">›</span>
+                    <span className="text-[var(--m-text-muted)] text-sm">›</span>
                   )}
                 </button>
               );
@@ -265,20 +265,20 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-[var(--m-text-primary)]">Severe Audio Alert</span>
-              <span className="text-[11px] text-[#8EA3B8]">Chime when warnings increase</span>
+              <span className="text-[11px] text-[var(--m-text-muted)]">Chime when warnings increase</span>
             </div>
             <AudioAlertToggle variant="compact" showLabel={true} />
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-[#8EA3B8] uppercase font-semibold tracking-wider">
+            <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-semibold tracking-wider">
               Language
             </span>
             <LanguageSelector />
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-[var(--m-border)] text-xs">
-            <span className="text-[11px] text-[#8EA3B8]">Text Size</span>
+            <span className="text-[11px] text-[var(--m-text-muted)]">Text Size</span>
             <div className="flex items-center gap-1 bg-[var(--m-surface-2)] border border-[var(--m-border)] rounded px-1 h-9">
               <button
                 type="button"
@@ -309,7 +309,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[var(--m-border)] flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#8EA3B8]">
+          <div className="pt-2 border-t border-[var(--m-border)] flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--m-text-muted)]">
             <button type="button" onClick={() => { onNavigateTab('terms'); onClose(); }} className="hover:text-[var(--m-accent)] py-1">
               Terms
             </button>

@@ -38,8 +38,8 @@ const SEVERITY_CONFIG: Record<
     text: 'Be Updated',
   },
   purple: {
-    fill: '#35C7E8',
-    border: '#0B72B9',
+    fill: '#C5A46D',
+    border: '#C5A46D',
     label: 'Advisory',
     text: 'Advisory Bulletin',
   },
@@ -50,8 +50,8 @@ const SEVERITY_CONFIG: Record<
     text: 'No Active Warning',
   },
   unverified: {
-    fill: '#64748B',
-    border: '#334155',
+    fill: '#898B83',
+    border: '#2F3534',
     label: 'Unverified',
     text: 'Feed Unavailable',
   },
@@ -212,7 +212,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
   ) => {
     const config = SEVERITY_CONFIG[severityKey] || SEVERITY_CONFIG.green;
     const isLightBg = severityKey === 'yellow' || severityKey === 'green';
-    const textFill = isLightBg ? '#07111D' : '#FFFFFF';
+    const textFill = isLightBg ? '#111314' : '#FFFFFF';
     const size = isSelected ? 34 : 28;
 
     const html = `
@@ -222,13 +222,13 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
         <div class="relative flex items-center justify-center rounded-full font-mono font-bold text-[10px] border" style="width: ${size}px; height: ${size}px; background-color: ${
       config.fill
     }; border-color: ${isSelected ? '#FFFFFF' : config.border}; color: ${textFill}; ${
-      isSelected ? 'box-shadow: 0 0 0 2px #35C7E8;' : ''
+      isSelected ? 'box-shadow: 0 0 0 2px #C5A46D;' : ''
     }">
           <span>${code}</span>
         </div>
         ${
           count > 1
-            ? `<span class="absolute -top-1 -right-1 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style="width: 15px; height: 15px; background: #07111D; border: 1px solid ${config.fill};">${count}</span>`
+            ? `<span class="absolute -top-1 -right-1 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style="width: 15px; height: 15px; background: #111314; border: 1px solid ${config.fill};">${count}</span>`
             : ''
         }
       </div>
@@ -294,7 +294,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
       <div
         id="map-container-wrapper"
         data-theme="dark-workspace"
-        className="w-full h-[460px] sm:h-[500px] lg:h-[540px] rounded-lg overflow-hidden relative border border-[var(--m-border)] bg-[#07111D]"
+        className="w-full h-[460px] sm:h-[500px] lg:h-[540px] rounded-lg overflow-hidden relative border border-[var(--m-border)] bg-[var(--m-surface-inset)]"
       >
         <MapContainer
           center={mapCenter}
@@ -304,7 +304,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
           scrollWheelZoom={false}
           attributionControl={true}
           zoomControl={true}
-          style={{ width: '100%', height: '100%', backgroundColor: '#07111D' }}
+          style={{ width: '100%', height: '100%', backgroundColor: '#111314' }}
         >
           <MapResizeFix />
           <MapCenterController center={mapCenter} zoom={mapZoom} />
@@ -346,7 +346,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
               >
                 <Tooltip direction="top" offset={[0, -18]} opacity={0.95}>
                   <div className="font-sans text-xs">
-                    <strong className="text-[#F3F6FA] block">{profile.name}</strong>
+                    <strong className="text-[var(--m-text-primary)] block">{profile.name}</strong>
                     <span
                       className="text-[10px] font-bold uppercase tracking-wider block mt-0.5 font-mono"
                       style={{ color: badgeConfig.fill }}
@@ -360,12 +360,12 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
 
                 <Popup className="mausam-dark-popup">
                   <div className="p-1 min-w-[230px] max-w-[280px] text-xs font-sans">
-                    <div className="flex items-center justify-between pb-1.5 border-b border-[#26394B] mb-2">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-[var(--m-border)] mb-2">
                       <div>
-                        <h4 className="font-bold text-[#F3F6FA] text-sm leading-tight">
+                        <h4 className="font-bold text-[var(--m-text-primary)] text-sm leading-tight">
                           {profile.name}
                         </h4>
-                        <span className="text-[10px] text-[#8295A8]">
+                        <span className="text-[10px] text-[var(--m-text-muted)]">
                           Capital: {profile.capital}
                         </span>
                       </div>
@@ -381,29 +381,29 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
                       </span>
                     </div>
 
-                    <div className="space-y-1.5 text-[#F3F6FA]">
-                      <div className="text-[11px] text-[#B5C3D1]">
-                        <strong className="text-[#F3F6FA]">Primary Hazard:</strong>{' '}
+                    <div className="space-y-1.5 text-[var(--m-text-primary)]">
+                      <div className="text-[11px] text-[var(--m-text-secondary)]">
+                        <strong className="text-[var(--m-text-primary)]">Primary Hazard:</strong>{' '}
                         {summary.primaryHazardLabel}
                       </div>
 
-                      <div className="text-[11px] leading-snug bg-[#08131F] p-2 rounded border border-[#26394B]">
+                      <div className="text-[11px] leading-snug bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
                         {summary.bulletinHeadline}
                       </div>
 
-                      <div className="text-[10px] text-[#8295A8]">
+                      <div className="text-[10px] text-[var(--m-text-muted)]">
                         <span>Station: </span>
-                        <strong className="text-[#F3F6FA] font-mono">{summary.representativeStation}</strong>
+                        <strong className="text-[var(--m-text-primary)] font-mono">{summary.representativeStation}</strong>
                       </div>
                     </div>
 
-                    <div className="pt-2.5 mt-2 border-t border-[#26394B] flex items-center justify-between gap-2">
+                    <div className="pt-2.5 mt-2 border-t border-[var(--m-border)] flex items-center justify-between gap-2">
                       <button
                         type="button"
                         onClick={() => {
                           onSelectState(profile.name, summary.stateCode);
                         }}
-                        className="w-full py-1.5 px-2 rounded bg-[#0B72B9] hover:bg-[#095C96] text-white font-semibold text-[11px] transition-colors cursor-pointer text-center"
+                        className="w-full py-1.5 px-2 rounded bg-[var(--m-accent)] hover:bg-[#095C96] text-[var(--m-on-accent)] font-semibold text-[11px] transition-colors cursor-pointer text-center"
                       >
                         Filter Warnings ({profile.name})
                       </button>
@@ -412,7 +412,7 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenStateDrawer(summary)}
-                          className="py-1.5 px-2.5 rounded bg-[#08131F] hover:bg-[#101F2E] text-[#B5C3D1] hover:text-[#F3F6FA] border border-[#26394B] font-semibold text-[11px] transition-colors cursor-pointer"
+                          className="py-1.5 px-2.5 rounded bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] font-semibold text-[11px] transition-colors cursor-pointer"
                           title="View Full State Advisory"
                         >
                           Advisory

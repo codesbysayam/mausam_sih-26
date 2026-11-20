@@ -121,7 +121,7 @@ export const WeatherMetrics: React.FC<WeatherMetricsProps> = ({ weather }) => {
           >
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-1.5 text-xs text-[var(--m-text-secondary)]">
-                <span className="material-symbols-outlined text-[16px] text-[#4FA8E0]">
+                <span className="material-symbols-outlined text-[16px] text-[var(--m-accent)]">
                   {m.icon}
                 </span>
                 <span className="font-semibold">{m.label}</span>

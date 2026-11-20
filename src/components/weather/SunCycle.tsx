@@ -194,7 +194,7 @@ export const SunCycle: React.FC<SunCycleProps> = ({
           <path
             d="M 30 110 A 120 80 0 0 1 270 110"
             fill="none"
-            stroke="#162331"
+            stroke="#202424"
             strokeWidth="3"
             strokeDasharray="4 4"
           />

@@ -95,7 +95,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[var(--m-border-strong)] gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#4FA8E0] text-[18px]">
+            <span className="material-symbols-outlined text-[var(--m-accent)] text-[18px]">
               location_on
             </span>
             <h2 className="text-white font-bold text-base sm:text-lg tracking-tight">
@@ -123,7 +123,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
             id="current-weather-share-btn"
             onClick={handleShareCard}
             disabled={isCapturing}
-            className="mausam-btn mausam-btn--secondary mausam-btn--sm flex items-center gap-1 text-[#4FA8E0] hover:text-[var(--m-text-primary)]"
+            className="mausam-btn mausam-btn--secondary mausam-btn--sm flex items-center gap-1 text-[var(--m-accent)] hover:text-[var(--m-text-primary)]"
             title="Share Weather Card (PNG Snapshot)"
             aria-label="Share Weather Card Snapshot"
           >
@@ -151,7 +151,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
       </div>
 
       {shareToast && (
-        <div className="absolute top-2 right-2 bg-[var(--m-accent)] text-white px-3 py-1 rounded text-xs shadow-lg animate-fade-in z-20">
+        <div className="absolute top-2 right-2 bg-[var(--m-accent)] text-[var(--m-on-accent)] px-3 py-1 rounded text-xs shadow-lg animate-fade-in z-20">
           {shareToast}
         </div>
       )}
@@ -166,7 +166,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
                 {isNum(weather.temp) ? Math.round(weather.temp) : '—'}
               </span>
               {isNum(weather.temp) && (
-                <span className="text-2xl sm:text-3xl font-bold text-[#4FA8E0] ml-1">
+                <span className="text-2xl sm:text-3xl font-bold text-[var(--m-accent)] ml-1">
                   °C
                 </span>
               )}
@@ -297,7 +297,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[15px] text-[#4FA8E0]">
+          <span className="material-symbols-outlined text-[15px] text-[var(--m-accent)]">
             radar
           </span>
           <span>{t('dopplerRadarActive', 'Doppler S-Band Radial Radar Coverage: Active')}</span>

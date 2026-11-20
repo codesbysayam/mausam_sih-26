@@ -31,46 +31,46 @@ export const ModelSourceFooter: React.FC<ModelSourceFooterProps> = ({ lastFetche
   ];
 
   return (
-    <div className="flex flex-col gap-3 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-2xl p-4 sm:p-5 text-xs font-mono text-slate-400">
+    <div className="flex flex-col gap-3 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-[11px] p-4 sm:p-5 text-xs font-mono text-[var(--m-text-muted)]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[var(--m-border)]">
         <div className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-sky-400" />
-          <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
+          <Database className="w-4 h-4 text-[var(--m-accent)]" />
+          <h4 className="font-bold text-[var(--m-text-primary)] uppercase tracking-wider text-[11px]">
             Data Sources &amp; Upstream NWP Infrastructure
           </h4>
         </div>
-        <span className="text-[10px] text-slate-500">
+        <span className="text-[10px] text-[var(--m-text-muted)]">
           Last Synchronized: {lastFetchedAt || 'Live Cycle'}
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {sources.map((s, idx) => (
-          <div key={idx} className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between gap-1.5">
+          <div key={idx} className="p-3 rounded-[7px] bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col justify-between gap-1.5">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-white font-bold text-xs">{s.model}</span>
+                <span className="text-[var(--m-text-primary)] font-bold text-xs">{s.model}</span>
                 <a
                   href={s.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sky-400 hover:text-sky-300 flex items-center gap-1 text-[10px]"
+                  className="text-[var(--m-accent)] hover:text-[var(--m-accent-strong)] flex items-center gap-1 text-[10px]"
                 >
                   <span>Portal</span>
                   <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </div>
-              <p className="text-[11px] text-slate-300 mt-1 leading-snug">{s.provider}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">{s.pipeline}</p>
+              <p className="text-[11px] text-[var(--m-text-secondary)] mt-1 leading-snug">{s.provider}</p>
+              <p className="text-[10px] text-[var(--m-text-muted)] mt-0.5">{s.pipeline}</p>
             </div>
-            <div className="pt-2 border-t border-slate-800 text-[9px] text-slate-500 truncate">
+            <div className="pt-2 border-t border-[var(--m-border)] text-[9px] text-[var(--m-text-muted)] truncate">
               {s.license}
             </div>
           </div>
         ))}
       </div>
 
-      <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+      <p className="text-[10px] text-[var(--m-text-muted)] leading-relaxed mt-1">
         Scientific Grounding Notice: MAUSAM acts as an authoritative ingestion, normalization, and visualization workspace. Forecast models are not trained in browser or by MAUSAM; they represent verified numerical physics output from international meteorological centers.
       </p>
     </div>

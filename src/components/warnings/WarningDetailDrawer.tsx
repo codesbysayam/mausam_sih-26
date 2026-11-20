@@ -273,7 +273,7 @@ export const WarningDetailDrawer: React.FC<WarningDetailDrawerProps> = ({
                         evt.status === 'completed'
                           ? 'bg-[#22C7A0] border-[var(--m-border)]'
                           : evt.status === 'current'
-                          ? 'bg-[#EF4444] border-[#F3F6FA]'
+                          ? 'bg-[#EF4444] border-[var(--m-text-primary)]'
                           : 'bg-[var(--m-surface-2)] border-[var(--m-border)]'
                       }`}
                     />

@@ -157,7 +157,7 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               onClick={() => setActiveMetric('all')}
               className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
                 activeMetric === 'all'
-                  ? 'bg-[#38BDF8] text-[#0A1017]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border border-[var(--m-border)]'
               }`}
             >
@@ -168,7 +168,7 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               onClick={() => setActiveMetric('rain')}
               className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
                 activeMetric === 'rain'
-                  ? 'bg-[#38BDF8] text-[#0A1017]'
+                  ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border border-[var(--m-border)]'
               }`}
             >
@@ -179,7 +179,7 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               onClick={() => setActiveMetric('soil')}
               className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
                 activeMetric === 'soil'
-                  ? 'bg-[#10B981] text-[#0A1017]'
+                  ? 'bg-[#10B981] text-[var(--m-on-accent)]'
                   : 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border border-[var(--m-border)]'
               }`}
             >
@@ -207,18 +207,18 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <XAxis
                 dataKey="day"
                 tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }}
-                stroke="#334155"
+                stroke="#2F3534"
               />
               <YAxis
                 yAxisId="left"
                 tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }}
-                stroke="#334155"
+                stroke="#2F3534"
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'monospace' }}
-                stroke="#334155"
+                tick={{ fill: '#898B83', fontSize: 11, fontFamily: 'monospace' }}
+                stroke="#2F3534"
               />
               <Tooltip
                 contentStyle={{
@@ -241,7 +241,7 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
                   yAxisId="left"
                   dataKey="rain"
                   name="Rainfall (mm)"
-                  fill="#38BDF8"
+                  fill="#C5A46D"
                   radius={[6, 6, 0, 0]}
                   barSize={20}
                 />

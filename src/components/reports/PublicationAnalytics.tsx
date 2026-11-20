@@ -76,10 +76,10 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
     );
 
     const categories = [
-      { name: 'Research Monographs', count: researchMonographs, color: '#35C7E8' },
+      { name: 'Research Monographs', count: researchMonographs, color: '#C5A46D' },
       { name: 'Official Bulletins', count: officialBulletins, color: '#22C7A0' },
       { name: 'Climatological Studies', count: climatologicalStudies, color: '#F59E0B' },
-      { name: 'Environmental & Technical', count: environmentalAndCyclone, color: '#0B72B9' },
+      { name: 'Environmental & Technical', count: environmentalAndCyclone, color: '#C5A46D' },
     ];
 
     return {
@@ -121,16 +121,16 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <XAxis
                   dataKey="month"
-                  stroke="#8295A8"
+                  stroke="#898B83"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#26394B' }}
+                  axisLine={{ stroke: '#2F3534' }}
                 />
                 <YAxis
-                  stroke="#8295A8"
+                  stroke="#898B83"
                   fontSize={11}
                   tickLine={false}
-                  axisLine={{ stroke: '#26394B' }}
+                  axisLine={{ stroke: '#2F3534' }}
                   allowDecimals={false}
                 />
                 <Tooltip
@@ -153,10 +153,10 @@ export const PublicationAnalytics: React.FC<PublicationAnalyticsProps> = ({ publ
                       key={`cell-${index}`}
                       fill={
                         entry.month === peakMonth.month && entry.count > 0
-                          ? '#35C7E8'
+                          ? '#C5A46D'
                           : entry.count > 0
-                          ? '#0B72B9'
-                          : '#172A3B'
+                          ? '#C5A46D'
+                          : '#202424'
                       }
                     />
                   ))}

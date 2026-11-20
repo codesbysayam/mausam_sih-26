@@ -59,7 +59,7 @@ export const WeatherSnapshot: React.FC<WeatherSnapshotProps> = ({
         className={`flex items-center justify-between gap-3 p-2.5 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] ${className}`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[#1499E8]/30 flex items-center justify-center text-[var(--m-accent)] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <MapPin className="w-4 h-4" />
           </div>
           <div className="min-w-0">
@@ -225,7 +225,7 @@ export const WeatherSnapshot: React.FC<WeatherSnapshotProps> = ({
 
           <div className="p-3 rounded-xl bg-[var(--m-surface-1)] border border-[var(--m-border)]">
             <div className="text-[10px] uppercase font-semibold text-[var(--m-text-muted)] flex items-center gap-1">
-              <CloudRain className="w-3 h-3 text-[#818CF8]" />
+              <CloudRain className="w-3 h-3 text-[var(--m-accent)]" />
               Conditions
             </div>
             <div className="text-sm font-bold text-white truncate mt-1.5">

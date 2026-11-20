@@ -1007,7 +1007,7 @@ class WeatherService {
         barProgress: {
           startPercent,
           widthPercent,
-          color: dHigh > 35 ? '#F97316' : '#35C7E8',
+          color: dHigh > 35 ? '#F97316' : '#C5A46D',
         },
       });
     }

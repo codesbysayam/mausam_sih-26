@@ -89,7 +89,7 @@ export const PublicationItem: React.FC<PublicationItemProps> = ({
             <button
               type="button"
               onClick={() => onOpenReport(publication)}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[#35C7E8] text-[var(--m-accent)] hover:text-[#07111D] border border-[var(--m-accent)]/40 text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[var(--m-surface-2)] hover:bg-[var(--m-accent-hover)] text-[var(--m-accent)] hover:text-[var(--m-on-accent)] border border-[var(--m-accent)]/40 text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
             >
               <span>Explore</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -181,7 +181,7 @@ export const PublicationItem: React.FC<PublicationItemProps> = ({
         <button
           type="button"
           onClick={() => onOpenReport(publication)}
-          className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[#35C7E8] text-white hover:text-[#07111D] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
+          className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)] hover:text-[var(--m-on-accent)] text-xs font-mono font-bold transition-colors flex items-center gap-1.5 cursor-pointer m-focus-ring"
         >
           <Eye className="w-3.5 h-3.5" />
           <span>Read Report</span>

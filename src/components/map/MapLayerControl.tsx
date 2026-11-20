@@ -41,7 +41,7 @@ export const MapLayerControl: React.FC<MapLayerControlProps> = ({
   return (
     <div
       id="synoptic-map-layer-controls"
-      className="flex flex-wrap items-center gap-1.5 p-1 bg-[#08131F] border border-[#26394B] rounded-xl"
+      className="flex flex-wrap items-center gap-1.5 p-1 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-xl"
       role="toolbar"
       aria-label="Meteorological Map Layer Switcher"
     >
@@ -57,8 +57,8 @@ export const MapLayerControl: React.FC<MapLayerControlProps> = ({
             aria-pressed={isActive}
             className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer select-none m-focus-ring ${
               isActive
-                ? 'bg-[#0B72B9] text-white border border-[#35C7E8]/50'
-                : 'text-[#B5C3D1] hover:bg-[#101F2E] hover:text-[#F3F6FA] border border-transparent'
+                ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] border border-[var(--m-accent)]/50'
+                : 'text-[var(--m-text-secondary)] hover:bg-[var(--m-surface-1)] hover:text-[var(--m-text-primary)] border border-transparent'
             }`}
           >
             <Icon className="w-3.5 h-3.5 shrink-0" />

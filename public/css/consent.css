@@ -1,6 +1,6 @@
 /* ====================================================================
-   MAUSAM Meteorological Platform — Cookie & Local Storage Consent Styling
-   Compliant with Government & National Open Data Accessibility Standards
+   MAUSAM — The Atmospheric Observatory
+   Cookie & Local Storage Consent Styling (Obsidian × Brass)
    ==================================================================== */
 
 #mausam-consent-banner {
@@ -9,13 +9,13 @@
   left: 0;
   right: 0;
   z-index: 9999;
-  background-color: #0d1e33;
-  border-top: 1px solid #1e3a5f;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #111314;
+  border-top: 1px solid rgba(226, 219, 200, 0.16);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.52);
+  color: #F0EEE7;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   padding: 16px 20px;
-  animation: mausamSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: mausamSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes mausamSlideUp {
@@ -49,13 +49,13 @@
 .mausam-consent-text {
   font-size: 13px;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: #C1BFB5;
   margin: 0;
   flex: 1;
 }
 
 .mausam-consent-text strong {
-  color: #ffffff;
+  color: #F0EEE7;
   font-weight: 600;
 }
 
@@ -64,14 +64,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  shrink: 0;
+  flex-shrink: 0;
 }
 
 .mausam-consent-btn {
   font-size: 12px;
   font-weight: 600;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
   border: 1px solid transparent;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -79,40 +79,40 @@
 }
 
 .mausam-consent-btn-primary {
-  background-color: #0b72b9;
-  color: #ffffff;
-  border-color: #38bdf8;
+  background-color: #C5A46D;
+  color: #0B0C0D;
+  border-color: #E0C18A;
 }
 
 .mausam-consent-btn-primary:hover {
-  background-color: #095991;
+  background-color: #E0C18A;
 }
 
 .mausam-consent-btn-secondary {
-  background-color: #1e293b;
-  color: #cbd5e1;
-  border-color: #334155;
+  background-color: #202424;
+  color: #C1BFB5;
+  border-color: rgba(226, 219, 200, 0.16);
 }
 
 .mausam-consent-btn-secondary:hover {
-  background-color: #334155;
-  color: #ffffff;
+  background-color: #292E2D;
+  color: #F0EEE7;
 }
 
 .mausam-consent-btn-text {
   background-color: transparent;
-  color: #38bdf8;
+  color: #C5A46D;
   border-color: transparent;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .mausam-consent-btn-text:hover {
-  color: #7dd3fc;
+  color: #E0C18A;
 }
 
 .mausam-consent-btn:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid #E0C18A;
   outline-offset: 2px;
 }
 
@@ -121,7 +121,7 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background-color: rgba(3, 10, 18, 0.85);
+  background-color: rgba(7, 8, 9, 0.84);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,36 +130,37 @@
 }
 
 .mausam-consent-modal {
-  background-color: #0d1e33;
-  border: 1px solid #1e3a5f;
-  border-radius: 12px;
+  background-color: #191C1D;
+  border: 1px solid rgba(226, 219, 200, 0.18);
+  border-radius: 11px;
   width: 100%;
   max-width: 540px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.62);
   padding: 24px;
-  color: #e2e8f0;
+  color: #F0EEE7;
 }
 
 .mausam-consent-modal h2 {
+  font-family: "Manrope", "Inter", sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: #F0EEE7;
   margin: 0 0 8px 0;
 }
 
 .mausam-consent-modal p.desc {
   font-size: 13px;
-  color: #94a3b8;
+  color: #898B83;
   margin: 0 0 20px 0;
   line-height: 1.5;
 }
 
 .mausam-consent-pref-card {
-  background-color: #132438;
-  border: 1px solid #233e61;
-  border-radius: 8px;
+  background-color: #111314;
+  border: 1px solid rgba(226, 219, 200, 0.13);
+  border-radius: 7px;
   padding: 14px 16px;
   margin-bottom: 12px;
 }
@@ -174,15 +175,15 @@
 .mausam-consent-pref-title {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #F0EEE7;
 }
 
 .mausam-consent-badge-required {
   font-size: 10px;
   font-weight: 700;
-  color: #38bdf8;
-  background-color: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #C5A46D;
+  background-color: rgba(197, 164, 109, 0.16);
+  border: 1px solid rgba(197, 164, 109, 0.34);
   padding: 2px 8px;
   border-radius: 4px;
   text-transform: uppercase;
@@ -191,7 +192,7 @@
 
 .mausam-consent-pref-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: #898B83;
   margin: 0;
   line-height: 1.5;
 }
@@ -202,5 +203,5 @@
   gap: 10px;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #1e3a5f;
+  border-top: 1px solid rgba(226, 219, 200, 0.13);
 }

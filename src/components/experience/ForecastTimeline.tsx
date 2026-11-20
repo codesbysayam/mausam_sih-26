@@ -91,7 +91,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     return (
       <div
         role="status"
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-xl px-4 py-2 text-xs text-[var(--m-text-muted)] font-mono"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-[11px] px-4 py-2 text-xs text-[var(--m-text-muted)] font-mono"
       >
         Timeline disabled — awaiting verified hourly or radar time series.
       </div>
@@ -103,7 +103,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
       aria-label="Atmospheric Time Progression"
       className="fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
     >
-      <div className="spatial-hud-surface rounded-xl px-3 py-2 flex flex-col gap-1.5">
+      <div className="spatial-hud-surface rounded-[11px] px-3 py-2 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
           {/* Playback & Speed Controls */}
           <div className="flex items-center gap-1 shrink-0">
@@ -121,7 +121,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               aria-label={
                 isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'
               }
-              className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-[var(--m-accent)] text-[#07111B] flex items-center justify-center hover:opacity-95 cursor-pointer m-focus-ring"
+              className="w-10 h-10 sm:w-8 sm:h-8 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] flex items-center justify-center hover:opacity-95 cursor-pointer m-focus-ring"
             >
               {isTimelinePlaying ? (
                 <Pause className="w-3.5 h-3.5" />

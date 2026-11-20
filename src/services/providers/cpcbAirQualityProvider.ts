@@ -29,7 +29,7 @@ export interface NormalizedAirQuality {
 
 function getCpcbCategory(aqi: number | null): { category: string; color: string } {
   if (aqi === null || aqi === undefined) {
-    return { category: 'Unavailable', color: '#64748B' };
+    return { category: 'Unavailable', color: '#898B83' };
   }
   if (aqi <= 50) return { category: 'Good', color: '#10B981' };
   if (aqi <= 100) return { category: 'Satisfactory', color: '#84CC16' };
@@ -105,7 +105,7 @@ export class CpcbAirQualityProvider {
     return {
       aqi: null,
       category: 'Data Unavailable',
-      categoryColor: '#64748B',
+      categoryColor: '#898B83',
       city: cityName,
       pollutants: {},
       observedAt: nowIso,

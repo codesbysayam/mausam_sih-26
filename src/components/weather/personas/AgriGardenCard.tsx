@@ -42,7 +42,7 @@ export const AgriGardenCard: React.FC<AgriGardenCardProps> = ({
       ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
       : soilMoistureStatus === 'Dry'
       ? 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35'
-      : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[#0B72B9]/35';
+      : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35';
 
   return (
     <div className="m-panel-inset p-4 sm:p-5 flex flex-col justify-between h-full">

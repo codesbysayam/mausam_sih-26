@@ -94,7 +94,7 @@ export const ModelExplanation: React.FC<ModelExplanationProps> = ({ isOpen, onCl
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] text-white font-semibold transition-colors cursor-pointer"
+            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[var(--m-accent)] hover:bg-[#0E82CF] text-[var(--m-on-accent)] font-semibold transition-colors cursor-pointer"
           >
             Close Guide
           </button>

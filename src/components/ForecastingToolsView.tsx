@@ -14,8 +14,8 @@ export const ForecastingToolsView: React.FC = () => {
       <div className="bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[#0B72B9]/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#4FA8E0] text-[20px]">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[var(--m-accent)] text-[20px]">
                 precision_manufacturing
               </span>
             </div>
@@ -43,15 +43,15 @@ export const ForecastingToolsView: React.FC = () => {
               onClick={() => setSelectedTool(tool)}
               className={`p-3 rounded-xl card-border flex flex-col items-center gap-2 transition-all cursor-pointer text-center ${
                 isSelected
-                  ? 'bg-[var(--m-surface-2)] border-[#0B72B9] ring-1 ring-[#4FA8E0] shadow-lg scale-[1.02]'
-                  : 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[rgba(225,230,235,0.12)]'
+                  ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)] ring-1 ring-[var(--m-focus)] shadow-lg scale-[1.02]'
+                  : 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[rgba(226, 219, 200,0.12)]'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                   isSelected
                     ? 'bg-[var(--m-accent)] text-[#FFFFFF]'
-                    : 'bg-[var(--m-surface-1)] text-[#4FA8E0]'
+                    : 'bg-[var(--m-surface-1)] text-[var(--m-accent)]'
                 }`}
               >
                 <span className="material-symbols-outlined text-[24px]">
@@ -71,9 +71,9 @@ export const ForecastingToolsView: React.FC = () => {
         {/* Left Specification & Definition Column (Span 7) */}
         <div className="lg:col-span-7 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
           <div>
-            <div className="flex justify-between items-start gap-3 pb-4 border-b border-[rgba(225,230,235,0.12)] mb-4">
+            <div className="flex justify-between items-start gap-3 pb-4 border-b border-[rgba(226, 219, 200,0.12)] mb-4">
               <div>
-                <span className="text-xs text-[#4FA8E0] font-semibold block mb-0.5">
+                <span className="text-xs text-[var(--m-accent)] font-semibold block mb-0.5">
                   Instrument Profile
                 </span>
                 <h3 className="font-h2 text-2xl font-bold text-[var(--m-text-primary)]">
@@ -91,7 +91,7 @@ export const ForecastingToolsView: React.FC = () => {
 
             {/* Core Definition */}
             <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border mb-4">
-              <span className="text-xs text-[#4FA8E0] font-semibold block mb-1">
+              <span className="text-xs text-[var(--m-accent)] font-semibold block mb-1">
                 Core Function &amp; Mechanism
               </span>
               <p className="text-sm text-[var(--m-text-primary)] leading-relaxed">
@@ -130,7 +130,7 @@ export const ForecastingToolsView: React.FC = () => {
             <span className="text-xs text-[var(--m-text-secondary)] font-semibold">
               {selectedTool.keyMetricLabel}
             </span>
-            <span className="text-base font-bold text-[#4FA8E0]">
+            <span className="text-base font-bold text-[var(--m-accent)]">
               {selectedTool.keyMetricValue}
             </span>
           </div>
@@ -139,11 +139,11 @@ export const ForecastingToolsView: React.FC = () => {
         {/* Right Interactive Instrument Simulation Sandbox (Span 5) */}
         <div className="lg:col-span-5 bg-[var(--m-surface-2)] card-border rounded-xl p-6 shadow-xl flex flex-col justify-between gap-6">
           <div>
-            <div className="pb-3 border-b border-[rgba(225,230,235,0.12)] mb-4 flex justify-between items-center">
+            <div className="pb-3 border-b border-[rgba(226, 219, 200,0.12)] mb-4 flex justify-between items-center">
               <h4 className="font-h4 text-xs text-[var(--m-text-primary)] font-semibold">
                 Interactive Instrument Simulator
               </h4>
-              <span className="text-xs text-[#4FA8E0] font-semibold">
+              <span className="text-xs text-[var(--m-accent)] font-semibold">
                 Real-time Physics
               </span>
             </div>
@@ -154,13 +154,13 @@ export const ForecastingToolsView: React.FC = () => {
                 <div className="relative w-40 h-40 flex items-center justify-center">
                   {/* Rotating 3-Cup Anemometer Animation */}
                   <div
-                    className="w-32 h-32 rounded-full border-2 border-dashed border-[#4FA8E0]/40 flex items-center justify-center transition-all"
+                    className="w-32 h-32 rounded-full border-2 border-dashed border-[var(--m-accent)]/40 flex items-center justify-center transition-all"
                     style={{
                       animation: `spin ${Math.max(0.2, 50 / (interactiveWindSpeed || 1))}s linear infinite`,
                     }}
                   >
-                    <div className="absolute w-full h-1 bg-[#4FA8E0]/80"></div>
-                    <div className="absolute h-full w-1 bg-[#4FA8E0]/80"></div>
+                    <div className="absolute w-full h-1 bg-[var(--m-accent-soft)]"></div>
+                    <div className="absolute h-full w-1 bg-[var(--m-accent-soft)]"></div>
                     {/* Anemometer Cup 1 */}
                     <div className="absolute top-0 w-6 h-6 rounded-full bg-[var(--m-accent)] shadow-lg"></div>
                     {/* Anemometer Cup 2 */}
@@ -169,7 +169,7 @@ export const ForecastingToolsView: React.FC = () => {
                     <div className="absolute right-0 w-6 h-6 rounded-full bg-[var(--m-accent)] shadow-lg"></div>
                   </div>
                   {/* Center Hub */}
-                  <div className="absolute w-8 h-8 rounded-full bg-[var(--m-surface-1)] border-2 border-[#4FA8E0] flex items-center justify-center">
+                  <div className="absolute w-8 h-8 rounded-full bg-[var(--m-surface-1)] border-2 border-[var(--m-accent)] flex items-center justify-center">
                     <span className="w-2 h-2 rounded-full bg-[#2ECC71]"></span>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export const ForecastingToolsView: React.FC = () => {
                 <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
                     <span className="text-[var(--m-text-secondary)]">Simulate Wind Velocity</span>
-                    <span className="text-[#4FA8E0] font-bold">{interactiveWindSpeed} km/h</span>
+                    <span className="text-[var(--m-accent)] font-bold">{interactiveWindSpeed} km/h</span>
                   </div>
                   <input
                     type="range"
@@ -186,7 +186,7 @@ export const ForecastingToolsView: React.FC = () => {
                     max="120"
                     value={interactiveWindSpeed}
                     onChange={(e) => setInteractiveWindSpeed(Number(e.target.value))}
-                    className="w-full accent-[#0B72B9] cursor-pointer"
+                    className="w-full accent-[var(--m-accent)] cursor-pointer"
                   />
                   <div className="flex justify-between text-[11px] text-[var(--m-text-secondary)] mt-1">
                     <span>Calm (0)</span>
@@ -209,7 +209,7 @@ export const ForecastingToolsView: React.FC = () => {
 
                   {/* Needle Pointer */}
                   <div
-                    className="w-1 h-20 bg-[#4FA8E0] origin-bottom rounded-full transition-transform duration-300"
+                    className="w-1 h-20 bg-[var(--m-accent)] origin-bottom rounded-full transition-transform duration-300"
                     style={{
                       transform: `rotate(${((interactivePressure - 1013) / 60) * 120}deg)`,
                       transformOrigin: 'bottom center',
@@ -221,7 +221,7 @@ export const ForecastingToolsView: React.FC = () => {
                 <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
                     <span className="text-[var(--m-text-secondary)]">Atmospheric Pressure</span>
-                    <span className="text-[#4FA8E0] font-bold">{interactivePressure} hPa</span>
+                    <span className="text-[var(--m-accent)] font-bold">{interactivePressure} hPa</span>
                   </div>
                   <input
                     type="range"
@@ -229,7 +229,7 @@ export const ForecastingToolsView: React.FC = () => {
                     max="1050"
                     value={interactivePressure}
                     onChange={(e) => setInteractivePressure(Number(e.target.value))}
-                    className="w-full accent-[#0B72B9] cursor-pointer"
+                    className="w-full accent-[var(--m-accent)] cursor-pointer"
                   />
                   <p className="text-xs text-[#FFB703] mt-2 text-center">
                     {interactivePressure < 1000
@@ -246,9 +246,9 @@ export const ForecastingToolsView: React.FC = () => {
             {selectedTool.id === 'hygrometers' && (
               <div className="flex flex-col items-center gap-6 py-4">
                 <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border flex flex-col items-center">
-                  <div className="w-24 h-44 bg-[var(--m-surface-1)] rounded-full border-2 border-[#4FA8E0] relative overflow-hidden flex flex-col justify-end p-1">
+                  <div className="w-24 h-44 bg-[var(--m-surface-1)] rounded-full border-2 border-[var(--m-accent)] relative overflow-hidden flex flex-col justify-end p-1">
                     <div
-                      className="w-full rounded-full bg-gradient-to-t from-[#0B72B9] to-[#4FA8E0] transition-all duration-300"
+                      className="w-full rounded-full bg-gradient-to-t from-[var(--m-accent)] to-[var(--m-accent)] transition-all duration-300"
                       style={{ height: `${interactiveHumidity}%` }}
                     ></div>
                     <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-white drop-shadow">
@@ -260,7 +260,7 @@ export const ForecastingToolsView: React.FC = () => {
                 <div className="w-full bg-[var(--m-surface-1)] p-4 rounded-lg card-border">
                   <div className="flex justify-between text-xs mb-2">
                     <span className="text-[var(--m-text-secondary)]">Relative Humidity (RH)</span>
-                    <span className="text-[#4FA8E0] font-bold">{interactiveHumidity}%</span>
+                    <span className="text-[var(--m-accent)] font-bold">{interactiveHumidity}%</span>
                   </div>
                   <input
                     type="range"
@@ -268,7 +268,7 @@ export const ForecastingToolsView: React.FC = () => {
                     max="100"
                     value={interactiveHumidity}
                     onChange={(e) => setInteractiveHumidity(Number(e.target.value))}
-                    className="w-full accent-[#0B72B9] cursor-pointer"
+                    className="w-full accent-[var(--m-accent)] cursor-pointer"
                   />
                 </div>
               </div>
@@ -280,8 +280,8 @@ export const ForecastingToolsView: React.FC = () => {
               selectedTool.id === 'radiosondes') && (
               <div className="bg-[var(--m-surface-1)] p-4 rounded-lg card-border flex flex-col items-center gap-3">
                 <div className="w-full h-44 rounded-lg bg-[var(--m-surface-1)] card-border flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-radial from-[#0B72B9]/20 to-transparent animate-pulse"></div>
-                  <span className="material-symbols-outlined text-[64px] text-[#4FA8E0] drop-shadow-xl animate-bounce">
+                  <div className="absolute inset-0 bg-radial from-[var(--m-accent)]/20 to-transparent animate-pulse"></div>
+                  <span className="material-symbols-outlined text-[64px] text-[var(--m-accent)] drop-shadow-xl animate-bounce">
                     {selectedTool.icon}
                   </span>
                   <div className="absolute bottom-2 right-2 text-xs text-[#2ECC71] bg-black/60 px-2 py-0.5 rounded font-semibold border border-[#2ECC71]/30">

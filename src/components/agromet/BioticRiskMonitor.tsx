@@ -80,11 +80,11 @@ export const BioticRiskMonitor: React.FC<BioticRiskMonitorProps> = ({
             <span>
               RH: <strong className="text-[var(--m-accent)]">{humidity !== null ? `${Math.round(humidity)}%` : '—'}</strong>
             </span>
-            <span className="text-[#38536A]">·</span>
+            <span className="text-[var(--m-text-muted)]">·</span>
             <span>
               Temp: <strong className="text-[var(--m-watch)]">{temp !== null ? `${Math.round(temp * 10) / 10}°C` : '—'}</strong>
             </span>
-            <span className="text-[#38536A]">·</span>
+            <span className="text-[var(--m-text-muted)]">·</span>
             <span>
               Dew Proxy:{' '}
               <strong className={hasTelemetry ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}>

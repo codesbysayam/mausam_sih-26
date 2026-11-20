@@ -124,7 +124,7 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
           <path
             d="M 20 110 A 130 90 0 0 1 280 110"
             fill="none"
-            stroke="#26394B"
+            stroke="#2F3534"
             strokeWidth="3"
             strokeDasharray="4 4"
           />
@@ -139,19 +139,19 @@ export const HomeSolarCycle: React.FC<HomeSolarCycleProps> = ({
             />
           )}
 
-          <line x1="10" y1="110" x2="290" y2="110" stroke="#26394B" strokeWidth="1.5" />
+          <line x1="10" y1="110" x2="290" y2="110" stroke="#2F3534" strokeWidth="1.5" />
 
           <circle
             cx={sunX}
             cy={sunY}
             r="8"
-            fill={isDay ? '#F59E0B' : '#8295A8'}
+            fill={isDay ? '#F59E0B' : '#898B83'}
           />
-          <circle cx={sunX} cy={sunY} r="3" fill="#07111D" />
+          <circle cx={sunX} cy={sunY} r="3" fill="#111314" />
 
           <defs>
             <linearGradient id="solarGradientHome" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#35C7E8" />
+              <stop offset="0%" stopColor="#C5A46D" />
               <stop offset="50%" stopColor="#F59E0B" />
               <stop offset="100%" stopColor="#EF4444" />
             </linearGradient>

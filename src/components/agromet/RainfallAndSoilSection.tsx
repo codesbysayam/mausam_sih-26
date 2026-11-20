@@ -81,9 +81,9 @@ export const RainfallAndSoilSection: React.FC<RainfallAndSoilSectionProps> = ({ 
                   <div
                     className={`w-full max-w-[32px] rounded-lg transition-all duration-500 flex items-center justify-center ${
                       item.amountMm > 15
-                        ? 'bg-gradient-to-t from-[#1D4ED8] to-[#38BDF8]'
+                        ? 'bg-gradient-to-t from-[#1D4ED8] to-[var(--m-accent)]'
                         : item.amountMm > 0
-                        ? 'bg-gradient-to-t from-[#0284C7] to-[#38BDF8]'
+                        ? 'bg-gradient-to-t from-[var(--m-accent)] to-[var(--m-accent)]'
                         : 'bg-[var(--m-surface-2)]'
                     }`}
                     style={{ height: `${barHeightPct}%` }}

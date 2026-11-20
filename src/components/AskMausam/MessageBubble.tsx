@@ -31,7 +31,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div className="flex justify-end mb-3">
         <div className="max-w-[85%] rounded-xl rounded-tr-sm bg-[var(--m-accent)] border border-[var(--m-accent)]/35 text-[var(--m-text-primary)] px-3.5 py-2.5">
           <p className="text-xs sm:text-sm leading-relaxed">{message.text}</p>
-          <span className="block text-[10px] text-[#F3F6FA]/75 text-right mt-1 font-mono tabular-nums">
+          <span className="block text-[10px] text-[var(--m-text-primary)]/75 text-right mt-1 font-mono tabular-nums">
             {time}
           </span>
         </div>
@@ -62,7 +62,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className="flex items-center gap-1.5 min-w-0">
           <span
             className={`w-2 h-2 rounded-full shrink-0 ${
-              isKnowledgeResponse ? 'bg-[#22C7A0]' : 'bg-[#35C7E8]'
+              isKnowledgeResponse ? 'bg-[#22C7A0]' : 'bg-[var(--m-accent)]'
             }`}
           />
           <span className="font-semibold text-[var(--m-text-primary)] tracking-wide">Ask MAUSAM</span>

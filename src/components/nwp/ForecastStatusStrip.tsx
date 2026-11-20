@@ -53,7 +53,7 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
           }
         />
 
-        <span className="text-[#26394B] hidden sm:inline">|</span>
+        <span className="text-[var(--m-text-muted)] hidden sm:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
           <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
@@ -63,7 +63,7 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
           </span>
         </div>
 
-        <span className="text-[#26394B] hidden md:inline">|</span>
+        <span className="text-[var(--m-text-muted)] hidden md:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
           <Calendar className="w-3.5 h-3.5 text-[var(--m-ok)]" />
@@ -73,7 +73,7 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
           </span>
         </div>
 
-        <span className="text-[#26394B] hidden lg:inline">|</span>
+        <span className="text-[var(--m-text-muted)] hidden lg:inline">|</span>
 
         <div className="flex items-center gap-1.5 font-mono">
           <Activity className="w-3.5 h-3.5 text-[var(--m-watch)]" />
@@ -81,7 +81,7 @@ export const ForecastStatusStrip: React.FC<ForecastStatusStripProps> = ({
           <span className="text-[var(--m-text-primary)] font-medium tabular-nums">{ageLabel}</span>
         </div>
 
-        <span className="text-[#26394B] hidden xl:inline">|</span>
+        <span className="text-[var(--m-text-muted)] hidden xl:inline">|</span>
 
         <div className="flex items-center gap-1.5">
           <Database className="w-3.5 h-3.5 text-[var(--m-accent)]" />
