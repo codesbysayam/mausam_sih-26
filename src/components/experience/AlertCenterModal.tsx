@@ -10,6 +10,7 @@ import type { LocationRecord, WeatherAlert } from '../../types';
 import { useProvider } from '../../store/providerStore';
 import { formatTimestampIST, getAlertFeedAvailability } from '../../services/providers/providerStatus';
 import { useExperience } from '../../context/ExperienceContext';
+import { formatLocationTitle } from '../../utils/locationFormatter';
 
 interface AlertCenterModalProps {
   selectedLocation: LocationRecord;
@@ -103,7 +104,7 @@ export const AlertCenterModal: React.FC<AlertCenterModalProps> = ({
               <span>No Active Alerts Reported</span>
             </div>
             <p className="mt-1.5 text-[var(--m-text-secondary)] leading-relaxed">
-              No active alerts reported by SACHET/IMD for {selectedLocation.displayName} as of{' '}
+              No active alerts reported by SACHET/IMD for {formatLocationTitle(selectedLocation)} as of{' '}
               <span className="font-mono text-[var(--m-text-primary)]">{lastChecked}</span>.
             </p>
           </div>

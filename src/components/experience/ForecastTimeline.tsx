@@ -1,7 +1,8 @@
 // ====================================================================
-// MAUSAM Persistent Forecast Timeline Dock
-// Synchronizes bottom scrubber across real hourly forecast slots
-// (or Doppler radar past/nowcast frames when Radar layer is active).
+// MAUSAM Persistent Forecast & Radar Timeline Dock
+// Synchronizes bottom scrubber across real hourly model slots
+// (or Doppler radar past/nowcast frames when Radar layer is active)
+// with 0.5x / 1x / 2x playback speed and honest provenance badges.
 // ====================================================================
 
 import React, { useEffect, useMemo } from 'react';
@@ -15,6 +16,8 @@ interface ForecastTimelineProps {
   radarData?: RadarApiResponse | null;
 }
 
+const SPEED_OPTIONS: Array<0.5 | 1 | 2> = [0.5, 1, 2];
+
 export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, radarData }) => {
   const {
     activeLayer,
@@ -22,6 +25,8 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     setTimelineIndex,
     isTimelinePlaying,
     setIsTimelinePlaying,
+    playbackSpeed,
+    setPlaybackSpeed,
   } = useExperience();
 
   const isRadarMode = activeLayer === 'radar' && (radarData?.pastFrames?.length || 0) > 0;
@@ -35,14 +40,15 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   const totalSlots = isRadarMode ? radarFrames.length : hourlySlots.length;
   const safeIdx = totalSlots > 0 ? Math.min(timelineIndex, totalSlots - 1) : 0;
 
-  // Auto-advance playback when playing
+  // Auto-advance playback scaled cleanly by playbackSpeed (0.5x / 1x / 2x)
   useEffect(() => {
     if (!isTimelinePlaying || totalSlots <= 1) return;
+    const intervalMs = Math.round(1100 / playbackSpeed);
     const timer = setInterval(() => {
       setTimelineIndex((prev) => (prev + 1 >= totalSlots ? 0 : prev + 1));
-    }, 1100);
+    }, intervalMs);
     return () => clearInterval(timer);
-  }, [isTimelinePlaying, totalSlots, setTimelineIndex]);
+  }, [isTimelinePlaying, totalSlots, playbackSpeed, setTimelineIndex]);
 
   const activeLabel = useMemo(() => {
     if (isRadarMode && radarFrames[safeIdx]) {
@@ -51,20 +57,20 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
         time: f.formattedTime || f.relativeLabel || 'Radar Scan',
         kind: (f.ageMinutes ?? 0) <= 0 ? 'NOWCAST' : 'OBSERVED',
         detail: f.relativeLabel || `${f.ageMinutes}m ago`,
+        source: 'IMD / RainViewer Radar',
       };
     }
     const h = hourlySlots[safeIdx];
     if (!h) {
       return {
-        time: 'Now',
-        kind: 'OBSERVED',
-        detail: 'Waiting for forecast horizon',
+        time: 'Unavailable',
+        kind: 'UNAVAILABLE',
+        detail: 'No verified hourly model series loaded',
+        source: 'Open-Meteo Model Grid',
       };
     }
     const tempStr =
-      typeof h.temp === 'number' && Number.isFinite(h.temp)
-        ? `${Math.round(h.temp)}°C`
-        : '—';
+      typeof h.temp === 'number' && Number.isFinite(h.temp) ? `${Math.round(h.temp)}°C` : '—';
     const rainStr =
       typeof h.rainProb === 'number' && Number.isFinite(h.rainProb)
         ? `Rain ${Math.round(h.rainProb)}%`
@@ -75,15 +81,19 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
         : 'Wind —';
     return {
       time: h.time,
-      kind: safeIdx === 0 || h.isNow ? 'CURRENT' : 'FORECAST',
+      kind: safeIdx === 0 || h.isNow ? 'MODEL VALID' : 'FORECAST',
       detail: `${tempStr} · ${rainStr} · ${windStr}`,
+      source: 'Open-Meteo Model Grid',
     };
   }, [isRadarMode, radarFrames, hourlySlots, safeIdx]);
 
   if (totalSlots === 0) {
     return (
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-xl px-4 py-2 text-xs text-[#8295A8]">
-        Forecast timeline waiting for atmospheric feed...
+      <div
+        role="status"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-xl px-4 py-2 text-xs text-[var(--m-text-muted)] font-mono"
+      >
+        Timeline disabled — awaiting verified hourly or radar time series.
       </div>
     );
   }
@@ -91,36 +101,66 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   return (
     <section
       aria-label="Atmospheric Time Progression"
-      className="fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(720px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
+      className="fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
     >
       <div className="spatial-hud-surface rounded-xl px-3 py-2 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-2">
-          {/* Playback Controls */}
+        <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+          {/* Playback & Speed Controls */}
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setTimelineIndex((p) => (p > 0 ? p - 1 : totalSlots - 1))}
               aria-label="Previous time step"
-              className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
+              className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
               <SkipBack className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => setIsTimelinePlaying((v) => !v)}
-              aria-label={isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'}
-              className="w-11 h-11 sm:w-8 sm:h-8 rounded-lg bg-[#35C7E8] text-[#07111D] flex items-center justify-center hover:opacity-95 cursor-pointer spatial-focus-ring"
+              aria-label={
+                isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'
+              }
+              className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-[var(--m-accent)] text-[#07111B] flex items-center justify-center hover:opacity-95 cursor-pointer m-focus-ring"
             >
-              {isTimelinePlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+              {isTimelinePlaying ? (
+                <Pause className="w-3.5 h-3.5" />
+              ) : (
+                <Play className="w-3.5 h-3.5 ml-0.5" />
+              )}
             </button>
             <button
               type="button"
               onClick={() => setTimelineIndex((p) => (p + 1) % totalSlots)}
               aria-label="Next time step"
-              className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#B5C3D1] hover:text-[#F3F6FA] hover:bg-[#101F2E] cursor-pointer spatial-focus-ring"
+              className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
               <SkipForward className="w-3.5 h-3.5" />
             </button>
+
+            {/* Playback Speed Switcher (0.5x / 1x / 2x) */}
+            <div
+              role="group"
+              aria-label="Playback speed"
+              className="hidden sm:flex items-center bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg p-0.5 ml-1"
+            >
+              {SPEED_OPTIONS.map((spd) => (
+                <button
+                  key={spd}
+                  type="button"
+                  onClick={() => setPlaybackSpeed(spd)}
+                  aria-pressed={playbackSpeed === spd}
+                  className={`px-1.5 min-h-[24px] rounded text-[10px] font-mono font-semibold cursor-pointer transition-colors ${
+                    playbackSpeed === spd
+                      ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)]'
+                      : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
+                  }`}
+                >
+                  {spd}×
+                </button>
+              ))}
+            </div>
+
             {safeIdx !== 0 && (
               <button
                 type="button"
@@ -128,9 +168,9 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
                   setIsTimelinePlaying(false);
                   setTimelineIndex(0);
                 }}
-                title="Jump to current observation"
-                aria-label="Reset to Now"
-                className="min-w-[44px] min-h-[44px] sm:min-w-[34px] sm:min-h-[34px] flex items-center justify-center rounded-lg text-[#35C7E8] hover:bg-[#35C7E8]/15 cursor-pointer spatial-focus-ring"
+                title="Jump to current slot"
+                aria-label="Reset to current slot"
+                className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] cursor-pointer m-focus-ring"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -141,21 +181,23 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
           <div className="flex items-center gap-2 min-w-0 text-xs">
             <span
               className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 border ${
-                activeLabel.kind === 'CURRENT' || activeLabel.kind === 'OBSERVED'
-                  ? 'bg-[#22C7A0]/15 text-[#22C7A0] border-[#22C7A0]/35'
-                  : 'bg-[#35C7E8]/15 text-[#35C7E8] border-[#35C7E8]/35'
+                activeLabel.kind === 'OBSERVED'
+                  ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
+                  : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
               }`}
             >
               {activeLabel.kind}
             </span>
-            <span className="font-mono font-semibold text-[#F3F6FA] tabular-nums shrink-0">{activeLabel.time}</span>
-            <span className="text-[#B5C3D1] truncate hidden sm:inline tabular-nums">
+            <span className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums shrink-0">
+              {activeLabel.time}
+            </span>
+            <span className="text-[var(--m-text-secondary)] truncate hidden md:inline tabular-nums">
               · {activeLabel.detail}
             </span>
           </div>
         </div>
 
-        {/* Continuous Scrubber Slider */}
+        {/* Continuous Scrubber Slider & Source Provenance */}
         <div className="flex items-center gap-2.5">
           <input
             type="range"
@@ -167,10 +209,13 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               setTimelineIndex(Number(e.target.value));
             }}
             aria-label="Scrub atmospheric timeline"
-            className="w-full h-1.5 accent-[#35C7E8] cursor-pointer"
+            className="w-full h-1.5 accent-[var(--m-accent)] cursor-pointer"
           />
-          <span className="text-[10px] font-mono text-[#8295A8] tabular-nums shrink-0">
+          <span className="text-[10px] font-mono text-[var(--m-text-muted)] tabular-nums shrink-0">
             {safeIdx + 1}/{totalSlots}
+          </span>
+          <span className="text-[10px] font-mono text-[var(--m-text-muted)] hidden sm:inline shrink-0 border-l border-[var(--m-border)] pl-2">
+            {activeLabel.source}
           </span>
         </div>
       </div>

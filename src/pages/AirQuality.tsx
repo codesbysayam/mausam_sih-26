@@ -12,6 +12,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import DateCalendar from '../components/DateCalendar';
 import { formatDateShort, formatDateISO } from '../utils/dateUtils';
 import { formatCoordinatePair } from '../../shared/weatherContract';
+import { formatLocationTitle } from '../utils/locationFormatter';
 import { useProvider } from '../store/providerStore';
 import {
   DataPanel,
@@ -503,12 +504,12 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
       : 'UNAVAILABLE';
 
   return (
-    <div className="flex flex-col gap-5 max-w-7xl mx-auto pb-12">
+    <div className="flex flex-col gap-5 w-full pb-12">
       {/* Unified Observatory Page Header */}
       <PageHeader
         eyebrow="CPCB NAQI · OPEN-METEO ATMOSPHERIC CHEMISTRY"
         title={`Air Quality & Bio-Aerosol Telemetry — ${selectedLocation.city || 'Station'}`}
-        description={`Real-time particulate matter, gaseous pollutants, and 7-day dispersion history for ${selectedLocation.city || 'Station'}, ${selectedLocation.state || 'India'}.`}
+        description={`Real-time particulate matter, gaseous pollutants, and 7-day dispersion history for ${formatLocationTitle(selectedLocation)}.`}
         coordinates={formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
         status={headerStatus}
         source={aqiState.source || 'Open-Meteo Air Quality'}

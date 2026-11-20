@@ -5,7 +5,7 @@
 // ForecastTimeline, FirstVisitGuide, and AlertCenterModal.
 // ====================================================================
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { LocationRecord } from '../../types';
 import type { WeatherDataBundle } from '../../services/weatherService';
 import type { RadarApiResponse } from '../../services/radarService';
@@ -49,13 +49,42 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
     cameraFlyTarget,
     setInspectedFeature,
     recenterIndia,
+    showControlsGuide,
+    openControlsGuide,
+    dismissControlsGuide,
   } = useExperience();
 
   const { state: radarProvider } = useProvider<RadarApiResponse>('RADAR');
 
+  // Global Explore keyboard shortcuts (? = toggle controls guide, Escape = dismiss overlays)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || el?.isContentEditable) {
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === '?') {
+        e.preventDefault();
+        if (showControlsGuide) dismissControlsGuide();
+        else openControlsGuide();
+      } else if (e.key === 'Escape') {
+        if (showControlsGuide) {
+          dismissControlsGuide();
+        } else {
+          setInspectedFeature(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showControlsGuide, openControlsGuide, dismissControlsGuide, setInspectedFeature]);
+
   return (
     <div id="mausam-explore-workspace" data-theme="dark-workspace" className="mausam-explore-stage">
-      {/* Primary Atmospheric Stage: Interactive 3D WebGL Globe or 2D Map Fallback */}
+      {/* Primary Atmospheric Stage: Interactive 3D India Observatory or 2D Map Fallback */}
       {rendererMode === '3d' ? (
         <AtmosphereScene
           selectedLocation={selectedLocation}

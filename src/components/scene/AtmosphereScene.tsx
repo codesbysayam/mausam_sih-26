@@ -1,7 +1,10 @@
 // ====================================================================
-// MAUSAM Interactive 3D Atmospheric Environment (Three.js + OrbitControls)
-// Mounted cleanly inside a single ref container without React-Three-Fiber
-// to ensure deterministic WebGL lifecycle, SwiftShader safety, and 60fps GPU rendering.
+// MAUSAM Interactive 3D India Atmospheric Observatory (Three.js)
+// Geographically grounded 3D relief terrain of the Indian Subcontinent
+// with composite meteorological beacons, 33 IMD Doppler radar domes &
+// terrain-conformed range rings, real-data wind streamlines / static
+// vectors, multi-ring official warning perimeters, data-driven cloud
+// & precipitation layers, and RSMC cyclone tracks.
 // ====================================================================
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -12,13 +15,18 @@ import type { LocationRecord } from '../../types';
 import type { WeatherDataBundle } from '../../services/weatherService';
 import type { CyclonePayload } from '../../types/cyclone';
 import { IMD_DOPPLER_RADAR_NETWORK, RadarStation } from '../../data/radarStations';
+import { getColorForStateLayer, getMergedStatePoints } from './geoMath';
 import {
-  GLOBE_RADIUS,
-  buildProceduralEarthTextures,
-  getColorForStateLayer,
-  getMergedStatePoints,
-  latLngToVector3,
-} from './geoMath';
+  KM_TO_WORLD_X,
+  KM_TO_WORLD_Z,
+  WORLD_DEPTH,
+  WORLD_WIDTH,
+  buildIndiaObservatoryTexture,
+  buildIndiaTerrainGeometry,
+  getTerrainElevation,
+  latLngToTerrain,
+  terrainToLatLng,
+} from './indiaTerrainBuilder';
 import { WindParticleSystem } from './WindParticleSystem';
 import {
   InspectedSpatialFeature,
@@ -53,45 +61,74 @@ interface PickableTarget {
   feature: InspectedSpatialFeature;
 }
 
-const EARTH_RADIUS_KM = 6371;
+// Elevated oblique observatory framing of the Indian Subcontinent
+const DEFAULT_CAMERA_POS = new THREE.Vector3(0.4, 21.8, 21.6);
+const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0.2, 0.25, 0.6);
 
-function createSoftCloudTexture(): THREE.CanvasTexture {
+// Pre-allocated scratch vectors (zero frame-loop GC)
+const _tmpVec = new THREE.Vector3();
+const _panForward = new THREE.Vector3();
+const _panRight = new THREE.Vector3();
+const _upAxis = new THREE.Vector3(0, 1, 0);
+
+function createSoftCloudFieldTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
-  canvas.height = 512;
+  canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Subtle deterministic synoptic cloud filaments concentrated along tropical/monsoon belts
-  const patches = [
-    { x: 0.72, y: 0.44, r: 65, a: 0.24 }, // Arabian Sea moisture
-    { x: 0.74, y: 0.41, r: 48, a: 0.22 }, // Western Ghats
-    { x: 0.76, y: 0.39, r: 54, a: 0.26 }, // Bay of Bengal
-    { x: 0.77, y: 0.35, r: 46, a: 0.22 }, // Gangetic delta / NE India
-    { x: 0.71, y: 0.31, r: 52, a: 0.16 }, // Himalayan ridge
-    { x: 0.74, y: 0.46, r: 62, a: 0.20 }, // Equatorial Indian Ocean ITCZ
-    { x: 0.68, y: 0.47, r: 58, a: 0.14 },
-    { x: 0.81, y: 0.43, r: 60, a: 0.16 },
+  // Subtle deterministic tropospheric moisture corridors over Arabian Sea, Ghats, Bay of Bengal, Himalayas
+  const wisps = [
+    { x: 0.34, y: 0.62, r: 160, a: 0.24 }, // Arabian Sea fetch
+    { x: 0.42, y: 0.56, r: 130, a: 0.28 }, // Konkan / Western Ghats
+    { x: 0.62, y: 0.54, r: 175, a: 0.30 }, // Bay of Bengal moisture plume
+    { x: 0.58, y: 0.38, r: 145, a: 0.24 }, // Gangetic delta & Northeast
+    { x: 0.47, y: 0.24, r: 155, a: 0.20 }, // Himalayan ridge veil
+    { x: 0.52, y: 0.72, r: 165, a: 0.22 }, // Equatorial Indian Ocean ITCZ
+    { x: 0.48, y: 0.46, r: 135, a: 0.18 }, // Central plateau
   ];
 
-  for (const p of patches) {
-    const cx = p.x * canvas.width;
-    const cy = p.y * canvas.height;
-    const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, p.r);
-    grad.addColorStop(0, `rgba(226, 239, 252, ${p.a})`);
-    grad.addColorStop(0.55, `rgba(184, 214, 240, ${p.a * 0.45})`);
-    grad.addColorStop(1, 'rgba(184, 214, 240, 0)');
+  for (const w of wisps) {
+    const cx = w.x * canvas.width;
+    const cy = w.y * canvas.height;
+    const grad = ctx.createRadialGradient(cx, cy, 8, cx, cy, w.r);
+    grad.addColorStop(0, `rgba(234, 245, 250, ${w.a})`);
+    grad.addColorStop(0.55, `rgba(182, 199, 212, ${w.a * 0.42})`);
+    grad.addColorStop(1, 'rgba(182, 199, 212, 0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(cx, cy, p.r, 0, Math.PI * 2);
+    ctx.arc(cx, cy, w.r, 0, Math.PI * 2);
     ctx.fill();
   }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
   tex.needsUpdate = true;
   return tex;
+}
+
+function createTerrainConformedRingPoints(
+  centerLat: number,
+  centerLng: number,
+  radiusX: number,
+  radiusZ: number,
+  altitudeOffset: number,
+  segments: number
+): THREE.Vector3[] {
+  const center = latLngToTerrain(centerLat, centerLng, 0, new THREE.Vector3());
+  const pts: THREE.Vector3[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const ang = (i / segments) * Math.PI * 2;
+    const x = center.x + Math.cos(ang) * radiusX;
+    const z = center.z + Math.sin(ang) * radiusZ;
+    const { lat, lng } = terrainToLatLng(x, z);
+    const y = getTerrainElevation(lat, lng) + altitudeOffset;
+    pts.push(new THREE.Vector3(x, y, z));
+  }
+  return pts;
 }
 
 export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
@@ -141,6 +178,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     updateLayerVisuals?: () => void;
     updateSelectedLocationMarker?: () => void;
     updateCycloneGroup?: () => void;
+    updatePixelRatio?: () => void;
     flyTo?: (lat: number, lng: number, distance?: number) => void;
   }>({});
 
@@ -149,7 +187,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. Verify WebGL support cleanly
+    // 1. Verify WebGL support cleanly & detect software rasterizers
     let testCanvas: HTMLCanvasElement | null = document.createElement('canvas');
     const glCheck =
       testCanvas.getContext('webgl2') ||
@@ -193,7 +231,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const q = latestRef.current.qualityTier;
       const dpr = window.devicePixelRatio || 1;
       if (q === 'low' || isSoftwareGl) return Math.min(dpr, 1.0);
-      if (q === 'balanced') return Math.min(dpr, 1.5);
+      if (q === 'balanced' || q === 'auto') return Math.min(dpr, 1.5);
       return Math.min(dpr, 2.0);
     };
 
@@ -201,276 +239,336 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    renderer.toneMappingExposure = 1.08;
     renderer.shadowMap.enabled = false;
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
-    renderer.domElement.setAttribute('aria-label', 'MAUSAM Interactive 3D Atmospheric Environment');
+    renderer.domElement.setAttribute(
+      'aria-label',
+      'MAUSAM Interactive 3D India Atmospheric Observatory'
+    );
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 2. Scene, Camera, Environment & Calibrated Lighting
+    // 2. Scene, Horizon Fog, Camera, RoomEnvironment IBL & Calibrated Lighting
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#07111D');
+    scene.background = new THREE.Color('#071A2B');
+    scene.fog = new THREE.FogExp2('#071A2B', 0.0115);
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 80);
-    const initialCamPos = latLngToVector3(21.4, 79.0, 3.45);
-    camera.position.copy(initialCamPos);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.25, 160);
+    camera.position.copy(DEFAULT_CAMERA_POS);
 
-    // Subtle IBL via RoomEnvironment (mandatory on every GPU/software renderer)
     const pmrem = new THREE.PMREMGenerator(renderer);
     const roomEnv = new RoomEnvironment();
-    scene.environment = pmrem.fromScene(roomEnv, 0.04).texture;
+    const envTarget = pmrem.fromScene(roomEnv, 0.04);
+    scene.environment = envTarget.texture;
     roomEnv.dispose();
     pmrem.dispose();
 
-    const hemiLight = new THREE.HemisphereLight('#8FC9F5', '#06101B', 0.92);
+    const hemiLight = new THREE.HemisphereLight('#8FC9F5', '#061421', 0.92);
     scene.add(hemiLight);
 
-    const keySun = new THREE.DirectionalLight('#F4FAFF', 2.15);
-    keySun.position.set(4.5, 3.2, 4.0);
+    const keySun = new THREE.DirectionalLight('#F4FAFF', 2.05);
+    keySun.position.set(18, 28, 16);
     scene.add(keySun);
 
-    const rimLight = new THREE.DirectionalLight('#35C7E8', 0.95);
-    rimLight.position.set(-4.2, -1.5, -3.5);
+    const rimLight = new THREE.DirectionalLight('#35C5E8', 0.85);
+    rimLight.position.set(-18, 12, -16);
     scene.add(rimLight);
 
-    // 3. OrbitControls (Manual camera navigation without hijacking focus)
+    // 3. OrbitControls (Left-drag orbit, scroll zoom, right-drag horizontal pan)
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
+    controls.enablePan = true;
+    controls.screenSpacePanning = false;
     controls.enableDamping = !latestRef.current.reducedMotion;
     controls.dampingFactor = 0.065;
     controls.rotateSpeed = 0.62;
-    controls.zoomSpeed = 0.8;
-    controls.minDistance = 2.08;
-    controls.maxDistance = 5.2;
-    controls.target.set(0, 0, 0);
+    controls.zoomSpeed = 0.85;
+    controls.panSpeed = 0.72;
+    controls.minPolarAngle = 0.2;
+    controls.maxPolarAngle = Math.PI / 2.22;
+    controls.minDistance = 6.5;
+    controls.maxDistance = 42.0;
+    controls.target.copy(DEFAULT_CAMERA_TARGET);
     controls.update();
 
-    // 4. Celestial Backdrop Starfield (sparse subtle depth, never noisy)
-    const starCount = 320;
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-      const r = 18 + Math.random() * 14;
-      const theta = Math.acos(2 * Math.random() - 1);
-      const phi = Math.random() * Math.PI * 2;
-      starPositions[i * 3] = r * Math.sin(theta) * Math.cos(phi);
-      starPositions[i * 3 + 1] = r * Math.cos(theta);
-      starPositions[i * 3 + 2] = r * Math.sin(theta) * Math.sin(phi);
-    }
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMat = new THREE.PointsMaterial({
-      color: '#7EA5CC',
-      size: 0.045,
+    // 4. Extended Seamless Ocean Horizon & Subtle Observatory Reference Frame
+    const oceanGeo = new THREE.PlaneGeometry(180, 180, 1, 1);
+    oceanGeo.rotateX(-Math.PI / 2);
+    const oceanMat = new THREE.MeshStandardMaterial({
+      color: '#061524',
+      roughness: 0.88,
+      metalness: 0.1,
+      envMapIntensity: 0.45,
+    });
+    const oceanPlane = new THREE.Mesh(oceanGeo, oceanMat);
+    oceanPlane.position.y = -0.025;
+    scene.add(oceanPlane);
+
+    // Subtle scientific grid framing the observatory basin
+    const basinGrid = new THREE.GridHelper(64, 32, '#1A3B54', '#0F263A');
+    basinGrid.position.y = -0.015;
+    const gridMats = Array.isArray(basinGrid.material) ? basinGrid.material : [basinGrid.material];
+    gridMats.forEach((m) => {
+      m.transparent = true;
+      m.opacity = 0.24;
+      m.depthWrite = false;
+    });
+    scene.add(basinGrid);
+
+    // 5. Geographically Grounded 3D India Relief Terrain Mesh
+    const initQuality = latestRef.current.qualityTier;
+    const terrainSegments =
+      initQuality === 'low' || isSoftwareGl ? 64 : initQuality === 'high' ? 160 : 112;
+    const textureRes: 1024 | 2048 = initQuality === 'low' || isSoftwareGl ? 1024 : 2048;
+
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+    const terrainTexture = buildIndiaObservatoryTexture(textureRes, maxAnisotropy);
+    const terrainGeo = buildIndiaTerrainGeometry(terrainSegments);
+    const terrainMat = new THREE.MeshStandardMaterial({
+      map: terrainTexture,
+      roughness: 0.78,
+      metalness: 0.08,
+      envMapIntensity: 0.55,
+    });
+    const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+    scene.add(terrainMesh);
+
+    // Thin illuminated domain perimeter border around the 3D subcontinent relief plate
+    const framePts = [
+      new THREE.Vector3(-WORLD_WIDTH * 0.5, 0.01, -WORLD_DEPTH * 0.5),
+      new THREE.Vector3(WORLD_WIDTH * 0.5, 0.01, -WORLD_DEPTH * 0.5),
+      new THREE.Vector3(WORLD_WIDTH * 0.5, 0.01, WORLD_DEPTH * 0.5),
+      new THREE.Vector3(-WORLD_WIDTH * 0.5, 0.01, WORLD_DEPTH * 0.5),
+      new THREE.Vector3(-WORLD_WIDTH * 0.5, 0.01, -WORLD_DEPTH * 0.5),
+    ];
+    const frameGeo = new THREE.BufferGeometry().setFromPoints(framePts);
+    const frameMat = new THREE.LineBasicMaterial({
+      color: '#35C5E8',
       transparent: true,
-      opacity: 0.42,
-      sizeAttenuation: true,
-      depthWrite: false,
+      opacity: 0.22,
     });
-    const starPoints = new THREE.Points(starGeo, starMat);
-    scene.add(starPoints);
+    const frameLine = new THREE.Line(frameGeo, frameMat);
+    scene.add(frameLine);
 
-    // 5. Procedural Subcontinent Globe + Fresnel Atmosphere + Cloud Veil
-    const { albedoTexture, bumpTexture } = buildProceduralEarthTextures();
-    const globeGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 72, 48);
-    const globeMat = new THREE.MeshStandardMaterial({
-      map: albedoTexture,
-      bumpMap: bumpTexture,
-      bumpScale: 0.018,
-      roughness: 0.72,
-      metalness: 0.14,
-      envMapIntensity: 0.7,
-    });
-    const globeMesh = new THREE.Mesh(globeGeo, globeMat);
-    scene.add(globeMesh);
-
-    // Subtle cloud veil sphere
-    const cloudTexture = createSoftCloudTexture();
-    const cloudGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.021, 56, 36);
-    const cloudMat = new THREE.MeshStandardMaterial({
+    // 6. Data-Driven Tropospheric Cloud Veil (Opacity bound strictly to live cloudCover %)
+    const cloudTexture = createSoftCloudFieldTexture();
+    const cloudGeo = new THREE.PlaneGeometry(WORLD_WIDTH * 0.96, WORLD_DEPTH * 0.96);
+    cloudGeo.rotateX(-Math.PI / 2);
+    const cloudMat = new THREE.MeshBasicMaterial({
       map: cloudTexture,
       transparent: true,
-      opacity: 0.55,
-      roughness: 0.95,
-      metalness: 0.0,
+      opacity: 0.0,
       depthWrite: false,
     });
-    const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
-    scene.add(cloudMesh);
+    const cloudPlane = new THREE.Mesh(cloudGeo, cloudMat);
+    cloudPlane.position.y = 2.65;
+    scene.add(cloudPlane);
 
-    // Atmospheric Fresnel scattering rim shader
-    const atmoGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.068, 56, 36);
-    const atmoMat = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      uniforms: {
-        uColor: { value: new THREE.Color('#35C7E8') },
-        uIntensity: { value: 0.72 },
-      },
-      vertexShader: `
-        varying vec3 vNormal;
-        varying vec3 vViewPos;
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vNormal = normalize(normalMatrix * normal);
-          vViewPos = -mvPosition.xyz;
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uColor;
-        uniform float uIntensity;
-        varying vec3 vNormal;
-        varying vec3 vViewPos;
-        void main() {
-          vec3 viewDir = normalize(vViewPos);
-          float fresnel = pow(0.66 - dot(vNormal, viewDir), 3.4);
-          gl_FragColor = vec4(uColor, clamp(fresnel * uIntensity, 0.0, 0.85));
-        }
-      `,
-    });
-    const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
-    scene.add(atmoMesh);
-
-    // Subtle equatorial orbital telemetry ring
-    const orbitRingGeo = new THREE.RingGeometry(GLOBE_RADIUS * 1.13, GLOBE_RADIUS * 1.135, 96);
-    const orbitRingMat = new THREE.MeshBasicMaterial({
-      color: '#35C7E8',
-      transparent: true,
-      opacity: 0.14,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const orbitRing = new THREE.Mesh(orbitRingGeo, orbitRingMat);
-    orbitRing.rotation.x = Math.PI / 2 - 0.18;
-    orbitRing.rotation.z = 0.24;
-    scene.add(orbitRing);
-
-    // 6. Real-Data Wind Streamline Particle System
+    // 7. Terrain-Space Data-Driven Wind Streamlines & Static Vector Arrows
     const windParticles = new WindParticleSystem(640);
     scene.add(windParticles.object);
 
-    // 7. Interactive Pickable Meshes: 36 State Beacons + 33 DWR Radar Domes + Selected Location + Cyclones
+    // 8. Interactive Spatial Groups
     const pickables: PickableTarget[] = [];
     const stateGroup = new THREE.Group();
+    const rainColumnsGroup = new THREE.Group();
+    const warningRingsGroup = new THREE.Group();
     const radarGroup = new THREE.Group();
     const selectedGroup = new THREE.Group();
     const cycloneGroup = new THREE.Group();
-    scene.add(stateGroup, radarGroup, selectedGroup, cycloneGroup);
+    scene.add(
+      stateGroup,
+      rainColumnsGroup,
+      warningRingsGroup,
+      radarGroup,
+      selectedGroup,
+      cycloneGroup
+    );
 
-    // Shared small geometries for efficiency
-    const stateNodeGeo = new THREE.SphereGeometry(0.015, 14, 12);
-    const stateHaloGeo = new THREE.RingGeometry(0.018, 0.028, 24);
-    const stateStemGeo = new THREE.CylinderGeometry(0.0032, 0.0045, 1, 8);
-    const radarDomeGeo = new THREE.SphereGeometry(0.013, 12, 10);
+    // Shared composite geometries for 36 State Beacons (3-part: plinth + pylon + luminous cap + halo)
+    const plinthGeo = new THREE.CylinderGeometry(0.14, 0.2, 0.07, 12);
+    const pylonGeo = new THREE.CylinderGeometry(0.032, 0.048, 1.0, 8);
+    const beaconCapGeo = new THREE.SphereGeometry(0.105, 14, 12);
+    const haloRingGeo = new THREE.RingGeometry(0.18, 0.27, 24);
+    haloRingGeo.rotateX(-Math.PI / 2);
+
+    const rainBarGeo = new THREE.CylinderGeometry(0.16, 0.22, 1.0, 10);
 
     const statePoints = getMergedStatePoints();
     const stateEntries: Array<{
       point: (typeof statePoints)[number];
-      node: THREE.Mesh;
-      nodeMat: THREE.MeshBasicMaterial;
+      basePos: THREE.Vector3;
+      plinth: THREE.Mesh;
+      plinthMat: THREE.MeshStandardMaterial;
+      pylon: THREE.Mesh;
+      pylonMat: THREE.MeshStandardMaterial;
+      cap: THREE.Mesh;
+      capMat: THREE.MeshBasicMaterial;
       halo: THREE.Mesh;
       haloMat: THREE.MeshBasicMaterial;
-      stem: THREE.Mesh;
-      stemMat: THREE.MeshBasicMaterial;
-      normal: THREE.Vector3;
+      rainBar: THREE.Mesh;
+      rainBarMat: THREE.MeshStandardMaterial;
     }> = [];
 
     for (const pt of statePoints) {
-      const surfacePos = latLngToVector3(pt.lat, pt.lng, GLOBE_RADIUS * 1.004);
-      const normal = surfacePos.clone().normalize();
-      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+      const basePos = latLngToTerrain(pt.lat, pt.lng, 0.015, new THREE.Vector3());
 
-      const nodeMat = new THREE.MeshBasicMaterial({ color: '#35C7E8' });
-      const node = new THREE.Mesh(stateNodeGeo, nodeMat);
+      const plinthMat = new THREE.MeshStandardMaterial({
+        color: '#152A3C',
+        roughness: 0.55,
+        metalness: 0.35,
+      });
+      const plinth = new THREE.Mesh(plinthGeo, plinthMat);
+      plinth.position.set(basePos.x, basePos.y + 0.035, basePos.z);
+
+      const pylonMat = new THREE.MeshStandardMaterial({
+        color: '#35C5E8',
+        emissive: '#35C5E8',
+        emissiveIntensity: 0.25,
+        roughness: 0.35,
+        metalness: 0.2,
+      });
+      const pylon = new THREE.Mesh(pylonGeo, pylonMat);
+
+      const capMat = new THREE.MeshBasicMaterial({ color: '#35C5E8' });
+      const cap = new THREE.Mesh(beaconCapGeo, capMat);
 
       const haloMat = new THREE.MeshBasicMaterial({
-        color: '#35C7E8',
+        color: '#35C5E8',
         transparent: true,
         opacity: 0.45,
         side: THREE.DoubleSide,
         depthWrite: false,
       });
-      const halo = new THREE.Mesh(stateHaloGeo, haloMat);
-      halo.position.copy(latLngToVector3(pt.lat, pt.lng, GLOBE_RADIUS * 1.005));
-      halo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+      const halo = new THREE.Mesh(haloRingGeo, haloMat);
+      halo.position.set(basePos.x, basePos.y + 0.025, basePos.z);
 
-      const stemMat = new THREE.MeshBasicMaterial({
-        color: '#35C7E8',
+      stateGroup.add(plinth, pylon, cap, halo);
+
+      // Data-backed precipitation column (only shown when rainfall > 0 in rain layer)
+      const rainBarMat = new THREE.MeshStandardMaterial({
+        color: '#35C5E8',
+        emissive: '#0C5E8A',
+        emissiveIntensity: 0.45,
         transparent: true,
         opacity: 0.72,
+        roughness: 0.3,
+        metalness: 0.1,
       });
-      const stem = new THREE.Mesh(stateStemGeo, stemMat);
-      stem.quaternion.copy(quat);
+      const rainBar = new THREE.Mesh(rainBarGeo, rainBarMat);
+      rainBar.visible = false;
+      rainColumnsGroup.add(rainBar);
 
-      stateGroup.add(node, halo, stem);
-      stateEntries.push({ point: pt, node, nodeMat, halo, haloMat, stem, stemMat, normal });
-
-      pickables.push({
-        mesh: node,
-        feature: {
-          kind: 'state',
-          id: pt.state.id,
-          title: pt.state.name,
-          subtitle: pt.state.city ? `${pt.state.city} · ${pt.code}` : pt.code,
-          lat: pt.lat,
-          lng: pt.lng,
-          stateName: pt.state.name,
-          warningLevel: pt.state.warningLevel,
-          warningMessage: pt.state.warningMessage,
-          source: pt.state.dataSource,
-          metrics: [
-            { label: 'Temperature', value: `${pt.state.temperature}°C` },
-            { label: 'Wind', value: `${pt.state.windSpeed} km/h ${pt.state.windDir}` },
-            { label: 'Rainfall', value: `${pt.state.rainfall} mm` },
-            { label: 'Humidity', value: `${pt.state.humidity}%` },
-            { label: 'AQI', value: `${pt.state.aqi}` },
-          ],
-        },
+      stateEntries.push({
+        point: pt,
+        basePos,
+        plinth,
+        plinthMat,
+        pylon,
+        pylonMat,
+        cap,
+        capMat,
+        halo,
+        haloMat,
+        rainBar,
+        rainBarMat,
       });
+
+      const feature: InspectedSpatialFeature = {
+        kind: 'state',
+        id: pt.state.id,
+        title: pt.state.name,
+        subtitle: pt.state.city ? `${pt.state.city} · ${pt.code}` : pt.code,
+        lat: pt.lat,
+        lng: pt.lng,
+        stateName: pt.state.name,
+        warningLevel: pt.state.warningLevel,
+        warningMessage: pt.state.warningMessage,
+        source: pt.state.dataSource,
+        metrics: [
+          { label: 'Temperature', value: `${pt.state.temperature}°C` },
+          { label: 'Wind', value: `${pt.state.windSpeed} km/h ${pt.state.windDir}` },
+          { label: 'Rainfall', value: `${pt.state.rainfall} mm` },
+          { label: 'Humidity', value: `${pt.state.humidity}%` },
+          { label: 'AQI', value: `${pt.state.aqi}` },
+        ],
+      };
+
+      pickables.push({ mesh: cap, feature }, { mesh: plinth, feature });
+
+      // Multi-ring official warning perimeter geometry (distinct ring count & polygon shape per severity)
+      if (pt.state.warningLevel && pt.state.warningLevel !== 'normal') {
+        const level = pt.state.warningLevel;
+        const hex =
+          level === 'severe' ? '#F06B68' : level === 'alert' ? '#F18A4B' : '#F2B84B';
+        const ringRadii =
+          level === 'severe'
+            ? [0.46, 0.68, 0.92]
+            : level === 'alert'
+            ? [0.48, 0.72]
+            : [0.54];
+        const polySegs = level === 'severe' ? 8 : 28;
+
+        for (let rIdx = 0; rIdx < ringRadii.length; rIdx++) {
+          const rad = ringRadii[rIdx];
+          const ringPts = createTerrainConformedRingPoints(
+            pt.lat,
+            pt.lng,
+            rad,
+            rad,
+            0.055 + rIdx * 0.015,
+            polySegs
+          );
+          const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+          const ringMat = new THREE.LineBasicMaterial({
+            color: hex,
+            transparent: true,
+            opacity: rIdx === 0 ? 0.92 : 0.62,
+          });
+          warningRingsGroup.add(new THREE.Line(ringGeo, ringMat));
+        }
+      }
     }
 
-    // Build 33 Operational IMD DWR Stations & Range Circles
+    // 9. 33 Operational IMD Doppler Radar Domes + Terrain-Conformed Range Rings
+    const radarPlinthGeo = new THREE.CylinderGeometry(0.11, 0.15, 0.08, 12);
+    const radarDomeGeo = new THREE.SphereGeometry(0.12, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.62);
     const radarRings: THREE.Line[] = [];
+
     for (const dwr of IMD_DOPPLER_RADAR_NETWORK as RadarStation[]) {
-      const pos = latLngToVector3(dwr.lat, dwr.lng, GLOBE_RADIUS * 1.009);
-      const normal = pos.clone().normalize();
-      const domeMat = new THREE.MeshBasicMaterial({ color: '#35C7E8' });
+      const basePos = latLngToTerrain(dwr.lat, dwr.lng, 0.015, new THREE.Vector3());
+
+      const rPlinthMat = new THREE.MeshStandardMaterial({
+        color: '#1B3448',
+        roughness: 0.45,
+        metalness: 0.4,
+      });
+      const rPlinth = new THREE.Mesh(radarPlinthGeo, rPlinthMat);
+      rPlinth.position.set(basePos.x, basePos.y + 0.04, basePos.z);
+
+      const domeMat = new THREE.MeshStandardMaterial({
+        color: '#EAF5FA',
+        emissive: '#35C5E8',
+        emissiveIntensity: 0.35,
+        roughness: 0.3,
+        metalness: 0.15,
+      });
       const dome = new THREE.Mesh(radarDomeGeo, domeMat);
-      dome.position.copy(pos);
-      radarGroup.add(dome);
+      dome.position.set(basePos.x, basePos.y + 0.07, basePos.z);
+      radarGroup.add(rPlinth, dome);
 
-      // Compute exact spherical radius on globe corresponding to dwr.rangeKm
-      const angularRadius = (dwr.rangeKm || 250) / EARTH_RADIUS_KM;
-      const circlePts: THREE.Vector3[] = [];
-      const segments = 32;
-      const tangentA = new THREE.Vector3(1, 0, 0);
-      if (Math.abs(normal.dot(tangentA)) > 0.9) tangentA.set(0, 0, 1);
-      tangentA.crossVectors(normal, tangentA).normalize();
-      const tangentB = new THREE.Vector3().crossVectors(normal, tangentA).normalize();
-
-      for (let s = 0; s <= segments; s++) {
-        const ang = (s / segments) * Math.PI * 2;
-        const dir = new THREE.Vector3()
-          .copy(normal)
-          .multiplyScalar(Math.cos(angularRadius))
-          .addScaledVector(tangentA, Math.sin(angularRadius) * Math.cos(ang))
-          .addScaledVector(tangentB, Math.sin(angularRadius) * Math.sin(ang))
-          .normalize()
-          .multiplyScalar(GLOBE_RADIUS * 1.007);
-        circlePts.push(dir);
-      }
-
+      const rangeKm = dwr.rangeKm || 250;
+      const rx = rangeKm * KM_TO_WORLD_X;
+      const rz = rangeKm * KM_TO_WORLD_Z;
+      const circlePts = createTerrainConformedRingPoints(dwr.lat, dwr.lng, rx, rz, 0.045, 36);
       const ringGeo = new THREE.BufferGeometry().setFromPoints(circlePts);
       const ringMat = new THREE.LineBasicMaterial({
-        color: '#35C7E8',
+        color: '#35C5E8',
         transparent: true,
-        opacity: 0.42,
+        opacity: 0.45,
       });
       const ringLine = new THREE.Line(ringGeo, ringMat);
       radarGroup.add(ringLine);
@@ -497,41 +595,68 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       });
     }
 
-    // Active Selected Location Orbital Beacon
-    const beaconPinMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
-    const beaconPin = new THREE.Mesh(new THREE.SphereGeometry(0.022, 18, 14), beaconPinMat);
-    const beaconRingMat = new THREE.MeshBasicMaterial({
-      color: '#35C7E8',
+    // 10. Composite 4-Part Active Location Observatory Tower
+    const towerBaseGeo = new THREE.CylinderGeometry(0.24, 0.32, 0.08, 20);
+    const towerBaseMat = new THREE.MeshStandardMaterial({
+      color: '#152A3C',
+      emissive: '#35C5E8',
+      emissiveIntensity: 0.2,
+      roughness: 0.4,
+      metalness: 0.45,
+    });
+    const towerBase = new THREE.Mesh(towerBaseGeo, towerBaseMat);
+    towerBase.position.y = 0.04;
+
+    const towerMastGeo = new THREE.CylinderGeometry(0.032, 0.065, 1.05, 12);
+    const towerMastMat = new THREE.MeshStandardMaterial({
+      color: '#EAF5FA',
+      emissive: '#35C5E8',
+      emissiveIntensity: 0.38,
+      roughness: 0.25,
+      metalness: 0.35,
+    });
+    const towerMast = new THREE.Mesh(towerMastGeo, towerMastMat);
+    towerMast.position.y = 0.56;
+
+    const towerOrbGeo = new THREE.SphereGeometry(0.145, 18, 14);
+    const towerOrbMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
+    const towerOrb = new THREE.Mesh(towerOrbGeo, towerOrbMat);
+    towerOrb.position.y = 1.12;
+
+    const towerRingGeo = new THREE.RingGeometry(0.36, 0.48, 36);
+    towerRingGeo.rotateX(-Math.PI / 2);
+    const towerRingMat = new THREE.MeshBasicMaterial({
+      color: '#35C5E8',
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.85,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
-    const beaconRing = new THREE.Mesh(new THREE.RingGeometry(0.036, 0.052, 32), beaconRingMat);
-    const beaconPulseRingMat = new THREE.MeshBasicMaterial({
-      color: '#35C7E8',
+    const towerRing = new THREE.Mesh(towerRingGeo, towerRingMat);
+    towerRing.position.y = 0.05;
+
+    const towerPulseGeo = new THREE.RingGeometry(0.52, 0.62, 36);
+    towerPulseGeo.rotateX(-Math.PI / 2);
+    const towerPulseMat = new THREE.MeshBasicMaterial({
+      color: '#35C5E8',
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.48,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
-    const beaconPulseRing = new THREE.Mesh(new THREE.RingGeometry(0.056, 0.068, 32), beaconPulseRingMat);
-    selectedGroup.add(beaconPin, beaconRing, beaconPulseRing);
+    const towerPulse = new THREE.Mesh(towerPulseGeo, towerPulseMat);
+    towerPulse.position.y = 0.04;
+
+    selectedGroup.add(towerBase, towerMast, towerOrb, towerRing, towerPulse);
 
     const updateSelectedLocationMarker = () => {
       const loc = latestRef.current.selectedLocation;
-      const pos = latLngToVector3(loc.lat, loc.lng, GLOBE_RADIUS * 1.016);
-      const surfPos = latLngToVector3(loc.lat, loc.lng, GLOBE_RADIUS * 1.008);
-      const normal = surfPos.clone().normalize();
-      beaconPin.position.copy(pos);
-      beaconRing.position.copy(surfPos);
-      beaconRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-      beaconPulseRing.position.copy(surfPos);
-      beaconPulseRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+      latLngToTerrain(loc.lat, loc.lng, 0.02, _tmpVec);
+      selectedGroup.position.copy(_tmpVec);
     };
 
+    // 11. Official RSMC Cyclone Tracks / Calm Basin Watch Arcs
     const updateCycloneGroup = () => {
-      // Clear previous meshes cleanly
       while (cycloneGroup.children.length > 0) {
         const child = cycloneGroup.children[0] as THREE.Mesh | THREE.Line;
         cycloneGroup.remove(child);
@@ -545,111 +670,144 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       if (!cycloneGroup.visible) return;
 
       if (systems.length === 0) {
-        // Draw calm Bay of Bengal & Arabian Sea synoptic monitoring arcs when basin is clear
+        // Calm Bay of Bengal & Arabian Sea synoptic watch perimeters (zero fabricated storms)
         const basins = [
-          { lat: 14.5, lng: 86.5 },
-          { lat: 14.5, lng: 67.5 },
+          { lat: 14.8, lng: 87.5 },
+          { lat: 14.8, lng: 66.5 },
         ];
         for (const b of basins) {
-          const pos = latLngToVector3(b.lat, b.lng, GLOBE_RADIUS * 1.009);
-          const normal = pos.clone().normalize();
-          const bRing = new THREE.Mesh(
-            new THREE.RingGeometry(0.11, 0.118, 36),
-            new THREE.MeshBasicMaterial({
-              color: '#35C7E8',
-              transparent: true,
-              opacity: 0.32,
-              side: THREE.DoubleSide,
-              depthWrite: false,
-            })
-          );
-          bRing.position.copy(pos);
-          bRing.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-          cycloneGroup.add(bRing);
+          const pts = createTerrainConformedRingPoints(b.lat, b.lng, 2.2, 2.0, 0.06, 44);
+          const geo = new THREE.BufferGeometry().setFromPoints(pts);
+          const mat = new THREE.LineBasicMaterial({
+            color: '#35C5E8',
+            transparent: true,
+            opacity: 0.28,
+          });
+          cycloneGroup.add(new THREE.Line(geo, mat));
         }
         return;
       }
 
       for (const sys of systems) {
         if (!Number.isFinite(sys.latitude) || !Number.isFinite(sys.longitude)) continue;
-        const eyePos = latLngToVector3(sys.latitude, sys.longitude, GLOBE_RADIUS * 1.018);
-        const normal = eyePos.clone().normalize();
-        const eyeMesh = new THREE.Mesh(
-          new THREE.RingGeometry(0.028, 0.056, 32),
-          new THREE.MeshBasicMaterial({
-            color: '#E0525B',
-            transparent: true,
-            opacity: 0.9,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-          })
+        const eyePtsInner = createTerrainConformedRingPoints(
+          sys.latitude,
+          sys.longitude,
+          0.45,
+          0.45,
+          0.18,
+          32
         );
-        eyeMesh.position.copy(eyePos);
-        eyeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-        cycloneGroup.add(eyeMesh);
+        const eyePtsOuter = createTerrainConformedRingPoints(
+          sys.latitude,
+          sys.longitude,
+          0.85,
+          0.85,
+          0.14,
+          32
+        );
+        cycloneGroup.add(
+          new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(eyePtsInner),
+            new THREE.LineBasicMaterial({ color: '#F06B68', transparent: true, opacity: 0.95 })
+          ),
+          new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(eyePtsOuter),
+            new THREE.LineBasicMaterial({ color: '#F18A4B', transparent: true, opacity: 0.72 })
+          )
+        );
 
         if (sys.forecastTrack && sys.forecastTrack.length > 0) {
-          const pts = [
-            eyePos,
+          const trackPts = [
+            latLngToTerrain(sys.latitude, sys.longitude, 0.22),
             ...sys.forecastTrack
               .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude))
-              .map((p) => latLngToVector3(p.latitude, p.longitude, GLOBE_RADIUS * 1.014)),
+              .map((p) => latLngToTerrain(p.latitude, p.longitude, 0.22)),
           ];
-          if (pts.length > 1) {
-            const trackGeo = new THREE.BufferGeometry().setFromPoints(pts);
-            const trackMat = new THREE.LineBasicMaterial({ color: '#F28B45', transparent: true, opacity: 0.85 });
+          if (trackPts.length > 1) {
+            const trackGeo = new THREE.BufferGeometry().setFromPoints(trackPts);
+            const trackMat = new THREE.LineBasicMaterial({
+              color: '#F18A4B',
+              transparent: true,
+              opacity: 0.88,
+            });
             cycloneGroup.add(new THREE.Line(trackGeo, trackMat));
           }
         }
       }
     };
 
+    // 12. Synchronize Active Layer Visuals with Real Weather Data
     const updateLayerVisuals = () => {
-      const { activeLayer: layer, weatherBundle: bundle, selectedLocation: loc, timelineIndex: tIdx } =
-        latestRef.current;
+      const {
+        activeLayer: layer,
+        weatherBundle: bundle,
+        selectedLocation: loc,
+        timelineIndex: tIdx,
+        reducedMotion: rm,
+        qualityTier: q,
+      } = latestRef.current;
 
-      // Update wind flow system with active hour forecast or current wind
       const hourlyItem = bundle.hourly?.[tIdx];
-      const windSpeed = hourlyItem?.windSpeed ?? bundle.current.windSpeed ?? 0;
-      const windDir = hourlyItem?.windDirection ?? bundle.current.windDirectionDeg ?? bundle.current.windDirection;
-      windParticles.updateLiveWindFocus(loc.lat, loc.lng, windSpeed, windDir);
+      const windSpeed = hourlyItem?.windSpeed ?? bundle.current.windSpeed ?? null;
+      const windDir =
+        hourlyItem?.windDirection ?? bundle.current.windDirectionDeg ?? bundle.current.windDirection;
 
-      if (layer === 'wind') {
-        windParticles.setIntensityVisibility('primary', 1.0);
-      } else if (layer === 'conditions' || layer === 'rain' || layer === 'cyclones') {
-        windParticles.setIntensityVisibility('subtle', 0.95);
-      } else {
-        windParticles.setIntensityVisibility('subtle', 0.45);
+      if (typeof windSpeed === 'number' && Number.isFinite(windSpeed)) {
+        windParticles.updateLiveWindFocus(loc.lat, loc.lng, windSpeed, windDir);
       }
 
-      // Cloud veil opacity mirrors real cloud cover + layer focus
-      const cloudPct = hourlyItem?.cloudCover ?? bundle.current.cloudCover ?? 40;
-      cloudMat.opacity =
-        layer === 'satellite'
-          ? THREE.MathUtils.clamp(0.35 + (cloudPct / 100) * 0.6, 0.35, 0.95)
-          : layer === 'rain' || layer === 'cyclones'
-          ? 0.48
-          : 0.24;
+      const useStaticVectors = rm || q === 'low' || isSoftwareGl;
+      if (layer === 'wind') {
+        windParticles.setIntensityVisibility('primary', 1.0, useStaticVectors);
+      } else if (layer === 'conditions' || layer === 'rain' || layer === 'cyclones') {
+        windParticles.setIntensityVisibility('subtle', 0.82, useStaticVectors);
+      } else {
+        windParticles.setIntensityVisibility('subtle', 0.35, useStaticVectors);
+      }
 
-      // Radar domes & rings prominent in radar layer, quiet in others
+      // Data-driven cloud cover opacity (0% or missing = transparent)
+      const rawCloudPct = hourlyItem?.cloudCover ?? bundle.current.cloudCover;
+      if (typeof rawCloudPct === 'number' && Number.isFinite(rawCloudPct) && rawCloudPct > 0) {
+        const frac = THREE.MathUtils.clamp(rawCloudPct / 100, 0, 1);
+        cloudMat.opacity =
+          layer === 'satellite'
+            ? THREE.MathUtils.clamp(0.18 + frac * 0.72, 0.15, 0.9)
+            : layer === 'rain' || layer === 'cyclones'
+            ? frac * 0.42
+            : frac * 0.22;
+        cloudPlane.visible = cloudMat.opacity > 0.02;
+      } else {
+        cloudMat.opacity = 0;
+        cloudPlane.visible = false;
+      }
+
+      // Radar network domes & terrain-conformed range rings
       radarGroup.visible = layer === 'radar' || layer === 'rain';
       for (const rLine of radarRings) {
-        (rLine.material as THREE.LineBasicMaterial).opacity = layer === 'radar' ? 0.56 : 0.14;
+        (rLine.material as THREE.LineBasicMaterial).opacity = layer === 'radar' ? 0.56 : 0.16;
       }
 
-      // Update 36 state beacons colors and elevation stems per active layer
+      // Official warning perimeters prominent in warnings layer
+      warningRingsGroup.visible = layer === 'warnings' || layer === 'cyclones';
+
+      // Precipitation columns visible ONLY when rain layer active & rainfall > 0
+      rainColumnsGroup.visible = layer === 'rain';
+
+      // Update 36 composite state beacons
       for (const entry of stateEntries) {
         const s = entry.point.state;
         const hex = getColorForStateLayer(s, layer);
-        entry.nodeMat.color.set(hex);
+        entry.capMat.color.set(hex);
         entry.haloMat.color.set(hex);
-        entry.stemMat.color.set(hex);
+        entry.pylonMat.color.set(hex);
+        entry.pylonMat.emissive.set(hex);
 
         let valRatio = 0.22;
         if (layer === 'conditions') {
           valRatio = THREE.MathUtils.clamp((s.temperature - 10) / 34, 0.12, 1.0);
         } else if (layer === 'rain') {
-          valRatio = THREE.MathUtils.clamp(s.rainfall / 38, 0.08, 1.0);
+          valRatio = THREE.MathUtils.clamp(s.rainfall / 38, 0.05, 1.0);
         } else if (layer === 'aqi') {
           valRatio = THREE.MathUtils.clamp(s.aqi / 180, 0.12, 1.0);
         } else if (layer === 'wind') {
@@ -662,54 +820,109 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
               ? 0.72
               : s.warningLevel === 'watch'
               ? 0.45
-              : 0.12;
+              : 0.1;
         } else if (layer === 'agromet') {
           valRatio = THREE.MathUtils.clamp(s.humidity / 100, 0.15, 1.0);
         }
 
-        const stemHeight = layer === 'radar' ? 0.01 : 0.014 + valRatio * 0.068;
-        entry.stem.scale.set(1, stemHeight, 1);
-        const surfPos = latLngToVector3(entry.point.lat, entry.point.lng, GLOBE_RADIUS * 1.003);
-        entry.stem.position.copy(surfPos).addScaledVector(entry.normal, stemHeight * 0.5);
-        entry.node.position.copy(surfPos).addScaledVector(entry.normal, stemHeight);
+        const pylonHeight = layer === 'radar' ? 0.16 : 0.22 + valRatio * 1.15;
+        entry.pylon.scale.set(1, pylonHeight, 1);
+        entry.pylon.position.set(
+          entry.basePos.x,
+          entry.basePos.y + 0.07 + pylonHeight * 0.5,
+          entry.basePos.z
+        );
+        entry.cap.position.set(
+          entry.basePos.x,
+          entry.basePos.y + 0.07 + pylonHeight,
+          entry.basePos.z
+        );
 
-        const highlightMarker = layer !== 'radar';
-        entry.node.visible = highlightMarker;
-        entry.stem.visible = highlightMarker;
-        entry.halo.visible = highlightMarker;
+        const showStateBeacons = layer !== 'radar';
+        entry.plinth.visible = showStateBeacons;
+        entry.pylon.visible = showStateBeacons;
+        entry.cap.visible = showStateBeacons;
+        entry.halo.visible = showStateBeacons;
+
+        // Data-driven precipitation column (strictly hidden when rainfall <= 0)
+        if (layer === 'rain' && typeof s.rainfall === 'number' && s.rainfall > 0) {
+          const barH = THREE.MathUtils.clamp(0.25 + (s.rainfall / 40) * 2.1, 0.25, 2.4);
+          entry.rainBar.scale.set(1, barH, 1);
+          entry.rainBar.position.set(
+            entry.basePos.x,
+            entry.basePos.y + barH * 0.5,
+            entry.basePos.z
+          );
+          entry.rainBar.visible = true;
+        } else {
+          entry.rainBar.visible = false;
+        }
       }
 
       updateCycloneGroup();
     };
 
-    // Smooth camera fly-to target state
-    let flyDestination: THREE.Vector3 | null = null;
+    // 13. Smooth Damped Camera Fly-To (User Orbit Always Takes Precedence)
+    let flyCamDest: THREE.Vector3 | null = null;
+    let flyTargetDest: THREE.Vector3 | null = null;
+
     const cancelFlyTo = () => {
-      flyDestination = null;
+      flyCamDest = null;
+      flyTargetDest = null;
     };
     controls.addEventListener('start', cancelFlyTo);
 
     const flyTo = (lat: number, lng: number, distance = 3.25) => {
-      const dest = latLngToVector3(lat, lng, distance);
+      // Detect national India overview recenter call
+      const isNationalReset =
+        Math.abs(lat - 21.5) < 0.45 && Math.abs(lng - 79.0) < 0.45 && distance >= 3.4;
+
+      const nextTarget = new THREE.Vector3();
+      const nextCam = new THREE.Vector3();
+
+      if (isNationalReset) {
+        nextTarget.copy(DEFAULT_CAMERA_TARGET);
+        nextCam.copy(DEFAULT_CAMERA_POS);
+      } else {
+        latLngToTerrain(lat, lng, 0.15, nextTarget);
+        // Map legacy globe distance (~2.8–3.6) cleanly into oblique terrain framing
+        const zoomSpan =
+          distance <= 5.5
+            ? THREE.MathUtils.clamp(9.2 + (distance - 2.8) * 16.5, 9.2, 24.5)
+            : THREE.MathUtils.clamp(distance, 8.5, 32.0);
+        nextCam.set(
+          nextTarget.x + 0.35,
+          nextTarget.y + zoomSpan * 0.78,
+          nextTarget.z + zoomSpan * 0.82
+        );
+      }
+
       if (latestRef.current.reducedMotion) {
-        camera.position.copy(dest);
+        controls.target.copy(nextTarget);
+        camera.position.copy(nextCam);
         controls.update();
       } else {
-        flyDestination = dest;
+        flyTargetDest = nextTarget;
+        flyCamDest = nextCam;
       }
+    };
+
+    const updatePixelRatio = () => {
+      renderer.setPixelRatio(resolveEffectivePixelRatio());
     };
 
     sceneHooksRef.current = {
       updateLayerVisuals,
       updateSelectedLocationMarker,
       updateCycloneGroup,
+      updatePixelRatio,
       flyTo,
     };
 
     updateSelectedLocationMarker();
     updateLayerVisuals();
 
-    // 8. Raycasting for Hover Preview & Click Inspection (Distinguish Drag vs Click)
+    // 14. Raycasting for Hover Tooltip & Click Station Inspection (Drag vs Click Safe)
     const raycaster = new THREE.Raycaster();
     const pointerNdc = new THREE.Vector2();
     let pointerDownPos = { x: 0, y: 0 };
@@ -727,12 +940,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const hits = raycaster.intersectObjects(candidateMeshes, false);
       if (hits.length === 0) return null;
 
-      // Ensure hit is on the front-facing hemisphere
       const hitMesh = hits[0].object;
-      const hitWorld = new THREE.Vector3();
-      hitMesh.getWorldPosition(hitWorld);
-      if (hitWorld.dot(camera.position) < 0) return null;
-
       return pickables.find((p) => p.mesh === hitMesh) || null;
     };
 
@@ -769,7 +977,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     const handlePointerUp = (e: PointerEvent) => {
       const dx = e.clientX - pointerDownPos.x;
       const dy = e.clientY - pointerDownPos.y;
-      if (Math.hypot(dx, dy) > 6) return; // Ignore orbit drag
+      if (Math.hypot(dx, dy) > 6) return;
       const match = getPickHit(e.clientX, e.clientY);
       if (match) {
         latestRef.current.onSelectFeature(match.feature);
@@ -782,51 +990,70 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     domEl.addEventListener('pointermove', handlePointerMove);
     domEl.addEventListener('pointerup', handlePointerUp);
 
-    // 9. Accessible Keyboard Spatial Navigation (WASD / Arrows / + / - / R)
+    // 15. Accessible Keyboard Spatial Navigation (Arrows/WASD Pan, +/- Zoom, R Recenter)
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || el?.isContentEditable) {
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      const spherical = new THREE.Spherical().setFromVector3(camera.position);
       let handled = false;
-      const rotStep = 0.08;
+      const panStep = 1.45;
+      camera.getWorldDirection(_panForward);
+      _panForward.y = 0;
+      if (_panForward.lengthSq() < 0.0001) _panForward.set(0, 0, -1);
+      _panForward.normalize();
+      _panRight.crossVectors(_panForward, _upAxis).normalize();
 
       switch (e.key) {
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          spherical.theta -= rotStep;
+          camera.position.addScaledVector(_panRight, -panStep);
+          controls.target.addScaledVector(_panRight, -panStep);
           handled = true;
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          spherical.theta += rotStep;
+          camera.position.addScaledVector(_panRight, panStep);
+          controls.target.addScaledVector(_panRight, panStep);
           handled = true;
           break;
         case 'ArrowUp':
         case 'w':
         case 'W':
-          spherical.phi = Math.max(0.35, spherical.phi - rotStep);
+          camera.position.addScaledVector(_panForward, panStep);
+          controls.target.addScaledVector(_panForward, panStep);
           handled = true;
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          spherical.phi = Math.min(Math.PI - 0.35, spherical.phi + rotStep);
+          camera.position.addScaledVector(_panForward, -panStep);
+          controls.target.addScaledVector(_panForward, -panStep);
           handled = true;
           break;
         case '+':
-        case '=':
-          spherical.radius = Math.max(controls.minDistance, spherical.radius - 0.25);
+        case '=': {
+          _tmpVec.subVectors(camera.position, controls.target);
+          const nextLen = Math.max(controls.minDistance, _tmpVec.length() - 2.2);
+          _tmpVec.setLength(nextLen);
+          camera.position.copy(controls.target).add(_tmpVec);
           handled = true;
           break;
+        }
         case '-':
-        case '_':
-          spherical.radius = Math.min(controls.maxDistance, spherical.radius + 0.25);
+        case '_': {
+          _tmpVec.subVectors(camera.position, controls.target);
+          const nextLen = Math.min(controls.maxDistance, _tmpVec.length() + 2.2);
+          _tmpVec.setLength(nextLen);
+          camera.position.copy(controls.target).add(_tmpVec);
           handled = true;
           break;
+        }
         case 'r':
         case 'R':
           latestRef.current.onRecenterIndia();
@@ -838,14 +1065,17 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
 
       if (handled) {
         e.preventDefault();
-        cancelFlyTo();
-        camera.position.setFromSpherical(spherical);
-        controls.update();
+        if (e.key !== 'r' && e.key !== 'R') {
+          cancelFlyTo();
+          controls.target.x = THREE.MathUtils.clamp(controls.target.x, -16, 16);
+          controls.target.z = THREE.MathUtils.clamp(controls.target.z, -14, 14);
+          controls.update();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // 10. Responsive Container ResizeObserver
+    // 16. Responsive Container ResizeObserver
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
@@ -859,78 +1089,153 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    // 11. WebGL Context Loss -> Automatic 2D Map Fallback
+    // 17. WebGL Context Loss -> Automatic 2D Map Fallback
     const handleContextLost = (event: Event) => {
       event.preventDefault();
-      latestRef.current.onWebGLUnavailable('WebGL rendering context lost. Switched to interactive 2D map.');
+      latestRef.current.onWebGLUnavailable(
+        'WebGL rendering context lost. Switched to interactive 2D map.'
+      );
     };
     domEl.addEventListener('webglcontextlost', handleContextLost);
 
-    // 12. Main Render Loop with Software-WebGL CPU Yielding
+    // 18. Main Render Loop with Tab-Visibility Pause & Software-WebGL fenceSync Pacing
     let rafId = 0;
     let cooldownTimer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
+    let isPageHidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
+
     const timer = new THREE.Timer();
     if (typeof document !== 'undefined') {
       timer.connect(document);
     }
 
-    const animate = (timestamp?: number) => {
+    const glCtx = renderer.getContext();
+    const isWebGL2 =
+      typeof WebGL2RenderingContext !== 'undefined' && glCtx instanceof WebGL2RenderingContext;
+
+    const afterDraw = (onDone: () => void) => {
       if (disposed) return;
+      if (isWebGL2) {
+        const gl2 = glCtx as WebGL2RenderingContext;
+        const sync = gl2.fenceSync(gl2.SYNC_GPU_COMMANDS_COMPLETE, 0);
+        if (!sync) {
+          cooldownTimer = setTimeout(onDone, 70);
+          return;
+        }
+        gl2.flush();
+        const pollFence = () => {
+          if (disposed) {
+            gl2.deleteSync(sync);
+            return;
+          }
+          const status = gl2.getSyncParameter(sync, gl2.SYNC_STATUS);
+          if (status === gl2.SIGNALED) {
+            gl2.deleteSync(sync);
+            cooldownTimer = setTimeout(onDone, 55);
+          } else {
+            cooldownTimer = setTimeout(pollFence, 16);
+          }
+        };
+        cooldownTimer = setTimeout(pollFence, 16);
+      } else {
+        cooldownTimer = setTimeout(onDone, 75);
+      }
+    };
+
+    const scheduleNextFrame = () => {
+      if (disposed || isPageHidden) return;
+      const needsYield = isSoftwareGl || latestRef.current.qualityTier === 'low';
+      if (needsYield) {
+        afterDraw(() => {
+          if (!disposed && !isPageHidden) {
+            rafId = requestAnimationFrame(animate);
+          }
+        });
+      } else {
+        rafId = requestAnimationFrame(animate);
+      }
+    };
+
+    const animate = (timestamp?: number) => {
+      if (disposed || isPageHidden) return;
 
       timer.update(timestamp);
       const delta = Math.min(timer.getDelta(), 0.05);
       const elapsed = timer.getElapsed();
       const { qualityTier: q, reducedMotion: rm } = latestRef.current;
 
-      // Smooth damped camera fly-to
-      if (flyDestination) {
+      // Smooth damped camera & target fly-to
+      if (flyCamDest && flyTargetDest) {
         const lambda = 4.6;
-        camera.position.x = THREE.MathUtils.damp(camera.position.x, flyDestination.x, lambda, delta);
-        camera.position.y = THREE.MathUtils.damp(camera.position.y, flyDestination.y, lambda, delta);
-        camera.position.z = THREE.MathUtils.damp(camera.position.z, flyDestination.z, lambda, delta);
-        if (camera.position.distanceTo(flyDestination) < 0.015) {
-          camera.position.copy(flyDestination);
-          flyDestination = null;
+        camera.position.x = THREE.MathUtils.damp(camera.position.x, flyCamDest.x, lambda, delta);
+        camera.position.y = THREE.MathUtils.damp(camera.position.y, flyCamDest.y, lambda, delta);
+        camera.position.z = THREE.MathUtils.damp(camera.position.z, flyCamDest.z, lambda, delta);
+        controls.target.x = THREE.MathUtils.damp(controls.target.x, flyTargetDest.x, lambda, delta);
+        controls.target.y = THREE.MathUtils.damp(controls.target.y, flyTargetDest.y, lambda, delta);
+        controls.target.z = THREE.MathUtils.damp(controls.target.z, flyTargetDest.z, lambda, delta);
+
+        if (
+          camera.position.distanceTo(flyCamDest) < 0.06 &&
+          controls.target.distanceTo(flyTargetDest) < 0.04
+        ) {
+          camera.position.copy(flyCamDest);
+          controls.target.copy(flyTargetDest);
+          flyCamDest = null;
+          flyTargetDest = null;
         }
       }
 
       controls.enableDamping = !rm;
       controls.update();
 
-      // Particle budget scaled cleanly by quality tier
+      // Clamp pan target inside reasonable subcontinent bounds
+      controls.target.x = THREE.MathUtils.clamp(controls.target.x, -17, 17);
+      controls.target.z = THREE.MathUtils.clamp(controls.target.z, -15, 15);
+
       const particleRatio =
-        q === 'low' || isSoftwareGl ? 0.25 : q === 'balanced' ? 0.65 : 1.0;
+        q === 'low' || isSoftwareGl ? 0.25 : q === 'balanced' || q === 'auto' ? 0.65 : 1.0;
 
       windParticles.step(delta, particleRatio, !rm);
 
       if (!rm) {
-        cloudMesh.rotation.y += delta * 0.008;
-        const pulse = 1 + Math.sin(elapsed * 2.2) * 0.18;
-        beaconPulseRing.scale.set(pulse, pulse, 1);
-        beaconPulseRingMat.opacity = 0.52 - Math.sin(elapsed * 2.2) * 0.25;
+        if (cloudPlane.visible) {
+          cloudTexture.offset.x = (cloudTexture.offset.x + delta * 0.0032) % 1;
+        }
+        const pulse = 1 + Math.sin(elapsed * 2.2) * 0.16;
+        towerPulse.scale.set(pulse, pulse, 1);
+        towerPulseMat.opacity = 0.48 - Math.sin(elapsed * 2.2) * 0.22;
       }
 
       renderer.render(scene, camera);
+      scheduleNextFrame();
+    };
 
-      const needsYield = isSoftwareGl || q === 'low';
-      if (needsYield) {
-        cooldownTimer = setTimeout(() => {
-          if (!disposed) rafId = requestAnimationFrame(animate);
-        }, 70);
-      } else {
+    const handleVisibilityChange = () => {
+      isPageHidden = document.visibilityState === 'hidden';
+      if (isPageHidden) {
+        cancelAnimationFrame(rafId);
+        if (cooldownTimer) {
+          clearTimeout(cooldownTimer);
+          cooldownTimer = null;
+        }
+      } else if (!disposed) {
+        timer.update();
         rafId = requestAnimationFrame(animate);
       }
     };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    rafId = requestAnimationFrame(animate);
+    if (!isPageHidden) {
+      rafId = requestAnimationFrame(animate);
+    }
 
-    // 13. Full Disposal on Unmount
+    // 19. Full GPU & Listener Disposal on Unmount
     return () => {
       disposed = true;
       cancelAnimationFrame(rafId);
       if (cooldownTimer) clearTimeout(cooldownTimer);
       timer.dispose();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       resizeObserver.disconnect();
       window.removeEventListener('keydown', handleKeyDown);
       controls.removeEventListener('start', cancelFlyTo);
@@ -942,36 +1247,17 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       domEl.removeEventListener('webglcontextlost', handleContextLost);
 
       windParticles.dispose();
-      albedoTexture.dispose();
-      bumpTexture.dispose();
+      terrainTexture.dispose();
       cloudTexture.dispose();
-      globeGeo.dispose();
-      globeMat.dispose();
-      cloudGeo.dispose();
-      cloudMat.dispose();
-      atmoGeo.dispose();
-      atmoMat.dispose();
-      orbitRingGeo.dispose();
-      orbitRingMat.dispose();
-      starGeo.dispose();
-      starMat.dispose();
+      envTarget.dispose();
 
-      stateNodeGeo.dispose();
-      stateHaloGeo.dispose();
-      stateStemGeo.dispose();
+      plinthGeo.dispose();
+      pylonGeo.dispose();
+      beaconCapGeo.dispose();
+      haloRingGeo.dispose();
+      rainBarGeo.dispose();
+      radarPlinthGeo.dispose();
       radarDomeGeo.dispose();
-      stateEntries.forEach((e) => {
-        e.nodeMat.dispose();
-        e.haloMat.dispose();
-        e.stemMat.dispose();
-      });
-
-      beaconPin.geometry.dispose();
-      beaconPinMat.dispose();
-      beaconRing.geometry.dispose();
-      beaconRingMat.dispose();
-      beaconPulseRing.geometry.dispose();
-      beaconPulseRingMat.dispose();
 
       scene.traverse((obj) => {
         if ((obj as any).geometry) (obj as any).geometry.dispose?.();
@@ -987,10 +1273,14 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     };
   }, []);
 
-  // Sync dynamic telemetry & active layers with live Three.js objects
+  // Sync dynamic telemetry, quality tier, reduced motion & active layers with live Three.js objects
   useEffect(() => {
     sceneHooksRef.current.updateLayerVisuals?.();
-  }, [activeLayer, weatherBundle, timelineIndex, selectedLocation]);
+  }, [activeLayer, weatherBundle, timelineIndex, selectedLocation, reducedMotion, qualityTier]);
+
+  useEffect(() => {
+    sceneHooksRef.current.updatePixelRatio?.();
+  }, [qualityTier]);
 
   useEffect(() => {
     sceneHooksRef.current.updateSelectedLocationMarker?.();
@@ -1016,19 +1306,25 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       {/* Pointer Hover Spatial Readout */}
       {hoverPreview && (
         <div
-          className="pointer-events-none absolute z-20 spatial-hud-surface-elevated rounded-lg px-3 py-2 text-xs text-[#F4F7FB] max-w-[230px]"
+          className="pointer-events-none absolute z-20 spatial-hud-surface-elevated rounded-lg px-3 py-2 text-xs text-[var(--m-text-primary)] max-w-[235px]"
           style={{
-            left: Math.min(hoverPreview.x + 14, (mountRef.current?.clientWidth || 800) - 240),
+            left: Math.min(hoverPreview.x + 14, (mountRef.current?.clientWidth || 800) - 245),
             top: Math.max(64, hoverPreview.y - 48),
           }}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold text-white truncate">{hoverPreview.title}</span>
+            <span className="font-semibold text-[var(--m-text-primary)] truncate">
+              {hoverPreview.title}
+            </span>
             {hoverPreview.badge && (
-              <span className="text-[10px] font-mono text-[#35C7E8] shrink-0">{hoverPreview.badge}</span>
+              <span className="text-[10px] font-mono text-[var(--m-accent)] shrink-0">
+                {hoverPreview.badge}
+              </span>
             )}
           </div>
-          <div className="text-[11px] text-[#B8C7D9] tabular-nums mt-0.5">{hoverPreview.subtitle}</div>
+          <div className="text-[11px] text-[var(--m-text-secondary)] tabular-nums mt-0.5">
+            {hoverPreview.subtitle}
+          </div>
         </div>
       )}
     </div>

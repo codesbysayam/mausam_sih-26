@@ -35,9 +35,16 @@
   --overlay-soft: rgba(11, 20, 29, 0.44);
 
   /* Editorial Typography & Fluid Display Scale */
-  --font-display: "DM Sans", "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "DM Sans", "Inter", "IBM Plex Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Inter", "DM Sans", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Inter", "DM Sans", "IBM Plex Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, Menlo, monospace;
+
+  /* Calibrated Motion & Easing Tokens */
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 420ms;
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
 
   --display-xl: clamp(2.75rem, 6vw, 5.5rem);
   --display-lg: clamp(2.125rem, 4.4vw, 3.75rem);
@@ -51,7 +58,8 @@
   --page-gutter: clamp(1rem, 3.5vw, 3.5rem);
   --section-space: clamp(2.75rem, 6vw, 5.5rem);
   --block-space: clamp(1.25rem, 2.5vw, 2.25rem);
-  --content-max: 1480px;
+  --content-max: 1560px;
+  --classic-max: 1480px;
 
   /* Mapped Surface & Text Tokens (Warm Editorial Paper Default) */
   --m-canvas: var(--paper-50);
@@ -195,39 +203,86 @@
   --shadow-card: 0 4px 16px rgba(16, 26, 36, 0.04);
 }
 
-/* Deliberate Dark Spatial Scope (Explore 3D/Map Stage, Radar Stage, or Explicit Dark Mode) */
+/* Classic Accessible Linear Edition Theme (Light, High-Contrast, Low-GPU) */
+[data-theme="classic"] {
+  color-scheme: light;
+  --content-max: 1480px;
+  --m-bg: #f4f6f7;
+  --m-bg-elevated: #ffffff;
+  --m-canvas: #f4f6f7;
+  --m-surface-1: #ffffff;
+  --m-surface-2: #f8fafb;
+  --m-surface-3: #eef3f5;
+  --m-surface-inset: #eef3f5;
+  --m-border: #d8e1e6;
+  --m-border-strong: #b9c9d2;
+  --m-text-primary: #14232d;
+  --m-text-secondary: #425663;
+  --m-text-muted: #657c89;
+  --m-accent: #087fa9;
+  --m-accent-strong: #066a91;
+  --m-accent-hover: #066a91;
+  --m-accent-soft: rgba(8, 127, 169, 0.11);
+  --m-focus: #087fa9;
+  --m-ok: #1d7a52;
+  --m-ok-soft: rgba(29, 122, 82, 0.11);
+  --m-watch: #9a5b00;
+  --m-watch-soft: rgba(178, 107, 0, 0.12);
+  --m-warn: #b84a00;
+  --m-warn-soft: rgba(196, 81, 0, 0.12);
+  --m-alert: #b84a00;
+  --m-alert-soft: rgba(196, 81, 0, 0.12);
+  --m-danger: #b42318;
+  --m-danger-soft: rgba(180, 35, 24, 0.11);
+  --glass-bg: rgba(255, 255, 255, 0.96);
+  --glass-bg-subtle: rgba(248, 250, 251, 0.94);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.99);
+  --glass-shadow: 0 10px 28px rgba(20, 35, 45, 0.08);
+  --glass-shadow-sm: 0 4px 12px rgba(20, 35, 45, 0.05);
+  --shadow-soft: 0 10px 28px rgba(20, 35, 45, 0.06);
+  --shadow-card: 0 4px 16px rgba(20, 35, 45, 0.04);
+}
+
+/* Atmospheric Observatory Dark Scope (Explore 3D Stage & Analyze Scientific Workspace) */
 [data-theme="dark-workspace"],
 [data-theme="dark"] {
   color-scheme: dark;
-  --m-canvas: #0b141d;
-  --m-surface-1: #12202d;
-  --m-surface-2: #18293a;
-  --m-surface-3: #20364b;
-  --m-surface-inset: #091119;
-  --m-border: rgba(244, 247, 250, 0.14);
-  --m-border-strong: rgba(244, 247, 250, 0.28);
-  --m-text-primary: #f4f7fa;
-  --m-text-secondary: #c5d2de;
-  --m-text-muted: #93a6b8;
-  --m-accent: #52b7f2;
-  --m-accent-strong: #2e9be0;
-  --m-accent-soft: rgba(82, 183, 242, 0.14);
-  --m-focus: #77cbf8;
-  --m-ok: #5cd6a1;
-  --m-ok-soft: rgba(92, 214, 161, 0.14);
-  --m-watch: #f2be5c;
-  --m-watch-soft: rgba(242, 190, 92, 0.15);
-  --m-alert: #f59451;
-  --m-alert-soft: rgba(245, 148, 81, 0.16);
-  --m-danger: #f57369;
-  --m-danger-soft: rgba(245, 115, 105, 0.16);
-  --glass-bg: rgba(14, 26, 38, 0.94);
-  --glass-bg-subtle: rgba(20, 36, 52, 0.90);
-  --glass-bg-elevated: rgba(18, 32, 45, 0.97);
-  --glass-highlight: inset 0 1px 0 0 rgba(244, 247, 250, 0.06);
-  --glass-shadow: 0 12px 32px rgba(2, 8, 16, 0.48);
-  --glass-shadow-sm: 0 4px 16px rgba(2, 8, 16, 0.34);
-  --shadow-soft: 0 12px 32px rgba(2, 8, 16, 0.42);
+  --m-bg: #07111b;
+  --m-bg-elevated: #0b1926;
+  --m-canvas: #07111b;
+  --m-surface-1: #102131;
+  --m-surface-2: #152a3c;
+  --m-surface-3: #1b3448;
+  --m-surface-inset: #0b1926;
+  --m-border: #294357;
+  --m-border-strong: #3b5b72;
+  --m-text-primary: #f2f7fa;
+  --m-text-secondary: #b6c7d4;
+  --m-text-muted: #8299aa;
+  --m-accent: #35c5e8;
+  --m-accent-strong: #079ac5;
+  --m-accent-hover: #079ac5;
+  --m-accent-soft: rgba(53, 197, 232, 0.14);
+  --m-focus: #8be6ff;
+  --m-ok: #35c98a;
+  --m-ok-soft: rgba(53, 201, 138, 0.15);
+  --m-watch: #f2b84b;
+  --m-watch-soft: rgba(242, 184, 75, 0.16);
+  --m-warn: #f18a4b;
+  --m-warn-soft: rgba(241, 138, 75, 0.16);
+  --m-alert: #f18a4b;
+  --m-alert-soft: rgba(241, 138, 75, 0.16);
+  --m-danger: #f06b68;
+  --m-danger-soft: rgba(240, 107, 104, 0.16);
+  --m-info: #70afff;
+  --m-overlay: rgba(3, 10, 17, 0.72);
+  --glass-bg: rgba(11, 25, 38, 0.94);
+  --glass-bg-subtle: rgba(16, 33, 49, 0.92);
+  --glass-bg-elevated: rgba(16, 33, 49, 0.97);
+  --glass-highlight: inset 0 1px 0 0 rgba(242, 247, 250, 0.06);
+  --glass-shadow: 0 12px 32px rgba(2, 8, 16, 0.52);
+  --glass-shadow-sm: 0 4px 16px rgba(2, 8, 16, 0.36);
+  --shadow-soft: 0 12px 32px rgba(2, 8, 16, 0.44);
   --shadow-card: 0 6px 20px rgba(2, 8, 16, 0.32);
 }
 
@@ -1842,7 +1897,7 @@ img, svg, canvas, video {
    MAUSAM EDITORIAL LAYOUT, METRIC VALUE & PRIMITIVE SURFACES (v3.0.0)
    ==================================================================== */
 .mausam-page {
-  width: min(calc(100% - clamp(32px, 6vw, 112px)), var(--content-max, 1480px));
+  width: min(calc(100% - clamp(28px, 4.5vw, 80px)), var(--content-max, 1560px));
   margin-inline: auto;
 }
 
@@ -2445,7 +2500,7 @@ img, svg, canvas, video {
 }
 
 .site-footer__inner {
-  width: min(calc(100% - clamp(32px, 6vw, 112px)), 1480px);
+  width: min(calc(100% - clamp(28px, 4.5vw, 80px)), var(--content-max, 1560px));
   margin-inline: auto;
   padding-block: 44px 32px;
 }

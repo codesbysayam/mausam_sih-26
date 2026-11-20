@@ -16,7 +16,7 @@ import { useExperience } from '../../context/ExperienceContext';
 import { useProvider } from '../../store/providerStore';
 import { getAlertFeedAvailability } from '../../services/providers/providerStatus';
 import { formatCoordinates } from '../../context/LocationContext';
-import { formatLocationTitle } from '../../utils/formatLocation';
+import { formatLocationTitle } from '../../utils/locationFormatter';
 import { ArrowUpRight, Globe, MapPin, Navigation } from 'lucide-react';
 
 interface ClassicWorkspaceProps {

@@ -20,6 +20,7 @@ import { LocatingPhase, GeolocationServiceError, NearestStationResult } from '..
 import { PrintReportHeader } from '../components/common/PrintReportHeader';
 import { useProvider } from '../store/providerStore';
 import { formatCoordinatePair } from '../../shared/weatherContract';
+import { formatLocationTitle } from '../utils/locationFormatter';
 import {
   PageHeader,
   DataPanel,
@@ -208,7 +209,7 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
       <PageHeader
         id="weather-page-header-banner"
         eyebrow={`ANALYZE MODE • ${locationSource === 'DEVICE_GPS' ? 'GPS LOCK' : 'SELECTED STATION'}`}
-        title={`${selectedLocation.city}, ${selectedLocation.state}`}
+        title={formatLocationTitle(selectedLocation)}
         coordinates={`${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}${selectedLocation.elevation ? ` • ${selectedLocation.elevation}` : ''}`}
         description={`Station ${selectedLocation.imdStation || 'Point Grid Telemetry'}${selectedLocation.district && selectedLocation.district !== selectedLocation.city ? ` • ${selectedLocation.district} District` : ''}`}
         status={obsStatus}

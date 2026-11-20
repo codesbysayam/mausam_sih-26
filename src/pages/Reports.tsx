@@ -23,6 +23,7 @@ import { DataTable, ColumnDef } from '../components/common/DataTable';
 import { PageHeader, DataPanel, MetricValue } from '../components/ui/ObservatoryPrimitives';
 import { Search, Bookmark, ExternalLink, RotateCcw } from 'lucide-react';
 import { formatCoordinatePair } from '../../shared/weatherContract';
+import { formatLocationTitle, formatLocationShort } from '../utils/locationFormatter';
 
 interface ReportsPageProps {
   weatherBundle: WeatherDataBundle;
@@ -80,7 +81,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
 
     return {
       id: `district-bulletin-${selectedLocation.id || 'live'}`,
-      title: `District Meteorological Bulletin — ${selectedLocation.city}, ${selectedLocation.state}`,
+      title: `District Meteorological Bulletin — ${formatLocationTitle(selectedLocation)}`,
       category: 'Sub-Divisional Report',
       type: 'PDF Bulletin',
       date: formattedDate,
@@ -88,7 +89,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
       issuingAuthority: `MAUSAM Regional Synthesis (${sourceLabel})`,
       documentNumber: `MAUSAM-RMC-${selectedLocation.state.slice(0, 3).toUpperCase()}-${isoDate}`,
       author: 'State Meteorological & Surface Synthesis Division',
-      abstract: `Location-specific meteorological summary and telemetry report for ${selectedLocation.city} (${selectedLocation.state}) derived from ${sourceLabel} point observations and 7-day numerical forecast guidance.`,
+      abstract: `Location-specific meteorological summary and telemetry report for ${formatLocationTitle(selectedLocation)} derived from ${sourceLabel} point observations and 7-day numerical forecast guidance.`,
       keywords: [selectedLocation.city, selectedLocation.state, 'Surface Telemetry', 'Local Nowcast', sourceLabel],
       synopticSummary: `Latest telemetry for ${selectedLocation.city} (${sourceLabel}) reports surface temperature of ${temp}, relative humidity at ${humidity}, mean sea-level pressure of ${pressure}, and surface wind at ${windSpeed} (${condition}).`,
       recommendations: [
@@ -378,7 +379,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         eyebrow="Official Meteorological Research & Bulletin Library"
         title="Reports & Research"
         description="Meteorological bulletins, climatological studies, agrometeorological advisories, and technical monographs curated across national earth-science institutes."
-        coordinates={`${selectedLocation.city}, ${selectedLocation.state} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`}
+        coordinates={`${formatLocationShort(selectedLocation)} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`}
         status={hasTemp ? 'LIVE' : 'REFERENCE'}
         statusLabel={hasTemp ? 'DISTRICT SYNTHESIS LIVE' : 'ARCHIVE + PENDING TELEMETRY'}
         source={cur?.dataSource ? `${cur.dataSource} · IMD / MoES Archive` : 'IMD / MoES Institutional Archive'}

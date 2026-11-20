@@ -10,7 +10,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { MainNavTab } from '../components/layout/MainNavigation';
 import { PageHeader, ProvenanceStatus } from '../components/ui/ObservatoryPrimitives';
 import { formatCoordinatePair } from '../../shared/weatherContract';
-import { formatLocationShort } from '../utils/formatLocation';
+import { formatLocationShort } from '../utils/locationFormatter';
 
 import { HomeAtmosphericHero } from '../components/home/HomeAtmosphericHero';
 import { HomeHourlyTimeline } from '../components/home/HomeHourlyTimeline';

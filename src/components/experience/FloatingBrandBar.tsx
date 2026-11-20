@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import type { LocationRecord, WeatherAlert } from '../../types';
 import { locationService } from '../../services/locationService';
+import { formatLocationShort, formatLocationTitle } from '../../utils/locationFormatter';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useProvider } from '../../store/providerStore';
 import { getAlertFeedAvailability } from '../../services/providers/providerStatus';
@@ -148,6 +149,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
   };
 
   const isExplore = mode === 'explore';
+  const locationPlaceholder = formatLocationShort(selectedLocation);
 
   return (
     <header
@@ -183,7 +185,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             className={`${
               isExplore ? 'spatial-hud-surface rounded-xl px-3' : 'rounded-lg px-1.5 hover:bg-[var(--m-surface-2)]'
             } min-h-[44px] sm:min-h-[40px] flex items-center gap-2.5 transition-colors cursor-pointer m-focus-ring`}
-            title={isExplore ? 'Recenter MAUSAM 3D Atmosphere over India' : 'Return to MAUSAM Overview'}
+            title={isExplore ? 'Recenter 3D Atmospheric Observatory over India (R)' : 'Return to MAUSAM Overview'}
           >
             <span className="w-7 h-7 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)]/30 flex items-center justify-center text-[var(--m-accent)] shrink-0">
               <Compass className="w-4 h-4" />
@@ -196,7 +198,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                 MAUSAM
               </span>
               <span className="text-[10px] font-mono uppercase tracking-[0.06em] text-[var(--m-text-muted)] hidden sm:block mt-0.5">
-                Atmospheric Intelligence
+                Atmospheric Observatory
               </span>
             </span>
           </button>
@@ -219,7 +221,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                   setSearchQuery(e.target.value);
                   setIsSearchOpen(true);
                 }}
-                placeholder={selectedLocation.displayName}
+                placeholder={locationPlaceholder}
                 aria-label="Search Indian city, district, or PIN code"
                 className="w-full bg-transparent text-xs font-medium text-[var(--m-text-primary)] placeholder:text-[var(--m-text-secondary)] focus:outline-none truncate"
               />
@@ -271,10 +273,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                       >
                         <div className="min-w-0">
                           <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
-                            {loc.city || loc.displayName}
+                            {formatLocationShort(loc)}
                           </div>
                           <div className="text-[11px] text-[var(--m-text-muted)] truncate">
-                            {loc.district}, {loc.state}
+                            {formatLocationTitle(loc)}
                           </div>
                         </div>
                         <span className="text-[10px] font-mono text-[var(--m-text-muted)] shrink-0 tabular-nums">
@@ -289,7 +291,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           </div>
         </div>
 
-        {/* Center Segmented Mode Switcher: Analyze (Editorial) / Explore (3D Spatial) / Classic (Linear) */}
+        {/* Center Segmented Mode Switcher: Explore (3D Observatory) / Analyze (Workstation) / Classic (Accessible) */}
         <nav
           aria-label="MAUSAM Experience Mode"
           className={`${
@@ -300,8 +302,8 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         >
           {(
             [
-              { id: 'analyze', label: 'Analyze' },
               { id: 'explore', label: 'Explore' },
+              { id: 'analyze', label: 'Analyze' },
               { id: 'classic', label: 'Classic' },
             ] as Array<{ id: ExperienceMode; label: string }>
           ).map((item) => {
@@ -401,12 +403,25 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                   </button>
                 </div>
 
-                {/* Editorial Surface Theme Switcher (Warm Paper default vs Deep Ink) */}
+                {/* Analyze Surface Theme Switcher (Observatory Dark default vs Warm Paper) */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[11px] font-mono text-[var(--m-text-muted)] uppercase tracking-wider font-semibold">
-                    Editorial Surface Theme
+                    Analyze Surface Theme
                   </span>
                   <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSurfaceTheme('dark')}
+                      aria-pressed={surfaceTheme === 'dark'}
+                      className={`min-h-[36px] px-2.5 rounded-lg font-medium border flex items-center justify-center gap-1.5 cursor-pointer m-focus-ring ${
+                        surfaceTheme === 'dark'
+                          ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-text-primary)] font-semibold'
+                          : 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:border-[var(--m-border-strong)]'
+                      }`}
+                    >
+                      <Moon className="w-3.5 h-3.5" />
+                      <span>Observatory Dark</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setSurfaceTheme('paper')}
@@ -420,23 +435,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                       <Sun className="w-3.5 h-3.5" />
                       <span>Warm Paper</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setSurfaceTheme('dark')}
-                      aria-pressed={surfaceTheme === 'dark'}
-                      className={`min-h-[36px] px-2.5 rounded-lg font-medium border flex items-center justify-center gap-1.5 cursor-pointer m-focus-ring ${
-                        surfaceTheme === 'dark'
-                          ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-text-primary)] font-semibold'
-                          : 'bg-[var(--m-surface-2)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:border-[var(--m-border-strong)]'
-                      }`}
-                    >
-                      <Moon className="w-3.5 h-3.5" />
-                      <span>Deep Ink</span>
-                    </button>
                   </div>
                 </div>
 
-                {/* 3D Globe vs 2D Interactive Map */}
+                {/* 3D Observatory vs 2D Interactive Map */}
                 <div className="flex flex-col gap-1.5 pt-2 border-t border-[var(--m-border)]">
                   <span className="text-[11px] font-mono text-[var(--m-text-muted)] uppercase tracking-wider font-semibold">
                     Explore Spatial Viewport
@@ -454,7 +456,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                         }`}
                       >
                         {rm === '3d' ? <Globe className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
-                        <span>{rm === '3d' ? '3D Globe' : '2D Map'}</span>
+                        <span>{rm === '3d' ? '3D Observatory' : '2D Map'}</span>
                       </button>
                     ))}
                   </div>
@@ -523,7 +525,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             <button
               type="button"
               onClick={openControlsGuide}
-              title="Spatial navigation guide & tours"
+              title="Observatory controls & guided tours (Shortcut: ?)"
               aria-label="Open controls guide and guided tours"
               className="spatial-hud-surface rounded-xl min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)] transition-colors cursor-pointer m-focus-ring"
             >

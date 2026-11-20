@@ -12,7 +12,7 @@ import {
   Anchor,
   ShieldCheck,
 } from 'lucide-react';
-import { formatLocationTitle } from '../../utils/formatLocation';
+import { formatLocationTitle } from '../../utils/locationFormatter';
 
 interface CoastalMarineSectionProps {
   location: LocationRecord;

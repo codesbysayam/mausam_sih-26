@@ -18,7 +18,7 @@ import { getMetricStatus } from '../src/types/dataProvenance';
 import { getAgrometBulletin } from '../src/services/agrometService';
 import { CycloneLiveDataService } from '../src/services/CycloneLiveDataService';
 import { calculateSolarAstronomicalData } from '../src/utils/astronomyCalculator';
-import { formatLocationTitle, formatLocationShort } from '../src/utils/formatLocation';
+import { formatLocationTitle, formatLocationShort } from '../src/utils/locationFormatter';
 import type { LocationRecord } from '../src/types';
 
 function createMockRes() {
@@ -465,6 +465,24 @@ test('formatLocationTitle and formatLocationShort deduplicate repeated administr
   assert.equal(
     formatLocationTitle({ city: 'New Delhi', district: 'New Delhi', state: 'Delhi', country: 'India' }),
     'New Delhi, Delhi'
+  );
+
+  assert.equal(
+    formatLocationTitle(
+      { city: 'New Delhi', district: 'New Delhi', state: 'Delhi', country: 'India' },
+      { includeCountry: true }
+    ),
+    'New Delhi, Delhi, India'
+  );
+
+  assert.equal(
+    formatLocationTitle('Bhubaneswar, Khordha, Odisha, Odisha'),
+    'Bhubaneswar, Khordha, Odisha'
+  );
+
+  assert.equal(
+    formatLocationTitle('  Mumbai , Mumbai , Maharashtra , maharashtra  '),
+    'Mumbai, Maharashtra'
   );
 
   assert.equal(

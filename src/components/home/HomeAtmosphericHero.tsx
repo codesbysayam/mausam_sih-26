@@ -17,7 +17,7 @@ import {
 import { DataPanel, SourceStatus, ProvenanceStatus } from '../ui/ObservatoryPrimitives';
 import { MetricValue } from '../common/MetricValue';
 import { getMetricStatus } from '../../types/dataProvenance';
-import { formatLocationTitle } from '../../utils/formatLocation';
+import { formatLocationTitle } from '../../utils/locationFormatter';
 
 interface HomeAtmosphericHeroProps {
   weather: CurrentWeather;

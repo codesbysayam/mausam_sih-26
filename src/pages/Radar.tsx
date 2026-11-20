@@ -23,6 +23,7 @@ import { RadarTimeSpan } from '../components/radar/RadarTimeLapseController';
 import { useProvider } from '../store/providerStore';
 import { formatTimestampIST } from '../services/providers/providerStatus';
 import { formatCoordinatePair } from '../../shared/weatherContract';
+import { formatLocationShort } from '../utils/locationFormatter';
 import {
   PageHeader,
   ProvenanceStatus,
@@ -267,7 +268,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
   };
 
   const coordinateSummary = selectedLocation
-    ? `${selectedLocation.city}, ${selectedLocation.state} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`
+    ? `${formatLocationShort(selectedLocation)} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`
     : undefined;
 
   return (

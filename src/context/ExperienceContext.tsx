@@ -311,6 +311,8 @@ interface ExperienceContextValue {
   setTimelineIndex: React.Dispatch<React.SetStateAction<number>>;
   isTimelinePlaying: boolean;
   setIsTimelinePlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  playbackSpeed: 0.5 | 1 | 2;
+  setPlaybackSpeed: React.Dispatch<React.SetStateAction<0.5 | 1 | 2>>;
   inspectedFeature: InspectedSpatialFeature | null;
   setInspectedFeature: (feature: InspectedSpatialFeature | null) => void;
   showControlsGuide: boolean;
@@ -328,8 +330,8 @@ interface ExperienceContextValue {
   setIsAlertDrawerOpen: (open: boolean) => void;
 }
 
-const GUIDE_DISMISSED_KEY = 'mausam_bruno_guide_dismissed_v1';
-const SURFACE_THEME_KEY = 'mausam_surface_theme_v2';
+const GUIDE_DISMISSED_KEY = 'mausam_bruno_guide_dismissed_v2';
+const SURFACE_THEME_KEY = 'mausam_surface_theme_v3';
 
 const ExperienceContext = createContext<ExperienceContextValue | undefined>(undefined);
 
@@ -339,29 +341,30 @@ function detectInitialReducedMotion(): boolean {
 }
 
 function readInitialSurfaceTheme(): SurfaceTheme {
-  if (typeof window === 'undefined') return 'paper';
+  if (typeof window === 'undefined') return 'dark';
   try {
     const saved = window.localStorage.getItem(SURFACE_THEME_KEY);
     if (saved === 'dark' || saved === 'paper') return saved;
   } catch {
     // Ignore storage read errors
   }
-  return 'paper';
+  return 'dark';
 }
 
 export const ExperienceProvider: React.FC<{
   initialMode?: ExperienceMode;
   children: React.ReactNode;
-}> = ({ initialMode = 'analyze', children }) => {
+}> = ({ initialMode = 'explore', children }) => {
   const [mode, setModeState] = useState<ExperienceMode>(initialMode);
   const [surfaceTheme, setSurfaceThemeState] = useState<SurfaceTheme>(readInitialSurfaceTheme);
   const [activeLayer, setActiveLayer] = useState<SpatialLayerId>('wind');
   const [rendererMode, setRendererMode] = useState<RendererMode>('3d');
   const [webglUnavailableReason, setWebglUnavailableReason] = useState<string | null>(null);
-  const [qualityTier, setQualityTier] = useState<QualityTier>('auto');
+  const [qualityTier, setQualityTier] = useState<QualityTier>('balanced');
   const [reducedMotion, setReducedMotion] = useState<boolean>(detectInitialReducedMotion);
   const [timelineIndex, setTimelineIndex] = useState<number>(0);
   const [isTimelinePlaying, setIsTimelinePlaying] = useState<boolean>(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<0.5 | 1 | 2>(1);
   const [inspectedFeature, setInspectedFeature] = useState<InspectedSpatialFeature | null>(null);
   const [isAlertDrawerOpen, setIsAlertDrawerOpen] = useState<boolean>(false);
 
@@ -374,14 +377,8 @@ export const ExperienceProvider: React.FC<{
     }
   }, []);
 
-  const [showControlsGuide, setShowControlsGuide] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return window.localStorage.getItem(GUIDE_DISMISSED_KEY) !== '1';
-    } catch {
-      return true;
-    }
-  });
+  // Calm first load: frame India cleanly without a blocking intro modal (openable via ? or Help button)
+  const [showControlsGuide, setShowControlsGuide] = useState<boolean>(false);
 
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
   const [tourStepIndex, setTourStepIndex] = useState<number>(0);
@@ -498,6 +495,8 @@ export const ExperienceProvider: React.FC<{
       setTimelineIndex,
       isTimelinePlaying,
       setIsTimelinePlaying,
+      playbackSpeed,
+      setPlaybackSpeed,
       inspectedFeature,
       setInspectedFeature,
       showControlsGuide,
@@ -528,6 +527,7 @@ export const ExperienceProvider: React.FC<{
       reducedMotion,
       timelineIndex,
       isTimelinePlaying,
+      playbackSpeed,
       inspectedFeature,
       showControlsGuide,
       dismissControlsGuide,

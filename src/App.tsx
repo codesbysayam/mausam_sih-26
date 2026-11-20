@@ -93,15 +93,23 @@ export default function App() {
     getTabFromPathname(window.location.pathname)
   );
 
-  // Sync active editorial / spatial dark-workspace theme to documentElement & theme-color meta
-  const activeTheme = mode === 'explore' ? 'dark-workspace' : surfaceTheme;
+  // Sync active mode theme to documentElement & theme-color meta:
+  // Explore -> dark-workspace (3D atmospheric stage)
+  // Classic -> classic (light, high-contrast, low-GPU linear edition)
+  // Analyze -> Observatory dark default (or user-selected paper theme)
+  const activeTheme =
+    mode === 'explore' ? 'dark-workspace' : mode === 'classic' ? 'classic' : surfaceTheme;
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.documentElement.setAttribute('data-theme', activeTheme);
-    document.documentElement.classList.toggle('dark', activeTheme !== 'paper');
+    const isDarkSurface = activeTheme === 'dark' || activeTheme === 'dark-workspace';
+    document.documentElement.classList.toggle('dark', isDarkSurface);
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
-      metaTheme.setAttribute('content', activeTheme === 'paper' ? '#F7F6F1' : '#0B141D');
+      metaTheme.setAttribute(
+        'content',
+        activeTheme === 'classic' ? '#F4F6F7' : activeTheme === 'paper' ? '#F7F6F1' : '#07111B'
+      );
     }
   }, [activeTheme]);
 
