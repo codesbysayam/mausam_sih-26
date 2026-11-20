@@ -95,10 +95,8 @@ export default function App() {
 
   // Sync active mode theme to documentElement & theme-color meta:
   // Explore -> dark-workspace (3D atmospheric stage)
-  // Classic -> classic (light, high-contrast, low-GPU linear edition)
-  // Analyze -> Observatory dark default (or user-selected paper theme)
-  const activeTheme =
-    mode === 'explore' ? 'dark-workspace' : mode === 'classic' ? 'classic' : surfaceTheme;
+  // Analyze & Classic -> Observatory dark default (or user-selected paper theme)
+  const activeTheme = mode === 'explore' ? 'dark-workspace' : surfaceTheme;
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.documentElement.setAttribute('data-theme', activeTheme);
@@ -108,7 +106,7 @@ export default function App() {
     if (metaTheme) {
       metaTheme.setAttribute(
         'content',
-        activeTheme === 'classic' || activeTheme === 'paper' ? '#F1F0EA' : '#0B0C0D'
+        activeTheme === 'paper' ? '#F1F0EA' : '#0B0C0D'
       );
     }
   }, [activeTheme]);

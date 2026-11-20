@@ -403,10 +403,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
                   </button>
                 </div>
 
-                {/* Analyze Surface Theme Switcher (Observatory Dark default vs Warm Paper) */}
+                {/* Workspace Surface Theme Switcher (Observatory Dark default vs Warm Paper) */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[11px] font-mono text-[var(--m-text-muted)] uppercase tracking-wider font-semibold">
-                    Analyze Surface Theme
+                    Workspace Surface Theme
                   </span>
                   <div className="grid grid-cols-2 gap-1.5">
                     <button

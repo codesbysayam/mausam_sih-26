@@ -222,9 +222,8 @@
   --sal: env(safe-area-inset-left, 0px);
 }
 
-/* Warm Editorial Paper Light Theme Scope (Analyze Paper & Classic Linear Modes) */
-[data-theme="paper"],
-[data-theme="classic"] {
+/* Warm Editorial Paper Light Theme Scope (Optional User-Selected Light Mode) */
+[data-theme="paper"] {
   color-scheme: light;
   --content-max: 1480px;
   --m-bg: #F1F0EA;
@@ -266,9 +265,10 @@
   --shadow-card: 0 2px 10px rgba(23, 27, 25, 0.04);
 }
 
-/* Explicit Atmospheric Observatory Dark Scope (Explore 3D Stage & Analyze Dark Workspace) */
+/* Explicit Atmospheric Observatory Dark Scope (Explore, Analyze & Classic Workspaces) */
 [data-theme="dark-workspace"],
-[data-theme="dark"] {
+[data-theme="dark"],
+[data-theme="classic"] {
   color-scheme: dark;
   --m-bg: var(--mausam-void);
   --m-bg-elevated: var(--mausam-obsidian);
@@ -2392,7 +2392,7 @@ img, svg, canvas, video {
   overflow: hidden;
   background: var(--m-border);
   border: 1px solid var(--m-border);
-  border-radius: 16px;
+  border-radius: var(--radius-panel);
   box-shadow: var(--shadow-card);
 }
 
@@ -2461,7 +2461,7 @@ img, svg, canvas, video {
   text-align: left;
   background: var(--m-surface-1);
   border: 1px solid var(--m-border);
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   cursor: pointer;
 }
