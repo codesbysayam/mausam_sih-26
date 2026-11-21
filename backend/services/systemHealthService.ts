@@ -526,8 +526,21 @@ export class SystemHealthService {
       ? Math.round((operational / eligibleProviders) * 1000) / 10
       : 0;
 
+    const coreProvidersHealthy =
+      providers.openMeteo.status === 'OPERATIONAL' &&
+      providers.sachet.status === 'OPERATIONAL';
+    const configuredProviderFailures = Object.values(providers).filter(
+      (provider) =>
+        provider.isConfigured &&
+        (provider.status === 'UNAVAILABLE' || provider.status === 'DEGRADED')
+    ).length;
+
     const overallStatus: 'HEALTHY' | 'DEGRADED' | 'CRITICAL' =
-      operational >= 3 ? 'HEALTHY' : operational >= 1 ? 'DEGRADED' : 'CRITICAL';
+      coreProvidersHealthy && configuredProviderFailures === 0
+        ? 'HEALTHY'
+        : operational > 0
+        ? 'DEGRADED'
+        : 'CRITICAL';
 
     const syncTimeStr = new Date(now).toLocaleTimeString('en-IN', {
       timeZone: 'Asia/Kolkata',
