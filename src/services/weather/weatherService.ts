@@ -1,7 +1,7 @@
 // ====================================================================
-// MAUSAM - Atmospheric Intelligence Platform
-// Unified Weather Service for Ask MAUSAM
-// Executes real tools: IMD (when configured) -> Open-Meteo fallback
+// MAUSAM — Unified meteorological context service
+// Source priority: verified IMD station observation, then Open-Meteo model.
+// This module never invents missing weather, agricultural, or marine values.
 // ====================================================================
 
 import {
@@ -22,6 +22,68 @@ export interface UnifiedWeatherResult {
   sources: DataSourceContext[];
 }
 
+function finite(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function buildAgricultureContext(
+  current: CurrentWeatherContext | undefined,
+  openMeteo: Awaited<ReturnType<typeof fetchOpenMeteoBundle>>
+): AgricultureContext | undefined {
+  if (!current) return undefined;
+
+  const soilMoisture = finite(openMeteo.soilMoisture) ? openMeteo.soilMoisture : undefined;
+  const soilTemperature = finite(openMeteo.soilTemperature) ? openMeteo.soilTemperature : undefined;
+  const evapotranspiration = finite(openMeteo.evapotranspiration)
+    ? openMeteo.evapotranspiration
+    : undefined;
+  const rainProbability = finite(current.precipitationProbability)
+    ? current.precipitationProbability
+    : undefined;
+  const windSpeed = finite(current.windSpeedKmh) ? current.windSpeedKmh : undefined;
+  const temperature = finite(current.temperatureC) ? current.temperatureC : undefined;
+  const humidity = finite(current.humidity) ? current.humidity : undefined;
+
+  // Do not infer a spray window from missing precipitation or wind observations.
+  const canAssessSprayWindow =
+    rainProbability !== undefined &&
+    windSpeed !== undefined &&
+    temperature !== undefined;
+
+  let spraySuitability: AgricultureContext['spraySuitability'];
+  let advisoryText: string;
+
+  if (!canAssessSprayWindow) {
+    advisoryText =
+      'Spray-window assessment is unavailable because one or more required forecast inputs (rain probability, wind speed, or temperature) were not reported by the selected source.';
+  } else if (rainProbability > 40 || windSpeed > 20) {
+    spraySuitability = 'NOT_RECOMMENDED';
+    advisoryText =
+      'Chemical application is not recommended under the retrieved rain-probability and wind conditions. Reassess when a newer forecast is available.';
+  } else if (rainProbability > 20 || windSpeed > 15 || temperature > 35) {
+    spraySuitability = 'MODERATE';
+    advisoryText =
+      'Conditions require caution. Review the latest district agrometeorological advisory before scheduling field operations.';
+  } else {
+    spraySuitability = 'OPTIMAL';
+    advisoryText =
+      'The available weather inputs do not indicate the configured rain, wind, or heat constraints. Confirm crop-specific guidance before field application.';
+  }
+
+  return {
+    soilMoisture0To1cm: soilMoisture,
+    soilTemperatureC: soilTemperature,
+    // Current-hour precipitation is deliberately not relabelled as 24-hour rainfall.
+    rainfall24hMm: undefined,
+    precipitationProbability: rainProbability,
+    temperatureC: temperature,
+    humidity,
+    evapotranspirationMm: evapotranspiration,
+    spraySuitability,
+    advisoryText,
+  };
+}
+
 export async function getAuthoritativeWeather(
   latitude: number,
   longitude: number,
@@ -32,74 +94,27 @@ export async function getAuthoritativeWeather(
 ): Promise<UnifiedWeatherResult> {
   const sources: DataSourceContext[] = [];
 
-  // 1. Try Official IMD Observation first
-  const imdRes = await fetchImdObservation(options?.stationCode, latitude, longitude);
-  sources.push(imdRes.source);
+  // Run independent providers concurrently; neither provider blocks the other.
+  const [imdRes, openMeteoRes] = await Promise.all([
+    fetchImdObservation(options?.stationCode, latitude, longitude),
+    fetchOpenMeteoBundle(latitude, longitude),
+  ]);
 
-  // 2. Fetch Open-Meteo bundle for forecast & complete telemetry
-  const openMeteoRes = await fetchOpenMeteoBundle(latitude, longitude);
-  sources.push(openMeteoRes.source);
+  sources.push(imdRes.source, openMeteoRes.source);
 
-  // Determine current weather: prefer IMD if available, otherwise Open-Meteo
-  let current = imdRes.available && imdRes.current ? imdRes.current : openMeteoRes.current;
+  // Explicit source precedence: a verified IMD observation wins; otherwise
+  // use the Open-Meteo model result with its model provenance intact.
+  const current =
+    imdRes.available && imdRes.current
+      ? imdRes.current
+      : openMeteoRes.current;
 
-  // Build agriculture context if atmospheric variables exist
-  let agriculture: AgricultureContext | undefined;
-  if (current) {
-    const soilMoisture = openMeteoRes.soilMoisture;
-    const soilTemp = openMeteoRes.soilTemperature;
-    const et0 = openMeteoRes.evapotranspiration;
-    const rainProb = current.precipitationProbability ?? 0;
-    const rainMm = current.precipitationMm ?? 0;
-    const temp = current.temperatureC;
-    const humidity = current.humidity ?? 60;
-    const windSpeed = current.windSpeedKmh ?? 10;
+  const agriculture = buildAgricultureContext(current, openMeteoRes);
 
-    let spraySuitability: 'OPTIMAL' | 'MODERATE' | 'NOT_RECOMMENDED' = 'OPTIMAL';
-    if (rainProb > 40 || rainMm > 2 || windSpeed > 20) {
-      spraySuitability = 'NOT_RECOMMENDED';
-    } else if (rainProb > 20 || windSpeed > 15 || temp > 35) {
-      spraySuitability = 'MODERATE';
-    }
-
-    let advisoryText = `Soil moisture is at ${soilMoisture !== undefined ? `${Math.round(soilMoisture * 100)}%` : 'seasonal levels'}. `;
-    if (spraySuitability === 'NOT_RECOMMENDED') {
-      advisoryText += 'Pesticide/fertilizer spraying NOT recommended due to wind/rain risk.';
-    } else if (spraySuitability === 'MODERATE') {
-      advisoryText += 'Exercise caution during chemical application; morning window preferred.';
-    } else {
-      advisoryText += 'Atmospheric conditions are favorable for spraying, irrigation scheduling, and harvesting.';
-    }
-
-    agriculture = {
-      soilMoisture0To1cm: soilMoisture,
-      soilTemperatureC: soilTemp,
-      rainfall24hMm: rainMm,
-      precipitationProbability: rainProb,
-      temperatureC: temp,
-      humidity,
-      evapotranspirationMm: et0,
-      spraySuitability,
-      advisoryText,
-    };
-  }
-
-  // Build marine context if coastal or requested
-  let marine: MarineContext | undefined;
-  if (options?.isCoastal && current) {
-    const windKts = Math.round((current.windSpeedKmh ?? 10) * 0.539957);
-    const estWaveHeight = Math.round((windKts * 0.1) * 10) / 10;
-    marine = {
-      waveHeightM: estWaveHeight,
-      seaSurfaceTempC: Math.round((current.temperatureC - 2) * 10) / 10,
-      tideStatus: 'Normal tidal cycle',
-      windSpeedKts: windKts,
-      seaCondition: windKts > 25 ? 'Rough' : windKts > 15 ? 'Moderate' : 'Smooth to Slight',
-      coastalAdvisory: windKts > 25
-        ? 'Fishermen advised not to venture into deep sea due to squally weather.'
-        : 'Sea conditions normal for coastal navigation and artisanal fisheries.',
-    };
-  }
+  // Marine values must come from a marine/oceanographic provider. Wind-derived
+  // wave height, air-temperature-derived sea temperature and assumed tides
+  // are not valid substitutes and are intentionally not generated here.
+  const marine: MarineContext | undefined = undefined;
 
   return {
     current,
