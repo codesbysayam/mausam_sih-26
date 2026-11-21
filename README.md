@@ -435,51 +435,46 @@ The unified API router is mounted under `/api/*`. All atmospheric endpoints prio
 
 ## Environment Configuration
 
-Create a `.env` file in the project root based on `.env.example`. **No API keys are required for basic local operation**—the platform will run using the free baseline providers and in-memory caching.
+Create a `.env` file from `.env.example`. **No secrets are required for core weather and map functionality.** Optional integrations must be configured only when you have valid credentials and a supported endpoint.
+
+### Assistant (optional)
+
+The assistant reads these server-side variables:
+
+- `MAUSAM_ASSISTANT_MODE`: `auto` (default), `remote`, `local`, or `offline`.
+- `MAUSAM_ASSISTANT_API_URL`: base URL or full OpenAI-compatible `/chat/completions` endpoint.
+- `MAUSAM_ASSISTANT_API_KEY`: optional bearer credential if the endpoint requires authentication.
+- `MAUSAM_ASSISTANT_MODEL`: model identifier required by endpoints that do not supply a default.
+
+In `auto` mode, a configured URL enables remote requests. Without a URL, the application returns a source-grounded local telemetry summary. `local` and `offline` modes do not call a remote assistant. A URL or API key by itself is not proof that the endpoint is operational; availability is checked when a request is made.
+
+### Optional storage and official feeds
+
+- `DATABASE_URL` (or `POSTGRES_URL`) enables durable PostgreSQL persistence. Without it, process memory is temporary and is not durable storage.
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are a pair for a shared Redis REST cache. Do not configure only one.
+- `IMD_API_ENABLED`, `IMD_API_BASE_URL`, and either `IMD_API_KEY` or `IMD_API_TOKEN` are for an entitled IMD integration. Do not invent credentials or assume a public endpoint is available.
+- `CPCB_API_KEY` is optional; a configured key alone does not prove a live CPCB connection.
+
+Example:
 
 ```env
-# ====================================================================
-# MAUSAM - Environment Configuration Template
-# ====================================================================
+MAUSAM_ASSISTANT_MODE=auto
+MAUSAM_ASSISTANT_API_URL=
+MAUSAM_ASSISTANT_API_KEY=
+MAUSAM_ASSISTANT_MODEL=
 
-# 1. PostgreSQL Database (Optional - Neon / Supabase / Local)
-DATABASE_URL=
-POSTGRES_URL=
-
-# 2. Redis Persistent Cache (Optional - Upstash Redis REST / Vercel KV)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
-KV_REST_API_URL=
-KV_REST_API_TOKEN=
 
-# 3. National Government Providers (Optional)
-IMD_ENABLED=false
-IMD_API_BASE_URL=https://api.imd.gov.in/api/v1
+DATABASE_URL=
+
+IMD_API_ENABLED=false
+IMD_API_BASE_URL=
 IMD_API_KEY=
-
-CPCB_ENABLED=true
-CPCB_API_KEY=
-
-SACHET_ENABLED=true
-SACHET_FEED_URL=https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails
-
-INCOIS_ENABLED=true
-INCOIS_BASE_URL=https://incois.gov.in
-
-RADAR_ENABLED=true
-
-# 4. Commercial Providers (Optional)
-ACCUWEATHER_API_KEY=
-GOOGLE_WEATHER_API_KEY=
-
-# 5. Server-Side AI Assistant (Optional)
-GEMINI_API_KEY=
-
-# 6. Environment
-NODE_ENV=development
+IMD_API_TOKEN=
 ```
 
-> **Security Notice**: Never commit `.env` files containing live secrets to version control. The repository `.gitignore` automatically excludes all local environment files.
+All credentials must remain server-side. Never use a `VITE_` prefix for secrets and never commit real values to the repository.
 
 ---
 
