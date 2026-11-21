@@ -1,9 +1,13 @@
 import React from 'react';
+import { safeStorageGet, safeStorageRemove, safeStorageSet } from './safeStorage';
+
+const LAZY_RELOAD_GUARD = 'mausam_retry_lazy_reload_until';
+const RELOAD_GUARD_MS = 60_000;
 
 /**
- * Robust lazy loading with automatic retries for Vite dynamically imported modules.
- * Prevents "Failed to fetch dynamically imported module" errors caused by network
- * blips, dev server restarts, or rolling deployments.
+ * Retry transient dynamic-import failures without creating an infinite
+ * reload loop. Storage is optional; if session storage is blocked, do not
+ * auto-reload because a cross-reload guard cannot be persisted safely.
  */
 export function lazyWithRetry<T extends React.ComponentType<any>>(
   componentImport: () => Promise<{ default: T }>,
@@ -11,51 +15,47 @@ export function lazyWithRetry<T extends React.ComponentType<any>>(
   interval = 800
 ): React.LazyExoticComponent<T> {
   return React.lazy(async () => {
-    const pageAlreadyRefreshed = Boolean(
-      typeof window !== 'undefined' &&
-        window.sessionStorage.getItem('mausam_retry_lazy_reload')
-    );
+    const guardValue = Number(safeStorageGet('session', LAZY_RELOAD_GUARD) || 0);
+    const reloadAlreadyAttempted = Number.isFinite(guardValue) && guardValue > Date.now();
+    let lastError: unknown;
 
-    for (let attempt = 0; attempt < retries; attempt++) {
+    for (let attempt = 0; attempt < retries; attempt += 1) {
       try {
         const module = await componentImport();
-        // Clear refresh flag on successful import
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.removeItem('mausam_retry_lazy_reload');
-        }
+        safeStorageRemove('session', LAZY_RELOAD_GUARD);
         return module;
-      } catch (error: any) {
-        console.warn(`[MAUSAM Lazy Loader] Attempt ${attempt + 1} of ${retries} failed:`, error?.message);
+      } catch (error: unknown) {
+        lastError = error;
+        const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+        const isChunkError =
+          message.includes('failed to fetch dynamically imported module') ||
+          message.includes('dynamically imported module') ||
+          message.includes('importing a module script failed') ||
+          message.includes('chunkloaderror') ||
+          message.includes('loading chunk');
 
-        // If not last attempt, wait and retry with backoff
-        if (attempt < retries - 1) {
-          await new Promise((resolve) => setTimeout(resolve, interval * Math.pow(1.5, attempt)));
-          continue;
-        }
+        console.warn(`[MAUSAM Lazy Loader] Attempt ${attempt + 1} of ${retries} failed:`, message);
 
-        // If all retries failed and error is a dynamic import failure, try a clean page reload once
-        const isDynamicImportError =
-          error?.message?.includes('Failed to fetch dynamically imported module') ||
-          error?.message?.includes('dynamically imported module') ||
-          error?.name === 'TypeError' ||
-          error?.message?.includes('Importing a module script failed');
-
-        if (isDynamicImportError && !pageAlreadyRefreshed && typeof window !== 'undefined') {
-          console.log('[MAUSAM Lazy Loader] Refreshing page to resolve stale chunk...');
-          window.sessionStorage.setItem('mausam_retry_lazy_reload', 'true');
-          window.location.reload();
-          // Return a pending promise so React doesn't crash while reloading
-          return new Promise(() => {});
-        }
-
-        // Clear flag if we already refreshed
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.removeItem('mausam_retry_lazy_reload');
-        }
-        throw error;
+        if (!isChunkError || attempt === retries - 1) break;
+        await new Promise((resolve) => setTimeout(resolve, interval * Math.pow(1.5, attempt)));
       }
     }
 
-    return componentImport();
+    const finalMessage = lastError instanceof Error ? lastError.message.toLowerCase() : String(lastError).toLowerCase();
+    const isFinalChunkError =
+      finalMessage.includes('failed to fetch dynamically imported module') ||
+      finalMessage.includes('dynamically imported module') ||
+      finalMessage.includes('importing a module script failed') ||
+      finalMessage.includes('chunkloaderror') ||
+      finalMessage.includes('loading chunk');
+
+    if (isFinalChunkError && !reloadAlreadyAttempted && typeof window !== 'undefined') {
+      const guardSaved = safeStorageSet('session', LAZY_RELOAD_GUARD, String(Date.now() + RELOAD_GUARD_MS));
+      if (guardSaved) {
+        window.location.reload();
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error(String(lastError || 'Unable to load this MAUSAM section.'));
   });
 }
