@@ -102,19 +102,24 @@ export class WindParticleSystem {
 
   private seedInitialWindField() {
     const merged = getMergedStatePoints();
-    this.windSources = merged
-      .filter((pt) => typeof pt.state.windSpeed === 'number' && Number.isFinite(pt.state.windSpeed))
-      .map((pt) => {
-        const deg = windDirToDegrees(pt.state.windDir);
-        const rad = ((deg + 180) * Math.PI) / 180;
-        const spd = Math.max(2, pt.state.windSpeed);
-        return {
-          lat: pt.lat,
-          lng: pt.lng,
-          u: Math.sin(rad) * spd,
-          v: Math.cos(rad) * spd,
-        };
-      });
+    this.windSources = merged.flatMap((pt) => {
+      if (
+        typeof pt.state.windSpeed !== 'number' ||
+        !Number.isFinite(pt.state.windSpeed)
+      ) return [];
+
+      const deg = windDirToDegrees(pt.state.windDir);
+      if (deg === null) return [];
+
+      const rad = ((deg + 180) * Math.PI) / 180;
+      const spd = Math.max(2, pt.state.windSpeed);
+      return [{
+        lat: pt.lat,
+        lng: pt.lng,
+        u: Math.sin(rad) * spd,
+        v: Math.cos(rad) * spd,
+      }];
+    });
     this.hasValidWindData = this.windSources.length > 0;
   }
 
@@ -129,6 +134,7 @@ export class WindParticleSystem {
 
     const spd = Math.max(1, speedKmh);
     const deg = windDirToDegrees(dir ?? undefined);
+    if (deg === null) return;
     const rad = ((deg + 180) * Math.PI) / 180;
 
     const focusPoint: WindSourcePoint = {
