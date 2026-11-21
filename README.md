@@ -437,16 +437,16 @@ The unified API router is mounted under `/api/*`. All atmospheric endpoints prio
 
 Create a `.env` file from `.env.example`. **No secrets are required for core weather and map functionality.** Optional integrations must be configured only when you have valid credentials and a supported endpoint.
 
-### Assistant (optional)
+### Gemini Assistant (optional)
 
-The assistant reads these server-side variables:
+MAUSAM uses Google's OpenAI-compatible Gemini chat-completions endpoint. Configure these values in the server-side environment (Vercel Project Settings for deployment):
 
-- `MAUSAM_ASSISTANT_MODE`: `auto` (default), `remote`, `local`, or `offline`.
-- `MAUSAM_ASSISTANT_API_URL`: base URL or full OpenAI-compatible `/chat/completions` endpoint.
-- `MAUSAM_ASSISTANT_API_KEY`: optional bearer credential if the endpoint requires authentication.
-- `MAUSAM_ASSISTANT_MODEL`: model identifier required by endpoints that do not supply a default.
+- `MAUSAM_ASSISTANT_MODE=auto`: use Gemini when the endpoint and key are both present; otherwise return a grounded local telemetry summary. Use `remote` to require the remote provider, or `local` / `offline` to disable remote calls.
+- `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`: official Gemini OpenAI-compatible base URL. The server appends `chat/completions`; do not append an extra `/v1`.
+- `MAUSAM_ASSISTANT_API_KEY`: Gemini API key, sent only as `Authorization: Bearer ...` by the server.
+- `MAUSAM_ASSISTANT_MODEL=gemini-4-hydrogen`: documented compatibility-example model. You may override it with another model ID enabled for your Gemini API project.
 
-In `auto` mode, a configured URL enables remote requests. Without a URL, the application returns a source-grounded local telemetry summary. `local` and `offline` modes do not call a remote assistant. A URL or API key by itself is not proof that the endpoint is operational; availability is checked when a request is made.
+The exact chat endpoint is `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`. The server requires both URL and key before making a remote request. It does not expose credentials to the browser. A configured endpoint is not marked operational until a real assistant request succeeds.
 
 ### Optional storage and official feeds
 
@@ -459,9 +459,9 @@ Example:
 
 ```env
 MAUSAM_ASSISTANT_MODE=auto
-MAUSAM_ASSISTANT_API_URL=
-MAUSAM_ASSISTANT_API_KEY=
-MAUSAM_ASSISTANT_MODEL=
+MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+MAUSAM_ASSISTANT_API_KEY=YOUR_GEMINI_API_KEY
+MAUSAM_ASSISTANT_MODEL=gemini-4-hydrogen
 
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
@@ -499,7 +499,7 @@ npm install
 ```bash
 cp .env.example .env
 ```
-*(Optional: Add `GEMINI_API_KEY` for AI features or `DATABASE_URL` for persistent logging. Leave empty for free baseline operation).*
+*(Optional: Set `MAUSAM_ASSISTANT_API_URL`, `MAUSAM_ASSISTANT_API_KEY`, and `MAUSAM_ASSISTANT_MODEL` for the Gemini-powered MAUSAM Assistant. Leave them empty to use grounded local mode).*
 
 ### 4. Run the Development Server
 ```bash
@@ -537,16 +537,16 @@ This executes `node dist/server.cjs`, serving the optimized static assets from `
 3. Configure environment variables in the Vercel Project Settings:
    - `DATABASE_URL` (e.g., from Neon or Supabase)
    - `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN` (from Upstash)
-   - `GEMINI_API_KEY` (from Google AI Studio)
+   - `MAUSAM_ASSISTANT_API_URL`, `MAUSAM_ASSISTANT_API_KEY`, and `MAUSAM_ASSISTANT_MODEL` (Gemini OpenAI-compatible endpoint)
 4. Deploy. The platform leverages Vercel KV / Upstash Redis for serverless caching.
 
 ---
 
 ## Security Practices
 
-- **Zero Client-Side Secrets**: All third-party credentials (`GEMINI_API_KEY`, `IMD_API_KEY`, database passwords) are strictly confined to the server-side environment. No secrets are prefixed with `VITE_`.
+- **Zero Client-Side Secrets**: All third-party credentials (`MAUSAM_ASSISTANT_API_KEY`, `IMD_API_KEY`, database passwords) are strictly confined to the server-side environment. No secrets are prefixed with `VITE_`.
 - **Coordinates Sanitization**: All incoming query coordinates are validated and bounded to valid geographical ranges ($-90 \le \text{lat} \le 90$, $-180 \le \text{lon} \le 180$) to prevent injection.
-- **Fail-Safe Lazy Initialization**: SDKs that require credentials (e.g., Gemini GenAI, PostgreSQL Pool) initialize lazily. If a key is missing, only that specific feature is disabled gracefully without crashing the server.
+- **Fail-Safe Lazy Initialization**: SDKs that require credentials (e.g., Gemini assistant provider, PostgreSQL Pool) initialize lazily. If a key is missing, only that specific feature is disabled gracefully without crashing the server.
 - **Content Security & Safe Links**: All external portal links use `rel="noreferrer"` and `target="_blank"`. Images load with safe referrer policies.
 
 ---
