@@ -204,7 +204,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           </button>
 
           {/* Quick Search + Location Anchor */}
-          <div ref={searchWrapperRef} className="relative flex items-center">
+          <div ref={searchWrapperRef} className="mausam-floating-brandbar__search relative flex items-center">
             <div
               className={`${
                 isExplore
