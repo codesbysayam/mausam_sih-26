@@ -320,8 +320,9 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
       case 'UNAVAILABLE':
         return { label: 'Unavailable', text: 'text-[var(--m-danger)]' };
       case 'NOT_CONFIGURED':
-      default:
         return { label: 'Not Configured', text: 'text-[var(--m-accent)]' };
+      default:
+        return { label: 'Not Reported', text: 'text-[var(--m-text-muted)]' };
     }
   };
 
@@ -555,7 +556,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wide">
             <Server className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-            <span>Backend Gateway &amp; Storage</span>
+            <span>Backend Gateway &amp; Storage Telemetry</span>
           </div>
           <button
             type="button"
@@ -571,7 +572,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Database</span>
             <span className={`text-xs font-semibold ${dbConnected ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}`}>
-              {healthData ? (dbConnected ? `Connected (${dbMode})` : 'Not Configured') : 'Fetching…'}
+              {healthData ? (healthData.database ? (dbConnected ? `Connected (${dbMode})` : 'Not Configured') : 'Not reported by gateway') : 'Fetching…'}
             </span>
           </div>
 
@@ -585,7 +586,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Cache Engine</span>
             <span className={`text-xs font-semibold ${cacheStats?.connected ? 'text-[var(--m-ok)]' : 'text-[var(--m-watch)]'}`}>
-              {healthData ? (cacheStats?.connected ? 'Redis Connected' : 'In-Memory Cache') : 'Fetching…'}
+              {healthData ? (cacheStats ? (cacheStats.connected ? 'Redis Connected' : 'In-Memory Cache') : 'Not reported by gateway') : 'Fetching…'}
             </span>
           </div>
 
