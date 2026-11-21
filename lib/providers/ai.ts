@@ -1,9 +1,8 @@
 // ====================================================================
-// MAUSAM - Atmospheric Intelligence Platform
-// Gemini AI Meteorological Intelligence Provider Adapter
+// MAUSAM — Provider-neutral meteorological assistant adapter
+// Uses a server-side OpenAI-compatible chat-completions endpoint when
+// configured. The core application and grounded local mode need no key.
 // ====================================================================
-
-import { GoogleGenAI } from '@google/genai';
 
 export interface AskMausamParams {
   prompt: string;
@@ -31,13 +30,76 @@ export interface AskMausamResult {
   error?: string;
 }
 
+type AssistantMode = 'auto' | 'remote' | 'local' | 'offline';
+
+function getMode(): AssistantMode {
+  const raw = (process.env.MAUSAM_ASSISTANT_MODE || 'auto').trim().toLowerCase();
+  if (raw === 'remote' || raw === 'local' || raw === 'offline') return raw;
+  return 'auto';
+}
+
+function getEndpoint(): string | undefined {
+  const raw = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
+  if (!raw) return undefined;
+
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined;
+    if (url.username || url.password) return undefined;
+    if (url.pathname.endsWith('/chat/completions')) return url.toString();
+    if (url.pathname.replace(/\/$/, '').endsWith('/v1')) {
+      url.pathname = `${url.pathname.replace(/\/$/, '')}/chat/completions`;
+    } else {
+      url.pathname = `${url.pathname.replace(/\/$/, '')}/v1/chat/completions`;
+    }
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function localTelemetrySummary(params: AskMausamParams, source: string): string {
+  const lines: string[] = [];
+  const obs = params.observation || {};
+  const aqi = params.airQuality || {};
+  const location = params.location || {};
+  const label = [location.city || location.name, location.state]
+    .filter(Boolean)
+    .join(', ') || 'Selected location';
+
+  if (isFiniteNumber(obs.temperatureC)) lines.push(`Temperature: ${obs.temperatureC} °C`);
+  if (isFiniteNumber(obs.feelsLikeC)) lines.push(`Feels like: ${obs.feelsLikeC} °C`);
+  if (isFiniteNumber(obs.relativeHumidity)) lines.push(`Relative humidity: ${obs.relativeHumidity}%`);
+  if (isFiniteNumber(obs.windSpeedKmh)) lines.push(`Wind speed: ${obs.windSpeedKmh} km/h`);
+  if (isFiniteNumber(obs.precipitationMm)) lines.push(`Precipitation: ${obs.precipitationMm} mm`);
+  if (isFiniteNumber(aqi.aqi)) lines.push(`Air Quality Index: ${aqi.aqi}`);
+
+  const status = lines.length
+    ? lines.join('\n')
+    : 'No verified weather or air-quality measurements were supplied with this request.';
+
+  return [
+    `MAUSAM telemetry summary — ${label}`,
+    '',
+    status,
+    '',
+    `Source supplied by the application: ${source}`,
+    'This is a source-grounded telemetry summary, not a generated forecast. Missing measurements are not estimated.',
+  ].join('\n');
+}
+
 export class AIProvider {
-  public static readonly providerName = 'Google Gemini (Mausam Atmospheric Intelligence)';
-  public readonly name = 'Google Gemini (Mausam Atmospheric Intelligence)';
+  public static readonly providerName = 'MAUSAM Assistant';
+  public readonly name = 'MAUSAM Assistant';
 
   public static isConfigured(): boolean {
-    const key = process.env.GEMINI_API_KEY;
-    return Boolean(key && key.trim() !== '');
+    const mode = getMode();
+    if (mode === 'local' || mode === 'offline') return true;
+    return Boolean(getEndpoint());
   }
 
   public static async checkHealth(): Promise<{
@@ -46,141 +108,151 @@ export class AIProvider {
     latencyMs: number | null;
     error?: string;
   }> {
-    if (!this.isConfigured()) {
+    const mode = getMode();
+    if (mode === 'local' || mode === 'offline') {
+      return {
+        configured: true,
+        operational: true,
+        latencyMs: null,
+        error: 'Grounded local mode is available; no remote model endpoint is configured.',
+      };
+    }
+
+    const endpoint = getEndpoint();
+    if (!endpoint) {
       return {
         configured: false,
         operational: false,
         latencyMs: null,
-        error: 'GEMINI_API_KEY is not configured',
+        error: 'MAUSAM_ASSISTANT_API_URL is missing or is not a valid HTTP(S) endpoint.',
       };
     }
 
-    // Health check returns true when API key is validly configured to conserve token quota
+    // A configured URL is not proof that the model is reachable. Do not send
+    // token-consuming chat requests from the diagnostics endpoint.
     return {
       configured: true,
-      operational: true,
-      latencyMs: 5,
+      operational: false,
+      latencyMs: null,
+      error: 'Endpoint configured but not yet probed. Availability is verified during an assistant request.',
     };
   }
 
   public static async askMausam(params: AskMausamParams): Promise<AskMausamResult> {
-    const {
-      prompt,
-      lat = 20.2961,
-      lng = 85.8245,
-      location,
-      observation,
-      airQuality,
-      pollen,
-      metadata,
-    } = params;
+    const location = params.location || {};
+    const city = location.city || location.name || 'Selected location';
+    const state = location.state || '';
+    const source = params.metadata?.source || params.observation?.source || 'Source not reported';
+    const mode = getMode();
+    const endpoint = getEndpoint();
 
-    const city = location?.city || location?.name || 'India';
-    const state = location?.state || 'National';
-    const resolvedSource = metadata?.source || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
+    const localResult = (error?: string): AskMausamResult => ({
+      response: localTelemetrySummary(params, source),
+      source,
+      groundingSources: [],
+      modeUsed: 'grounded-local',
+      ...(error ? { error } : {}),
+    });
 
-    if (!this.isConfigured()) {
-      // Truthful deterministic fallback when GEMINI_API_KEY is not configured
-      const hasObs = observation && typeof observation.temperatureC === 'number';
-      const obsText = hasObs
-        ? `• Current Observation: ${observation.temperatureC}°C — ${observation.condition || 'Reported'}\n• Relative Humidity: ${observation.relativeHumidity ?? 'N/A'}%\n• Wind Speed: ${observation.windSpeedKmh ?? 'N/A'} km/h`
-        : '• Current weather data unavailable.';
-
-      const hasAqi = airQuality && typeof airQuality.aqi === 'number';
-      const aqiText = hasAqi
-        ? `• Air Quality Index: ${airQuality.aqi} (${airQuality.category || 'Monitored'})`
-        : '• Air Quality data unavailable.';
-
-      return {
-        response: `${city}, ${state}\n\n${obsText}\n${aqiText}\n\nSource: ${resolvedSource}\nStatus: Telemetry summary (AI Assistant operates with optional GEMINI_API_KEY).`,
-        source: resolvedSource,
-        groundingSources: [],
-        modeUsed: 'offline',
-      };
+    if (mode === 'local' || mode === 'offline') return localResult();
+    if (!endpoint) {
+      return localResult(
+        mode === 'remote'
+          ? 'Remote mode was requested, but MAUSAM_ASSISTANT_API_URL is missing or invalid.'
+          : undefined
+      );
     }
 
+    const apiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+    const model = process.env.MAUSAM_ASSISTANT_MODEL?.trim();
+    const context = {
+      location: { city, state, latitude: params.lat, longitude: params.lng },
+      observation: params.observation ?? null,
+      airQuality: params.airQuality ?? null,
+      pollen: params.pollen ?? null,
+      forecast: params.forecast ?? null,
+      warning: params.warning ?? null,
+      source,
+      instruction: 'Treat supplied measurements as the only current telemetry. Distinguish observations from forecasts. Never invent missing values, timestamps, warnings, source names or citations. If the context does not contain an answer, say so.',
+    };
+
+    const systemMessage = [
+      'You are MAUSAM Assistant, a meteorological and environmental information assistant for India.',
+      'Answer in the user requested language when one is supplied.',
+      'Use the supplied context carefully. Do not claim to have queried a live source unless a source is explicitly supplied.',
+      'Clearly distinguish measured observations, model forecasts, official warnings and general explanations.',
+      'Never fabricate weather, AQI, marine, radar, cyclone or agricultural measurements.',
+      `Selected location: ${city}${state ? `, ${state}` : ''}.`,
+      `Verified context: ${JSON.stringify(context)}`,
+    ].join('\n');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
     try {
-      const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const obsSummary = observation && typeof observation.temperatureC === 'number'
-        ? `${observation.temperatureC}°C, ${observation.condition || 'Observed'}, Humidity ${observation.relativeHumidity ?? 'N/A'}%, Wind ${observation.windSpeedKmh ?? 'N/A'} km/h`
-        : 'Current weather data unavailable';
-      const aqiSummary = airQuality && typeof airQuality.aqi === 'number'
-        ? `AQI ${airQuality.aqi} (${airQuality.category || 'Monitored'})`
-        : 'Air Quality data unavailable';
-
-      const systemInstruction = `You are MAUSAM AI, the atmospheric intelligence assistant for India.
-Location: ${city}, ${state} (${lat}°N, ${lng}°E).
-Current weather: ${obsSummary}.
-Air Quality: ${aqiSummary}.
-Data Source: ${resolvedSource}.
-Provide accurate, concise meteorological answers. If data is unavailable, state that clearly without guessing or fabricating numbers. Always attribute the official source.`;
-
-      let response: any = null;
-      let usedMode = 'search-grounded';
-
-      // Primary attempt: gemini-3.8-flash with Google Search
-      try {
-        response = await client.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: prompt || 'What is the current weather update?',
-          config: {
-            systemInstruction,
-            tools: [{ googleSearch: {} }],
-          },
-        });
-      } catch (flashErr: any) {
-        const isQuota = (flashErr?.status === 429 || flashErr?.message?.includes('RESOURCE_EXHAUSTED') || flashErr?.message?.includes('quota'));
-        if (isQuota) {
-          console.warn('[AIProvider] gemini-3.8-flash quota limit reached, attempting fallback to gemini-3.1-flash-lite');
-        }
-        // Fallback attempt: gemini-3.1-flash-lite
-        try {
-          usedMode = 'standard';
-          response = await client.models.generateContent({
-            model: 'gemini-3.1-flash-lite',
-            contents: prompt || 'What is the current weather update?',
-            config: {
-              systemInstruction,
-              temperature: 0.3,
-            },
-          });
-        } catch (liteErr: any) {
-          console.warn('[AIProvider] Standard generation fallback reached:', liteErr?.message || liteErr);
-          response = null;
-        }
-      }
-
-      if (response && response.text) {
-        const groundingSources: Array<{ title: string; url: string }> = [];
-        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        if (Array.isArray(chunks)) {
-          for (const chunk of chunks) {
-            if (chunk.web?.uri && chunk.web?.title) {
-              groundingSources.push({
-                title: chunk.web.title,
-                url: chunk.web.uri,
-              });
-            }
-          }
-        }
-
-        return {
-          response: response.text,
-          source: resolvedSource,
-          groundingSources,
-          modeUsed: usedMode,
-        };
-      }
-
-      throw new Error('AI response unavailable');
-    } catch (err: any) {
-      console.warn('[AIProvider] Gracefully transitioning to deterministic meteorological bulletin:', err?.message || err);
-      return {
-        response: `${city}, ${state}\n\nAtmospheric update for ${city}: Current telemetry recorded via ${resolvedSource}. Synoptic flow is normal with routine seasonal parameters across the sub-division.\n\nSource: ${resolvedSource}`,
-        source: resolvedSource,
-        groundingSources: [],
-        modeUsed: 'offline',
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
       };
+      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+
+      const body: Record<string, unknown> = {
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: params.prompt?.trim() || 'Summarize the verified weather context for this location.' },
+        ],
+        temperature: 0.2,
+      };
+      if (model) body.model = model;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const safeMessage = `Assistant endpoint returned HTTP ${response.status}.`;
+        return localResult(safeMessage);
+      }
+
+      const payload = await response.json() as any;
+      const answer = payload?.choices?.[0]?.message?.content;
+      const text = typeof answer === 'string'
+        ? answer.trim()
+        : Array.isArray(answer)
+          ? answer.map((part: any) => typeof part?.text === 'string' ? part.text : '').join('\n').trim()
+          : '';
+
+      if (!text) return localResult('Assistant endpoint returned no readable message content.');
+
+      const groundingSources: Array<{ title: string; url: string }> = [];
+      const citations = payload?.citations || payload?.sources || [];
+      if (Array.isArray(citations)) {
+        for (const item of citations) {
+          const url = typeof item?.url === 'string' ? item.url : '';
+          if (!url || !/^https?:\/\//i.test(url)) continue;
+          groundingSources.push({
+            title: typeof item?.title === 'string' && item.title.trim() ? item.title.trim() : url,
+            url,
+          });
+        }
+      }
+
+      return {
+        response: text,
+        source,
+        groundingSources,
+        modeUsed: 'remote',
+      };
+    } catch (error: unknown) {
+      const message = error instanceof Error
+        ? (error.name === 'AbortError' ? 'Assistant endpoint timed out after 20 seconds.' : error.message)
+        : 'Assistant endpoint request failed.';
+      return localResult(message);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 }
