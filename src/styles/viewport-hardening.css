@@ -1,0 +1,381 @@
+/*
+ * MAUSAM — viewport hardening layer
+ * Loaded after responsive-observatory.css. These rules specifically address
+ * the observed phone HUD collision, narrow hourly cards, and constrained
+ * analytical layouts. Keep map rendering dimensions independent of HUD.
+ */
+
+:root {
+  --m-vh: 100dvh;
+  --m-mobile-hud-gap: 8px;
+  --m-mobile-timeline-reserve: 132px;
+}
+
+@supports not (height: 100dvh) {
+  :root { --m-vh: 100vh; }
+}
+
+#mausam-explore-workspace {
+  height: var(--m-vh);
+  min-height: 320px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#mausam-explore-workspace > canvas,
+#mausam-explore-workspace canvas {
+  touch-action: pan-y;
+}
+
+/* Keep every HUD region inside the visual viewport and allow its contents to shrink. */
+#mausam-explore-workspace .mausam-floating-brandbar,
+#mausam-explore-workspace .mausam-floating-brandbar__inner,
+#mausam-explore-workspace .mausam-floating-brandbar__identity,
+#mausam-explore-workspace .mausam-floating-brandbar__actions,
+#mausam-explore-workspace .mausam-floating-brandbar__modes {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mausam-mobile-weather-sheet {
+  bottom: calc(var(--m-mobile-timeline-reserve) + var(--mausam-safe-bottom)) !important;
+  max-height: min(34dvh, 260px);
+  z-index: 36 !important;
+}
+
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+  z-index: 42 !important;
+  bottom: max(8px, var(--mausam-safe-bottom)) !important;
+  max-width: calc(100vw - var(--mausam-safe-left) - var(--mausam-safe-right) - 12px);
+}
+
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+  min-width: 0;
+}
+
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] input[type="range"] {
+  min-width: 36px;
+}
+
+/* Phone portrait: two deliberate toolbar rows, not three stacked full-width bars. */
+@media (max-width: 599px) and (orientation: portrait) {
+  :root {
+    --mausam-viewport-gutter: 7px;
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 104px);
+    --m-mobile-timeline-reserve: 142px;
+  }
+
+  .mausam-floating-brandbar {
+    top: calc(var(--mausam-safe-top) + 4px) !important;
+    left: max(7px, var(--mausam-safe-left)) !important;
+    right: max(7px, var(--mausam-safe-right)) !important;
+    padding-top: 0 !important;
+  }
+
+  .mausam-floating-brandbar__inner {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .mausam-floating-brandbar__identity > button {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding-inline: 8px;
+  }
+
+  .mausam-floating-brandbar__identity .mausam-floating-brandbar__search {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .mausam-floating-brandbar__identity .mausam-floating-brandbar__search > div {
+    width: 100% !important;
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    width: max-content;
+    max-width: 100%;
+    min-height: 38px;
+    overflow: hidden;
+  }
+
+  .mausam-floating-brandbar__modes button {
+    min-height: 32px;
+    padding-inline: clamp(7px, 2vw, 12px);
+    font-size: 11px;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    display: flex;
+    flex-wrap: nowrap !important;
+    width: max-content;
+    max-width: min(48vw, 190px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mausam-floating-brandbar__actions > button,
+  .mausam-floating-brandbar__actions > div > button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    min-width: 38px;
+    padding-inline: 8px;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: var(--mausam-explore-overlay-top) !important;
+    left: max(7px, var(--mausam-safe-left)) !important;
+    right: auto !important;
+    max-width: min(220px, calc(100vw - 14px));
+    z-index: 34 !important;
+  }
+
+  .mausam-mobile-layer-dock > div {
+    max-height: min(38dvh, 270px) !important;
+  }
+
+  .mausam-mobile-weather-sheet {
+    left: max(7px, var(--mausam-safe-left)) !important;
+    right: max(7px, var(--mausam-safe-right)) !important;
+    bottom: calc(var(--m-mobile-timeline-reserve) + var(--mausam-safe-bottom)) !important;
+    max-height: min(30dvh, 230px);
+    gap: 5px;
+  }
+
+  .mausam-mobile-weather-sheet > div:first-child {
+    min-height: 52px;
+    padding: 6px 8px;
+  }
+
+  .mausam-mobile-weather-sheet > div:first-child button {
+    min-height: 36px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    left: max(7px, var(--mausam-safe-left)) !important;
+    right: max(7px, var(--mausam-safe-right)) !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+    bottom: max(7px, var(--mausam-safe-bottom)) !important;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+    padding: 7px 8px;
+    gap: 6px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div > div:first-child {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div > div:first-child::-webkit-scrollbar {
+    display: none;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] button {
+    flex: 0 0 auto;
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] input[type="range"] {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Avoid desktop minimum widths forcing cards wider than the phone. */
+  #mausam-analyze-workspace,
+  #mausam-classic-workspace {
+    padding-inline: 0;
+  }
+
+  #mausam-analyze-workspace .mausam-page,
+  #mausam-classic-workspace .classic-page,
+  #mausam-classic-workspace .mausam-page {
+    width: calc(100% - 14px);
+    max-width: none;
+  }
+
+  #mausam-analyze-workspace [class*="min-w-["],
+  #mausam-classic-workspace [class*="min-w-["] {
+    min-width: 0 !important;
+  }
+
+  #mausam-analyze-workspace .recharts-responsive-container,
+  #mausam-classic-workspace .recharts-responsive-container {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #mausam-analyze-workspace table,
+  #mausam-classic-workspace table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Small/short phones: prioritize the map and compact the timeline. */
+@media (max-width: 390px) and (max-height: 760px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 96px);
+    --m-mobile-timeline-reserve: 126px;
+  }
+
+  .mausam-floating-brandbar__identity > button {
+    padding-inline: 6px;
+  }
+
+  .mausam-floating-brandbar__identity > button span:last-child span:last-child {
+    display: none;
+  }
+
+  .mausam-floating-brandbar__actions {
+    max-width: 44vw;
+  }
+
+  .mausam-mobile-weather-sheet {
+    max-height: 92px;
+  }
+
+  .mausam-mobile-weather-sheet > div:nth-child(2) {
+    max-height: 110px;
+    overflow-y: auto;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+    padding: 5px 6px;
+  }
+}
+
+/* Phone landscape: keep a clear central map corridor; use side HUDs. */
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 54px);
+    --m-mobile-timeline-reserve: 92px;
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 3;
+    grid-row: 1;
+    max-width: 24vw;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: var(--mausam-explore-overlay-top) !important;
+    left: max(6px, var(--mausam-safe-left)) !important;
+    right: auto !important;
+    max-width: min(190px, 28vw);
+    max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 48px);
+  }
+
+  .mausam-mobile-weather-sheet {
+    left: auto !important;
+    right: max(7px, var(--mausam-safe-right)) !important;
+    top: var(--mausam-explore-overlay-top) !important;
+    bottom: calc(74px + var(--mausam-safe-bottom)) !important;
+    width: min(300px, 36vw);
+    max-width: 36vw;
+    max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 92px);
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    left: 50% !important;
+    right: auto !important;
+    width: min(620px, calc(100vw - 220px)) !important;
+    transform: translateX(-50%) !important;
+    bottom: max(5px, var(--mausam-safe-bottom)) !important;
+  }
+}
+
+/* Tablet: use a two-column HUD composition, never stack every control in one strip. */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .mausam-floating-brandbar__identity { grid-column: 1; grid-row: 1; }
+  .mausam-floating-brandbar__modes { grid-column: 2; grid-row: 1; }
+  .mausam-floating-brandbar__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
+/* Dense forecast/metric cards must wrap at content-driven breakpoints. */
+#mausam-analyze-workspace .grid,
+#mausam-classic-workspace .grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+}
+
+#mausam-analyze-workspace .overflow-x-auto,
+#mausam-classic-workspace .overflow-x-auto {
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+#mausam-analyze-workspace :where(article, section, main, div),
+#mausam-classic-workspace :where(article, section, main, div) {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mausam-explore-workspace *,
+  #mausam-explore-workspace *::before,
+  #mausam-explore-workspace *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
