@@ -38,20 +38,32 @@ function getMode(): AssistantMode {
   return 'auto';
 }
 
+const DEFAULT_ASSISTANT_MODEL = 'gemini-4-hydrogen';
+
 function getEndpoint(): string | undefined {
   const raw = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
   if (!raw) return undefined;
 
   try {
     const url = new URL(raw);
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined;
-    if (url.username || url.password) return undefined;
-    if (url.pathname.endsWith('/chat/completions')) return url.toString();
-    if (url.pathname.replace(/\/$/, '').endsWith('/v1')) {
-      url.pathname = `${url.pathname.replace(/\/$/, '')}/chat/completions`;
+    if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return undefined;
+    if (url.username || url.password || url.search || url.hash) return undefined;
+
+    const path = url.pathname.replace(/\\/+$/, '');
+    if (path.endsWith('/chat/completions')) {
+      url.pathname = path;
+    } else if (
+      path.endsWith('/v1beta/openai') ||
+      path.endsWith('/v1') ||
+      path.endsWith('/openai/v1')
+    ) {
+      url.pathname = `${path}/chat/completions`;
+    } else if (path.endsWith('/v1beta')) {
+      url.pathname = `${path}/openai/chat/completions`;
     } else {
-      url.pathname = `${url.pathname.replace(/\/$/, '')}/v1/chat/completions`;
+      url.pathname = `${path}/v1/chat/completions`;
     }
+
     return url.toString();
   } catch {
     return undefined;
@@ -99,7 +111,7 @@ export class AIProvider {
   public static isConfigured(): boolean {
     const mode = getMode();
     if (mode === 'local' || mode === 'offline') return true;
-    return Boolean(getEndpoint());
+    return Boolean(getEndpoint() && process.env.MAUSAM_ASSISTANT_API_KEY?.trim());
   }
 
   public static async checkHealth(): Promise<{
@@ -119,22 +131,25 @@ export class AIProvider {
     }
 
     const endpoint = getEndpoint();
-    if (!endpoint) {
+    const apiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+    if (!endpoint || !apiKey) {
       return {
         configured: false,
         operational: false,
         latencyMs: null,
-        error: 'MAUSAM_ASSISTANT_API_URL is missing or is not a valid HTTP(S) endpoint.',
+        error: !endpoint
+          ? 'MAUSAM_ASSISTANT_API_URL is missing or invalid.'
+          : 'MAUSAM_ASSISTANT_API_KEY is missing.',
       };
     }
 
-    // A configured URL is not proof that the model is reachable. Do not send
-    // token-consuming chat requests from the diagnostics endpoint.
+    // Do not consume tokens from the diagnostics page. A configured endpoint
+    // is not reported as operational until a real assistant request succeeds.
     return {
       configured: true,
       operational: false,
       latencyMs: null,
-      error: 'Endpoint configured but not yet probed. Availability is verified during an assistant request.',
+      error: 'Gemini endpoint and credentials are configured; live availability is verified on the next assistant request.',
     };
   }
 
@@ -155,16 +170,15 @@ export class AIProvider {
     });
 
     if (mode === 'local' || mode === 'offline') return localResult();
-    if (!endpoint) {
-      return localResult(
-        mode === 'remote'
-          ? 'Remote mode was requested, but MAUSAM_ASSISTANT_API_URL is missing or invalid.'
-          : undefined
-      );
+    const apiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+    if (!endpoint || !apiKey) {
+      const configurationError = !endpoint
+        ? 'MAUSAM_ASSISTANT_API_URL is missing or invalid.'
+        : 'MAUSAM_ASSISTANT_API_KEY is missing.';
+      return localResult(mode === 'remote' || !endpoint || !apiKey ? configurationError : undefined);
     }
 
-    const apiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
-    const model = process.env.MAUSAM_ASSISTANT_MODEL?.trim();
+    const model = process.env.MAUSAM_ASSISTANT_MODEL?.trim() || DEFAULT_ASSISTANT_MODEL;
     const context = {
       location: { city, state, latitude: params.lat, longitude: params.lng },
       observation: params.observation ?? null,
@@ -194,7 +208,8 @@ export class AIProvider {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       };
-      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      // Gemini's OpenAI-compatible endpoint requires Bearer authentication.
+      headers.Authorization = `Bearer ${apiKey}`;
 
       const body: Record<string, unknown> = {
         messages: [
@@ -202,8 +217,8 @@ export class AIProvider {
           { role: 'user', content: params.prompt?.trim() || 'Summarize the verified weather context for this location.' },
         ],
         temperature: 0.2,
+        model,
       };
-      if (model) body.model = model;
 
       const response = await fetch(endpoint, {
         method: 'POST',
