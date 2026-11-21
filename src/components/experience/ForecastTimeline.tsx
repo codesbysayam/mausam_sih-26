@@ -31,12 +31,15 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     setPlaybackSpeed,
   } = useExperience();
 
-  const isRadarMode = activeLayer === 'radar' && (radarData?.pastFrames?.length || 0) > 0;
-
+  // Include both historical and nowcast frames. A feed containing only
+  // nowcast frames is still a valid radar timeline.
   const radarFrames = useMemo(() => {
-    if (!isRadarMode || !radarData) return [];
+    if (!radarData) return [];
     return [...(radarData.pastFrames || []), ...(radarData.nowcastFrames || [])];
-  }, [isRadarMode, radarData]);
+  }, [radarData]);
+
+  const isRadarMode = activeLayer === 'radar' && radarFrames.length > 0;
+  const timelineModeKey = isRadarMode ? 'radar' : 'forecast';
 
   const hourlySlots = useMemo(() => (hourly || []).slice(0, 24), [hourly]);
   const totalSlots = isRadarMode ? radarFrames.length : hourlySlots.length;
@@ -71,8 +74,15 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     setIsTimelinePlaying,
   ]);
 
-  // When data changes or the selected layer changes, clamp the cursor and
-  // stop playback if the new series is empty.
+  // A cursor index belongs to one series. Reset it when switching between
+  // radar frames and hourly forecasts so an old index never selects an
+  // unrelated frame in the newly selected data source.
+  useEffect(() => {
+    setIsTimelinePlaying(false);
+    setTimelineIndex(0);
+  }, [timelineModeKey, setIsTimelinePlaying, setTimelineIndex]);
+
+  // Clamp the cursor when the active series is refreshed or shortened.
   useEffect(() => {
     if (totalSlots <= 0) {
       setTimelineIndex(0);
@@ -89,8 +99,12 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
       const f = radarFrames[safeIdx];
       return {
         time: f.formattedTime || f.relativeLabel || 'Radar Scan',
-        kind: (f.ageMinutes ?? 0) <= 0 ? 'NOWCAST' : 'OBSERVED',
-        detail: f.relativeLabel || `${f.ageMinutes}m ago`,
+        kind: typeof f.ageMinutes === 'number'
+          ? (f.ageMinutes <= 0 ? 'NOWCAST' : 'OBSERVED')
+          : 'TIME UNKNOWN',
+        detail: f.relativeLabel || (
+          typeof f.ageMinutes === 'number' ? `${f.ageMinutes}m ago` : 'Frame timestamp unavailable'
+        ),
         source: 'IMD / RainViewer Radar',
       };
     }
@@ -115,7 +129,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
         : 'Wind —';
     return {
       time: h.time,
-      kind: safeIdx === 0 || h.isNow ? 'MODEL VALID' : 'FORECAST',
+      kind: h.isNow === true ? 'MODEL VALID' : 'FORECAST',
       detail: `${tempStr} · ${rainStr} · ${windStr}`,
       source: 'Open-Meteo Model Grid',
     };
