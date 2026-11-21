@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Server, Clock, AlertTriangle, CheckCircle, Activity, Info } from 'lucide-react';
+import { RefreshCw, Server, Clock, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { imdService } from '../services/imdService';
 import { MausamDataHealth } from '../components/common/MausamDataHealth';
 import { WeatherConditionTestBench } from '../components/dev/WeatherConditionTestBench';
