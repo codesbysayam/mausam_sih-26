@@ -146,3 +146,18 @@ Do not state that all tests pass unless you ran them and observed success. Docum
 5. A list of remaining known limitations, if any.
 
 Do not merge or deploy to production automatically. Keep all changes on the current branch and report the PR link.
+
+
+## Additional diagnostics-gateway correction (required)
+
+The Data Sources & Upstream Diagnostics page previously called imdService.getDebugStats(), which resolves to /api/imd/debug/stats. This endpoint exists in the local Express router but is not an individual Vercel serverless function. Do not treat local Express route registration as proof of production route availability.
+
+Use the deployed endpoint GET /api/system?mode=health as the page-level health gateway. Read its actual response contract (status, timestamp, summary.totalProviders, summary.operational, summary.notConfigured, and providers). Fetch with cache: no-store, a seven-second AbortController timeout, and explicit response schema validation. Show a retryable gateway error state with the actual HTTP/network/timeout reason.
+
+Update the client diagnostics adapter to map the serverless response to the UI provider-health contract. Preserve null for counters and latency that the endpoint does not report. The UI must show Not Reported when a provider has no health record, and Not reported by gateway for database/cache fields absent from the serverless response. Never convert missing telemetry to zero, In-Memory Cache, Not Configured, or Operational.
+
+Remove fake cache-hit/miss/deduplication/stale-serve metrics from this screen. Replace them with actual provider counts and measured browser-to-gateway round-trip latency. Label this round-trip separately from server-measured upstream latency.
+
+The serverless health endpoint must not cache live probe results. Use Cache-Control: no-store. Each configured provider may be marked Operational only after a real successful upstream probe. A key being present is configuration evidence, not availability evidence. Any configured but unverified integration must be Degraded/unverified, not Operational. The overall gateway is Degraded if a required core source fails or any configured provider probe fails.
+
+Verify these production routes after deployment: /api/system?mode=health, /api/system?mode=providers, /api/system?mode=readiness. Do not report success until Vercel preview and production endpoints have been checked. Keep changes on the existing working branch and update README.md with the deployment contract.
