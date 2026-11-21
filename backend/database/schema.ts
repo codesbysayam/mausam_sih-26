@@ -43,8 +43,8 @@ export interface ProviderHealthRecord {
   requests_count: number;
   successful_requests: number;
   failed_requests: number;
-  cache_hits: number;
-  cache_misses: number;
+  cache_hits?: number | null;
+  cache_misses?: number | null;
   last_error?: string | null;
   source_url?: string | null;
   attribution_text?: string | null;
