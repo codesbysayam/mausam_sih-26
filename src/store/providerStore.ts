@@ -20,6 +20,7 @@ import {
 } from '../services/providers/providerRegistry';
 import { deriveSystemDataStatus } from '../services/providers/providerStatus';
 import { useLocation } from '../context/LocationContext';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 
 export const PROVIDER_DESCRIPTORS: Record<ProviderId, ProviderDescriptor> = {
   SACHET: {
@@ -99,7 +100,7 @@ function createDefaultProviderState<T = unknown>(id: ProviderId): ProviderState<
 function readCachedProviderState(id: ProviderId): ProviderState | null {
   try {
     if (typeof window === 'undefined') return null;
-    const raw = window.sessionStorage.getItem(PROVIDER_DESCRIPTORS[id].cacheKey);
+    const raw = safeStorageGet('session', PROVIDER_DESCRIPTORS[id].cacheKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProviderState & { _cachedAt?: number };
     if (!parsed || typeof parsed !== 'object') return null;
@@ -131,7 +132,7 @@ function writeCachedProviderState(id: ProviderId, state: ProviderState): void {
       ...state,
       _cachedAt: Date.now(),
     };
-    window.sessionStorage.setItem(PROVIDER_DESCRIPTORS[id].cacheKey, JSON.stringify(payload));
+    safeStorageSet('session', PROVIDER_DESCRIPTORS[id].cacheKey, JSON.stringify(payload));
   } catch {
     // Ignore storage quota or serialization errors
   }
