@@ -71,11 +71,22 @@ export class WRFProvider implements NWPProvider {
         headers['Authorization'] = `Bearer ${config.token}`;
       }
 
-      const res = await fetch(endpoint, {
-        method: 'GET',
-        headers,
-        signal,
-      });
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+      const onAbort = () => controller.abort();
+      if (signal) signal.addEventListener('abort', onAbort, { once: true });
+
+      let res: Response;
+      try {
+        res = await fetch(endpoint, {
+          method: 'GET',
+          headers,
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeoutId);
+        if (signal) signal.removeEventListener('abort', onAbort);
+      }
 
       if (!res.ok) {
         throw new Error(`IMD WRF gateway returned HTTP ${res.status}`);
