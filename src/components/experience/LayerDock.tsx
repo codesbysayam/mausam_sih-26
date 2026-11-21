@@ -123,7 +123,7 @@ export const LayerDock: React.FC = () => {
       warningMessage: pt.state.warningMessage,
       source: pt.state.dataSource,
       metrics: [
-        { label: 'Temperature', value: typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${pt.state.temperature}°C` : '—'}` : 'Not reported' },
+        { label: 'Temperature', value: typeof pt.state.temperature === 'number' ? String(pt.state.temperature) + '°C' : 'Not reported' },
         { label: 'Wind', value: typeof pt.state.windSpeed === 'number' ? `${pt.state.windSpeed} km/h ${pt.state.windDir || ''}` : 'Not reported' },
         { label: 'Rainfall', value: typeof pt.state.rainfall === 'number' ? `${pt.state.rainfall} mm` : 'Not reported' },
         { label: 'Humidity', value: typeof pt.state.humidity === 'number' ? `${pt.state.humidity}%` : 'Not reported' },
