@@ -444,7 +444,7 @@ MAUSAM uses Google's OpenAI-compatible Gemini chat-completions endpoint. Configu
 - `MAUSAM_ASSISTANT_MODE=auto`: use Gemini when the endpoint and key are both present; otherwise return a grounded local telemetry summary. Use `remote` to require the remote provider, or `local` / `offline` to disable remote calls.
 - `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`: official Gemini OpenAI-compatible base URL. The server appends `chat/completions`; do not append an extra `/v1`.
 - `MAUSAM_ASSISTANT_API_KEY`: Gemini API key, sent only as `Authorization: Bearer ...` by the server.
-- `MAUSAM_ASSISTANT_MODEL=gemini-4-hydrogen`: documented compatibility-example model. You may override it with another model ID enabled for your Gemini API project.
+- `MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash`: documented compatibility-example model. You may override it with another model ID enabled for your Gemini API project.
 
 The exact chat endpoint is `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`. The server requires both URL and key before making a remote request. It does not expose credentials to the browser. A configured endpoint is not marked operational until a real assistant request succeeds.
 
@@ -461,7 +461,7 @@ Example:
 MAUSAM_ASSISTANT_MODE=auto
 MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 MAUSAM_ASSISTANT_API_KEY=YOUR_GEMINI_API_KEY
-MAUSAM_ASSISTANT_MODEL=gemini-4-hydrogen
+MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash
 
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
