@@ -155,7 +155,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
     <header
       className={
         isExplore
-          ? 'fixed top-2.5 left-2.5 right-2.5 z-40 pointer-events-none flex flex-wrap items-center justify-between gap-2 safe-area-top'
+          ? 'mausam-floating-brandbar fixed top-2.5 left-2.5 right-2.5 z-40 pointer-events-none flex flex-wrap items-center justify-between gap-2 safe-area-top'
           : 'sticky top-0 z-40 w-full bg-[var(--m-surface-1)]/95 backdrop-blur-md border-b border-[var(--m-border)] safe-area-top'
       }
       role="banner"
@@ -163,12 +163,12 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
       <div
         className={
           isExplore
-            ? 'w-full flex flex-wrap items-center justify-between gap-2'
+            ? 'mausam-floating-brandbar__inner w-full flex flex-wrap items-center justify-between gap-2'
             : 'mausam-page min-h-[64px] py-2 flex flex-wrap items-center justify-between gap-2.5'
         }
       >
         {/* Left Cluster: Brand + Location Search & GPS */}
-        <div className="pointer-events-auto flex items-center gap-2.5 min-w-0 max-w-full">
+        <div className="mausam-floating-brandbar__identity pointer-events-auto flex items-center gap-2.5 min-w-0 max-w-full">
           <button
             type="button"
             onClick={() => {
@@ -294,7 +294,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         {/* Center Segmented Mode Switcher: Explore (3D Observatory) / Analyze (Workstation) / Classic (Accessible) */}
         <nav
           aria-label="MAUSAM Experience Mode"
-          className={`${
+          className={`mausam-floating-brandbar__modes ${
             isExplore
               ? 'spatial-hud-surface'
               : 'bg-[var(--m-surface-2)] border border-[var(--m-border)]'
@@ -327,7 +327,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         </nav>
 
         {/* Right Cluster: Warnings Status, Ask MAUSAM, Settings & Help */}
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        <div className="mausam-floating-brandbar__actions pointer-events-auto flex items-center gap-1.5">
           {isExplore && (
             <button
               type="button"
