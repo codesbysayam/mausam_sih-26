@@ -252,7 +252,7 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
       : null,
   };
 
-  return [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe, gemini, imd, cpcb];
+  return [openMeteo, sachet, radar, osm, imdCycloneProbe, gemini, imd, cpcb];
 }
 
 async function getHealthReport(): Promise<any> {
