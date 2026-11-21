@@ -9,6 +9,7 @@
 export interface ApiFetchOptions extends RequestInit {
   timeoutMs?: number;
   skipCache?: boolean;
+  allowStaleOnError?: boolean;
   ttlMs?: number;
 }
 
@@ -86,6 +87,7 @@ export async function apiFetch<T = any>(
   const {
     timeoutMs = 8000,
     skipCache = false,
+    allowStaleOnError = true,
     ttlMs = 30000, // 30 seconds fresh cache by default
     ...fetchOptions
   } = options;
@@ -137,7 +139,7 @@ export async function apiFetch<T = any>(
         }
 
         // Try to serve stale cache if server error or rate limited
-        if (isGet) {
+        if (isGet && allowStaleOnError) {
           const stale = clientCache.get(urlKey);
           if (stale) {
             console.warn(`[apiClient] HTTP ${response.status} on ${urlKey}. Returning stale cached data.`);
@@ -176,7 +178,7 @@ export async function apiFetch<T = any>(
       return data as T;
     } catch (err: any) {
       // If network fails or timeout, attempt to return stale cache if available
-      if (isGet) {
+      if (isGet && allowStaleOnError) {
         const stale = clientCache.get(urlKey);
         if (stale) {
           console.warn(`[apiClient] Network failure on ${urlKey}. Returning stale cached data.`);
