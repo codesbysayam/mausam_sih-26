@@ -13,12 +13,8 @@ import {
   Server,
   Activity,
   X,
-  CheckCircle2,
   AlertTriangle,
   Info,
-  Key,
-  Save,
-  Wrench,
   Radio,
 } from 'lucide-react';
 import {
@@ -123,60 +119,12 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
   const [showOptionalProviders, setShowOptionalProviders] = useState(false);
   const [selectedStoreProviderId, setSelectedStoreProviderId] = useState<ProviderId | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<DisplayProviderItem | null>(null);
-  const [configKeyInput, setConfigKeyInput] = useState('');
-  const [isSavingConfig, setIsSavingConfig] = useState(false);
-  const [configSaveResult, setConfigSaveResult] = useState<{ success: boolean; message: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const loadHealthData = async () => {
     const data = await MultiSourceService.fetchSystemHealth();
     if (data) {
       setHealthData(data);
-    }
-  };
-
-  const handleSaveProviderConfig = async (providerId: string, customKey?: string) => {
-    setIsSavingConfig(true);
-    setConfigSaveResult(null);
-    try {
-      const keyToSave = customKey !== undefined ? customKey : configKeyInput.trim();
-      const res = await fetch('/api/system?mode=config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: providerId,
-          apiKey: keyToSave,
-          enabled: true,
-        }),
-      });
-      const resJson = await res.json();
-      if (res.ok && resJson.status === 'success') {
-        setConfigSaveResult({
-          success: true,
-          message: `${selectedProvider?.name || providerId} configuration updated.`,
-        });
-        setConfigKeyInput('');
-        await loadHealthData();
-        if (providerId === 'imd') {
-          await refreshProvider('IMD', undefined, true);
-        } else if (providerId === 'sachet') {
-          await refreshProvider('SACHET', undefined, true);
-        } else if (providerId === 'cpcb') {
-          await refreshProvider('AQI', undefined, true);
-        }
-      } else {
-        setConfigSaveResult({
-          success: false,
-          message: resJson.error || 'Failed to save configuration',
-        });
-      }
-    } catch (err: any) {
-      setConfigSaveResult({
-        success: false,
-        message: err.message || 'Network error updating configuration',
-      });
-    } finally {
-      setIsSavingConfig(false);
     }
   };
 
@@ -856,53 +804,12 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
             })()}
 
             <div className="p-3.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex flex-col gap-2.5">
-              <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-[var(--m-accent)]" /> Server Environment Configuration
+              <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider">
+                Optional Integration
               </span>
               <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
-                Configure optional institutional keys via server environment variables ({selectedProvider.detail?.requiredKey || 'see .env.example'}).
+                This feed is optional. MAUSAM core weather, radar, public warnings and air-quality fallback do not require you to enter an API key. Any provider credentials are managed privately by the deployment administrator.
               </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[180px]">
-                  <Key className="w-3.5 h-3.5 text-[var(--m-text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="password"
-                    value={configKeyInput}
-                    onChange={(e) => setConfigKeyInput(e.target.value)}
-                    placeholder={
-                      selectedProvider.detail?.requiredKey
-                        ? `Optional server token (${selectedProvider.detail.requiredKey})`
-                        : 'Optional server token…'
-                    }
-                    className="w-full min-h-[40px] bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg px-2.5 py-2 pl-8 text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)]"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={isSavingConfig}
-                  onClick={() => handleSaveProviderConfig(selectedProvider.id)}
-                  className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-[var(--m-on-accent)] flex items-center gap-1.5 transition-opacity disabled:opacity-50 shrink-0 cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{isSavingConfig ? 'Saving…' : 'Save'}</span>
-                </button>
-              </div>
-              {configSaveResult && (
-                <div
-                  className={`p-2 rounded-lg text-xs flex items-center gap-1.5 ${
-                    configSaveResult.success
-                      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border border-[var(--m-ok)]/30'
-                      : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/35'
-                  }`}
-                >
-                  {configSaveResult.success ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                  )}
-                  <span>{configSaveResult.message}</span>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end">
