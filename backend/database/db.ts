@@ -69,11 +69,15 @@ export class DatabaseService {
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
     if (!connectionString) {
-      this.isConfigured = true;
-      this.isConnected = true;
+      // The local Map store is an ephemeral development fallback, not a
+      // durable database. Never report it as a connected production database.
+      this.isConfigured = false;
+      this.isConnected = false;
       this.providerType = 'LOCAL_EMBEDDED';
-      this.lastLatencyMs = 1;
-      console.log('[Mausam DB] Running with High-Performance Local Embedded Database (Operational).');
+      this.lastLatencyMs = null;
+      console.warn(
+        '[MAUSAM DB] DATABASE_URL / POSTGRES_URL is missing. Durable persistence is unavailable; local process memory is temporary only.'
+      );
       return;
     }
 
