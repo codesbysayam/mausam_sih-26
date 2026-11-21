@@ -8,6 +8,8 @@
 // explicit HTTP 400 / 502 / 504 semantics, and in-memory fresh/stale cache.
 // ====================================================================
 
+import { cacheService } from '../backend/cache/cacheService';
+
 interface CacheEntry {
   data: any;
   fetchedAt: number;
@@ -15,7 +17,7 @@ interface CacheEntry {
 
 const WEATHER_FRESH_MS = 5 * 60 * 1000;
 const WEATHER_STALE_MS = 30 * 60 * 1000;
-const weatherGatewayCache = new Map<string, CacheEntry>();
+
 
 function sendJson(res: any, status: number, data: any, customHeaders: Record<string, string> = {}) {
   const payload = JSON.stringify(data);
@@ -213,7 +215,7 @@ async function fetchJsonWithTimeout(url: string, timeoutMs = 8000): Promise<any>
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'aistudio-build',
+        'User-Agent': 'MAUSAM-Weather-Gateway/1.0',
       },
     });
     if (!res.ok) {
@@ -227,14 +229,44 @@ async function fetchJsonWithTimeout(url: string, timeoutMs = 8000): Promise<any>
   }
 }
 
-function getCache(key: string): { fresh: any | null; stale: any | null } {
-  const entry = weatherGatewayCache.get(key);
-  if (!entry) return { fresh: null, stale: null };
-  const age = Date.now() - entry.fetchedAt;
-  if (age <= WEATHER_FRESH_MS) return { fresh: entry.data, stale: entry.data };
-  if (age <= WEATHER_STALE_MS) return { fresh: null, stale: entry.data };
-  weatherGatewayCache.delete(key);
-  return { fresh: null, stale: null };
+async function getCache(key: string): Promise<{ fresh: any | null; stale: any | null }> {
+  try {
+    const cached = await cacheService.getCached<CacheEntry>(key);
+    const entry = cached.data;
+    if (!cached.isHit || !entry || typeof entry.fetchedAt !== 'number') {
+      return { fresh: null, stale: null };
+    }
+
+    const age = Math.max(0, Date.now() - entry.fetchedAt);
+    if (age <= WEATHER_FRESH_MS) return { fresh: entry.data, stale: entry.data };
+    if (age <= WEATHER_STALE_MS) return { fresh: null, stale: entry.data };
+
+    await cacheService.deleteCached(key);
+    return { fresh: null, stale: null };
+  } catch (error) {
+    // Cache outages must never prevent a live provider request.
+    console.warn('[MAUSAM Weather Gateway] Shared cache read failed; continuing upstream:', error);
+    return { fresh: null, stale: null };
+  }
+}
+
+async function setGatewayCache(
+  key: string,
+  data: any,
+  category: 'CURRENT_WEATHER' | 'AQI'
+): Promise<void> {
+  try {
+    await cacheService.setCached(
+      key,
+      { data, fetchedAt: Date.now() },
+      category,
+      'MAUSAM Serverless Weather Gateway',
+      WEATHER_STALE_MS
+    );
+  } catch (error) {
+    // A cache write failure is non-fatal; the current live response is still valid.
+    console.warn('[MAUSAM Weather Gateway] Shared cache write failed:', error);
+  }
 }
 
 function formatTimeIST(isoOrUnix: unknown): string | null {
@@ -369,7 +401,7 @@ export default async function handler(req: any, res: any) {
         ? query.date
         : '';
       const cacheKey = `air:${lat.toFixed(3)}:${lon.toFixed(3)}:${requestedDate || 'latest'}`;
-      const { fresh, stale } = getCache(cacheKey);
+      const { fresh, stale } = await getCache(cacheKey);
       if (fresh) {
         return sendJson(res, 200, fresh);
       }
@@ -628,7 +660,7 @@ export default async function handler(req: any, res: any) {
         },
       };
 
-      weatherGatewayCache.set(cacheKey, { data: payload, fetchedAt: Date.now() });
+      await setGatewayCache(cacheKey, payload, 'AQI');
       return sendJson(res, 200, payload, {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
       });
@@ -730,7 +762,7 @@ export default async function handler(req: any, res: any) {
         if (!omData || typeof omData !== 'object' || !omData.current) {
           throw new Error('Malformed Open-Meteo response: missing current block');
         }
-        weatherGatewayCache.set(cacheKey, { data: omData, fetchedAt: Date.now() });
+        await setGatewayCache(cacheKey, omData, 'CURRENT_WEATHER');
       } catch (err: any) {
         if (stale) {
           omData = stale;
