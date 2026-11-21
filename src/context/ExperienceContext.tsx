@@ -312,6 +312,8 @@ interface ExperienceContextValue {
   setTimelineIndex: React.Dispatch<React.SetStateAction<number>>;
   isTimelinePlaying: boolean;
   setIsTimelinePlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  isTimelineLooping: boolean;
+  setIsTimelineLooping: React.Dispatch<React.SetStateAction<boolean>>;
   playbackSpeed: 0.5 | 1 | 2;
   setPlaybackSpeed: React.Dispatch<React.SetStateAction<0.5 | 1 | 2>>;
   inspectedFeature: InspectedSpatialFeature | null;
@@ -365,6 +367,7 @@ export const ExperienceProvider: React.FC<{
   const [reducedMotion, setReducedMotion] = useState<boolean>(detectInitialReducedMotion);
   const [timelineIndex, setTimelineIndex] = useState<number>(0);
   const [isTimelinePlaying, setIsTimelinePlaying] = useState<boolean>(false);
+  const [isTimelineLooping, setIsTimelineLooping] = useState<boolean>(true);
   const [playbackSpeed, setPlaybackSpeed] = useState<0.5 | 1 | 2>(1);
   const [inspectedFeature, setInspectedFeature] = useState<InspectedSpatialFeature | null>(null);
   const [isAlertDrawerOpen, setIsAlertDrawerOpen] = useState<boolean>(false);
@@ -496,6 +499,8 @@ export const ExperienceProvider: React.FC<{
       setTimelineIndex,
       isTimelinePlaying,
       setIsTimelinePlaying,
+      isTimelineLooping,
+      setIsTimelineLooping,
       playbackSpeed,
       setPlaybackSpeed,
       inspectedFeature,
@@ -528,6 +533,7 @@ export const ExperienceProvider: React.FC<{
       reducedMotion,
       timelineIndex,
       isTimelinePlaying,
+      isTimelineLooping,
       playbackSpeed,
       inspectedFeature,
       showControlsGuide,
