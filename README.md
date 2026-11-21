@@ -586,3 +586,107 @@ MAUSAM aggregates open and official public data sources. All intellectual proper
 ## License
 
 This project is open-source and distributed under the **MIT License**. See the [LICENSE](LICENSE) file for complete details.
+
+
+---
+
+## Runtime Resilience, Error Isolation & Recovery
+
+MAUSAM treats browser storage, network availability, WebGL support, and individual page rendering as optional capabilities. A failure in one capability or workspace must not take down unrelated parts of the application.
+
+### Recovery architecture
+
+- **Storage-safe persistence:** All optional localStorage and sessionStorage operations must use src/utils/safeStorage.ts. Accessing the window.localStorage or window.sessionStorage properties can itself throw in privacy-restricted browsers, embedded webviews, sandboxed contexts, and user-configured environments. The helper catches both property-access and operation errors.
+- **Provider isolation:** Provider cache hydration and writes are best-effort. If session storage is unavailable or quota is exceeded, providers start with in-memory default state and continue fetching data.
+- **Lazy chunk recovery:** src/utils/lazyWithRetry.ts retries transient dynamic-import failures with bounded backoff. A full-page reload is attempted at most once per one-minute session guard. If session storage is unavailable, the loader does not start an unbounded reload loop; the nearest Error Boundary renders its local fallback.
+- **Workspace-level Error Boundaries:** Explore, Analyze/Warnings, and Classic workspaces are isolated. A rendering error in one workspace should leave the global navigation and other application surfaces available.
+- **Root Error Boundary:** The root boundary remains a final safety net for provider/bootstrap failures. It exposes diagnostic information and a retry action instead of silently blanking the page.
+- **Non-destructive recovery:** Recovery must never clear saved locations, language preferences, theme preferences, or unrelated browser storage. The temporary-cache action only removes explicitly owned disposable MAUSAM cache entries.
+- **Graceful feature degradation:** Network/provider failures should produce truthful unavailable/stale states. WebGL failure should use the existing 2D/accessibility fallback instead of crashing the application.
+
+### Browser storage contract
+
+Do not access browser storage directly without a try/catch. Use the safe helper instead:
+
+\`\`\`ts
+import { safeStorageGet, safeStorageSet, safeStorageRemove } from './safeStorage';
+
+const value = safeStorageGet('session', 'key');
+safeStorageSet('session', 'key', 'value');
+safeStorageRemove('session', 'key');
+\`\`\`
+
+Storage is an enhancement, never a prerequisite for rendering the application.
+
+### Diagnosing the recovery screen
+
+If the root recovery screen appears:
+
+1. Expand **Diagnostic information** and record the error message, stack, and React component stack.
+2. Open browser DevTools → Console and Network. Check the first red exception, failed JavaScript chunk, HTTP 404/500 response, and blocked storage access.
+3. Confirm that the failing asset belongs to the currently deployed Vercel build and that cached HTML is not referencing an older hashed asset.
+4. Test with browser storage disabled, private browsing, offline mode, slow network, and WebGL disabled.
+5. Fix the first/root exception. Do not hide it with a blanket window.onerror handler or by swallowing every rejected promise.
+
+### Recovery and responsive regression matrix
+
+Test these representative viewport sizes and browser conditions before a production release:
+
+| Class | Viewport |
+|---|---:|
+| Small phone | 320 × 568 |
+| Compact phone | 360 × 800 |
+| Standard phone | 390 × 844 |
+| Large phone | 430 × 932 |
+| Landscape phone | 568 × 320 |
+| Landscape foldable | 844 × 390 |
+| Tablet portrait | 768 × 1024 |
+| Tablet landscape | 1024 × 768 |
+| Compact laptop | 1180 × 820 |
+| Original screenshot | 1246 × 737 |
+| Laptop | 1366 × 768 |
+| Desktop | 1440 × 900 |
+| Full HD | 1920 × 1080 |
+| Ultrawide | 2560 × 1080 |
+
+Additional scenarios:
+- Browser zoom 80%, 100%, 125%, 150%, and 200%.
+- Private browsing and blocked local/session storage.
+- Storage quota exceeded and malformed cached JSON.
+- Offline launch, API timeout, slow network, and request abort.
+- WebGL unavailable, WebGL context loss, and GPU memory pressure.
+- Direct navigation to /warnings, /forecast, /radar, /aqi, and /agromet.
+- Hard refresh on every deep route and browser back/forward navigation.
+- A failed page chunk must not cause repeated reloads.
+- A failing workspace must not remove the global navigation or unrelated workspaces.
+
+### Build reproducibility — required before merge
+
+The repository requires Node.js 22 or later because the declared @google/genai 3.x dependency requires Node >=22. CI and the deployment runtime must use Node 22+. The repository's current manifest and lockfile must remain synchronized. The checked-in package.json declares @google/genai as ^3.6.0, while the root dependency entry in package-lock.json declares ^2.4.0. The manifest also declares @types/three and happy-dom as development dependencies, which are absent from the lockfile's root dependency lists.
+
+Regenerate the lockfile using Node 22 and npm 10 (the CI toolchain):
+
+\`\`\`bash
+npm install --package-lock-only
+npm ci
+npm run lint
+npm run build
+\`\`\`
+
+Review the lockfile diff. Do not delete the lockfile, switch package managers, use --force, or weaken CI to bypass the mismatch. Commit the regenerated package-lock.json together with the dependency manifest if any dependency change is intentional.
+
+### Release acceptance criteria
+
+- [ ] npm ci completes from a clean checkout.
+- [ ] npm run lint passes.
+- [ ] npm run build passes.
+- [ ] Direct navigation and hard refresh work on all supported deep routes.
+- [ ] Browser storage disabled does not prevent initial render.
+- [ ] Malformed cache data does not prevent initial render.
+- [ ] A lazy chunk failure cannot cause an infinite reload loop.
+- [ ] An error in Warnings does not crash Explore or Classic.
+- [ ] WebGL failure switches to the accessible fallback.
+- [ ] Recovery preserves saved locations, language, theme, and user preferences.
+- [ ] Responsive visual QA passes the viewport matrix above.
+- [ ] Vercel preview is verified before merging or promoting to production.
+

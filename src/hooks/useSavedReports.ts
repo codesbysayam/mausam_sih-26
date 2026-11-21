@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 
 const SAVED_REPORTS_KEY = 'mausam_saved_reports_v1';
 const RECENTLY_VIEWED_KEY = 'mausam_recent_reports_v1';
@@ -6,7 +7,7 @@ const RECENTLY_VIEWED_KEY = 'mausam_recent_reports_v1';
 export function useSavedReports() {
   const [savedReportIds, setSavedReportIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem(SAVED_REPORTS_KEY);
+      const stored = safeStorageGet('local', SAVED_REPORTS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -15,7 +16,7 @@ export function useSavedReports() {
 
   const [recentlyViewedIds, setRecentlyViewedIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem(RECENTLY_VIEWED_KEY);
+      const stored = safeStorageGet('local', RECENTLY_VIEWED_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -24,7 +25,7 @@ export function useSavedReports() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SAVED_REPORTS_KEY, JSON.stringify(savedReportIds));
+      safeStorageSet('local', SAVED_REPORTS_KEY, JSON.stringify(savedReportIds));
     } catch (e) {
       console.error('Failed to save bookmarks to localStorage', e);
     }
@@ -32,7 +33,7 @@ export function useSavedReports() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(recentlyViewedIds));
+      safeStorageSet('local', RECENTLY_VIEWED_KEY, JSON.stringify(recentlyViewedIds));
     } catch (e) {
       console.error('Failed to save recent reports to localStorage', e);
     }

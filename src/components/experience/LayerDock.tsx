@@ -326,7 +326,7 @@ export const LayerDock: React.FC = () => {
       </aside>
 
       {/* Tablet & Mobile (<1024px): Compact Layer & Station Drawer */}
-      <div className="lg:hidden fixed left-2.5 right-2.5 top-[118px] sm:top-[68px] z-30 pointer-events-none flex flex-col items-start gap-1.5 max-w-[360px]">
+      <div className="mausam-mobile-layer-dock lg:hidden fixed left-2.5 right-2.5 top-[118px] sm:top-[68px] z-30 pointer-events-none flex flex-col items-start gap-1.5 max-w-[360px]">
         <button
           type="button"
           onClick={() => setIsDrawerOpen((v) => !v)}

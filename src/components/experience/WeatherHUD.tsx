@@ -446,7 +446,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
       </aside>
 
       {/* Mobile Viewport: Compact Floating Summary + Expandable Bottom Sheet */}
-      <div className="md:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
+      <div className="mausam-mobile-weather-sheet md:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
         <div className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 py-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <span

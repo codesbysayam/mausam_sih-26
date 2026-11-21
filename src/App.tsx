@@ -16,6 +16,7 @@ import { ExperienceMode, useExperience } from './context/ExperienceContext';
 import { LocationCenterModal } from './components/location/LocationCenterModal';
 import { LocationPrivacyModal } from './components/location/LocationPrivacyModal';
 import { NetworkStatusBanner } from './components/common/NetworkStatusBanner';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { FloatingBrandBar } from './components/experience/FloatingBrandBar';
 import { ExploreWorkspace } from './components/experience/ExploreWorkspace';
 import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
@@ -356,6 +357,7 @@ export default function App() {
         )}
 
         {mode === 'explore' && (
+          <ErrorBoundary fallbackTitle="Explore Observatory">
           <ExploreWorkspace
             selectedLocation={selectedLocation}
             weatherBundle={weatherBundle}
@@ -364,9 +366,11 @@ export default function App() {
             onOpenAnalyzeTab={(tab) => navigateToTab(tab)}
             onOpenAskMausam={() => setIsAskMausamOpen(true)}
           />
+          </ErrorBoundary>
         )}
 
         {mode === 'analyze' && (
+          <ErrorBoundary fallbackTitle="Weather & Warnings Workspace">
           <AnalyzeWorkspace
             activeTab={activeTab}
             onNavigateTab={(tab) => navigateToTab(tab)}
@@ -386,9 +390,11 @@ export default function App() {
             onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
             onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
           />
+          </ErrorBoundary>
         )}
 
         {mode === 'classic' && (
+          <ErrorBoundary fallbackTitle="Classic Weather Workspace">
           <ClassicWorkspace
             weatherBundle={weatherBundle}
             selectedLocation={selectedLocation}
@@ -401,6 +407,7 @@ export default function App() {
             locationSource={locationSource}
             onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
           />
+          </ErrorBoundary>
         )}
       </main>
 

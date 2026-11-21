@@ -8,6 +8,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { MainNavTab } from '../components/layout/MainNavigation';
 import type { FooterView } from '../components/layout/FooterNavigation';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 
 export type ExperienceMode = 'explore' | 'analyze' | 'classic';
 export type SurfaceTheme = 'paper' | 'dark';
@@ -343,7 +344,7 @@ function detectInitialReducedMotion(): boolean {
 function readInitialSurfaceTheme(): SurfaceTheme {
   if (typeof window === 'undefined') return 'dark';
   try {
-    const saved = window.localStorage.getItem(SURFACE_THEME_KEY);
+    const saved = safeStorageGet('local', SURFACE_THEME_KEY);
     if (saved === 'dark' || saved === 'paper') return saved;
   } catch {
     // Ignore storage read errors
@@ -371,7 +372,7 @@ export const ExperienceProvider: React.FC<{
   const setSurfaceTheme = useCallback((nextTheme: SurfaceTheme) => {
     setSurfaceThemeState(nextTheme);
     try {
-      window.localStorage.setItem(SURFACE_THEME_KEY, nextTheme);
+      safeStorageSet('local', SURFACE_THEME_KEY, nextTheme);
     } catch {
       // Ignore storage write errors
     }
@@ -404,7 +405,7 @@ export const ExperienceProvider: React.FC<{
   const dismissControlsGuide = useCallback(() => {
     setShowControlsGuide(false);
     try {
-      window.localStorage.setItem(GUIDE_DISMISSED_KEY, '1');
+      safeStorageSet('local', GUIDE_DISMISSED_KEY, '1');
     } catch {
       // Ignore storage quota errors
     }
