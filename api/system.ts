@@ -154,10 +154,13 @@ async function safeProbe(
 }
 
 async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  const cpcbConfigured = !!process.env.CPCB_API_KEY;
+  const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
+  const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'auto').trim().toLowerCase();
+  const assistantLocalMode = assistantMode === 'local' || assistantMode === 'offline';
+  const assistantConfigured = assistantLocalMode || Boolean(assistantUrl);
+  const cpcbConfigured = Boolean(process.env.CPCB_API_KEY);
 
-  const [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe, gemini] = await Promise.all([
+  const [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe] = await Promise.all([
     safeProbe(
       'openMeteo',
       'Open-Meteo Weather API',
@@ -206,29 +209,8 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
       true,
       4500
     ),
-    geminiKey
-      ? safeProbe(
-          'gemini',
-          'Google Gemini API',
-          'AI_ASSISTANT',
-          'https://generativelanguage.googleapis.com/v1beta/models',
-          true,
-          4500,
-          { 'x-goog-api-key': geminiKey }
-        )
-      : Promise.resolve({
-          id: 'gemini',
-          name: 'Google Gemini API',
-          category: 'AI_ASSISTANT',
-          configured: false,
-          operational: false,
-          status: 'NOT_CONFIGURED' as const,
-          latencyMs: null,
-        }),
   ]);
 
-  // The IMD status below is based on a real official CAP feed probe, not
-  // merely the presence of an API key.
   const imd: ProviderDiagnostic = {
     ...imdCapProbe,
     id: 'imd',
@@ -236,9 +218,27 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
     category: 'GOVERNMENT_WARNINGS',
   };
 
-  // A configured CPCB key is not proof that the CAAQMS API is reachable.
-  // Until a supported authenticated health endpoint is available, report
-  // configured-but-unverified as DEGRADED rather than falsely OPERATIONAL.
+  // A configured assistant endpoint is not called by the health dashboard:
+  // a chat-completions request may consume tokens. It is verified on use.
+  const assistant: ProviderDiagnostic = {
+    id: 'assistant',
+    name: 'MAUSAM Assistant',
+    category: 'ASSISTANT',
+    configured: assistantConfigured,
+    operational: assistantLocalMode,
+    status: assistantLocalMode
+      ? 'OPERATIONAL'
+      : assistantConfigured
+        ? 'DEGRADED'
+        : 'NOT_CONFIGURED',
+    latencyMs: null,
+    error: assistantLocalMode
+      ? 'Grounded local mode; no remote endpoint required.'
+      : assistantConfigured
+        ? 'Endpoint configured; live availability is verified during an assistant request.'
+        : 'MAUSAM_ASSISTANT_API_URL is not configured. Grounded local mode remains available.',
+  };
+
   const cpcb: ProviderDiagnostic = {
     id: 'cpcb',
     name: 'Central Pollution Control Board CAAQMS',
@@ -252,7 +252,7 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
       : null,
   };
 
-  return [openMeteo, sachet, radar, osm, imdCycloneProbe, gemini, imd, cpcb];
+  return [openMeteo, sachet, radar, osm, imdCycloneProbe, assistant, imd, cpcb];
 }
 
 async function getHealthReport(): Promise<any> {
