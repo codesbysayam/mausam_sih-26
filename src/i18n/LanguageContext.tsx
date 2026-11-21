@@ -151,7 +151,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       if (val === 'en' || val === 'hi' || val === 'regional') {
         let stateName = 'Odisha';
         try {
-          const locStr = localStorage.getItem('mausam_detected_location');
+          const locStr = safeStorageGet('local', 'mausam_detected_location');
           if (locStr) {
             const parsed = JSON.parse(locStr);
             if (parsed?.record?.state) stateName = parsed.record.state;
