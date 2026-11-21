@@ -133,12 +133,13 @@ export class DatabaseService {
 
     if (!this.pool) {
       return {
-        configured: true,
-        connected: true,
-        provider: 'LOCAL_EMBEDDED',
-        latencyMs: 1,
-        poolSize: 1,
+        configured: false,
+        connected: false,
+        provider: 'NOT_CONFIGURED',
+        latencyMs: null,
+        poolSize: 0,
         lastChecked: now,
+        error: 'No DATABASE_URL or POSTGRES_URL is configured. The local process-memory fallback is not durable database storage.',
       };
     }
 
