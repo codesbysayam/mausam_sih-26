@@ -6,7 +6,7 @@
 // ====================================================================
 
 import React, { useEffect, useMemo } from 'react';
-import { Play, Pause, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, RotateCcw, Repeat } from 'lucide-react';
 import type { HourlyForecastItem } from '../../types';
 import type { RadarApiResponse } from '../../services/radarService';
 import { useExperience } from '../../context/ExperienceContext';
@@ -25,6 +25,8 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     setTimelineIndex,
     isTimelinePlaying,
     setIsTimelinePlaying,
+    isTimelineLooping,
+    setIsTimelineLooping,
     playbackSpeed,
     setPlaybackSpeed,
   } = useExperience();
@@ -40,15 +42,47 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   const totalSlots = isRadarMode ? radarFrames.length : hourlySlots.length;
   const safeIdx = totalSlots > 0 ? Math.min(timelineIndex, totalSlots - 1) : 0;
 
-  // Auto-advance playback scaled cleanly by playbackSpeed (0.5x / 1x / 2x)
+  // Advance one frame at a time. At the final frame, either loop to the
+  // beginning or stop and hold the final frame; never wrap unconditionally.
   useEffect(() => {
     if (!isTimelinePlaying || totalSlots <= 1) return;
+
     const intervalMs = Math.round(1100 / playbackSpeed);
-    const timer = setInterval(() => {
-      setTimelineIndex((prev) => (prev + 1 >= totalSlots ? 0 : prev + 1));
+    const timer = window.setTimeout(() => {
+      if (timelineIndex >= totalSlots - 1) {
+        if (isTimelineLooping) {
+          setTimelineIndex(0);
+        } else {
+          setIsTimelinePlaying(false);
+        }
+        return;
+      }
+      setTimelineIndex((previous) => Math.min(previous + 1, totalSlots - 1));
     }, intervalMs);
-    return () => clearInterval(timer);
-  }, [isTimelinePlaying, totalSlots, playbackSpeed, setTimelineIndex]);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    isTimelinePlaying,
+    timelineIndex,
+    totalSlots,
+    playbackSpeed,
+    isTimelineLooping,
+    setTimelineIndex,
+    setIsTimelinePlaying,
+  ]);
+
+  // When data changes or the selected layer changes, clamp the cursor and
+  // stop playback if the new series is empty.
+  useEffect(() => {
+    if (totalSlots <= 0) {
+      setTimelineIndex(0);
+      setIsTimelinePlaying(false);
+      return;
+    }
+    if (timelineIndex >= totalSlots) {
+      setTimelineIndex(totalSlots - 1);
+    }
+  }, [totalSlots, timelineIndex, setTimelineIndex, setIsTimelinePlaying]);
 
   const activeLabel = useMemo(() => {
     if (isRadarMode && radarFrames[safeIdx]) {
@@ -101,7 +135,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   return (
     <section
       aria-label="Atmospheric Time Progression"
-      className="fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
+      className="fixed bottom-[max(8px,env(safe-area-inset-bottom))] left-2 right-2 sm:left-3 sm:right-3 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom max-w-[calc(100vw-16px)]"
     >
       <div className="spatial-hud-surface rounded-[11px] px-3 py-2 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
@@ -109,7 +143,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              onClick={() => setTimelineIndex((p) => (p > 0 ? p - 1 : totalSlots - 1))}
+              onClick={() => { setIsTimelinePlaying(false); setTimelineIndex((p) => Math.max(0, p - 1)); }}
               aria-label="Previous time step"
               className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
@@ -117,7 +151,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             </button>
             <button
               type="button"
-              onClick={() => setIsTimelinePlaying((v) => !v)}
+              onClick={() => { if (!isTimelinePlaying && safeIdx >= totalSlots - 1 && !isTimelineLooping) setTimelineIndex(0); setIsTimelinePlaying((v) => !v); }}
               aria-label={
                 isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'
               }
@@ -131,7 +165,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             </button>
             <button
               type="button"
-              onClick={() => setTimelineIndex((p) => (p + 1) % totalSlots)}
+              onClick={() => { setIsTimelinePlaying(false); setTimelineIndex((p) => Math.min(totalSlots - 1, p + 1)); }}
               aria-label="Next time step"
               className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
@@ -142,7 +176,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             <div
               role="group"
               aria-label="Playback speed"
-              className="hidden sm:flex items-center bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg p-0.5 ml-1"
+              className="flex items-center bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg p-0.5 ml-1"
             >
               {SPEED_OPTIONS.map((spd) => (
                 <button
@@ -160,6 +194,21 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
                 </button>
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsTimelineLooping((enabled) => !enabled)}
+              aria-label={isTimelineLooping ? 'Disable timeline loop' : 'Enable timeline loop'}
+              aria-pressed={isTimelineLooping}
+              title={isTimelineLooping ? 'Loop enabled' : 'Loop disabled'}
+              className={`min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer m-focus-ring ${
+                isTimelineLooping
+                  ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/50 text-[var(--m-accent)]'
+                  : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)]'
+              }`}
+            >
+              <Repeat className="w-3.5 h-3.5" />
+            </button>
 
             {safeIdx !== 0 && (
               <button
