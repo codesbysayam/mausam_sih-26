@@ -76,9 +76,9 @@ export function vector3ToLatLng(vec: THREE.Vector3): { lat: number; lng: number 
 /**
  * Compass label (e.g., "WSW", "SE", "NNE") or numeric degrees -> meteorological bearing in degrees (direction wind blows FROM).
  */
-export function windDirToDegrees(dir?: string | number): number {
+export function windDirToDegrees(dir?: string | number): number | null {
   if (typeof dir === 'number' && Number.isFinite(dir)) return dir;
-  if (!dir) return 225;
+  if (dir === undefined || dir === null || dir === '') return null;
   const map: Record<string, number> = {
     N: 0,
     NNE: 22.5,
@@ -97,7 +97,7 @@ export function windDirToDegrees(dir?: string | number): number {
     NW: 315,
     NNW: 337.5,
   };
-  return map[String(dir).trim().toUpperCase()] ?? 225;
+  return map[String(dir).trim().toUpperCase()] ?? null;
 }
 
 export interface SpatialRegionPoint {
