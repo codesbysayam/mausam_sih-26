@@ -374,7 +374,7 @@ button {
     display: none !important;
   }
 
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+  .mausam-mobile-weather-sheet {
     display: flex;
   }
 
@@ -462,7 +462,7 @@ button {
     display: none !important;
   }
 
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+  .mausam-mobile-weather-sheet {
     display: flex;
   }
 
@@ -543,7 +543,7 @@ button {
     padding-inline: 7px;
   }
 
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+  .mausam-mobile-weather-sheet {
     left: 6px !important;
     right: 6px !important;
     bottom: calc(74px + var(--mausam-safe-bottom)) !important;
@@ -594,7 +594,7 @@ button {
     padding-inline: 7px;
   }
 
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+  .mausam-mobile-weather-sheet {
     left: auto !important;
     right: 8px !important;
     top: var(--mausam-explore-overlay-top) !important;
@@ -604,7 +604,7 @@ button {
     overflow-y: auto;
   }
 
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] > * {
+  .mausam-mobile-weather-sheet > * {
     max-width: 100%;
   }
 
@@ -645,7 +645,7 @@ button {
 
 /* Tall portrait devices: keep the visual stage dominant and HUD sheets compact. */
 @media (min-aspect-ratio: 1/2) and (max-aspect-ratio: 3/4) and (max-width: 767px) {
-  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+  .mausam-mobile-weather-sheet {
     max-height: min(38dvh, 300px);
   }
 }
