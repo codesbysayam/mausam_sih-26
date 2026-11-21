@@ -49,7 +49,7 @@ function getEndpoint(): string | undefined {
     if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return undefined;
     if (url.username || url.password || url.search || url.hash) return undefined;
 
-    const path = url.pathname.replace(/\\/+$/, '');
+    const path = url.pathname.replace(/\/+$/, '');
     if (path.endsWith('/chat/completions')) {
       url.pathname = path;
     } else if (
