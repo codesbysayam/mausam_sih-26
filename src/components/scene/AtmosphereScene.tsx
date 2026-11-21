@@ -257,7 +257,13 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     scene.background = new THREE.Color('#0B0C0D');
     scene.fog = new THREE.FogExp2('#0B0C0D', 0.011);
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.25, 160);
+    const initialAspect = width / Math.max(1, height);
+    const responsiveFov =
+      initialAspect < 0.62 ? 54 :
+      initialAspect < 0.82 ? 50 :
+      initialAspect < 1.05 ? 46 :
+      initialAspect < 1.35 ? 43 : 40;
+    const camera = new THREE.PerspectiveCamera(responsiveFov, initialAspect, 0.25, 160);
     camera.position.copy(DEFAULT_CAMERA_POS);
 
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -1084,6 +1090,13 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       renderer.setPixelRatio(resolveEffectivePixelRatio());
       renderer.setSize(w, h);
       camera.aspect = w / h;
+      // Portrait devices need a wider vertical field of view to keep the
+      // entire subcontinent in frame instead of cropping coastlines.
+      camera.fov =
+        camera.aspect < 0.62 ? 54 :
+        camera.aspect < 0.82 ? 50 :
+        camera.aspect < 1.05 ? 46 :
+        camera.aspect < 1.35 ? 43 : 40;
       camera.updateProjectionMatrix();
     };
     const resizeObserver = new ResizeObserver(handleResize);
