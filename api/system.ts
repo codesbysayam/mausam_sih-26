@@ -264,10 +264,15 @@ async function getHealthReport(): Promise<any> {
 
   const operationalCount = providersList.filter((p) => p.operational).length;
   const notConfiguredCount = providersList.filter((p) => p.status === 'NOT_CONFIGURED').length;
+  const configuredProviders = providersList.filter((p) => p.configured);
+  const failedConfiguredProviders = configuredProviders.filter((p) => !p.operational);
   const coreOperational = providersMap.openMeteo?.operational && providersMap.sachet?.operational;
+  const overallStatus = coreOperational && failedConfiguredProviders.length === 0
+    ? 'HEALTHY'
+    : 'DEGRADED';
 
   return {
-    status: coreOperational ? 'HEALTHY' : 'DEGRADED',
+    status: overallStatus,
     buildId: APP_BUILD_ID,
     gitCommit: GIT_COMMIT_SHA,
     warningServiceVersion: WARNING_SERVICE_VERSION,
@@ -277,7 +282,7 @@ async function getHealthReport(): Promise<any> {
       totalProviders: providersList.length,
       operational: operationalCount,
       notConfigured: notConfiguredCount,
-      overallStatus: coreOperational ? 'HEALTHY' : 'DEGRADED',
+      overallStatus,
     },
     providers: providersMap,
   };
@@ -328,7 +333,7 @@ export default async function handler(req: any, res: any) {
       default: {
         const result = await getHealthReport();
         return sendJson(res, 200, result, {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=180',
+          'Cache-Control': 'no-store, max-age=0, must-revalidate',
         });
       }
     }
