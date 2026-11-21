@@ -33,7 +33,7 @@ export interface AskMausamResult {
 type AssistantMode = 'auto' | 'remote' | 'local' | 'offline';
 
 function getMode(): AssistantMode {
-  const raw = (process.env.MAUSAM_ASSISTANT_MODE || 'auto').trim().toLowerCase();
+  const raw = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
   if (raw === 'remote' || raw === 'local' || raw === 'offline') return raw;
   return 'auto';
 }
