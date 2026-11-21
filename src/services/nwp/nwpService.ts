@@ -34,9 +34,11 @@ export class NWPService {
 
     try {
       const cached = await cacheService.getCached<NWPModelRun>(cacheKey);
-      if (cached.isHit && cached.data) {
+      if (cached.isHit && cached.data && cached.ageSeconds <= 36 * 60 * 60) {
         cachedRun = cached.data;
         if (!cached.isStale) return cached.data;
+      } else if (cached.isHit) {
+        await cacheService.deleteCached(cacheKey);
       }
     } catch (cacheError) {
       // Shared-cache failures are non-fatal. Continue to the upstream model.
