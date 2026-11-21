@@ -1,0 +1,715 @@
+/*
+ * MAUSAM — Adaptive Observatory Layout
+ * Viewport-first responsive rules for ultrawide, desktop, laptop, tablet,
+ * foldable, mobile portrait/landscape and short-height devices.
+ * Keep this file imported AFTER mausam.css so these rules are authoritative.
+ */
+
+:root {
+  --mausam-safe-top: max(env(safe-area-inset-top, 0px), 0px);
+  --mausam-safe-right: max(env(safe-area-inset-right, 0px), 0px);
+  --mausam-safe-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+  --mausam-safe-left: max(env(safe-area-inset-left, 0px), 0px);
+  --mausam-viewport-gutter: clamp(8px, 1.25vw, 22px);
+  --mausam-hud-gap: clamp(6px, .8vw, 12px);
+  --mausam-explore-header-height: 58px;
+  --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 76px);
+}
+
+/* Global overflow, intrinsic sizing and viewport foundations */
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+html {
+  overflow-x: clip;
+  scrollbar-gutter: stable;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+#root,
+.mausam-app,
+#mausam-analyze-workspace,
+#mausam-classic-workspace {
+  min-width: 0;
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+iframe {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.mausam-page,
+.classic-page,
+.mausam-container {
+  width: min(100% - (2 * var(--mausam-viewport-gutter)), var(--content-max, 1560px));
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+#mausam-analyze-workspace,
+#mausam-classic-workspace {
+  width: 100%;
+  min-height: 100svh;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+#mausam-analyze-workspace > *,
+#mausam-classic-workspace > * {
+  min-width: 0;
+}
+
+#mausam-explore-workspace.mausam-explore-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 320px;
+  max-height: none;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout paint;
+}
+
+#mausam-explore-workspace canvas {
+  display: block;
+  max-width: none;
+}
+
+/* Explore header: three intentional zones, never rely on accidental flex wrapping */
+.mausam-floating-brandbar {
+  position: fixed !important;
+  top: var(--mausam-safe-top) !important;
+  left: max(var(--mausam-viewport-gutter), var(--mausam-safe-left)) !important;
+  right: max(var(--mausam-viewport-gutter), var(--mausam-safe-right)) !important;
+  z-index: 60 !important;
+  width: auto !important;
+  max-width: none !important;
+  padding-top: 6px;
+  pointer-events: none;
+}
+
+.mausam-floating-brandbar__inner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: var(--mausam-hud-gap);
+  width: 100%;
+  min-width: 0;
+}
+
+.mausam-floating-brandbar__identity,
+.mausam-floating-brandbar__modes,
+.mausam-floating-brandbar__actions {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mausam-floating-brandbar__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--mausam-hud-gap);
+  flex-wrap: nowrap;
+}
+
+.mausam-floating-brandbar__modes,
+.mausam-floating-brandbar__actions {
+  justify-self: end;
+}
+
+.mausam-floating-brandbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.mausam-floating-brandbar__identity > button {
+  flex: 0 0 auto;
+}
+
+.mausam-floating-brandbar__identity > div[ref] {
+  min-width: 0;
+  flex: 0 1 340px;
+}
+
+.mausam-floating-brandbar__identity > div[ref] > div {
+  width: clamp(150px, 22vw, 340px) !important;
+  min-width: 0;
+}
+
+.mausam-floating-brandbar__modes {
+  white-space: nowrap;
+}
+
+.mausam-floating-brandbar__actions > * {
+  min-width: 0;
+}
+
+/* HUD anchors are tied to the actual header footprint, not a fixed 68px guess. */
+#mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] {
+  top: var(--mausam-explore-overlay-top) !important;
+  left: max(var(--mausam-viewport-gutter), var(--mausam-safe-left)) !important;
+  max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 96px);
+  min-height: 0;
+}
+
+#mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] > div {
+  max-height: inherit;
+  min-height: 0;
+}
+
+#mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] > div > div {
+  min-height: 0;
+}
+
+#mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+  top: var(--mausam-explore-overlay-top) !important;
+  right: max(var(--mausam-viewport-gutter), var(--mausam-safe-right)) !important;
+  max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 104px);
+  min-height: 0;
+}
+
+#mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] > div {
+  max-height: inherit;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* Timeline stays inside the usable viewport and accounts for device safe areas. */
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+  bottom: max(10px, var(--mausam-safe-bottom)) !important;
+  left: 50% !important;
+  right: auto !important;
+  width: min(740px, calc(100vw - 2 * var(--mausam-viewport-gutter) - var(--mausam-safe-left) - var(--mausam-safe-right))) !important;
+  max-width: calc(100vw - 12px);
+  transform: translateX(-50%);
+  z-index: 45;
+}
+
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+  min-width: 0;
+}
+
+#mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] input[type="range"] {
+  min-width: 0;
+  width: 100%;
+}
+
+/* All analytical pages: flexible grids must shrink below intrinsic content width. */
+#mausam-analyze-workspace main,
+#mausam-classic-workspace main,
+#mausam-analyze-workspace section,
+#mausam-classic-workspace section,
+#mausam-analyze-workspace article,
+#mausam-classic-workspace article,
+#mausam-analyze-workspace .grid,
+#mausam-classic-workspace .grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#mausam-analyze-workspace table,
+#mausam-classic-workspace table {
+  max-width: 100%;
+}
+
+#mausam-analyze-workspace [class*="overflow-x-auto"],
+#mausam-classic-workspace [class*="overflow-x-auto"] {
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+}
+
+/* Large desktop and ultrawide: preserve generous stage and fixed instrument rails. */
+@media (min-width: 1600px) {
+  :root {
+    --mausam-viewport-gutter: clamp(20px, 1.5vw, 36px);
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 82px);
+  }
+
+  .mausam-floating-brandbar__identity > div[ref] > div {
+    width: clamp(280px, 22vw, 420px) !important;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] > div {
+    width: min(340px, 22vw);
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] > div {
+    width: min(260px, 18vw);
+  }
+}
+
+/* Laptop / compact desktop: use a deliberate two-row top bar and lower both rails. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 112px);
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] > div:not(:first-child) {
+    max-width: 220px;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] > div {
+    width: min(292px, 25vw);
+  }
+}
+
+/* Short-height laptops, split-screen windows and landscape tablets. */
+@media (max-height: 760px) and (min-width: 768px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 94px);
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"],
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+    max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 82px);
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] > div {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    bottom: max(6px, var(--mausam-safe-bottom)) !important;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+    padding: 6px 9px;
+    gap: 4px;
+  }
+}
+
+/* Tablet portrait / narrow split screen: remove the permanent left rail. */
+@media (min-width: 600px) and (max-width: 1023px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 106px);
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+    display: none !important;
+  }
+
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+    display: flex;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    width: min(680px, calc(100vw - 24px)) !important;
+  }
+}
+
+/* Mobile: navigation becomes compact, inspector becomes a sheet, timeline remains reachable. */
+@media (max-width: 767px) {
+  :root {
+    --mausam-viewport-gutter: 8px;
+    --mausam-hud-gap: 6px;
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 128px);
+  }
+
+  html,
+  body,
+  #root {
+    min-width: 320px;
+    width: 100%;
+  }
+
+  .mausam-floating-brandbar {
+    left: max(6px, var(--mausam-safe-left)) !important;
+    right: max(6px, var(--mausam-safe-right)) !important;
+    padding-top: 4px;
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mausam-floating-brandbar__identity > button {
+    min-height: 40px;
+    padding-inline: 9px;
+  }
+
+  .mausam-floating-brandbar__identity > div[ref] {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .mausam-floating-brandbar__identity > div[ref] > div {
+    width: 100% !important;
+    min-height: 40px;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    min-height: 38px;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: stretch;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__actions > button {
+    min-height: 38px;
+    padding-inline: 9px;
+    font-size: 11px;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] {
+    display: none !important;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+    display: none !important;
+  }
+
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+    display: flex;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    left: 6px !important;
+    right: 6px !important;
+    bottom: max(6px, var(--mausam-safe-bottom)) !important;
+    width: auto !important;
+    max-width: none;
+    transform: none;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] > div {
+    padding: 6px 8px;
+    gap: 5px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] button {
+    min-width: 34px;
+    min-height: 36px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] input[type="range"] {
+    min-height: 22px;
+  }
+
+  .mausam-page,
+  .classic-page,
+  .mausam-container {
+    width: calc(100% - 16px);
+  }
+
+  #mausam-analyze-workspace,
+  #mausam-classic-workspace {
+    padding-bottom: max(76px, calc(60px + var(--mausam-safe-bottom)));
+  }
+}
+
+/* Small phones / narrow foldable cover displays. */
+@media (max-width: 420px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 142px);
+  }
+
+  .mausam-floating-brandbar__identity {
+    gap: 5px;
+  }
+
+  .mausam-floating-brandbar__identity > button {
+    gap: 6px;
+    padding-inline: 7px;
+  }
+
+  .mausam-floating-brandbar__identity > button span:last-child span:last-child {
+    display: none;
+  }
+
+  .mausam-floating-brandbar__identity > div[ref] > div {
+    width: 100% !important;
+  }
+
+  .mausam-floating-brandbar__modes {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .mausam-floating-brandbar__modes button {
+    flex: 1 1 0;
+    padding-inline: 8px;
+  }
+
+  .mausam-floating-brandbar__actions {
+    gap: 4px;
+  }
+
+  .mausam-floating-brandbar__actions > button {
+    min-height: 36px;
+    padding-inline: 7px;
+  }
+
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+    left: 6px !important;
+    right: 6px !important;
+    bottom: calc(74px + var(--mausam-safe-bottom)) !important;
+    max-width: none !important;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] .font-mono {
+    font-size: 10px;
+  }
+}
+
+/* Very short mobile landscape: HUD becomes a side sheet instead of covering the map. */
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 76px);
+  }
+
+  .mausam-floating-brandbar {
+    left: 6px !important;
+    right: 6px !important;
+    padding-top: 2px;
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    align-items: center;
+  }
+
+  .mausam-floating-brandbar__identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__modes {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mausam-floating-brandbar__actions {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .mausam-floating-brandbar__actions > button {
+    min-height: 34px;
+    padding-inline: 7px;
+  }
+
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+    left: auto !important;
+    right: 8px !important;
+    top: var(--mausam-explore-overlay-top) !important;
+    bottom: 62px !important;
+    width: min(42vw, 310px);
+    max-width: 42vw;
+    overflow-y: auto;
+  }
+
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] > * {
+    max-width: 100%;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    left: 8px !important;
+    right: auto !important;
+    bottom: max(6px, var(--mausam-safe-bottom)) !important;
+    width: min(54vw, 620px) !important;
+  }
+}
+
+/* Landscape tablets / short laptop split-screen: preserve usable map centre. */
+@media (min-width: 768px) and (max-height: 620px) {
+  :root {
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 70px);
+  }
+
+  .mausam-floating-brandbar__inner {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    align-items: center;
+  }
+
+  .mausam-floating-brandbar__actions {
+    justify-self: end;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+    top: var(--mausam-explore-overlay-top) !important;
+    max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 66px);
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] {
+    top: var(--mausam-explore-overlay-top) !important;
+    max-height: calc(100dvh - var(--mausam-explore-overlay-top) - 66px);
+  }
+}
+
+/* Tall portrait devices: keep the visual stage dominant and HUD sheets compact. */
+@media (min-aspect-ratio: 1/2) and (max-aspect-ratio: 3/4) and (max-width: 767px) {
+  #mausam-explore-workspace > div[aria-label="Current Location Atmospheric HUD"] {
+    max-height: min(38dvh, 300px);
+  }
+}
+
+/* Ultra-wide and panoramic viewports: constrain instruments, not the map canvas. */
+@media (min-aspect-ratio: 21/9) and (min-width: 1600px) {
+  #mausam-explore-workspace aside[aria-label="Current Location Atmospheric HUD"] {
+    right: max(28px, var(--mausam-safe-right)) !important;
+  }
+
+  #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"] {
+    left: max(28px, var(--mausam-safe-left)) !important;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    width: min(820px, 44vw) !important;
+  }
+}
+
+/* Touch-first devices: controls stay finger-sized without forcing desktop spacing. */
+@media (hover: none), (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="range"],
+  select {
+    touch-action: manipulation;
+  }
+
+  #mausam-explore-workspace button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Respect reduced-motion preference even if the in-app toggle has not loaded yet. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* High-contrast focus remains visible over translucent observatory controls. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--mausam-brass-bright, #E0C18A);
+  outline-offset: 2px;
+}
+
+/* Avoid text truncation in critical controls; only truncate long secondary metadata. */
+.mausam-floating-brandbar__actions button,
+.mausam-floating-brandbar__modes button {
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .mausam-floating-brandbar__actions button {
+    font-size: 10px;
+    padding-inline: 5px;
+  }
+
+  #mausam-explore-workspace section[aria-label="Atmospheric Time Progression"] {
+    font-size: 10px;
+  }
+}
