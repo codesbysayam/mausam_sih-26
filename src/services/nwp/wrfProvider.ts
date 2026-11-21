@@ -72,7 +72,7 @@ export class WRFProvider implements NWPProvider {
       }
 
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const onAbort = () => controller.abort();
       if (signal) signal.addEventListener('abort', onAbort, { once: true });
 
@@ -84,7 +84,7 @@ export class WRFProvider implements NWPProvider {
           signal: controller.signal,
         });
       } finally {
-        window.clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
         if (signal) signal.removeEventListener('abort', onAbort);
       }
 
