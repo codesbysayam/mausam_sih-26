@@ -52,67 +52,73 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   const current = weatherBundle.current;
-  const activeHour = weatherBundle.hourly?.[timelineIndex];
-  const displayTemp =
-    timelineIndex > 0 && typeof activeHour?.temp === 'number' && Number.isFinite(activeHour.temp)
+  const isForecastFrame = timelineIndex > 0;
+  const activeHour = isForecastFrame ? weatherBundle.hourly?.[timelineIndex] : null;
+
+  // Never mix a forecast frame with current-observation fallbacks. Each
+  // displayed frame must be internally consistent and source-coherent.
+  const displayTemp = isForecastFrame
+    ? typeof activeHour?.temp === 'number' && Number.isFinite(activeHour.temp)
       ? activeHour.temp
-      : typeof current.temp === 'number' && Number.isFinite(current.temp)
-      ? current.temp
-      : null;
+      : null
+    : typeof current.temp === 'number' && Number.isFinite(current.temp)
+    ? current.temp
+    : null;
 
   const hasValidTemp = displayTemp !== null;
 
-  const rawCond =
-    timelineIndex > 0 && activeHour?.condition ? activeHour.condition : current.condition;
+  const rawCond = isForecastFrame ? activeHour?.condition : current.condition;
   const displayCond =
     hasValidTemp && rawCond && rawCond !== '—'
       ? rawCond
+      : isForecastFrame
+      ? 'Not reported for this forecast step'
       : current.observationStatus === 'LOADING'
       ? 'Syncing feed…'
       : 'Not reported';
 
-  const displayWind =
-    timelineIndex > 0 &&
-    typeof activeHour?.windSpeed === 'number' &&
-    Number.isFinite(activeHour.windSpeed)
+  const displayWind = isForecastFrame
+    ? typeof activeHour?.windSpeed === 'number' && Number.isFinite(activeHour.windSpeed)
       ? activeHour.windSpeed
-      : typeof current.windSpeed === 'number' && Number.isFinite(current.windSpeed)
-      ? current.windSpeed
-      : null;
-  const displayWindDir =
-    timelineIndex > 0 && activeHour?.windDirection
-      ? activeHour.windDirection
-      : current.windDirection;
-  const displayHumidity =
-    timelineIndex > 0 &&
-    typeof activeHour?.humidity === 'number' &&
-    Number.isFinite(activeHour.humidity)
+      : null
+    : typeof current.windSpeed === 'number' && Number.isFinite(current.windSpeed)
+    ? current.windSpeed
+    : null;
+
+  const displayWindDir = isForecastFrame ? activeHour?.windDirection : current.windDirection;
+
+  const displayHumidity = isForecastFrame
+    ? typeof activeHour?.humidity === 'number' && Number.isFinite(activeHour.humidity)
       ? activeHour.humidity
-      : typeof current.humidity === 'number' && Number.isFinite(current.humidity)
-      ? current.humidity
-      : null;
-  const displayRainProb =
-    timelineIndex > 0 &&
-    typeof activeHour?.rainProb === 'number' &&
-    Number.isFinite(activeHour.rainProb)
+      : null
+    : typeof current.humidity === 'number' && Number.isFinite(current.humidity)
+    ? current.humidity
+    : null;
+
+  const displayRainProb = isForecastFrame
+    ? typeof activeHour?.rainProb === 'number' && Number.isFinite(activeHour.rainProb)
       ? activeHour.rainProb
-      : typeof current.precipitationProbability === 'number' &&
-        Number.isFinite(current.precipitationProbability)
-      ? current.precipitationProbability
-      : null;
+      : null
+    : typeof current.precipitationProbability === 'number' &&
+      Number.isFinite(current.precipitationProbability)
+    ? current.precipitationProbability
+    : null;
 
-  const isStationObserved = current.dataSource === 'IMD';
+  const isStationObserved = !isForecastFrame && current.dataSource === 'IMD';
 
-  const obsStatus =
-    current.observationStatus === 'LOADING'
-      ? 'LOADING'
-      : !hasValidTemp
-      ? 'UNAVAILABLE'
-      : isStationObserved
-      ? 'OBSERVED'
-      : current.observationStatus === 'STALE'
-      ? 'STALE'
-      : 'MODEL GRID';
+  const obsStatus = isForecastFrame
+    ? hasValidTemp
+      ? 'MODEL GRID'
+      : 'UNAVAILABLE'
+    : current.observationStatus === 'LOADING'
+    ? 'LOADING'
+    : !hasValidTemp
+    ? 'UNAVAILABLE'
+    : isStationObserved
+    ? 'OBSERVED'
+    : current.observationStatus === 'STALE'
+    ? 'STALE'
+    : 'MODEL GRID';
 
   const statusColorClass =
     obsStatus === 'OBSERVED'
@@ -123,15 +129,15 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
       ? 'text-[var(--m-watch)]'
       : 'text-[var(--m-danger)]';
 
-  // Explicit truthful time terminology: never call Open-Meteo Model Grid "Observed"
-  const timestampLine =
-    timelineIndex > 0 && activeHour
+  const timestampLine = isForecastFrame
+    ? activeHour?.time
       ? `Model forecast · ${activeHour.time}`
-      : hasValidTemp && current.lastUpdated
-      ? isStationObserved
-        ? `Observed: ${current.lastUpdated}`
-        : `Model valid: ${current.lastUpdated}`
-      : 'Awaiting verified feed';
+      : 'Selected model frame unavailable'
+    : hasValidTemp && current.lastUpdated
+    ? isStationObserved
+      ? `Observed: ${current.lastUpdated}`
+      : `Model valid: ${current.lastUpdated}`
+    : 'Awaiting verified feed';
 
   const activeAlertsCount = Array.isArray(weatherBundle.alerts) ? weatherBundle.alerts.length : 0;
 
