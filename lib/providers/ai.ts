@@ -38,7 +38,7 @@ function getMode(): AssistantMode {
   return 'auto';
 }
 
-const DEFAULT_ASSISTANT_MODEL = 'gemini-4-hydrogen';
+const DEFAULT_ASSISTANT_MODEL = 'gemini-3.8-flash';
 
 function getEndpoint(): string | undefined {
   const raw = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
