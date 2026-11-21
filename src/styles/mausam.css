@@ -2575,3 +2575,267 @@ img, svg, canvas, video {
 .leaflet-control-attribution a {
   color: #c5a46d !important;
 }
+
+
+/* ============================================================
+   MAUSAM RESPONSIVE SPATIAL WORKSPACE — DEVICE-AWARE OVERRIDES
+   Mobile: one control rail, clear map viewport, separated HUDs.
+   Tablet: compact floating controls with non-overlapping zones.
+   Desktop: preserve the full observatory composition.
+   ============================================================ */
+
+.mausam-explore-stage {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 480px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mausam-explore-stage > canvas,
+.mausam-explore-stage canvas {
+  display: block;
+  max-width: 100%;
+}
+
+.mausam-floating-brandbar {
+  width: auto;
+  max-width: calc(100vw - 20px);
+}
+
+.mausam-floating-brandbar__inner,
+.mausam-floating-brandbar__identity,
+.mausam-floating-brandbar__actions,
+.mausam-floating-brandbar__modes {
+  min-width: 0;
+}
+
+.mausam-mobile-layer-dock {
+  width: min(340px, calc(100vw - 24px));
+}
+
+.mausam-mobile-weather-sheet {
+  width: auto;
+  max-width: calc(100vw - 20px);
+}
+
+@media (max-width: 767px) {
+  .mausam-floating-brandbar {
+    top: max(6px, env(safe-area-inset-top, 0px));
+    left: 8px;
+    right: 8px;
+    max-width: none;
+  }
+
+  .mausam-floating-brandbar__inner {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px !important;
+    align-items: stretch !important;
+  }
+
+  .mausam-floating-brandbar__identity {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    width: 100%;
+    gap: 7px !important;
+  }
+
+  .mausam-floating-brandbar__identity > button {
+    min-width: 112px;
+    padding-inline: 9px;
+  }
+
+  .mausam-floating-brandbar__search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .mausam-floating-brandbar__search > div:first-child {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .mausam-floating-brandbar__modes {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .mausam-floating-brandbar__modes button {
+    min-width: 0;
+    padding-inline: 5px;
+    min-height: 38px;
+    font-size: 12px;
+  }
+
+  .mausam-floating-brandbar__actions {
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+    gap: 6px !important;
+    justify-content: space-between;
+  }
+
+  .mausam-floating-brandbar__actions > button:first-of-type {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    padding-inline: 8px;
+  }
+
+  .mausam-floating-brandbar__actions > button,
+  .mausam-floating-brandbar__actions [aria-label*="settings"],
+  .mausam-floating-brandbar__actions [aria-label*="guide"] {
+    min-height: 40px;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: calc(env(safe-area-inset-top, 0px) + 166px) !important;
+    left: 8px;
+    right: 8px;
+    width: min(330px, calc(100vw - 16px));
+    max-width: none;
+    z-index: 35;
+  }
+
+  .mausam-mobile-layer-dock > button {
+    min-height: 40px;
+    max-width: 100%;
+    padding-inline: 10px;
+  }
+
+  .mausam-mobile-layer-dock > div {
+    max-height: min(42dvh, 360px);
+  }
+
+  .mausam-mobile-weather-sheet {
+    left: 8px;
+    right: 8px;
+    bottom: calc(142px + env(safe-area-inset-bottom, 0px)) !important;
+    max-width: none;
+    z-index: 34;
+    max-height: min(38dvh, 320px);
+  }
+
+  .mausam-mobile-weather-sheet > div {
+    min-width: 0;
+  }
+
+  .mausam-mobile-weather-sheet > div + div {
+    max-height: min(26dvh, 220px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mausam-explore-stage {
+    height: 100dvh;
+    min-height: 540px;
+  }
+
+  .mausam-explore-stage .leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .mausam-floating-brandbar__identity > button {
+    min-width: 104px;
+    gap: 6px;
+  }
+
+  .mausam-floating-brandbar__identity > button span:last-child {
+    font-size: 12px;
+  }
+
+  .mausam-floating-brandbar__actions {
+    gap: 4px !important;
+  }
+
+  .mausam-floating-brandbar__actions > button:first-of-type {
+    font-size: 10px;
+  }
+
+  .mausam-mobile-weather-sheet {
+    bottom: calc(138px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (max-height: 720px) and (max-width: 900px) {
+  .mausam-floating-brandbar {
+    gap: 4px !important;
+  }
+
+  .mausam-floating-brandbar__inner {
+    gap: 4px !important;
+  }
+
+  .mausam-floating-brandbar__identity > button,
+  .mausam-floating-brandbar__search > div:first-child {
+    min-height: 36px;
+  }
+
+  .mausam-floating-brandbar__modes button {
+    min-height: 32px;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: calc(env(safe-area-inset-top, 0px) + 142px) !important;
+  }
+
+  .mausam-mobile-weather-sheet {
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  .mausam-floating-brandbar__inner {
+    gap: 8px;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: calc(env(safe-area-inset-top, 0px) + 74px) !important;
+    left: 12px;
+    width: min(320px, calc(100vw - 24px));
+  }
+
+  .mausam-mobile-weather-sheet {
+    bottom: 110px !important;
+    left: 12px;
+    right: 12px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .mausam-floating-brandbar__inner {
+    display: flex !important;
+    flex-wrap: nowrap;
+  }
+
+  .mausam-floating-brandbar__modes {
+    width: auto;
+  }
+
+  .mausam-mobile-layer-dock {
+    top: calc(env(safe-area-inset-top, 0px) + 58px) !important;
+    max-height: 42dvh;
+  }
+
+  .mausam-mobile-weather-sheet {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mausam-explore-stage *,
+  .mausam-floating-brandbar *,
+  .mausam-mobile-layer-dock *,
+  .mausam-mobile-weather-sheet * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
