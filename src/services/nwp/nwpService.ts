@@ -10,10 +10,11 @@ import { NWPModelDataset, NWPModelRun, ModelState } from '../../types/nwp';
 import { wrfProvider } from './wrfProvider';
 import { gefsProvider } from './gefsProvider';
 import { ecmwfProvider } from './ecmwfProvider';
-import { nwpCache } from './nwpCache';
+import { cacheService } from '../../../backend/cache/cacheService';
 
 export class NWPService {
   private static instance: NWPService;
+  private inFlight = new Map<string, Promise<NWPModelRun>>();
 
   public static getInstance(): NWPService {
     if (!NWPService.instance) {
@@ -28,26 +29,81 @@ export class NWPService {
     longitude: number,
     signal?: AbortSignal
   ): Promise<NWPModelRun> {
-    const cached = nwpCache.get(model, latitude, longitude);
-    if (cached) return cached;
+    const cacheKey = `mausam:nwp:v2:${model}:${latitude.toFixed(3)}:${longitude.toFixed(3)}`;
+    let cachedRun: NWPModelRun | null = null;
 
-    let run: NWPModelRun;
-    switch (model) {
-      case 'WRF':
-        run = await wrfProvider.getLatestRun(latitude, longitude, signal);
-        break;
-      case 'GEFS':
-        run = await gefsProvider.getLatestRun(latitude, longitude, signal);
-        break;
-      case 'ECMWF':
-        run = await ecmwfProvider.getLatestRun(latitude, longitude, signal);
-        break;
+    try {
+      const cached = await cacheService.getCached<NWPModelRun>(cacheKey);
+      if (cached.isHit && cached.data) {
+        cachedRun = cached.data;
+        if (!cached.isStale) return cached.data;
+      }
+    } catch (cacheError) {
+      // Shared-cache failures are non-fatal. Continue to the upstream model.
+      console.warn('[MAUSAM NWP] Shared cache read failed:', cacheError);
     }
 
-    if (run.status !== 'UNAVAILABLE') {
-      nwpCache.set(model, latitude, longitude, run);
+    const existing = this.inFlight.get(cacheKey);
+    if (existing) return existing;
+
+    const request = (async (): Promise<NWPModelRun> => {
+      let run: NWPModelRun;
+      try {
+        switch (model) {
+          case 'WRF':
+            run = await wrfProvider.getLatestRun(latitude, longitude, signal);
+            break;
+          case 'GEFS':
+            run = await gefsProvider.getLatestRun(latitude, longitude, signal);
+            break;
+          case 'ECMWF':
+            run = await ecmwfProvider.getLatestRun(latitude, longitude, signal);
+            break;
+          default:
+            throw new Error(`Unsupported NWP model: ${model}`);
+        }
+      } catch (error: any) {
+        if (cachedRun) {
+          return {
+            ...cachedRun,
+            status: 'STALE',
+            unavailableReason: `Latest refresh failed; showing the last verified run from ${cachedRun.fetchedAt}. ${error?.message || 'Upstream unavailable'}`,
+          };
+        }
+        throw error;
+      }
+
+      if (run.status !== 'UNAVAILABLE') {
+        try {
+          await cacheService.setCached(
+            cacheKey,
+            run,
+            'FORECAST',
+            `MAUSAM ${model} model adapter`,
+            15 * 60 * 1000
+          );
+        } catch (cacheError) {
+          console.warn('[MAUSAM NWP] Shared cache write failed:', cacheError);
+        }
+        return run;
+      }
+
+      if (cachedRun) {
+        return {
+          ...cachedRun,
+          status: 'STALE',
+          unavailableReason: `Latest model run is unavailable; showing the last verified run from ${cachedRun.fetchedAt}. ${run.unavailableReason || ''}`.trim(),
+        };
+      }
+      return run;
+    })();
+
+    this.inFlight.set(cacheKey, request);
+    try {
+      return await request;
+    } finally {
+      this.inFlight.delete(cacheKey);
     }
-    return run;
   }
 
   public async getFullDataset(
@@ -119,24 +175,61 @@ export async function fetchNWPDataset(
   locationName = 'Selected Station',
   signal?: AbortSignal
 ): Promise<NWPModelDataset> {
+  const models: NWPModelId[] = ['WRF', 'GEFS', 'ECMWF'];
+  const fetchedAt = new Date().toISOString();
+
+  const unavailable = (model: NWPModelId, reason: string): NWPModelRun => ({
+    model,
+    provider: `${model} upstream adapter`,
+    runTime: '',
+    validFrom: '',
+    validUntil: '',
+    status: 'UNAVAILABLE',
+    source: `MAUSAM ${model} model gateway`,
+    fetchedAt,
+    points: [],
+    unavailableReason: reason,
+  });
+
   try {
-    const res = await fetch(`/api/nwp?lat=${lat}&lon=${lon}&name=${encodeURIComponent(locationName)}`, {
+    const params = new URLSearchParams({
+      lat: String(lat),
+      lon: String(lon),
+      name: locationName,
+      models: models.join(','),
+    });
+    const res = await fetch(`/api/nwp?${params.toString()}`, {
       method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
       signal,
     });
 
-    if (res.ok) {
-      return (await res.json()) as NWPModelDataset;
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      const reason = payload?.error || payload?.details || `NWP gateway returned HTTP ${res.status}`;
+      return {
+        location: { latitude: lat, longitude: lon, name: locationName },
+        models: Object.fromEntries(models.map((model) => [model, unavailable(model, reason)])) as NWPModelDataset['models'],
+        fetchedAt,
+        overallStatus: 'UNAVAILABLE',
+      };
     }
-  } catch (err: any) {
-    if (err.name === 'AbortError') throw err;
-    // Fallback to client-side direct invocation if backend route is unavailable
-  }
 
-  return nwpService.getFullDataset(lat, lon, locationName, ['WRF', 'GEFS', 'ECMWF'], signal);
+    if (!payload?.models || !payload?.location) {
+      throw new Error('NWP gateway returned an invalid model dataset.');
+    }
+    return payload as NWPModelDataset;
+  } catch (error: any) {
+    if (error?.name === 'AbortError') throw error;
+    const reason = error?.message || 'NWP gateway network failure';
+    return {
+      location: { latitude: lat, longitude: lon, name: locationName },
+      models: Object.fromEntries(models.map((model) => [model, unavailable(model, reason)])) as NWPModelDataset['models'],
+      fetchedAt,
+      overallStatus: 'UNAVAILABLE',
+    };
+  }
 }
 
 export async function fetchWRF(lat: number, lon: number, signal?: AbortSignal): Promise<NWPModelRun> {
