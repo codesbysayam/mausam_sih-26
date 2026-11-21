@@ -47,7 +47,7 @@ export default async function nwpHandler(req: any, res: any) {
     const json = JSON.stringify(dataset);
     res.writeHead?.(200, {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=300, s-maxage=600',
+      'Cache-Control': 'no-store, max-age=0, must-revalidate',
       'Access-Control-Allow-Origin': '*',
       'X-NWP-Engine': 'MAUSAM-NWP-v3',
     }) || res.status?.(200);
