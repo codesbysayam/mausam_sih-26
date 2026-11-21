@@ -133,9 +133,11 @@ export function getMergedStatePoints(): SpatialRegionPoint[] {
  * Color mapping for a state data point according to the active atmospheric layer.
  */
 export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLayerId): string {
+  const neutral = '#626B66';
   switch (layer) {
     case 'conditions': {
       const t = state.temperature;
+      if (typeof t !== 'number' || !Number.isFinite(t)) return neutral;
       if (t >= 35) return '#E27B55';
       if (t >= 31) return '#D98548';
       if (t >= 27) return '#E6B96B';
@@ -144,6 +146,7 @@ export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLay
     }
     case 'wind': {
       const w = state.windSpeed;
+      if (typeof w !== 'number' || !Number.isFinite(w)) return neutral;
       if (w >= 24) return '#E6B96B';
       if (w >= 16) return '#C5A46D';
       return '#9CAF9A';
@@ -152,6 +155,7 @@ export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLay
     case 'radar':
     case 'satellite': {
       const r = state.rainfall;
+      if (typeof r !== 'number' || !Number.isFinite(r)) return neutral;
       if (r >= 25) return '#E6B96B';
       if (r >= 12) return '#78AEB6';
       if (r >= 3) return '#A7C5C5';
@@ -159,6 +163,7 @@ export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLay
     }
     case 'aqi': {
       const aqi = state.aqi;
+      if (typeof aqi !== 'number' || !Number.isFinite(aqi)) return neutral;
       if (aqi <= 50) return '#5C9A79';
       if (aqi <= 100) return '#89977B';
       if (aqi <= 150) return '#D8B14F';
@@ -167,6 +172,7 @@ export function getColorForStateLayer(state: StateWeatherData, layer: SpatialLay
     }
     case 'warnings':
     case 'cyclones': {
+      if (!state.warningLevel) return neutral;
       if (state.warningLevel === 'severe') return '#C94F4B';
       if (state.warningLevel === 'alert') return '#D98548';
       if (state.warningLevel === 'watch') return '#D8B14F';
