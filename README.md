@@ -662,9 +662,9 @@ Additional scenarios:
 
 ### Build reproducibility — required before merge
 
-The repository's current manifest and lockfile must remain synchronized. The checked-in package.json declares @google/genai as ^3.6.0, while the root dependency entry in package-lock.json declares ^2.4.0. The manifest also declares @types/three and happy-dom as development dependencies, which are absent from the lockfile's root dependency lists.
+The repository requires Node.js 22 or later because the declared @google/genai 3.x dependency requires Node >=22. CI and the deployment runtime must use Node 22+. The repository's current manifest and lockfile must remain synchronized. The checked-in package.json declares @google/genai as ^3.6.0, while the root dependency entry in package-lock.json declares ^2.4.0. The manifest also declares @types/three and happy-dom as development dependencies, which are absent from the lockfile's root dependency lists.
 
-Regenerate the lockfile using the repository's declared package.json and the same supported Node/npm toolchain used by CI:
+Regenerate the lockfile using Node 22 and npm 10 (the CI toolchain):
 
 \`\`\`bash
 npm install --package-lock-only
