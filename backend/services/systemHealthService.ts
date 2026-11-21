@@ -272,8 +272,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.OPEN_METEO.requests,
         successful_requests: this.providerMetrics.OPEN_METEO.success,
         failed_requests: this.providerMetrics.OPEN_METEO.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.4),
-        cache_misses: Math.round(cacheStats.misses * 0.4),
+        cache_hits: 0,
+        cache_misses: 0,
         error: omHealth.error || null,
         source: 'Open-Meteo Atmospheric Models (ECMWF, GFS, ICON)',
         endpoint: 'https://api.open-meteo.com/v1/forecast',
@@ -344,8 +344,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.CPCB.requests,
         successful_requests: this.providerMetrics.CPCB.success,
         failed_requests: this.providerMetrics.CPCB.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.2),
-        cache_misses: Math.round(cacheStats.misses * 0.2),
+        cache_hits: 0,
+        cache_misses: 0,
         error: cpcbHealth.configured && !cpcbHealth.operational ? cpcbHealth.error : (!cpcbHealth.configured ? 'CPCB credentials not configured' : null),
         source: cpcbHealth.configured ? 'CPCB CAAQMS Real-Time Network & NAQI Gateway' : 'Open-Meteo CAMS Air Quality (Indian NAQI Standard)',
         endpoint: cpcbHealth.configured ? 'https://app.cpcbccr.com/caaqms' : 'https://air-quality-api.open-meteo.com/v1/air-quality',
@@ -371,8 +371,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.SACHET.requests,
         successful_requests: this.providerMetrics.SACHET.success,
         failed_requests: this.providerMetrics.SACHET.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.15),
-        cache_misses: Math.round(cacheStats.misses * 0.15),
+        cache_hits: 0,
+        cache_misses: 0,
         error: sachetHealth.error || null,
         source: 'National Disaster Management Authority (NDMA) & SACHET CAP Protocol',
         endpoint: 'https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails',
@@ -408,8 +408,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.INCOIS.requests,
         successful_requests: this.providerMetrics.INCOIS.success,
         failed_requests: this.providerMetrics.INCOIS.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.1),
-        cache_misses: Math.round(cacheStats.misses * 0.1),
+        cache_hits: 0,
+        cache_misses: 0,
         error: incoisHealth.error || null,
         source: incoisHealth.configured ? 'Indian National Centre for Ocean Information Services (INCOIS)' : 'Open-Meteo Marine Data (Open Data)',
         endpoint: incoisHealth.configured ? 'https://incois.gov.in' : 'https://marine-api.open-meteo.com/v1/marine',
@@ -435,8 +435,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.RADAR.requests,
         successful_requests: this.providerMetrics.RADAR.success,
         failed_requests: this.providerMetrics.RADAR.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.15),
-        cache_misses: Math.round(cacheStats.misses * 0.15),
+        cache_hits: 0,
+        cache_misses: 0,
         error: radarHealth.error || null,
         source: 'Radar Source: RainViewer (Open Weather Maps API)',
         endpoint: 'https://api.rainviewer.com/public/weather-maps.json',
@@ -463,11 +463,11 @@ export class SystemHealthService {
         last_success: accuHealth.operational ? checkTimestamp : null,
         last_failure: accuHealth.configured && !accuHealth.operational ? checkTimestamp : null,
         last_checked: checkTimestamp,
-        requests: 1,
-        successful_requests: accuHealth.operational ? 1 : 0,
-        failed_requests: accuHealth.operational ? 0 : 1,
+        requests: this.providerMetrics.ACCUWEATHER.requests,
+        successful_requests: this.providerMetrics.ACCUWEATHER.success,
+        failed_requests: this.providerMetrics.ACCUWEATHER.failed,
         cache_hits: 0,
-        cache_misses: 1,
+        cache_misses: 0,
         error: accuHealth.error || null,
         source: 'AccuWeather Commercial & GFS Model Stream Gateway',
         endpoint: process.env.ACCUWEATHER_API_KEY ? 'https://dataservice.accuweather.com' : 'https://api.open-meteo.com/v1/forecast?models=gfs_seamless',
@@ -494,11 +494,11 @@ export class SystemHealthService {
         last_success: googleHealth.operational ? checkTimestamp : null,
         last_failure: googleHealth.configured && !googleHealth.operational ? checkTimestamp : null,
         last_checked: checkTimestamp,
-        requests: 1,
-        successful_requests: googleHealth.operational ? 1 : 0,
-        failed_requests: googleHealth.operational ? 0 : 1,
+        requests: this.providerMetrics.GOOGLE_WEATHER.requests,
+        successful_requests: this.providerMetrics.GOOGLE_WEATHER.success,
+        failed_requests: this.providerMetrics.GOOGLE_WEATHER.failed,
         cache_hits: 0,
-        cache_misses: 1,
+        cache_misses: 0,
         error: googleHealth.error || null,
         source: 'Google Maps Platform / Weather & ECMWF IFS Stream Gateway',
         endpoint: process.env.GOOGLE_WEATHER_API_KEY ? 'https://weather.googleapis.com' : 'https://api.open-meteo.com/v1/forecast?models=ecmwf_ifs025',
@@ -520,11 +520,14 @@ export class SystemHealthService {
     }
 
     const totalSources = Object.keys(providers).length;
+    const configuredCount = totalSources - notConfigured;
     const activeProviders = operational + degraded;
-    const providerAvailabilityPct = Math.round((operational / (totalSources - notConfigured)) * 1000) / 10;
+    const providerAvailabilityPct =
+      configuredCount > 0 ? Math.round((operational / configuredCount) * 1000) / 10 : 0;
 
+    const anyConfiguredFailed = degraded > 0 || unavailable > 0;
     const overallStatus: 'HEALTHY' | 'DEGRADED' | 'CRITICAL' =
-      operational >= 3 ? 'HEALTHY' : operational >= 1 ? 'DEGRADED' : 'CRITICAL';
+      operational === 0 ? 'CRITICAL' : anyConfiguredFailed ? 'DEGRADED' : 'HEALTHY';
 
     const syncTimeStr = new Date(now).toLocaleTimeString('en-IN', {
       timeZone: 'Asia/Kolkata',
@@ -676,12 +679,12 @@ export class SystemHealthService {
         provider: 'GEMINI_AI',
         name: 'Google Gemini (Mausam Assistant)',
         configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== ''),
-        reachable: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== ''),
-        status: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '') ? 'OPERATIONAL' : 'NOT_CONFIGURED',
-        lastSuccess: Boolean(process.env.GEMINI_API_KEY) ? new Date().toISOString() : null,
+        reachable: false,
+        status: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '') ? 'DEGRADED' : 'NOT_CONFIGURED',
+        lastSuccess: null,
         latency: null,
-        errorCode: !process.env.GEMINI_API_KEY ? 'NOT_CONFIGURED' : null,
-        errorMessage: !process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY not configured' : null,
+        errorCode: !process.env.GEMINI_API_KEY ? 'NOT_CONFIGURED' : 'UNPROBED',
+        errorMessage: !process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY not configured' : 'Use /api/system?mode=health for live Gemini probe verification',
         environment: env,
       },
       {

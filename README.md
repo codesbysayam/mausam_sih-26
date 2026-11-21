@@ -561,6 +561,49 @@ All optional browser `localStorage` and `sessionStorage` access is routed throug
 
 ---
 
+## Telemetry Diagnostics Gateway & Offline Service Worker Architecture
+
+### Canonical Deployed Diagnostics Endpoints (`/api/system`)
+The **Data Sources & Upstream Diagnostics** page (`src/pages/ApiDebug.tsx`) and `MultiSourceService` (`src/services/multiSourceService.ts`) communicate exclusively with the deployed `/api/system` serverless gateway rather than dev-only Express routes:
+
+| Mode | Canonical URL | Rewrite Alias | HTTP Behavior |
+|---|---|---|---|
+| **Health** | `GET /api/system?mode=health` | `GET /api/system/health` | Independent server-side probes across all 12 registered providers, shared Redis/KV probe, PostgreSQL `SELECT 1` probe, and overall summary (`HEALTHY`, `DEGRADED`, `CRITICAL`). |
+| **Providers** | `GET /api/system?mode=providers` | `GET /api/system/providers` | Returns the array of all 12 provider diagnostic records with status, HTTP code, server-measured latency, and validation errors. |
+| **Readiness** | `GET /api/system?mode=readiness` | `GET /api/system/readiness` | Probes core feeds (`openMeteo`, `sachet`, `radar`); returns HTTP `200` (`READY`/`DEGRADED`) or HTTP `503` (`NOT_READY`) if all core feeds fail. |
+
+All three endpoints enforce `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` and `Pragma: no-cache` both in `api/system.ts` and `vercel.json`, and reject non-`GET`/`OPTIONS` requests with HTTP `405`.
+
+### Independent Server-Side Probe Contract
+- **Parallel Isolation**: Every upstream provider probe runs via `Promise.allSettled` with bounded per-provider timeouts (`3500–4200 ms`) and guaranteed `clearTimeout` cleanup inside `finally`.
+- **Payload Completeness Verification**: HTTP `200` alone does not mark a provider `OPERATIONAL`. Each adapter verifies expected response structure (e.g., numeric `current.temperature_2m` for Open-Meteo, RSS/CAP XML tags for SACHET/IMD CAP, non-empty `radar.past` array for RainViewer, `image/*` content-type for OSM tiles, `models` array for Gemini, `records` array for CPCB). Malformed `200` bodies are classified as `DEGRADED`.
+- **Key Presence Is Never Proof of Availability**: Optional credentialed providers (`GEMINI_API_KEY`, `IMD_API_KEY`, `CPCB_API_KEY`, `INCOIS_API_KEY`, `ACCUWEATHER_API_KEY`, `GOOGLE_WEATHER_API_KEY`) report `NOT_CONFIGURED` when unset and execute real authenticated server-side probes when set, with secrets redacted from error diagnostics.
+- **Latency Measurement Separation**: Per-provider latencies are measured server-side (`Date.now() - startMs`) inside `api/system.ts` with zero hardcoded values. Client-side diagnostics separately report **Browser-to-Gateway RTT** (`gatewayLatencyMs`) so network transit time is never conflated with upstream provider response time.
+- **Serverless Cache & Database Truthfulness**: Serverless instances do not share process-local memory. Unless Upstash Redis / Vercel KV is configured and passes a live `PING`, cache telemetry truthfully reports `reported: false`, `provider: "NOT_REPORTED"`, and `null` counters rather than fabricating zeros or claiming `In-Memory Cache`.
+- **Gateway Reachability vs Provider Degradation**: A reachable gateway whose upstream probes detect a failing feed displays **Gateway Reachable · Providers Degraded** (`DEGRADED`) rather than falsely claiming the gateway itself is unavailable. Client requests enforce `cache: 'no-store'`, a `7000 ms` timeout, `AbortController` concurrency cancellation, and structured error reporting (`TIMEOUT`, `NETWORK_ERROR`, `HTTP_ERROR`, `MALFORMED_JSON`, `INVALID_CONTRACT`).
+
+### Service Worker Read-Only Offline Meteorological Caching (`vite-plugin-pwa`)
+MAUSAM bundles a Workbox Service Worker (`vite.config.ts`) providing read-only meteorological resilience during network outages:
+- **`NetworkOnly` (Never Cached)**: `/api/system*`, `/api/health*`, `/api/tts`, `/api/ask-mausam`, `/api/mausam/chat`, `/api/chat`, and `/api/ai/*` always bypass the service worker cache so live diagnostics and interactive AI/TTS calls never return stale snapshots.
+- **`NetworkFirst` (24-Hour Offline Fallback)**: Meteorological `GET` routes (`/api/weather*`, `/api/warnings*`, `/api/radar*`, `/api/cyclone*`, `/api/agromet*`, `/api/weather-news*`, `/api/air-quality*`, `/api/marine*`, `/api/stations*`, `/api/locations*`, `/api/proxy/*`) attempt the live network with a 5-second timeout and automatically serve the most recent cached snapshot (`mausam-meteorology-api-v1`) during outages, while `App.tsx` and `NetworkStatusBanner.tsx` label the workspace as **Read-Only Offline Mode**.
+
+### Lockfile, Test & Production Verification Commands
+```bash
+# Node 22 / npm 10 clean dependency verification
+npm install --package-lock-only
+npm ci
+npm run lint
+npx tsx --test tests/weatherContract.test.ts tests/telemetryGateway.test.ts
+npm run build
+
+# Live production telemetry gateway verification
+curl -i "https://mausamgovt.vercel.app/api/system?mode=health"
+curl -i "https://mausamgovt.vercel.app/api/system?mode=providers"
+curl -i "https://mausamgovt.vercel.app/api/system?mode=readiness"
+```
+
+---
+
 ## Production Deployment
 
 ### Building for Production

@@ -2,6 +2,8 @@
 // MAUSAM - Atmospheric Intelligence Platform
 // Data Sources & System Health Transparency Console
 // Strictly Real Telemetry, Zero Fabricated Data, Isolated ProviderStore
+// Missing provider/database/cache records display as Not Reported, never
+// false Not Configured or In-Memory Cache assumptions.
 // ====================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -13,13 +15,10 @@ import {
   Server,
   Activity,
   X,
-  CheckCircle2,
-  AlertTriangle,
   Info,
-  Key,
-  Save,
   Wrench,
   Radio,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   MultiSourceService,
@@ -37,6 +36,10 @@ import { ProviderId, ProviderState } from '../../types/providers';
 
 interface MausamDataHealthProps {
   onRefreshAll?: () => Promise<void> | void;
+  gatewayHealth?: SystemHealthResponse | null;
+  gatewayError?: string | null;
+  gatewayLoading?: boolean;
+  gatewayLatencyMs?: number | null;
   lastUpdated?: string;
   observedAt?: string;
   weatherStatus?: string;
@@ -110,77 +113,57 @@ function getToneClasses(tone: ReturnType<typeof getProviderStatusVisual>['tone']
 
 export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
   onRefreshAll,
+  gatewayHealth: externalHealth,
+  gatewayError: externalError,
+  gatewayLoading: externalLoading,
   lastUpdated,
   observedAt,
 }) => {
   const { providers, systemStatus, refreshProvider, refreshAllProviders } = useProviderStore();
 
+  const isControlled = externalHealth !== undefined || externalError !== undefined || externalLoading !== undefined;
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshingSingleId, setRefreshingSingleId] = useState<ProviderId | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [healthData, setHealthData] = useState<SystemHealthResponse | null>(null);
+  const [internalHealthData, setInternalHealthData] = useState<SystemHealthResponse | null>(null);
+  const [internalError, setInternalError] = useState<string | null>(null);
+  const [internalLoading, setInternalLoading] = useState<boolean>(!isControlled);
   const [showAttribution, setShowAttribution] = useState(false);
   const [showOptionalProviders, setShowOptionalProviders] = useState(false);
   const [selectedStoreProviderId, setSelectedStoreProviderId] = useState<ProviderId | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<DisplayProviderItem | null>(null);
-  const [configKeyInput, setConfigKeyInput] = useState('');
-  const [isSavingConfig, setIsSavingConfig] = useState(false);
-  const [configSaveResult, setConfigSaveResult] = useState<{ success: boolean; message: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const loadHealthData = async () => {
-    const data = await MultiSourceService.fetchSystemHealth();
-    if (data) {
-      setHealthData(data);
-    }
-  };
+  const healthData = isControlled ? externalHealth ?? null : internalHealthData;
+  const gatewayError = isControlled ? externalError ?? null : internalError;
+  const gatewayLoading = isControlled ? Boolean(externalLoading) : internalLoading;
 
-  const handleSaveProviderConfig = async (providerId: string, customKey?: string) => {
-    setIsSavingConfig(true);
-    setConfigSaveResult(null);
+  const loadHealthData = async () => {
+    if (isControlled) return;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setInternalLoading(true);
     try {
-      const keyToSave = customKey !== undefined ? customKey : configKeyInput.trim();
-      const res = await fetch('/api/system?mode=config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: providerId,
-          apiKey: keyToSave,
-          enabled: true,
-        }),
-      });
-      const resJson = await res.json();
-      if (res.ok && resJson.status === 'success') {
-        setConfigSaveResult({
-          success: true,
-          message: `${selectedProvider?.name || providerId} configuration updated.`,
-        });
-        setConfigKeyInput('');
-        await loadHealthData();
-        if (providerId === 'imd') {
-          await refreshProvider('IMD', undefined, true);
-        } else if (providerId === 'sachet') {
-          await refreshProvider('SACHET', undefined, true);
-        } else if (providerId === 'cpcb') {
-          await refreshProvider('AQI', undefined, true);
-        }
-      } else {
-        setConfigSaveResult({
-          success: false,
-          message: resJson.error || 'Failed to save configuration',
-        });
+      const result = await MultiSourceService.fetchGatewayHealth({ signal: controller.signal });
+      if (result.ok === true) {
+        setInternalHealthData(result.data);
+        setInternalError(null);
+      } else if ('errorCode' in result && result.errorCode !== 'ABORTED') {
+        // Do not present stale health data as live when gateway check fails
+        setInternalHealthData(null);
+        setInternalError(result.errorMessage);
       }
-    } catch (err: any) {
-      setConfigSaveResult({
-        success: false,
-        message: err.message || 'Network error updating configuration',
-      });
     } finally {
-      setIsSavingConfig(false);
+      setInternalLoading(false);
     }
   };
 
   useEffect(() => {
+    if (isControlled) return;
     loadHealthData();
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -196,16 +179,12 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       clearInterval(interval);
+      abortControllerRef.current?.abort();
     };
-  }, []);
+  }, [isControlled]);
 
   const handleRefreshClick = async () => {
     if (isRefreshing) return;
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
 
     setIsRefreshing(true);
     setStatusMessage('Syncing providers…');
@@ -213,8 +192,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
     try {
       await Promise.allSettled([
         refreshAllProviders(undefined, true),
-        loadHealthData(),
-        onRefreshAll ? Promise.resolve(onRefreshAll()) : Promise.resolve(),
+        isControlled
+          ? onRefreshAll
+            ? Promise.resolve(onRefreshAll())
+            : Promise.resolve()
+          : loadHealthData(),
       ]);
       setStatusMessage('Providers synced');
       setTimeout(() => setStatusMessage(null), 3500);
@@ -283,6 +265,13 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
       detail: provMap?.incois || null,
     },
     {
+      id: 'gemini',
+      name: 'Google Gemini AI',
+      fullName: 'Server-Side Ask MAUSAM & Neural TTS (Optional)',
+      category: 'Commercial',
+      detail: provMap?.gemini || null,
+    },
+    {
       id: 'accuweather',
       name: 'AccuWeather',
       fullName: 'AccuWeather Commercial API (Optional)',
@@ -303,10 +292,10 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
       p.id !== 'openMeteo' &&
       p.id !== 'sachet' &&
       p.id !== 'radar' &&
-      (!p.detail || !p.detail.isConfigured || p.detail.status === 'NOT_CONFIGURED')
+      (!p.detail || !p.detail.isConfigured || p.detail.status === 'NOT_CONFIGURED' || p.detail.status === 'NOT_REPORTED')
   );
 
-  const getStatusConfig = (status?: ProviderStatusCode | string) => {
+  const getStatusConfig = (status?: ProviderStatusCode | string | null) => {
     switch (status) {
       case 'OPERATIONAL':
         return { label: 'Operational', text: 'text-[var(--m-ok)]' };
@@ -314,28 +303,72 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         return { label: 'Degraded', text: 'text-[var(--m-watch)]' };
       case 'STALE':
         return { label: 'Stale (Cached)', text: 'text-[var(--m-watch)]' };
-      case 'NO_COVERAGE':
-        return { label: 'No Coverage', text: 'text-[var(--m-text-secondary)]' };
       case 'OFFLINE':
+        return { label: 'Offline', text: 'text-[var(--m-danger)]' };
       case 'UNAVAILABLE':
         return { label: 'Unavailable', text: 'text-[var(--m-danger)]' };
       case 'NOT_CONFIGURED':
-      default:
         return { label: 'Not Configured', text: 'text-[var(--m-accent)]' };
+      case 'NOT_REPORTED':
+      default:
+        return { label: 'Not Reported', text: 'text-[var(--m-text-muted)]' };
     }
   };
 
-  const dbConnected = healthData?.database?.connected;
-  const dbMode = (healthData?.database as any)?.mode === 'POSTGRESQL' ? 'PostgreSQL' : 'Embedded DB';
-  const dbLatency = healthData?.database?.latencyMs;
-  const cacheStats = healthData?.cache;
+  // Truthful Database & Cache status formatting (never fabricate In-Memory Cache or Not Configured when omitted)
+  const dbState = healthData?.database;
+  const cacheState = healthData?.cache;
 
-  const lastSyncFormatted =
-    healthData?.requests?.lastSyncTime ||
-    healthData?.summary?.lastSyncTime ||
-    lastUpdated ||
-    observedAt ||
-    'Pending';
+  const dbLabel = gatewayLoading
+    ? 'Checking…'
+    : !healthData || !dbState || !dbState.reported
+    ? 'Not reported by gateway'
+    : dbState.connected
+    ? `Connected (${dbState.provider === 'POSTGRESQL' ? 'PostgreSQL' : dbState.provider})`
+    : dbState.configured
+    ? 'Configured (Disconnected)'
+    : 'Not Configured';
+
+  const dbToneClass =
+    dbState?.reported && dbState.connected
+      ? 'text-[var(--m-ok)]'
+      : dbState?.reported && dbState.configured && !dbState.connected
+      ? 'text-[var(--m-danger)]'
+      : 'text-[var(--m-text-muted)]';
+
+  const dbLatencyLabel =
+    dbState?.reported && typeof dbState.latencyMs === 'number'
+      ? `${dbState.latencyMs} ms`
+      : 'Not reported';
+
+  const cacheEngineLabel = gatewayLoading
+    ? 'Checking…'
+    : !healthData || !cacheState || !cacheState.reported
+    ? 'Not reported by gateway'
+    : cacheState.connected
+    ? `${cacheState.provider === 'VERCEL_KV' ? 'Vercel KV' : 'Upstash Redis'} Connected`
+    : cacheState.configured
+    ? `${cacheState.provider} (Probe Failed)`
+    : 'Not Configured';
+
+  const cacheToneClass =
+    cacheState?.reported && cacheState.connected
+      ? 'text-[var(--m-ok)]'
+      : cacheState?.reported && cacheState.configured && !cacheState.connected
+      ? 'text-[var(--m-danger)]'
+      : 'text-[var(--m-text-muted)]';
+
+  const cacheHitRatioLabel =
+    cacheState?.reported && cacheState.hitRatio ? cacheState.hitRatio : 'Not reported';
+
+  const cacheEntriesLabel =
+    cacheState?.reported && typeof cacheState.totalEntries === 'number'
+      ? String(cacheState.totalEntries)
+      : 'Not reported';
+
+  const lastSyncFormatted = healthData?.timestamp
+    ? formatTimestampIST(healthData.timestamp)
+    : lastUpdated || observedAt || (gatewayError ? 'Gateway unreachable' : 'Pending');
 
   const selectedStoreDescriptor = selectedStoreProviderId
     ? PROVIDER_DESCRIPTORS[selectedStoreProviderId]
@@ -359,7 +392,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--m-text-primary)]">
-                Independent Provider Registry &amp; Feed Provenance
+                Independent Client Feed Store &amp; Telemetry Provenance
               </h2>
               <span
                 className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border uppercase ${
@@ -370,11 +403,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                     : 'bg-[var(--m-danger-soft)] border-[var(--m-danger)]/35 text-[var(--m-danger)]'
                 }`}
               >
-                System: {systemStatus}
+                Client Store: {systemStatus}
               </span>
             </div>
             <p className="text-xs text-[var(--m-text-muted)] mt-0.5 tabular-nums">
-              Isolated per-provider state · Server Sync:{' '}
+              Isolated per-provider state · Gateway Check:{' '}
               <strong className="text-[var(--m-text-primary)] font-mono">{lastSyncFormatted}</strong>
             </p>
           </div>
@@ -399,10 +432,26 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
             }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Syncing…' : 'Refresh All Providers'}</span>
+            <span>{isRefreshing ? 'Syncing…' : 'Refresh All Feeds'}</span>
           </button>
         </div>
       </div>
+
+      {gatewayError && !isControlled && (
+        <div className="rounded-lg border border-[var(--m-danger)]/35 bg-[var(--m-danger-soft)] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-start gap-2 text-[var(--m-danger)]">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span className="font-mono break-words">{gatewayError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={loadHealthData}
+            className="min-h-[36px] px-3 py-1 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] font-mono text-[11px] shrink-0 cursor-pointer"
+          >
+            Retry Gateway
+          </button>
+        </div>
+      )}
 
       {/* 2. Isolated ProviderStore Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -485,11 +534,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               <div className="flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] flex-wrap">
                 <span>OPTIONAL INSTITUTIONAL &amp; COMMERCIAL FEEDS</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--m-surface-1)] text-[var(--m-accent)] border border-[var(--m-border)]">
-                  Zero Keys Required for Core
+                  Server-Side Credentials Only
                 </span>
               </div>
               <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5">
-                Core meteorology runs without API keys. Optional credentials can be inspected below.
+                Core meteorology runs without API keys. Optional credentials are configured strictly via server environment variables.
               </p>
             </div>
             <button
@@ -513,7 +562,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
           {showOptionalProviders && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-3 pt-3 border-t border-[var(--m-border)]">
               {optionalProviders.map((p) => {
-                const badge = getStatusConfig(p.detail?.status);
+                const badge = getStatusConfig(p.detail?.status ?? 'NOT_REPORTED');
                 return (
                   <button
                     key={p.id}
@@ -547,7 +596,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         </div>
       )}
 
-      {/* 4. Backend Gateway & Cache Health Summary */}
+      {/* 4. Backend Gateway & Storage Health Summary */}
       <div
         id="mausam-system-status-panel"
         className="rounded-xl border border-[var(--m-border)] bg-[var(--m-surface-2)] p-3.5 sm:p-4 flex flex-col gap-3"
@@ -555,7 +604,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--m-text-primary)] uppercase tracking-wide">
             <Server className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-            <span>Backend Gateway &amp; Storage</span>
+            <span>Backend Gateway &amp; Storage Telemetry</span>
           </div>
           <button
             type="button"
@@ -570,43 +619,43 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs font-mono tabular-nums">
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Database</span>
-            <span className={`text-xs font-semibold ${dbConnected ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}`}>
-              {healthData ? (dbConnected ? `Connected (${dbMode})` : 'Not Configured') : 'Fetching…'}
+            <span className={`text-xs font-semibold ${dbToneClass}`}>
+              {dbLabel}
             </span>
           </div>
 
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Database Latency</span>
-            <span className={`text-xs font-semibold ${typeof dbLatency === 'number' ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}`}>
-              {typeof dbLatency === 'number' ? `${dbLatency} ms` : 'Not reported'}
+            <span className={`text-xs font-semibold ${typeof dbState?.latencyMs === 'number' ? 'text-[var(--m-ok)]' : 'text-[var(--m-text-muted)]'}`}>
+              {dbLatencyLabel}
             </span>
           </div>
 
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
-            <span className="text-[10px] text-[var(--m-text-muted)] block">Cache Engine</span>
-            <span className={`text-xs font-semibold ${cacheStats?.connected ? 'text-[var(--m-ok)]' : 'text-[var(--m-watch)]'}`}>
-              {healthData ? (cacheStats?.connected ? 'Redis Connected' : 'In-Memory Cache') : 'Fetching…'}
+            <span className="text-[10px] text-[var(--m-text-muted)] block">Shared Cache</span>
+            <span className={`text-xs font-semibold ${cacheToneClass}`}>
+              {cacheEngineLabel}
             </span>
           </div>
 
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Cache Hit Ratio</span>
-            <span className="text-xs font-semibold text-[var(--m-text-primary)]">
-              {cacheStats?.hitRatio || 'Not reported'}
+            <span className="text-xs font-semibold text-[var(--m-text-secondary)]">
+              {cacheHitRatioLabel}
             </span>
           </div>
 
           <div className="bg-[var(--m-surface-1)] p-2.5 rounded-lg border border-[var(--m-border)]">
             <span className="text-[10px] text-[var(--m-text-muted)] block">Cache Entries</span>
-            <span className="text-xs font-semibold text-[var(--m-text-primary)]">
-              {typeof cacheStats?.totalEntries === 'number' ? cacheStats.totalEntries : 'Not reported'}
+            <span className="text-xs font-semibold text-[var(--m-text-secondary)]">
+              {cacheEntriesLabel}
             </span>
           </div>
         </div>
 
         {(healthData?.buildId || healthData?.warningServiceVersion) && (
           <div className="pt-2 border-t border-[var(--m-border)] flex flex-wrap items-center justify-between gap-2 text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {healthData?.buildId && (
                 <span>
                   BUILD: <strong className="text-[var(--m-text-secondary)] font-medium">{healthData.buildId}</strong>
@@ -615,6 +664,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               {healthData?.gitCommit && (
                 <span>
                   REV: <strong className="text-[var(--m-text-secondary)] font-medium">{healthData.gitCommit}</strong>
+                </span>
+              )}
+              {healthData?.gateway?.runtime && (
+                <span>
+                  RUNTIME: <strong className="text-[var(--m-text-secondary)] font-medium">{healthData.gateway.runtime}</strong>
                 </span>
               )}
             </div>
@@ -687,7 +741,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                     <span className="font-bold text-[var(--m-text-primary)] block mt-1">
                       {typeof selectedStoreState.latencyMs === 'number'
                         ? `${selectedStoreState.latencyMs} ms`
-                        : 'Unavailable'}
+                        : 'Not reported'}
                     </span>
                   </div>
 
@@ -721,26 +775,6 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                       )}
                     </span>
                   </div>
-
-                  <div className="bg-[var(--m-surface-2)] p-3 rounded-lg border border-[var(--m-border)] sm:col-span-2">
-                    <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">
-                      Endpoint Classification
-                    </span>
-                    <span className="text-[var(--m-text-secondary)] block mt-1 font-sans">
-                      {selectedStoreState.endpointType || selectedStoreDescriptor.description}
-                    </span>
-                  </div>
-
-                  {selectedStoreState.requestId && (
-                    <div className="bg-[var(--m-surface-2)] p-3 rounded-lg border border-[var(--m-border)] sm:col-span-2">
-                      <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">
-                        Trace Request ID
-                      </span>
-                      <span className="text-[var(--m-text-muted)] block mt-1">
-                        {selectedStoreState.requestId}
-                      </span>
-                    </div>
-                  )}
 
                   {selectedStoreState.error && (
                     <div className="bg-[var(--m-danger-soft)] p-3 rounded-lg border border-[var(--m-danger)]/35 sm:col-span-2">
@@ -782,14 +816,14 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         </div>
       )}
 
-      {/* 6. Optional Gateway Configuration Modal */}
+      {/* 6. Optional Gateway Provider Inspection Modal (Read-Only, Server-Side Env Guidance) */}
       {selectedProvider && (
         <div
           className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setSelectedProvider(null)}
           role="dialog"
           aria-modal="true"
-          aria-label={`${selectedProvider.name} Gateway Config`}
+          aria-label={`${selectedProvider.name} Gateway Status`}
         >
           <div
             className="bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 text-[var(--m-text-primary)]"
@@ -810,7 +844,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedProvider(null)}
-                aria-label="Close configuration modal"
+                aria-label="Close provider status modal"
                 className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -818,13 +852,14 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
             </div>
 
             {(() => {
-              const modalStatus = selectedProvider.detail?.status || 'NOT_CONFIGURED';
+              const modalStatus: ProviderStatusCode = selectedProvider.detail?.status || 'NOT_REPORTED';
               const modalWhyReason =
                 selectedProvider.detail?.reason ||
-                (modalStatus === 'NOT_CONFIGURED'
-                  ? 'Official credentials/access are not configured on the server.'
-                  : modalStatus === 'UNAVAILABLE'
-                  ? 'Real data could not be retrieved from provider endpoint.'
+                selectedProvider.detail?.error ||
+                (modalStatus === 'NOT_REPORTED'
+                  ? 'The telemetry gateway did not return a status record for this provider.'
+                  : modalStatus === 'NOT_CONFIGURED'
+                  ? 'Official credentials are not configured in the server environment.'
                   : 'Provider gateway checked.');
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
@@ -836,10 +871,12 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                   </div>
                   <div className="bg-[var(--m-surface-2)] p-2.5 rounded-lg border border-[var(--m-border)]">
                     <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">
-                      Active Fallback
+                      Upstream Latency
                     </span>
-                    <span className="font-semibold text-[var(--m-accent)]">
-                      {selectedProvider.detail?.fallback || 'Open-Meteo / None'}
+                    <span className="font-semibold text-[var(--m-text-primary)]">
+                      {typeof selectedProvider.detail?.latency === 'number'
+                        ? `${selectedProvider.detail.latency} ms`
+                        : 'Not reported'}
                     </span>
                   </div>
                   <div className="bg-[var(--m-surface-2)] p-3 rounded-lg border border-[var(--m-border)] sm:col-span-2">
@@ -854,54 +891,17 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               );
             })()}
 
-            <div className="p-3.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex flex-col gap-2.5">
+            <div className="p-3.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex flex-col gap-2">
               <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-[var(--m-accent)]" /> Server Environment Configuration
+                <Info className="w-3.5 h-3.5 text-[var(--m-accent)]" /> Server-Side Environment Configuration
               </span>
               <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
-                Configure optional institutional keys via server environment variables ({selectedProvider.detail?.requiredKey || 'see .env.example'}).
+                Provider credentials are strictly managed server-side and never entered in the browser. Configure{' '}
+                <code className="px-1.5 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-accent)] font-mono">
+                  {selectedProvider.detail?.requiredKey || 'see .env.example'}
+                </code>{' '}
+                in your deployment environment settings and redeploy to activate live probing.
               </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[180px]">
-                  <Key className="w-3.5 h-3.5 text-[var(--m-text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="password"
-                    value={configKeyInput}
-                    onChange={(e) => setConfigKeyInput(e.target.value)}
-                    placeholder={
-                      selectedProvider.detail?.requiredKey
-                        ? `Optional server token (${selectedProvider.detail.requiredKey})`
-                        : 'Optional server token…'
-                    }
-                    className="w-full min-h-[40px] bg-[var(--m-surface-1)] border border-[var(--m-border)] rounded-lg px-2.5 py-2 pl-8 text-xs text-[var(--m-text-primary)] placeholder-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)]"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={isSavingConfig}
-                  onClick={() => handleSaveProviderConfig(selectedProvider.id)}
-                  className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-xs font-mono font-semibold text-[var(--m-on-accent)] flex items-center gap-1.5 transition-opacity disabled:opacity-50 shrink-0 cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{isSavingConfig ? 'Saving…' : 'Save'}</span>
-                </button>
-              </div>
-              {configSaveResult && (
-                <div
-                  className={`p-2 rounded-lg text-xs flex items-center gap-1.5 ${
-                    configSaveResult.success
-                      ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border border-[var(--m-ok)]/30'
-                      : 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border border-[var(--m-danger)]/35'
-                  }`}
-                >
-                  {configSaveResult.success ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                  )}
-                  <span>{configSaveResult.message}</span>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end">

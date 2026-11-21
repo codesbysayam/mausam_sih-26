@@ -33,6 +33,7 @@ import {
   RendererMode,
   useExperience,
 } from '../../context/ExperienceContext';
+import { PWAInstallButton } from '../common/PWAInstallButton';
 
 interface FloatingBrandBarProps {
   selectedLocation: LocationRecord;
@@ -398,6 +399,8 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           >
             <span className="text-[var(--m-accent)] whitespace-nowrap">Ask MAUSAM</span>
           </button>
+
+          <PWAInstallButton isExplore={isExplore} />
 
           {/* Render & Accessibility Settings Popover */}
           <div ref={settingsRef} className="relative">

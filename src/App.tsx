@@ -24,6 +24,7 @@ import { AlertCenterModal } from './components/experience/AlertCenterModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useAlertAudio } from './hooks/useAlertAudio';
+import { registerOfflineServiceWorker, refreshCachedMeteorologyCount } from './services/offlineCacheService';
 import { Volume2, AlertTriangle, X } from 'lucide-react';
 import './styles/mausam.css';
 
@@ -169,6 +170,11 @@ export default function App() {
     };
   }, []);
 
+  // Register Workbox Service Worker for read-only offline meteorological caching
+  useEffect(() => {
+    registerOfflineServiceWorker().catch(() => {});
+  }, []);
+
   const { isAudioAlertEnabled } = useAlertAudio({
     warnings: weatherBundle.alerts,
     onNewAlertTriggered: () => {
@@ -257,15 +263,35 @@ export default function App() {
         trends: Array.isArray(bundle.trends) ? bundle.trends : [],
         alerts: Array.isArray(bundle.alerts) ? bundle.alerts : [],
       });
+      refreshCachedMeteorologyCount().catch(() => {});
     } catch (err) {
       if (requestId !== weatherRequestIdRef.current) return;
-      console.warn('Weather sync error, marking telemetry unavailable:', err);
-      setWeatherBundle(
-        weatherService.createUnavailableBundle(
+      console.warn('Weather sync error, preserving cached telemetry if available:', err);
+      setWeatherBundle((prev) => {
+        const hasValidCachedForLocation =
+          prev.current.temp !== null &&
+          prev.current.observationStatus !== 'UNAVAILABLE' &&
+          prev.current.stationName &&
+          (prev.current.stationName.toLowerCase().includes((location.city || location.displayName || '').toLowerCase().split(',')[0].trim()) ||
+            typeof navigator !== 'undefined' && navigator.onLine === false);
+
+        if (hasValidCachedForLocation) {
+          return {
+            ...prev,
+            isLive: false,
+            current: {
+              ...prev.current,
+              observationStatus: 'STALE',
+              source: `${prev.current.source || 'Cached Telemetry'} (Offline Read-Only)`,
+            },
+          };
+        }
+
+        return weatherService.createUnavailableBundle(
           location,
           err instanceof Error ? err.message : 'Unable to reach meteorological telemetry service.'
-        )
-      );
+        );
+      });
     } finally {
       if (requestId === weatherRequestIdRef.current) {
         setIsLoadingWeather(false);

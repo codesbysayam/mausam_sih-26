@@ -108,14 +108,14 @@ export const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
           </div>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
             <span className="font-bold text-[var(--m-text-primary)] tracking-wide">
-              {t('offlineTelemetryActive', 'Offline Mode Active')}
+              {t('offlineTelemetryActive', 'Read-Only Offline Mode')}
             </span>
             <span className="text-[var(--m-text-secondary)] text-[11px] flex items-center gap-1">
               <Database className="w-3 h-3 text-[var(--m-watch)]" />
-              {t('servingCachedBundle', 'Operating on local telemetry cache')}
+              {t('servingCachedBundle', 'Serving cached meteorological data from local service worker storage')}
               {formattedLastSync && (
                 <span className="font-mono text-[var(--m-watch)] font-medium tabular-nums">
-                  ({formattedLastSync})
+                  (Last synced {formattedLastSync})
                 </span>
               )}
             </span>

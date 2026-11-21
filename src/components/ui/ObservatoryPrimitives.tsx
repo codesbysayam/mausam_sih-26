@@ -11,6 +11,7 @@ import {
 
 export type ProvenanceStatus =
   | 'LIVE'
+  | 'DEGRADED'
   | 'RECENT'
   | 'STALE'
   | 'UNAVAILABLE'
@@ -36,6 +37,11 @@ const STATUS_META: Record<
     label: 'LIVE FEED',
     containerClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/30',
     Icon: CheckCircle2,
+  },
+  DEGRADED: {
+    label: 'DEGRADED',
+    containerClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
+    Icon: AlertTriangle,
   },
   OBSERVED: {
     label: 'OBSERVED',

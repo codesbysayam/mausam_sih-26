@@ -35,14 +35,14 @@ export interface DatabaseStatus {
 export class DatabaseService {
   private static instance: DatabaseService;
   private pool: pg.Pool | null = null;
-  private isConfigured = true;
-  private isConnected = true;
-  private providerType: 'POSTGRESQL' | 'LOCAL_EMBEDDED' = 'LOCAL_EMBEDDED';
-  private lastLatencyMs: number | null = 1;
+  private isConfigured = false;
+  private isConnected = false;
+  private providerType: 'POSTGRESQL' | 'NOT_CONFIGURED' = 'NOT_CONFIGURED';
+  private lastLatencyMs: number | null = null;
   private lastError: string | null = null;
   private migrationRan = false;
 
-  // Embedded local memory & persistence store
+  // Embedded local memory & persistence store (non-persistent fallback cache)
   private localStore = {
     locations: new Map<string, GeoLocation>(),
     weather: new Map<string, NormalizedWeather>(),
@@ -66,26 +66,30 @@ export class DatabaseService {
   }
 
   private initialize(): void {
-    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    const connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim();
 
     if (!connectionString) {
-      this.isConfigured = true;
-      this.isConnected = true;
-      this.providerType = 'LOCAL_EMBEDDED';
-      this.lastLatencyMs = 1;
-      console.log('[Mausam DB] Running with High-Performance Local Embedded Database (Operational).');
+      this.isConfigured = false;
+      this.isConnected = false;
+      this.providerType = 'NOT_CONFIGURED';
+      this.lastLatencyMs = null;
       return;
     }
 
     try {
       this.isConfigured = true;
       this.providerType = 'POSTGRESQL';
+      const disableSsl =
+        connectionString.includes('localhost') ||
+        connectionString.includes('127.0.0.1') ||
+        connectionString.includes('sslmode=disable');
+
       this.pool = new Pool({
         connectionString,
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 5000,
-        ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
+        ssl: disableSsl ? false : { rejectUnauthorized: false },
       });
 
       this.pool.on('error', (err) => {
@@ -106,8 +110,9 @@ export class DatabaseService {
   private async testAndMigrate(): Promise<void> {
     if (!this.pool) return;
     const start = Date.now();
+    let client: pg.PoolClient | null = null;
     try {
-      const client = await this.pool.connect();
+      client = await this.pool.connect();
       await client.query('SELECT 1');
       this.lastLatencyMs = Date.now() - start;
       this.isConnected = true;
@@ -118,13 +123,16 @@ export class DatabaseService {
         this.migrationRan = true;
       }
 
-      client.release();
       console.log(`[Mausam DB] PostgreSQL connected successfully (${this.lastLatencyMs}ms) and schemas verified.`);
     } catch (err: any) {
       this.lastLatencyMs = null;
       this.isConnected = false;
       this.lastError = err.message;
       console.warn('[Mausam DB] PostgreSQL connection test failed:', err.message);
+    } finally {
+      if (client) {
+        client.release();
+      }
     }
   }
 
@@ -133,20 +141,19 @@ export class DatabaseService {
 
     if (!this.pool) {
       return {
-        configured: true,
-        connected: true,
-        provider: 'LOCAL_EMBEDDED',
-        latencyMs: 1,
-        poolSize: 1,
+        configured: false,
+        connected: false,
+        provider: 'NOT_CONFIGURED',
+        latencyMs: null,
         lastChecked: now,
       };
     }
 
     const start = Date.now();
+    let client: pg.PoolClient | null = null;
     try {
-      const client = await this.pool.connect();
+      client = await this.pool.connect();
       await client.query('SELECT 1');
-      client.release();
       this.lastLatencyMs = Date.now() - start;
       this.isConnected = true;
 
@@ -169,6 +176,18 @@ export class DatabaseService {
         error: err.message,
         lastChecked: now,
       };
+    } finally {
+      if (client) {
+        client.release();
+      }
+    }
+  }
+
+  public async close(): Promise<void> {
+    if (this.pool) {
+      await this.pool.end().catch(() => {});
+      this.pool = null;
+      this.isConnected = false;
     }
   }
 

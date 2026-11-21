@@ -110,10 +110,11 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: '1mb' }));
 
   // API Routes
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
@@ -611,13 +612,14 @@ Source: ${resolvedSource}`,
       });
     } catch (error: any) {
       console.error('Error in /api/ask-mausam:', error);
-      const errSource = (req.body.metadata?.source) || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
+      const body = req.body && typeof req.body === 'object' ? req.body : {};
+      const errSource = (body.metadata?.source) || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
       const fallbackText = `MAUSAM Atmospheric Intelligence
 
-Location: ${req.body.station?.district || req.body.station?.name || 'India'} (${req.body.station?.state || 'National'})
-Observation: ${req.body.weatherContext?.temp ?? '—'}°C — ${req.body.weatherContext?.condition ?? 'Condition Unavailable'}
-Humidity: ${req.body.weatherContext?.humidity ?? '—'}% | Wind: ${req.body.weatherContext?.windSpeed ?? '—'} km/h
-Air Quality Index: ${req.body.weatherContext?.aqi ?? '—'} (${req.body.weatherContext?.aqiStatus ?? 'Unavailable'})
+Location: ${body.station?.district || body.station?.name || 'India'} (${body.station?.state || 'National'})
+Observation: ${body.weatherContext?.temp ?? '—'}°C — ${body.weatherContext?.condition ?? 'Condition Unavailable'}
+Humidity: ${body.weatherContext?.humidity ?? '—'}% | Wind: ${body.weatherContext?.windSpeed ?? '—'} km/h
+Air Quality Index: ${body.weatherContext?.aqi ?? '—'} (${body.weatherContext?.aqiStatus ?? 'Unavailable'})
 
 Advisory: Monitor live operational feeds when telemetry recovers.
 
@@ -638,7 +640,7 @@ Source: ${errSource}`;
 
   // Dedicated Google Search Grounding endpoint with quota fallback
   app.post('/api/ai/search-grounded-bulletin', async (req, res) => {
-    const { query, state, district } = req.body;
+    const { query, state, district } = (req.body && typeof req.body === 'object' ? req.body : {}) as any;
     const fallbackBulletin = `Latest Official IMD Guidance for ${district ? district + ', ' : ''}${state || 'India'}:
 Synoptic atmospheric conditions are normal across the meteorological sub-division. Rainfall probabilities align with seasonal diurnal trends. Local surface observations from Automatic Weather Stations (AWS) report stable barometer and temperature. Farmers and citizens are advised to follow daily district agromet advisories.`;
 
@@ -696,7 +698,7 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
 
   // Dedicated Google Maps Grounding endpoint for nearby radar / observatory finding
   app.post('/api/ai/maps-grounded-places', async (req, res) => {
-    const { query, lat, lng, locationName } = req.body;
+    const { query, lat, lng, locationName } = (req.body && typeof req.body === 'object' ? req.body : {}) as any;
     const numLat = typeof lat === 'number' ? lat : Number(lat);
     const numLng = typeof lng === 'number' ? lng : Number(lng);
     const hasValidCoords =
@@ -781,38 +783,51 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
   const proxyCache = new Map<string, { data: any; expiresAt: number; savedAt: number }>();
   const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes fresh
   const STALE_TTL_MS = 60 * 60 * 1000; // 60 minutes stale tolerance
+  const PROXY_CACHE_MAX = 200;
+
+  const setProxyCache = (key: string, data: any, now: number) => {
+    if (proxyCache.size >= PROXY_CACHE_MAX) {
+      const oldestKey = proxyCache.keys().next().value;
+      if (oldestKey !== undefined) proxyCache.delete(oldestKey);
+    }
+    proxyCache.set(key, { data, expiresAt: now + CACHE_TTL_MS, savedAt: now });
+  };
 
   app.get('/api/proxy/open-meteo', async (req, res) => {
+    const lat = Number(req.query.latitude);
+    const lon = Number(req.query.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Valid latitude [-90,90] and longitude [-180,180] are required.' });
+    }
+
     const queryString = new URLSearchParams(req.query as any).toString();
     const cacheKey = `meteo:${queryString}`;
     const now = Date.now();
     const cached = proxyCache.get(cacheKey);
 
-    // Return fresh cache if available
     if (cached && now < cached.expiresAt) {
       res.setHeader('X-Mausam-Cache', 'HIT');
+      res.setHeader('Cache-Control', 'public, max-age=300');
       return res.json(cached.data);
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
     try {
       const targetUrl = `https://api.open-meteo.com/v1/forecast?${queryString}`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000); // 6s network timeout
-
       const response = await fetch(targetUrl, {
         signal: controller.signal,
-        headers: { 'User-Agent': 'Mausam-Intelligence-Proxy/1.0' }
+        headers: { 'User-Agent': 'Mausam-Intelligence-Proxy/1.0' },
       });
-      clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json();
-        proxyCache.set(cacheKey, { data, expiresAt: now + CACHE_TTL_MS, savedAt: now });
+        setProxyCache(cacheKey, data, now);
         res.setHeader('X-Mausam-Cache', 'MISS');
+        res.setHeader('Cache-Control', 'public, max-age=300');
         return res.json(data);
       }
 
-      // Upstream failed or rate-limited (e.g. 429 on college Wi-Fi)
       if (cached && now - cached.savedAt < STALE_TTL_MS) {
         console.warn(`[Open-Meteo Proxy] Upstream HTTP ${response.status}. Serving stale cache.`);
         res.setHeader('X-Mausam-Cache', 'STALE');
@@ -827,10 +842,18 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
         return res.json(cached.data);
       }
       return res.status(502).json({ error: err?.message || 'Proxy upstream fetch failed' });
+    } finally {
+      clearTimeout(timeout);
     }
   });
 
   app.get('/api/proxy/air-quality', async (req, res) => {
+    const lat = Number(req.query.latitude);
+    const lon = Number(req.query.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Valid latitude [-90,90] and longitude [-180,180] are required.' });
+    }
+
     const queryString = new URLSearchParams(req.query as any).toString();
     const cacheKey = `aqi:${queryString}`;
     const now = Date.now();
@@ -838,24 +861,24 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
 
     if (cached && now < cached.expiresAt) {
       res.setHeader('X-Mausam-Cache', 'HIT');
+      res.setHeader('Cache-Control', 'public, max-age=300');
       return res.json(cached.data);
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
     try {
       const targetUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${queryString}`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-
       const response = await fetch(targetUrl, {
         signal: controller.signal,
-        headers: { 'User-Agent': 'Mausam-Intelligence-Proxy/1.0' }
+        headers: { 'User-Agent': 'Mausam-Intelligence-Proxy/1.0' },
       });
-      clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json();
-        proxyCache.set(cacheKey, { data, expiresAt: now + CACHE_TTL_MS, savedAt: now });
+        setProxyCache(cacheKey, data, now);
         res.setHeader('X-Mausam-Cache', 'MISS');
+        res.setHeader('Cache-Control', 'public, max-age=300');
         return res.json(data);
       }
 
@@ -872,6 +895,8 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
         return res.json(cached.data);
       }
       return res.status(502).json({ error: err?.message || 'Proxy upstream fetch failed' });
+    } finally {
+      clearTimeout(timeout);
     }
   });
 
@@ -1066,6 +1091,7 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
       server: {
         middlewareMode: true,
         hmr: !isHmrDisabled,
+        ...(isHmrDisabled ? { ws: false as const } : {}),
         allowedHosts: true,
       },
       appType: 'spa',
@@ -1073,7 +1099,17 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        if (
+          filePath.endsWith('sw.js') ||
+          filePath.endsWith('registerSW.js') ||
+          filePath.endsWith('manifest.webmanifest')
+        ) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+      },
+    }));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
@@ -1090,10 +1126,19 @@ Synoptic atmospheric conditions are normal across the meteorological sub-divisio
   server.headersTimeout = 66000;
 
   const shutdown = () => {
-    server.close(() => {
+    server.close(async () => {
+      try {
+        const [{ weatherDatabase }, { dbService }] = await Promise.all([
+          import('./server/database/db'),
+          import('./backend/database/db'),
+        ]);
+        await Promise.allSettled([weatherDatabase.close(), dbService.close()]);
+      } catch {
+        // ignore shutdown close errors
+      }
       process.exit(0);
     });
-    setTimeout(() => process.exit(0), 1500).unref();
+    setTimeout(() => process.exit(0), 2000).unref();
   };
 
   process.on('SIGTERM', shutdown);
