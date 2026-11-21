@@ -81,7 +81,8 @@ async function safeProbe(
   category: string,
   url: string,
   isConfigured: boolean,
-  timeoutMs = 4000
+  timeoutMs = 4000,
+  extraHeaders: Record<string, string> = {}
 ): Promise<ProviderDiagnostic> {
   if (!isConfigured) {
     return {
@@ -96,20 +97,20 @@ async function safeProbe(
   }
 
   const start = Date.now();
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+  try {
     const res = await fetch(url, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36 MausamGovt/1.4',
+        'User-Agent': 'MAUSAM-Health-Check/1.0',
         Accept: '*/*',
+        ...extraHeaders,
       },
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
     const latencyMs = Math.round(Date.now() - start);
 
     if (res.ok || res.status === 304) {
@@ -143,17 +144,20 @@ async function safeProbe(
       operational: false,
       status: 'OFFLINE',
       latencyMs: Math.round(Date.now() - start),
-      error: err?.message || 'Connection timeout or network failure',
+      error: err?.name === 'AbortError'
+        ? `Probe timed out after ${timeoutMs}ms`
+        : (err?.message || 'Connection or network failure'),
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
 async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
-  const geminiConfigured = !!process.env.GEMINI_API_KEY;
-  const imdConfigured = !!process.env.IMD_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const cpcbConfigured = !!process.env.CPCB_API_KEY;
 
-  const [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe] = await Promise.all([
+  const [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe, gemini] = await Promise.all([
     safeProbe(
       'openMeteo',
       'Open-Meteo Weather API',
@@ -202,36 +206,50 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
       true,
       4500
     ),
+    geminiKey
+      ? safeProbe(
+          'gemini',
+          'Google Gemini API',
+          'AI_ASSISTANT',
+          'https://generativelanguage.googleapis.com/v1beta/models',
+          true,
+          4500,
+          { 'x-goog-api-key': geminiKey }
+        )
+      : Promise.resolve({
+          id: 'gemini',
+          name: 'Google Gemini API',
+          category: 'AI_ASSISTANT',
+          configured: false,
+          operational: false,
+          status: 'NOT_CONFIGURED' as const,
+          latencyMs: null,
+        }),
   ]);
 
-  const gemini: ProviderDiagnostic = {
-    id: 'gemini',
-    name: 'Google Gemini Meteorological Assistant',
-    category: 'AI_ASSISTANT',
-    configured: geminiConfigured,
-    operational: geminiConfigured,
-    status: geminiConfigured ? 'OPERATIONAL' : 'NOT_CONFIGURED',
-    latencyMs: geminiConfigured ? 150 : null,
-  };
-
+  // The IMD status below is based on a real official CAP feed probe, not
+  // merely the presence of an API key.
   const imd: ProviderDiagnostic = {
+    ...imdCapProbe,
     id: 'imd',
-    name: 'India Meteorological Department Gateway',
-    category: 'GOVERNMENT_MET',
-    configured: imdConfigured,
-    operational: imdConfigured,
-    status: imdConfigured ? 'OPERATIONAL' : 'NOT_CONFIGURED',
-    latencyMs: null,
+    name: 'IMD Official CAP Warning Feed',
+    category: 'GOVERNMENT_WARNINGS',
   };
 
+  // A configured CPCB key is not proof that the CAAQMS API is reachable.
+  // Until a supported authenticated health endpoint is available, report
+  // configured-but-unverified as DEGRADED rather than falsely OPERATIONAL.
   const cpcb: ProviderDiagnostic = {
     id: 'cpcb',
-    name: 'Central Pollution Control Board',
+    name: 'Central Pollution Control Board CAAQMS',
     category: 'AIR_QUALITY',
     configured: cpcbConfigured,
-    operational: cpcbConfigured,
-    status: cpcbConfigured ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+    operational: false,
+    status: cpcbConfigured ? 'DEGRADED' : 'NOT_CONFIGURED',
     latencyMs: null,
+    error: cpcbConfigured
+      ? 'Credentials are present, but this deployment has no verified CPCB health probe.'
+      : null,
   };
 
   return [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe, gemini, imd, cpcb];
@@ -288,7 +306,7 @@ export default async function handler(req: any, res: any) {
       case 'providers': {
         const result = await checkAllProviders();
         return sendJson(res, 200, result, {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=180',
+          'Cache-Control': 'no-store, max-age=0, must-revalidate',
         });
       }
 
