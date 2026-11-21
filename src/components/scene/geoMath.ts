@@ -111,7 +111,7 @@ export interface SpatialRegionPoint {
  * Joins the 36 live-schema StateWeatherData records with verified coordinates from indiaRegions.ts.
  */
 export function getMergedStatePoints(): SpatialRegionPoint[] {
-  return INDIA_WEATHER_DATA.map((state) => {
+  return INDIA_WEATHER_DATA.flatMap((state) => {
     const norm = state.name.toLowerCase().trim();
     const region = INDIA_STATES_UTS.find(
       (r) =>
@@ -120,12 +120,19 @@ export function getMergedStatePoints(): SpatialRegionPoint[] {
         norm.includes(r.name.toLowerCase()) ||
         (state.city && r.representativeCity.toLowerCase() === state.city.toLowerCase())
     );
-    return {
+
+    // A missing geographic match is a registry issue, not permission to
+    // place the marker at an arbitrary central-India coordinate.
+    if (!region || !Number.isFinite(region.latitude) || !Number.isFinite(region.longitude)) {
+      return [];
+    }
+
+    return [{
       state,
-      lat: region?.latitude ?? 22.5,
-      lng: region?.longitude ?? 78.9,
-      code: region?.code ?? state.id.replace('IN-', ''),
-    };
+      lat: region.latitude,
+      lng: region.longitude,
+      code: region.code,
+    }];
   });
 }
 
