@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Database, Server, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { RefreshCw, Server, Clock, AlertTriangle, CheckCircle, Activity, Info } from 'lucide-react';
 import { imdService } from '../services/imdService';
 import { MausamDataHealth } from '../components/common/MausamDataHealth';
 import { WeatherConditionTestBench } from '../components/dev/WeatherConditionTestBench';
@@ -13,17 +13,63 @@ import {
 export const ApiDebugPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [gatewayError, setGatewayError] = useState<string | null>(null);
+  const [gatewayLatencyMs, setGatewayLatencyMs] = useState<number | null>(null);
   const [testResults, setTestResults] = useState<Record<string, any>>({});
   const [testingEndpoint, setTestingEndpoint] = useState<string | null>(null);
 
+  // Use the Vercel-deployed serverless health gateway. The old
+  // /api/imd/debug/stats route exists in the Express development server,
+  // but is not deployed as an individual Vercel function.
   const fetchStats = async () => {
     setLoading(true);
+    const controller = new AbortController();
+    const startedAt = performance.now();
+    const timeoutId = window.setTimeout(() => controller.abort(), 7000);
+
     try {
-      const res = await imdService.getDebugStats();
-      setStats(res?.stats || null);
-    } catch (e: any) {
-      console.error('Debug stats fetch error:', e);
+      const response = await fetch('/api/system?mode=health', {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || payload?.message || `Health gateway returned HTTP ${response.status}`
+        );
+      }
+
+      if (
+        !payload ||
+        !payload.summary ||
+        typeof payload.summary.totalProviders !== 'number' ||
+        typeof payload.summary.operational !== 'number' ||
+        !payload.providers ||
+        typeof payload.providers !== 'object'
+      ) {
+        throw new Error('Health gateway returned an invalid diagnostics payload.');
+      }
+
+      setStats(payload);
+      setGatewayError(null);
+      setGatewayLatencyMs(Math.round(performance.now() - startedAt));
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.name === 'AbortError'
+            ? 'The health gateway timed out after 7 seconds.'
+            : error.message
+          : 'Unknown gateway connection failure';
+
+      setStats(null);
+      setGatewayError(message);
+      setGatewayLatencyMs(null);
+      console.error('[MAUSAM Diagnostics] Health gateway request failed:', error);
     } finally {
+      window.clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -88,9 +134,26 @@ export const ApiDebugPage: React.FC = () => {
       <PageHeader
         eyebrow="Provider Registry & Telemetry Diagnostics"
         title="Data Sources & Upstream Diagnostics"
-        description="Independent per-provider availability, measured upstream latency, server cache ratios, and live gateway endpoint verification."
-        status={loading ? 'LOADING' : stats ? 'LIVE' : 'UNAVAILABLE'}
-        source="MAUSAM Multi-Source Telemetry Gateway"
+        description="Live serverless gateway verification, independent upstream provider health, and measured response latency. Cache and request counters are displayed only when the deployed backend reports them."
+        status={
+          loading
+            ? 'LOADING'
+            : !stats
+            ? 'UNAVAILABLE'
+            : stats.status === 'HEALTHY'
+            ? 'LIVE'
+            : 'STALE'
+        }
+        statusLabel={
+          loading
+            ? 'CHECKING GATEWAY'
+            : !stats
+            ? 'GATEWAY UNREACHABLE'
+            : stats.status === 'HEALTHY'
+            ? 'GATEWAY HEALTHY'
+            : 'GATEWAY DEGRADED'
+        }
+        source="MAUSAM Serverless Health Gateway · /api/system?mode=health"
         actions={
           <button
             type="button"
@@ -104,103 +167,61 @@ export const ApiDebugPage: React.FC = () => {
         }
       />
 
-      {/* Independent Provider Store & System Health Console */}
-      <MausamDataHealth onRefreshAll={fetchStats} />
-
-      {/* Cache & Deduplication Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 tabular-nums">
-        <DataPanel className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
-              Cache Hits
-            </span>
-            <Database className="w-4 h-4 text-[var(--m-ok)]" />
-          </div>
-          <MetricValue
-            label="Memory Returns"
-            value={typeof stats?.hits === 'number' ? stats.hits : null}
-            hint="Served from server cache"
-            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
-          />
-        </DataPanel>
-
-        <DataPanel className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
-              Cache Misses
-            </span>
-            <Server className="w-4 h-4 text-[var(--m-accent)]" />
-          </div>
-          <MetricValue
-            label="Upstream Fetches"
-            value={typeof stats?.misses === 'number' ? stats.misses : null}
-            hint="Dispatched to providers"
-            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
-          />
-        </DataPanel>
-
-        <DataPanel className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
-              Deduplicated Calls
-            </span>
-            <Clock className="w-4 h-4 text-[var(--m-accent)]" />
-          </div>
-          <MetricValue
-            label="In-Flight Reuse"
-            value={typeof stats?.dedupes === 'number' ? stats.dedupes : null}
-            hint="Coalesced concurrent queries"
-            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
-          />
-        </DataPanel>
-
-        <DataPanel className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
-              Stale Serves
-            </span>
-            <AlertTriangle className="w-4 h-4 text-[var(--m-watch)]" />
-          </div>
-          <MetricValue
-            label="Graceful Degrades"
-            value={typeof stats?.staleServes === 'number' ? stats.staleServes : null}
-            hint="Cached fallback on upstream delay"
-            unavailableLabel={loading ? 'Syncing…' : 'Not reported'}
-          />
-        </DataPanel>
-      </div>
-
-      {/* Active Cache Entries */}
-      {stats?.entries && stats.entries.length > 0 && (
-        <DataPanel className="p-0 overflow-hidden tabular-nums">
-          <div className="p-4 bg-[var(--m-surface-2)] border-b border-[var(--m-border)] font-mono text-sm font-semibold text-[var(--m-text-primary)] flex justify-between items-center">
-            <span>In-Memory Cache Registry ({stats.entries.length} entries)</span>
-            <span className="text-xs text-[var(--m-text-muted)] font-normal">TTL: 60s – 300s</span>
-          </div>
-          <div className="divide-y divide-[var(--m-border)] max-h-60 overflow-y-auto">
-            {stats.entries.map((entry: any, i: number) => (
-              <div
-                key={i}
-                className="p-3.5 text-xs font-mono flex items-center justify-between hover:bg-[var(--m-surface-2)] gap-3"
-              >
-                <span className="font-semibold text-[var(--m-text-secondary)] truncate">{entry.key}</span>
-                <div className="flex items-center gap-4 text-[var(--m-text-muted)] shrink-0">
-                  <span>Hits: {entry.hitCount}</span>
-                  <span
-                    className={
-                      entry.isExpired
-                        ? 'text-[var(--m-watch)] font-bold'
-                        : 'text-[var(--m-ok)] font-bold'
-                    }
-                  >
-                    {entry.isExpired ? 'STALE' : `Expires in ${entry.expiresInSec}s`}
-                  </span>
-                </div>
+      {gatewayError && (
+        <DataPanel className="border border-[var(--m-danger)]/35">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <AlertTriangle className="w-5 h-5 text-[var(--m-danger)] shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[var(--m-text-primary)]">Gateway health check failed</p>
+                <p className="text-xs text-[var(--m-text-secondary)] mt-1 break-words">{gatewayError}</p>
+                <p className="text-[11px] text-[var(--m-text-muted)] mt-1 font-mono">GET /api/system?mode=health</p>
               </div>
-            ))}
+            </div>
+            <button type="button" onClick={fetchStats} disabled={loading} className="min-h-[40px] px-3 py-2 rounded-lg border border-[var(--m-border-strong)] text-xs font-semibold disabled:opacity-50">
+              Retry gateway
+            </button>
           </div>
         </DataPanel>
       )}
+
+      {/* Independent Provider Store & System Health Console */}
+      <MausamDataHealth onRefreshAll={fetchStats} />
+
+      {/* Metrics sourced from the deployed health response only. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 tabular-nums">
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">Operational Providers</span>
+            <CheckCircle className="w-4 h-4 text-[var(--m-ok)]" />
+          </div>
+          <MetricValue label="Verified upstreams" value={typeof stats?.summary?.operational === 'number' ? stats.summary.operational : null} hint="Successful live health probes" unavailableLabel={loading ? 'Checking…' : 'Not reported'} />
+        </DataPanel>
+
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">Unavailable Providers</span>
+            <AlertTriangle className="w-4 h-4 text-[var(--m-danger)]" />
+          </div>
+          <MetricValue label="Failed or degraded probes" value={typeof stats?.summary?.totalProviders === 'number' && typeof stats?.summary?.operational === 'number' && typeof stats?.summary?.notConfigured === 'number' ? Math.max(0, stats.summary.totalProviders - stats.summary.operational - stats.summary.notConfigured) : null} hint="Configured providers not responding" unavailableLabel={loading ? 'Checking…' : 'Not reported'} />
+        </DataPanel>
+
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">Not Configured</span>
+            <Info className="w-4 h-4 text-[var(--m-accent)]" />
+          </div>
+          <MetricValue label="Optional integrations" value={typeof stats?.summary?.notConfigured === 'number' ? stats.summary.notConfigured : null} hint="Credentials or integration not configured" unavailableLabel={loading ? 'Checking…' : 'Not reported'} />
+        </DataPanel>
+
+        <DataPanel className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">Gateway Response</span>
+            <Clock className="w-4 h-4 text-[var(--m-accent)]" />
+          </div>
+          <MetricValue label="Browser-to-gateway round trip" value={gatewayLatencyMs} unit="ms" hint="Measured for this health request" unavailableLabel={loading ? 'Measuring…' : 'Not measured'} />
+        </DataPanel>
+      </div>
 
       {/* Interactive Weather Condition & Animation System Test Bench */}
       <WeatherConditionTestBench />
