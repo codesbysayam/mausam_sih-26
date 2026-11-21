@@ -150,6 +150,7 @@ export class MultiSourceService {
         timeoutMs: 7000,
         ttlMs: 0,
         skipCache: true,
+        allowStaleOnError: false,
       });
 
       if (
