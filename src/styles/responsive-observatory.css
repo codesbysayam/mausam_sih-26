@@ -319,7 +319,7 @@ button {
 /* Short-height laptops, split-screen windows and landscape tablets. */
 @media (max-height: 760px) and (min-width: 768px) {
   :root {
-    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 94px);
+    --mausam-explore-overlay-top: calc(var(--mausam-safe-top) + 108px);
   }
 
   #mausam-explore-workspace aside[aria-label="Atmospheric Layers and Stations"],
