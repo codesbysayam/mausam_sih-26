@@ -97,8 +97,8 @@ function createDefaultProviderState<T = unknown>(id: ProviderId): ProviderState<
 }
 
 function readCachedProviderState(id: ProviderId): ProviderState | null {
-  if (typeof window === 'undefined' || !window.sessionStorage) return null;
   try {
+    if (typeof window === 'undefined') return null;
     const raw = window.sessionStorage.getItem(PROVIDER_DESCRIPTORS[id].cacheKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProviderState & { _cachedAt?: number };
@@ -125,9 +125,8 @@ function readCachedProviderState(id: ProviderId): ProviderState | null {
 }
 
 function writeCachedProviderState(id: ProviderId, state: ProviderState): void {
-  if (typeof window === 'undefined' || !window.sessionStorage) return;
   try {
-    if (state.status === 'LOADING') return;
+    if (typeof window === 'undefined' || state.status === 'LOADING') return;
     const payload = {
       ...state,
       _cachedAt: Date.now(),
