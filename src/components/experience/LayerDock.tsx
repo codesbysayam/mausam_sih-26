@@ -123,11 +123,11 @@ export const LayerDock: React.FC = () => {
       warningMessage: pt.state.warningMessage,
       source: pt.state.dataSource,
       metrics: [
-        { label: 'Temperature', value: `${pt.state.temperature}°C` },
-        { label: 'Wind', value: `${pt.state.windSpeed} km/h ${pt.state.windDir}` },
-        { label: 'Rainfall', value: `${pt.state.rainfall} mm` },
-        { label: 'Humidity', value: `${pt.state.humidity}%` },
-        { label: 'AQI', value: `${pt.state.aqi}` },
+        { label: 'Temperature', value: `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${typeof pt.state.temperature === 'number' ? `${pt.state.temperature}°C` : '—'}` : '—'}` : '—'}` : '—'}` : '—'}` : '—'}` : '—'}` : '—'}` },
+        { label: 'Wind', value: typeof pt.state.windSpeed === 'number' ? `${pt.state.windSpeed} km/h ${pt.state.windDir || ''}` : 'Not reported' },
+        { label: 'Rainfall', value: typeof pt.state.rainfall === 'number' ? `${pt.state.rainfall} mm` : 'Not reported' },
+        { label: 'Humidity', value: typeof pt.state.humidity === 'number' ? `${pt.state.humidity}%` : 'Not reported' },
+        { label: 'AQI', value: typeof pt.state.aqi === 'number' ? String(pt.state.aqi) : 'Not reported' },
       ],
     };
     setInspectedFeature(feature);
@@ -294,7 +294,7 @@ export const LayerDock: React.FC = () => {
                             {pt.state.name}
                           </div>
                           <div className="text-[10px] text-[var(--m-text-muted)] truncate">
-                            {pt.state.city || pt.code} · {pt.state.windSpeed} km/h {pt.state.windDir}
+                            {pt.state.city || pt.code} · {typeof pt.state.windSpeed === 'number' ? `${pt.state.windSpeed} km/h` : 'Wind —'} {pt.state.windDir || ''}
                           </div>
                         </div>
                         <div className="text-right shrink-0 flex flex-col items-end">
