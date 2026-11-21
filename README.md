@@ -724,3 +724,40 @@ Run these checks after deployment:
     curl -i https://mausamgovt.vercel.app/api/system?mode=readiness
 
 Expected contract: HTTP 200 with JSON for a successful gateway invocation; timestamp, build identifier and provider summary; explicit provider status, configured flag, latency or null, and error reason when unavailable; Cache-Control: no-store for live probe responses; HEALTHY only when required core providers and every configured provider in the report pass; optional credentials absent means NOT_CONFIGURED; configured but not actually probed means DEGRADED/unverified; probe failure means OFFLINE with measured duration and error.
+
+
+---
+
+## Current remediation specification
+
+The current responsive, data-integrity and platform-rebuild work is documented in:
+
+- [Product and responsive design specification](./design.md)
+- [Full platform implementation brief](./docs/MAUSAM_FULL_PLATFORM_IMPLEMENTATION_PROMPT.md)
+
+### Branch changes already applied
+
+The active remediation branch includes:
+- a viewport-hardening stylesheet loaded after the existing responsive rules;
+- removal of arbitrary fallback coordinates from the 3D and 2D state-inspection map paths;
+- preservation of missing Open-Meteo values rather than substituting zero, 1013 hPa or default clear-sky conditions;
+- removal of assumed humidity/wind/rain values from the agricultural context builder;
+- removal of wind-derived wave height, air-temperature-derived sea temperature and assumed tide status from the weather context service;
+- correction of radar timeline mode detection, unknown frame timestamps and cursor reset when switching data series.
+
+These changes are committed source changes, not a claim that the complete platform has passed build, runtime, viewport or deployment verification.
+
+### Required verification before release
+
+Use Node 22 and the repository's declared package manager. Confirm that package.json and package-lock.json are synchronized before running a clean install.
+
+```bash
+npm install --package-lock-only
+npm ci
+npm run lint
+npm run build
+```
+
+Run the viewport matrix in [design.md](./design.md), test the real provider endpoints, inspect browser console/network errors, and deploy to a preview before considering production promotion.
+
+Do not label a feed LIVE, a provider OPERATIONAL, or a deployment COMPLETE without a current timestamped response or successful verification evidence.
