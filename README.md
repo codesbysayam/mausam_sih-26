@@ -690,3 +690,37 @@ Review the lockfile diff. Do not delete the lockfile, switch package managers, u
 - [ ] Responsive visual QA passes the viewport matrix above.
 - [ ] Vercel preview is verified before merging or promoting to production.
 
+
+
+## Diagnostics Gateway — Deployment Contract
+
+The Data Sources & Upstream Diagnostics page must use the deployed Vercel serverless endpoint:
+
+    GET /api/system?mode=health
+
+Do not use /api/imd/debug/stats as the diagnostics page's primary gateway. That route is registered by the Express development router in server/routes/imdRoutes.ts, but it is not an independently deployed Vercel function in this repository's api/ directory. A route working in the local Express server does not prove it exists in the production serverless deployment.
+
+### Required behaviour
+
+- The diagnostics page reads the Vercel health endpoint directly with cache: no-store and a bounded request timeout.
+- The response must be validated before rendering provider counts or statuses.
+- The UI distinguishes gateway reachability from upstream provider health.
+- A successful gateway response with degraded upstreams is shown as Gateway Degraded, not as a gateway outage.
+- A failed health endpoint displays the HTTP/network/timeout reason and a retry action.
+- Diagnostics refresh bypasses the frontend API cache and the serverless health endpoint returns Cache-Control: no-store.
+- Gateway round-trip latency is measured with performance.now() in the browser and labelled as browser-to-gateway latency. It is not presented as upstream latency.
+- Provider latency is taken only from the server-side timed probe.
+- The serverless health payload does not expose the Express IMD cache's hit/miss/deduplication counters. These metrics must read Not reported unless a shared, production-deployed telemetry store is implemented. Do not substitute zero or fabricated values.
+- Database and cache state must read Not reported by gateway when the health response does not include those fields. Do not infer that a database is unconfigured or that an in-memory cache is active.
+- Missing provider telemetry must read Not Reported, not Not Configured.
+- A provider is not operational merely because an API key exists. A configured provider requires a successful real health probe before it can be labelled Operational.
+
+### Endpoint verification
+
+Run these checks after deployment:
+
+    curl -i https://mausamgovt.vercel.app/api/system?mode=health
+    curl -i https://mausamgovt.vercel.app/api/system?mode=providers
+    curl -i https://mausamgovt.vercel.app/api/system?mode=readiness
+
+Expected contract: HTTP 200 with JSON for a successful gateway invocation; timestamp, build identifier and provider summary; explicit provider status, configured flag, latency or null, and error reason when unavailable; Cache-Control: no-store for live probe responses; HEALTHY only when required core providers and every configured provider in the report pass; optional credentials absent means NOT_CONFIGURED; configured but not actually probed means DEGRADED/unverified; probe failure means OFFLINE with measured duration and error.
