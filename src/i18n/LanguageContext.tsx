@@ -17,6 +17,7 @@ import {
   formatLocalizedDate,
 } from './translations';
 import { getRegionLanguageConfig, SupportedLanguageMode } from '../types/regionLanguages';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 
 interface LanguageContextType {
   language: Language;
@@ -45,13 +46,13 @@ function resolveRegionalLanguageForState(stateName?: string): Language {
 
 function getInitialState(): { language: Language; mode: SupportedLanguageMode } {
   try {
-    const savedMode = localStorage.getItem(MODE_STORAGE_KEY) as SupportedLanguageMode | null;
-    const savedLang = localStorage.getItem(STORAGE_KEY) as Language | null;
+    const savedMode = safeStorageGet('local', MODE_STORAGE_KEY) as SupportedLanguageMode | null;
+    const savedLang = safeStorageGet('local', STORAGE_KEY) as Language | null;
 
     // Check detected location state to prevent regional language desync
     let detectedState = 'Odisha';
     try {
-      const locStr = localStorage.getItem('mausam_detected_location');
+      const locStr = safeStorageGet('local', 'mausam_detected_location');
       if (locStr) {
         const parsed = JSON.parse(locStr);
         if (parsed?.record?.state) detectedState = parsed.record.state;
@@ -100,8 +101,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       setState({ language: lang, mode: newMode });
       try {
-        localStorage.setItem(STORAGE_KEY, lang);
-        localStorage.setItem(MODE_STORAGE_KEY, newMode);
+        safeStorageSet('local', STORAGE_KEY, lang);
+        safeStorageSet('local', MODE_STORAGE_KEY, newMode);
       } catch {}
     }
   }, []);
@@ -118,8 +119,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setState({ language: targetLang, mode: newMode });
     try {
-      localStorage.setItem(STORAGE_KEY, targetLang);
-      localStorage.setItem(MODE_STORAGE_KEY, newMode);
+      safeStorageSet('local', STORAGE_KEY, targetLang);
+      safeStorageSet('local', MODE_STORAGE_KEY, newMode);
     } catch {}
   }, []);
 
