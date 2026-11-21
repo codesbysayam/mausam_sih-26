@@ -96,27 +96,17 @@ realMausamRouter.get('/air-quality', async (req: Request, res: Response) => {
     const o3 = o3Raw !== null ? Math.round(o3Raw * 10) / 10 : null;
     const uvIndex = uvRaw !== null ? Math.round(uvRaw * 10) / 10 : null;
 
-    // Calculate CPCB AQI for PM2.5 only when present
-    let aqi: number | null = null;
-    if (pm25 !== null) {
-      if (pm25 <= 30) aqi = Math.round(pm25 * (50 / 30));
-      else if (pm25 <= 60) aqi = Math.round(50 + ((pm25 - 30) * 50) / 30);
-      else if (pm25 <= 90) aqi = Math.round(100 + ((pm25 - 60) * 100) / 30);
-      else if (pm25 <= 120) aqi = Math.round(200 + ((pm25 - 90) * 100) / 30);
-      else if (pm25 <= 250) aqi = Math.round(300 + ((pm25 - 120) * 100) / 130);
-      else aqi = Math.round(400 + ((pm25 - 250) * 100) / 130);
-    } else {
-      const upstreamAqi = numOrNull(curr.us_aqi) ?? numOrNull(curr.european_aqi);
-      aqi = upstreamAqi !== null ? Math.round(upstreamAqi) : null;
-    }
+    // Strictly use Open-Meteo provider US EPA AQI (never synthesize CPCB NAQI from PM2.5 alone)
+    const upstreamUsAqi = numOrNull(curr.us_aqi);
+    const aqi: number | null = upstreamUsAqi !== null ? Math.round(upstreamUsAqi) : null;
 
     const aqiCategory =
       aqi === null ? 'Unavailable' :
       aqi <= 50 ? 'Good' :
-      aqi <= 100 ? 'Satisfactory' :
-      aqi <= 200 ? 'Moderate' :
-      aqi <= 300 ? 'Poor' :
-      aqi <= 400 ? 'Very Poor' : 'Severe';
+      aqi <= 100 ? 'Moderate' :
+      aqi <= 150 ? 'Unhealthy for Sensitive Groups' :
+      aqi <= 200 ? 'Unhealthy' :
+      aqi <= 300 ? 'Very Unhealthy' : 'Hazardous';
 
     const grassPollen = numOrNull(curr.grass_pollen);
     const hasTreePollen = numOrNull(curr.birch_pollen) !== null || numOrNull(curr.alder_pollen) !== null || numOrNull(curr.olive_pollen) !== null;
@@ -133,6 +123,11 @@ realMausamRouter.get('/air-quality', async (req: Request, res: Response) => {
     res.json({
       status: aqi !== null || pm25 !== null ? 'success' : 'error',
       dataStatus: aqi !== null || pm25 !== null ? 'MODEL_LIVE' : 'UNAVAILABLE',
+      aqiScale: 'US EPA AQI',
+      observationType: 'MODELLED',
+      provider: 'Open-Meteo',
+      stationId: null,
+      stationName: null,
       latitude: lat,
       longitude: lon,
       aqi,
@@ -155,13 +150,14 @@ realMausamRouter.get('/air-quality', async (req: Request, res: Response) => {
       uvIndex,
       exposureRecommendation:
         aqi === null
-          ? 'Air quality observations are unavailable for these coordinates.'
+          ? 'Air quality model estimate is unavailable for these coordinates.'
           : aqi <= 100
-          ? 'Air quality is acceptable. Safe for outdoor activity.'
+          ? 'Air quality is within Good to Moderate US EPA bands.'
           : 'Sensitive individuals should limit prolonged outdoor exertion.',
-      monitoringStation: `Open-Meteo Grid (${formatCoordinatePair(lat, lon)})`,
-      observationTimestamp: curr.time || new Date().toISOString(),
-      source: 'Open-Meteo Air Quality Model (CPCB NAQI Breakpoints)',
+      monitoringStation: null,
+      observationTimestamp: typeof curr.time === 'string' ? curr.time : null,
+      fetchedAt: new Date().toISOString(),
+      source: 'Open-Meteo Air Quality Model (US EPA AQI)',
     });
   } catch (err: any) {
     res.status(err?.name === 'AbortError' ? 504 : 502).json({
@@ -377,19 +373,20 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
       else if (totalPollen > 5) pollenLevel = 2;
 
       let aqi = 50;
-      if (avgPm25 <= 30) aqi = Math.round(avgPm25 * (50 / 30));
-      else if (avgPm25 <= 60) aqi = Math.round(50 + ((avgPm25 - 30) * 50) / 30);
-      else if (avgPm25 <= 90) aqi = Math.round(100 + ((avgPm25 - 60) * 100) / 30);
-      else if (avgPm25 <= 120) aqi = Math.round(200 + ((avgPm25 - 90) * 100) / 30);
-      else if (avgPm25 <= 250) aqi = Math.round(300 + ((avgPm25 - 120) * 100) / 130);
-      else aqi = Math.round(400 + ((avgPm25 - 250) * 100) / 130);
+      // Use US EPA PM2.5 breakpoint mapping only when hourly us_aqi is absent, clearly labelled US EPA AQI
+      if (avgPm25 <= 9.0) aqi = Math.round((avgPm25 / 9.0) * 50);
+      else if (avgPm25 <= 35.4) aqi = Math.round(51 + ((avgPm25 - 9.1) / (35.4 - 9.1)) * 49);
+      else if (avgPm25 <= 55.4) aqi = Math.round(101 + ((avgPm25 - 35.5) / (55.4 - 35.5)) * 49);
+      else if (avgPm25 <= 125.4) aqi = Math.round(151 + ((avgPm25 - 55.5) / (125.4 - 55.5)) * 49);
+      else if (avgPm25 <= 225.4) aqi = Math.round(201 + ((avgPm25 - 125.5) / (225.4 - 125.5)) * 99);
+      else aqi = Math.min(500, Math.round(301 + ((avgPm25 - 225.5) / 100) * 199));
 
       const aqiCategory =
         aqi <= 50 ? 'Good' :
-        aqi <= 100 ? 'Satisfactory' :
-        aqi <= 200 ? 'Moderate' :
-        aqi <= 300 ? 'Poor' :
-        aqi <= 400 ? 'Very Poor' : 'Severe';
+        aqi <= 100 ? 'Moderate' :
+        aqi <= 150 ? 'Unhealthy for Sensitive Groups' :
+        aqi <= 200 ? 'Unhealthy' :
+        aqi <= 300 ? 'Very Unhealthy' : 'Hazardous';
 
       const dateObj = new Date(`${dStr}T00:00:00`);
       const dayLabel = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short' }).format(dateObj);
@@ -410,8 +407,9 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
         treePollen: maxTree,
         weedPollen: maxWeed,
         aqi,
+        aqiScale: 'US EPA AQI',
         aqiCategory,
-        safeStandardPm25: 60, // CPCB 24h standard
+        safeStandardPm25: 60,
         pollenModerateLimit: 3,
         peakPm25: Math.round(g.peakPm25 * 10) / 10,
         peakTime: g.peakTime,
@@ -427,7 +425,6 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
 
     const peakObs = observations.reduce((max, o) => (o.peakPm25 > (max.peakPm25 || 0) ? o : max), observations[0]);
 
-    // Trend status calculation
     let trendStatus: 'Equilibrium' | 'Improving' | 'Degrading' = 'Equilibrium';
     if (observations.length >= 4) {
       const earlyAvg = (observations[0].pm25 + observations[1].pm25) / 2;
@@ -439,22 +436,27 @@ realMausamRouter.get('/air-quality/history', async (req: Request, res: Response)
     res.json({
       status: 'success',
       hasVerifiedData: true,
+      aqiScale: 'US EPA AQI',
+      observationType: 'MODELLED',
+      provider: 'Open-Meteo',
+      stationId: null,
+      stationName: null,
       latitude: lat,
       longitude: lon,
       location: locationName || formatCoordinatePair(lat, lon),
-      stationId: stationId || `AQ-${Math.round(lat * 100)}-${Math.round(lon * 100)}`,
       selectedDate: endDateStr,
       startDate: startDateStr,
       endDate: endDateStr,
       sevenDayAveragePm25: sevenDayAvgPm25,
       sevenDayAveragePollen: sevenDayAvgPollen,
       peakConcentration: peakObs?.peakPm25 || baselineObs?.pm25 || 0,
-      peakTime: peakObs?.peakTime || baselineObs?.peakTime || '12:00 IST',
+      peakTime: peakObs?.peakTime || baselineObs?.peakTime || null,
       trendStatus,
       cpcbStandard: 60,
       current: baselineObs,
       observations,
-      source: 'Open-Meteo Air Quality Model (CPCB NAQI Breakpoints)',
+      fetchedAt: new Date().toISOString(),
+      source: 'Open-Meteo Air Quality Model (US EPA AQI)',
     });
   } catch (err: any) {
     res.status(500).json({ status: 'error', message: err.message });

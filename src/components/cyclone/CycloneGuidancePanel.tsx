@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Volume2,
   PhoneCall,
@@ -7,6 +7,9 @@ import {
   Info,
   Loader2,
   FileText,
+  ChevronDown,
+  ChevronUp,
+  Radio,
 } from 'lucide-react';
 import { WeatherSystemEvent } from '../../types/cyclone';
 import {
@@ -14,6 +17,7 @@ import {
   ReadoutLanguage,
   WarningReadoutStatus,
   ChunkProgressInfo,
+  ReadoutEngineMeta,
 } from '../../services/WarningReadoutService';
 import {
   DataPanel,
@@ -43,16 +47,48 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
   const [chunkInfo, setChunkInfo] = useState<ChunkProgressInfo | null>(
     warningReadoutService.getCurrentChunkInfo()
   );
+  const [engineMeta, setEngineMeta] = useState<ReadoutEngineMeta>(
+    warningReadoutService.getEngineMeta()
+  );
   const [selectedLanguage, setSelectedLanguage] = useState<ReadoutLanguage>('en');
   const [voiceNote, setVoiceNote] = useState<string | null>(null);
-  const [hasNativeVoice, setHasNativeVoice] = useState<boolean>(true);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [selectedBrowserVoiceUri, setSelectedBrowserVoiceUri] = useState<string>('');
+
+  const fallbackSubject = useMemo(
+    () =>
+      activeSystem || {
+        id: 'synoptic-routine',
+        classification: 'Synoptic Surveillance',
+        name: 'North Indian Ocean Synoptic Watch',
+        currentLocation: 'North Indian Ocean (Bay of Bengal & Arabian Sea)',
+        affectedStates: ['Coastal India'],
+        rainfallThreat: 'NO_WARNING',
+        maxSustainedWind: 'Normal coastal winds (15-25 km/h)',
+        source: 'IMD RSMC New Delhi & NDMA SACHET',
+      },
+    [activeSystem]
+  );
+
+  const previewTranscript = useMemo(
+    () => warningReadoutService.getPreviewTranscript(fallbackSubject, selectedLanguage),
+    [fallbackSubject, selectedLanguage]
+  );
+
+  const browserVoices = useMemo(
+    () => warningReadoutService.getVoices(selectedLanguage),
+    [selectedLanguage, ttsStatus]
+  );
 
   useEffect(() => {
-    const unsub = warningReadoutService.subscribe((newStatus, info, errorMsg) => {
+    const unsub = warningReadoutService.subscribe((newStatus, info, errorMsg, meta) => {
       setTtsStatus(newStatus);
       setChunkInfo(info || null);
+      if (meta) setEngineMeta(meta);
       if (errorMsg) {
         setVoiceNote(errorMsg);
+      } else if (newStatus === 'SPEAKING' || newStatus === 'IDLE') {
+        setVoiceNote(null);
       }
     });
 
@@ -64,8 +100,9 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
 
   useEffect(() => {
     const capability = warningReadoutService.getVoiceCapability(selectedLanguage);
-    setHasNativeVoice(capability.available);
     setVoiceNote(capability.warningNote);
+    setSelectedBrowserVoiceUri('');
+    warningReadoutService.setPreferredBrowserVoice(null);
   }, [selectedLanguage]);
 
   useEffect(() => {
@@ -83,39 +120,24 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
       warningReadoutService.stop();
       return;
     }
-
-    if (!hasNativeVoice) {
-      setVoiceNote(
-        selectedLanguage === 'hi'
-          ? 'Hindi voice is unavailable in this browser.'
-          : 'English voice is unavailable in this browser.'
-      );
-      return;
-    }
-
-    if (activeSystem) {
-      warningReadoutService.play(activeSystem, selectedLanguage);
-    } else {
-      const fallbackWarning = {
-        classification: 'Synoptic Surveillance',
-        currentLocation: 'North Indian Ocean (Bay of Bengal & Arabian Sea)',
-        affectedStates: ['Coastal India'],
-        rainfallThreat: 'NO_WARNING',
-        maxSustainedWind: 'Normal coastal winds (15-25 km/h)',
-        nextBulletinAt: '08:30 IST',
-      };
-      warningReadoutService.play(fallbackWarning, selectedLanguage);
-    }
+    warningReadoutService.play(fallbackSubject, selectedLanguage);
   };
+
+  const engineLabel =
+    engineMeta.engine === 'gemini-neural-tts'
+      ? 'NEURAL BROADCAST'
+      : engineMeta.engine === 'browser-fallback'
+      ? 'BROWSER FALLBACK'
+      : 'NEURAL TTS READY';
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* 1. MAUSAM Warning Readout (TTS) */}
+      {/* 1. MAUSAM Broadcast Warning Readout */}
       <DataPanel className="flex flex-col justify-between gap-4">
         <div className="flex flex-col gap-3">
           <SectionHeading
             title="MAUSAM Warning Readout"
-            subtitle="Local Web Speech synthesis of IMD synoptic bulletin"
+            subtitle="AIR / IMD broadcast-style neural audio bulletin (English & Hindi)"
             icon={<Volume2 className="w-4 h-4" />}
             badge={
               <SourceStatus
@@ -124,23 +146,25 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
                     ? 'LIVE'
                     : ttsStatus === 'PREPARING'
                     ? 'LOADING'
+                    : ttsStatus === 'ERROR'
+                    ? 'UNAVAILABLE'
                     : 'REFERENCE'
                 }
-                labelOverride={ttsStatus}
+                labelOverride={engineLabel}
               />
             }
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between text-[11px] font-mono text-[var(--m-text-muted)]">
-            <span>AUDIO LANGUAGE</span>
+            <span>BROADCAST LANGUAGE</span>
             <span className="text-[var(--m-accent)] font-semibold">
               {ttsStatus === 'SPEAKING'
-                ? `Speaking (${selectedLanguage === 'en' ? 'ENGLISH' : 'हिन्दी'})`
+                ? `On Air (${selectedLanguage === 'en' ? 'ENGLISH' : 'हिन्दी'})`
                 : ttsStatus === 'PREPARING'
-                ? 'Preparing Speech...'
-                : 'Ready (Idle)'}
+                ? 'Preparing Broadcast...'
+                : 'Standby'}
             </span>
           </div>
 
@@ -157,7 +181,7 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
                   : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
-              <span>ENGLISH</span>
+              <span>ENGLISH (IN)</span>
             </button>
 
             <button
@@ -172,13 +196,45 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
                   : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:border-[var(--m-border-strong)]'
               }`}
             >
-              <span>हिन्दी</span>
+              <span>हिन्दी प्रसारण</span>
             </button>
           </div>
 
+          {/* Active Voice / Fallback Voice Picker */}
+          <div className="flex items-center justify-between gap-2 text-[10px] font-mono text-[var(--m-text-muted)] bg-[var(--m-surface-inset)] px-2.5 py-1.5 rounded-lg border border-[var(--m-border)]">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              <Radio className="w-3 h-3 text-[var(--m-accent)] shrink-0" />
+              <span className="truncate">
+                {engineMeta.voiceName ||
+                  (selectedLanguage === 'hi'
+                    ? 'Neural Hindi Broadcaster (Kore)'
+                    : 'Neural Indian English Broadcaster (Charon)')}
+              </span>
+            </span>
+          </div>
+
+          {engineMeta.engine === 'browser-fallback' && browserVoices.length > 0 && (
+            <select
+              aria-label="Select Fallback Browser Voice"
+              value={selectedBrowserVoiceUri}
+              onChange={(e) => {
+                setSelectedBrowserVoiceUri(e.target.value);
+                warningReadoutService.setPreferredBrowserVoice(e.target.value || null);
+              }}
+              className="w-full min-h-[34px] px-2.5 py-1 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] font-mono text-[var(--m-text-secondary)] focus:outline-none focus:border-[var(--m-accent)]"
+            >
+              <option value="">Auto-Select Fallback Voice ({browserVoices.length})</option>
+              {browserVoices.map((v) => (
+                <option key={v.voiceURI} value={v.voiceURI}>
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
+          )}
+
           {voiceNote && (
-            <div className="flex items-center gap-2 text-[11px] text-[var(--m-watch)] bg-[var(--m-watch-soft)] px-3 py-2 rounded-lg border border-[var(--m-watch)]/30 font-mono">
-              <Info className="w-3.5 h-3.5 shrink-0" />
+            <div className="flex items-start gap-2 text-[11px] text-[var(--m-watch)] bg-[var(--m-watch-soft)] px-3 py-2 rounded-lg border border-[var(--m-watch)]/30 font-mono">
+              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>{voiceNote}</span>
             </div>
           )}
@@ -188,31 +244,28 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
           <button
             type="button"
             onClick={handleToggleVoice}
-            disabled={!isBusy && !hasNativeVoice}
             className={`w-full py-2.5 px-4 min-h-[42px] rounded-lg flex items-center justify-center gap-2 font-mono text-xs font-semibold transition-colors cursor-pointer border m-focus-ring ${
               ttsStatus === 'SPEAKING'
-                ? 'bg-[#EF4444] hover:bg-[#DC2626] border-[#F87171] text-white'
+                ? 'bg-[#C94F4B] hover:bg-[#B2423E] border-[#E07A76] text-[#F0EEE7]'
                 : ttsStatus === 'PREPARING'
-                ? 'bg-[#D97706] border-[#F59E0B] text-white'
-                : !hasNativeVoice
-                ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] cursor-not-allowed border-[var(--m-border)]'
-                : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/50 text-[var(--m-on-accent)]'
+                ? 'bg-[#D98548] border-[#E59D69] text-[#0B0C0D]'
+                : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-[var(--m-accent)]/60 text-[var(--m-on-accent)]'
             }`}
           >
             {ttsStatus === 'SPEAKING' ? (
               <>
-                <Square className="w-4 h-4 fill-white" />
+                <Square className="w-4 h-4 fill-current" />
                 <span>Stop Warning Readout</span>
               </>
             ) : ttsStatus === 'PREPARING' ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>Preparing Warning Readout...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Generating Broadcast Audio...</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-white" />
-                <span>Play Warning Readout</span>
+                <Play className="w-4 h-4 fill-current" />
+                <span>Play Broadcast Bulletin</span>
               </>
             )}
           </button>
@@ -222,12 +275,30 @@ export const CycloneGuidancePanel: React.FC<CycloneGuidancePanelProps> = ({
               <div className="flex items-center gap-1.5 truncate">
                 <Volume2 className="w-3.5 h-3.5 shrink-0 text-[var(--m-accent)]" />
                 <span className="truncate">
-                  Section {chunkInfo.current}/{chunkInfo.total} ({chunkInfo.label})
+                  {chunkInfo.total > 1
+                    ? `Section ${chunkInfo.current}/${chunkInfo.total} (${chunkInfo.label})`
+                    : chunkInfo.label}
                 </span>
               </div>
               <span className="text-[10px] text-[var(--m-text-secondary)] shrink-0 ml-1 font-semibold">
-                {Math.round((chunkInfo.current / chunkInfo.total) * 100)}%
+                {engineMeta.engine === 'gemini-neural-tts' ? 'HD WAV' : `${Math.round((chunkInfo.current / chunkInfo.total) * 100)}%`}
               </span>
+            </div>
+          )}
+
+          {/* Exact Spoken Transcript Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowTranscript((prev) => !prev)}
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-mono text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-inset)] border border-[var(--m-border)] cursor-pointer transition-colors"
+          >
+            <span>{showTranscript ? 'Hide Broadcast Script' : 'Inspect Broadcast Script'}</span>
+            {showTranscript ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          {showTranscript && (
+            <div className="p-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] leading-relaxed max-h-44 overflow-y-auto whitespace-pre-line font-sans">
+              {previewTranscript}
             </div>
           )}
         </div>

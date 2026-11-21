@@ -21,6 +21,7 @@ import { ExploreWorkspace } from './components/experience/ExploreWorkspace';
 import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
 import { ClassicWorkspace } from './components/experience/ClassicWorkspace';
 import { AlertCenterModal } from './components/experience/AlertCenterModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useAlertAudio } from './hooks/useAlertAudio';
 import { Volume2, AlertTriangle, X } from 'lucide-react';
@@ -356,51 +357,72 @@ export default function App() {
         )}
 
         {mode === 'explore' && (
-          <ExploreWorkspace
-            selectedLocation={selectedLocation}
-            weatherBundle={weatherBundle}
-            cyclonePayload={cyclonePayload}
-            onSelectLocation={handleSelectLocation}
-            onOpenAnalyzeTab={(tab) => navigateToTab(tab)}
-            onOpenAskMausam={() => setIsAskMausamOpen(true)}
-          />
+          <ErrorBoundary
+            key="workspace-explore"
+            scope="workspace"
+            fallbackTitle="3D Atmospheric Observatory"
+            onNavigateHome={() => handleSwitchMode('classic')}
+          >
+            <ExploreWorkspace
+              selectedLocation={selectedLocation}
+              weatherBundle={weatherBundle}
+              cyclonePayload={cyclonePayload}
+              onSelectLocation={handleSelectLocation}
+              onOpenAnalyzeTab={(tab) => navigateToTab(tab)}
+              onOpenAskMausam={() => setIsAskMausamOpen(true)}
+            />
+          </ErrorBoundary>
         )}
 
         {mode === 'analyze' && (
-          <AnalyzeWorkspace
-            activeTab={activeTab}
-            onNavigateTab={(tab) => navigateToTab(tab)}
-            weatherBundle={weatherBundle}
-            selectedLocation={selectedLocation}
-            isLoadingWeather={isLoadingWeather}
-            onRefreshWeather={() => loadWeatherData(selectedLocation, true)}
-            onSelectLocation={handleSelectLocation}
-            onStateSelect={handleStateSelect}
-            onDetectLocation={detectLocation}
-            isLocating={isLocating}
-            locatePhase={locatePhase}
-            locateError={locateError}
-            locationSource={locationSource}
-            accuracyMeters={accuracyMeters}
-            nearestStationInfo={nearestStationInfo}
-            onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
-            onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
-          />
+          <ErrorBoundary
+            key="workspace-analyze"
+            scope="workspace"
+            fallbackTitle="Analyze Workstation"
+            onNavigateHome={() => navigateToTab('home')}
+          >
+            <AnalyzeWorkspace
+              activeTab={activeTab}
+              onNavigateTab={(tab) => navigateToTab(tab)}
+              weatherBundle={weatherBundle}
+              selectedLocation={selectedLocation}
+              isLoadingWeather={isLoadingWeather}
+              onRefreshWeather={() => loadWeatherData(selectedLocation, true)}
+              onSelectLocation={handleSelectLocation}
+              onStateSelect={handleStateSelect}
+              onDetectLocation={detectLocation}
+              isLocating={isLocating}
+              locatePhase={locatePhase}
+              locateError={locateError}
+              locationSource={locationSource}
+              accuracyMeters={accuracyMeters}
+              nearestStationInfo={nearestStationInfo}
+              onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
+              onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
+            />
+          </ErrorBoundary>
         )}
 
         {mode === 'classic' && (
-          <ClassicWorkspace
-            weatherBundle={weatherBundle}
-            selectedLocation={selectedLocation}
-            onNavigateToAnalyze={(tab) => navigateToTab(tab)}
-            onSelectLocation={handleSelectLocation}
-            onStateSelect={handleStateSelect}
-            onDetectLocation={detectLocation}
-            isLocating={isLocating}
-            locatePhase={locatePhase}
-            locationSource={locationSource}
-            onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
-          />
+          <ErrorBoundary
+            key="workspace-classic"
+            scope="workspace"
+            fallbackTitle="Classic Weather View"
+            onNavigateHome={() => handleSwitchMode('analyze')}
+          >
+            <ClassicWorkspace
+              weatherBundle={weatherBundle}
+              selectedLocation={selectedLocation}
+              onNavigateToAnalyze={(tab) => navigateToTab(tab)}
+              onSelectLocation={handleSelectLocation}
+              onStateSelect={handleStateSelect}
+              onDetectLocation={detectLocation}
+              isLocating={isLocating}
+              locatePhase={locatePhase}
+              locationSource={locationSource}
+              onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
+            />
+          </ErrorBoundary>
         )}
       </main>
 

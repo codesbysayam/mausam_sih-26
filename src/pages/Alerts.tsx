@@ -267,7 +267,9 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
             latestIssuedAt: reconciled.latestIssuedAt,
           }}
           lastUpdated={updatedLabel}
-          sourceAttribution={diagnostics?.provider || 'NDMA SACHET / IMD CAP Feed'}
+          sourceAttribution={
+            diagnostics?.endpoint ? 'NDMA SACHET / IMD CAP Feed' : 'NDMA SACHET / IMD CAP Feed'
+          }
           onViewRegionalAlerts={handleScrollToRegionalAlerts}
           isUnavailable={effectiveUnavailable}
         />

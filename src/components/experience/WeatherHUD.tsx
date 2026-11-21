@@ -175,10 +175,10 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
 
   return (
     <>
-      {/* Desktop / Tablet Right-Edge Collapsible HUD */}
+      {/* Desktop Right-Edge Collapsible HUD (positioned dynamically below wrapped header) */}
       <aside
         aria-label="Current Location Atmospheric HUD"
-        className="hidden md:flex fixed right-3 top-[68px] z-30 flex-col items-end gap-2 pointer-events-none"
+        className="explore-weather-hud hidden lg:flex fixed right-3 top-[68px] z-30 flex-col items-end gap-2 pointer-events-none"
       >
         {isCollapsed ? (
           <button
@@ -195,16 +195,16 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             </span>
           </button>
         ) : (
-          <div className="pointer-events-auto w-[304px] spatial-hud-surface rounded-[11px] p-3.5 flex flex-col gap-3">
+          <div className="explore-weather-hud-card pointer-events-auto spatial-hud-surface rounded-[11px] p-3.5 flex flex-col gap-3">
             {/* Header Row */}
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 text-[11px] text-[var(--m-accent)] font-medium">
                   <MapPin className="w-3 h-3 shrink-0" />
                   <span className="truncate">{selectedLocation.state}</span>
                 </div>
                 <h2
-                  className="text-[15px] font-bold text-[var(--m-text-primary)] leading-snug mt-0.5 truncate"
+                  className="explore-weather-hud-title text-[15px] font-bold text-[var(--m-text-primary)] leading-snug mt-0.5"
                   title={locationFullTitle}
                 >
                   {locationFullTitle}
@@ -291,7 +291,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
               </div>
               <div>
                 <div className="text-[10px] font-mono text-[var(--m-text-muted)] uppercase tracking-wider">
-                  AQI (NAQI)
+                  AQI (US EPA)
                 </div>
                 <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
                   {typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex)
@@ -372,7 +372,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
 
         {/* Contextual Spatial Feature Inspector Card (Appears when user clicks any State or DWR marker) */}
         {inspectedFeature && (
-          <div className="pointer-events-auto w-[304px] spatial-hud-surface-elevated rounded-[11px] p-3.5 flex flex-col gap-2.5">
+          <div className="explore-weather-hud-card pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3.5 flex flex-col gap-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-accent)]">
@@ -445,18 +445,18 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
         )}
       </aside>
 
-      {/* Mobile Viewport: Compact Floating Summary + Expandable Bottom Sheet */}
-      <div className="md:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
+      {/* Tablet & Mobile Viewport: Compact Floating Summary + Expandable Bottom Sheet */}
+      <div className="explore-weather-mobile lg:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
         <div className="pointer-events-auto spatial-hud-surface rounded-[11px] px-3 py-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <span
-              className="text-lg font-bold text-[var(--m-text-primary)] tabular-nums"
+              className="text-lg font-bold text-[var(--m-text-primary)] tabular-nums shrink-0"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : '—'}
             </span>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
+              <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate" title={locationFullTitle}>
                 {inspectedFeature ? inspectedFeature.title : locationShortTitle}
               </div>
               <div className="text-[10px] text-[var(--m-text-secondary)] truncate tabular-nums">
@@ -475,6 +475,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             <button
               type="button"
               onClick={() => setIsMobileSheetOpen((v) => !v)}
+              aria-expanded={isMobileSheetOpen}
               aria-label="Toggle weather details sheet"
               className="min-w-[42px] min-h-[42px] flex items-center justify-center rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-secondary)] cursor-pointer m-focus-ring"
             >
@@ -488,7 +489,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
         </div>
 
         {isMobileSheetOpen && (
-          <div className="pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3 flex flex-col gap-2 text-xs">
+          <div className="explore-weather-mobile-sheet pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3 flex flex-col gap-2 text-xs">
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <div className="text-[10px] text-[var(--m-text-muted)]">Humidity</div>

@@ -18,45 +18,9 @@ import { NotFoundPage } from '../../pages/NotFoundPage';
 import { useExperience, AnalyzeOrFooterView } from '../../context/ExperienceContext';
 import { useProviderStore } from '../../store/providerStore';
 import { getProviderStatusVisual } from '../../services/providers/providerStatus';
+import { lazyWithRetry } from '../../utils/lazyWithRetry';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 import { Globe } from 'lucide-react';
-
-function lazyWithRetry<T extends React.ComponentType<any>>(
-  factory: () => Promise<any>,
-  key = 'default'
-) {
-  return React.lazy(async () => {
-    const isClient = typeof window !== 'undefined';
-    let lastError: any = null;
-
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const m = await factory();
-        const comp = m[key] || m.default || Object.values(m)[0];
-        if (isClient) {
-          window.sessionStorage.removeItem('mausam_lazy_retry_active');
-        }
-        return { default: comp as T };
-      } catch (err: any) {
-        lastError = err;
-        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
-      }
-    }
-
-    if (
-      isClient &&
-      !window.sessionStorage.getItem('mausam_lazy_retry_active') &&
-      (lastError?.message?.includes('dynamically imported module') ||
-        lastError?.message?.includes('Failed to fetch') ||
-        lastError?.name === 'TypeError')
-    ) {
-      window.sessionStorage.setItem('mausam_lazy_retry_active', 'true');
-      window.location.reload();
-      return new Promise(() => {});
-    }
-
-    throw lastError;
-  });
-}
 
 const ForecastPage = lazyWithRetry(() => import('../../pages/Forecast'), 'ForecastPage');
 const RadarPage = lazyWithRetry(() => import('../../pages/Radar'), 'RadarPage');
@@ -204,8 +168,16 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         </div>
       </div>
 
-      {/* Active Route View */}
+      {/* Active Route View (Route-Isolated ErrorBoundary preserves top bar & tabs) */}
       <PageContainer id="mausam-main-page-container" fluid={effectiveTab === 'radar'}>
+        <ErrorBoundary
+          key={`analyze-route-${effectiveTab}`}
+          scope="workspace"
+          fallbackTitle={
+            ANALYZE_TABS.find((t) => t.id === effectiveTab)?.label || 'Meteorological View'
+          }
+          onNavigateHome={() => onNavigateTab('home')}
+        >
         {effectiveTab === 'home' && (
           <HomePage
             weatherBundle={weatherBundle}
@@ -334,6 +306,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
             />
           )}
         </React.Suspense>
+        </ErrorBoundary>
       </PageContainer>
     </div>
   );

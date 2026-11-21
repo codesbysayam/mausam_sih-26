@@ -128,6 +128,366 @@ function parseQuery(req: any): Record<string, any> {
   }
 }
 
+function decodeXmlText(raw: string): string {
+  return raw
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Extract official IMD cyclone classification while strictly respecting weakening language.
+ * Example: "Cyclone Akvan had weakened into a Deep Depression (remnant of Severe Cyclonic Storm Akvan)"
+ * MUST resolve to "Deep Depression", NOT "Severe Cyclonic Storm".
+ */
+export function extractOfficialClassification(text: string): string | null {
+  const lower = text.toLowerCase();
+
+  // First check explicit weakening / current-stage phrasing ("weakened into a ...", "lay centered as a ...")
+  const currentStageMatch = lower.match(
+    /(?:weakened into|intensified into|concentrated into|lay\s+(?:centered|centred)\s+as|currently\s+(?:a|an)?|now\s+(?:a|an)?|remnant\s+is\s+(?:a|an)?)\s+(?:a\s+|an\s+)?(super cyclonic storm|extremely severe cyclonic storm|very severe cyclonic storm|severe cyclonic storm|cyclonic storm|deep depression|depression|well[\s-]*marked low pressure area|low pressure area)/i
+  );
+  if (currentStageMatch) {
+    return normalizeClassificationLabel(currentStageMatch[1]);
+  }
+
+  // Next check if text mentions "deep depression" explicitly as the lead subject before any "(remnant of ...)" clause
+  const withoutRemnant = lower.replace(/\(?\s*remnant of[^)]*\)?/gi, ' ');
+  const orderedStages: Array<[RegExp, string]> = [
+    [/\bdeep depression\b/i, 'Deep Depression'],
+    [/\bsuper cyclonic storm\b/i, 'Super Cyclonic Storm'],
+    [/\bextremely severe cyclonic storm\b/i, 'Extremely Severe Cyclonic Storm'],
+    [/\bvery severe cyclonic storm\b/i, 'Very Severe Cyclonic Storm'],
+    [/\bsevere cyclonic storm\b/i, 'Severe Cyclonic Storm'],
+    [/\bcyclonic storm\b/i, 'Cyclonic Storm'],
+    [/\bwell[\s-]*marked low pressure area\b/i, 'Well Marked Low Pressure Area'],
+    [/\bdepression\b/i, 'Depression'],
+    [/\blow pressure area\b/i, 'Low Pressure Area'],
+  ];
+
+  // If "deep depression" appears alongside "remnant", Deep Depression takes precedence
+  if (/\bdeep depression\b/i.test(withoutRemnant)) return 'Deep Depression';
+
+  for (const [regex, label] of orderedStages) {
+    if (regex.test(withoutRemnant)) return label;
+  }
+
+  if (/\bcyclone\b/i.test(withoutRemnant)) return 'Cyclonic Storm';
+  return null;
+}
+
+function normalizeClassificationLabel(raw: string): string {
+  const s = raw.toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+  if (s.includes('super cyclonic')) return 'Super Cyclonic Storm';
+  if (s.includes('extremely severe')) return 'Extremely Severe Cyclonic Storm';
+  if (s.includes('very severe')) return 'Very Severe Cyclonic Storm';
+  if (s.includes('severe cyclonic')) return 'Severe Cyclonic Storm';
+  if (s.includes('cyclonic storm')) return 'Cyclonic Storm';
+  if (s.includes('deep depression')) return 'Deep Depression';
+  if (s.includes('well marked low')) return 'Well Marked Low Pressure Area';
+  if (s.includes('low pressure area')) return 'Low Pressure Area';
+  if (s.includes('depression')) return 'Depression';
+  return raw;
+}
+
+/**
+ * Pure, unit-testable parser for an official IMD / SACHET cyclone or depression bulletin.
+ * Never fabricates forecastTrack points, central pressure, or landfall times when not present in the bulletin.
+ */
+export function parseCycloneBulletinText(
+  text: string,
+  meta: {
+    id?: string;
+    title?: string;
+    source?: string;
+    sourceUrl?: string;
+    issuedAt?: string;
+    fetchedAt?: string;
+  } = {}
+): WeatherSystemEvent | null {
+  const combined = `${meta.title || ''} ${text || ''}`.trim();
+  if (!combined) return null;
+
+  const classification = extractOfficialClassification(combined);
+  if (!classification) return null;
+
+  const fetchedAt = meta.fetchedAt || new Date().toISOString();
+  const issuedAt = meta.issuedAt || fetchedAt;
+
+  // Extract storm name (e.g., "Cyclone Akvan", "Cyclonic Storm Akvan", "Storm Remal")
+  let systemName = classification;
+  const nameMatch =
+    combined.match(/(?:cyclone|cyclonic storm|storm)\s+[“"']?([A-Z][a-zA-Z]{2,18})[”"']?/) ||
+    combined.match(/(?:named|called)\s+[“"']?([A-Z][a-zA-Z]{2,18})[”"']?/i);
+  if (nameMatch && !/^(Warning|Alert|Watch|Track|Bulletin|Update|Over|Near|Into|From)$/i.test(nameMatch[1])) {
+    const stormName = nameMatch[1].trim();
+    systemName =
+      classification === 'Deep Depression' || classification === 'Depression'
+        ? `${classification} (Remnant of ${stormName})`
+        : `${classification} ${stormName}`;
+  }
+
+  // Extract coordinates: supports "20.0°N, 84.9°E", "20.0N / 84.9E", "latitude 18.3N and longitude 84.8E"
+  let latitude: number | null = null;
+  let longitude: number | null = null;
+  const coordPair =
+    combined.match(/(\d{1,2}(?:\.\d+)?)\s*°?\s*N\b[^0-9]{1,28}(\d{2,3}(?:\.\d+)?)\s*°?\s*E\b/i) ||
+    combined.match(/latitude\s*(\d{1,2}(?:\.\d+)?)\s*°?\s*N?[^0-9]{1,28}longitude\s*(\d{2,3}(?:\.\d+)?)\s*°?\s*E?/i);
+  if (coordPair) {
+    const lat = Number(coordPair[1]);
+    const lng = Number(coordPair[2]);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 0 && lat <= 40 && lng >= 50 && lng <= 105) {
+      latitude = lat;
+      longitude = lng;
+    }
+  }
+
+  // Extract movement direction & speed
+  const moveSpeedMatch = combined.match(/moving[^.]{0,80}?(\d{1,2}(?:\.\d+)?)\s*(?:kmph|km\/h|knots)/i);
+  const moveDirMatch = combined.match(
+    /moving\s+(?:nearly\s+|slowly\s+)?(north-northeast|north-northwest|south-southeast|south-southwest|east-northeast|east-southeast|west-northwest|west-southwest|northeast|northwest|southeast|southwest|northwards|southwards|eastwards|westwards|north|south|east|west)/i
+  );
+
+  // Extract sustained winds & gusts
+  const windMatch = combined.match(/(\d{2,3}\s*[-–to]+\s*\d{2,3}\s*(?:kmph|km\/h)|(?:\d{2,3})\s*(?:kmph|km\/h))/i);
+  const gustMatch = combined.match(/gusting\s+to\s+(\d{2,3}\s*(?:kmph|km\/h))/i);
+  const pressureMatch = combined.match(/(\d{3,4}(?:\.\d+)?)\s*hPa/i);
+
+  // Resolve affected Indian states from canonical registry
+  const lower = combined.toLowerCase();
+  const matchedRegions = ALL_36_INDIA_REGIONS.filter(
+    (r) => lower.includes(r.name.toLowerCase()) || r.aliases.some((a) => lower.includes(a))
+  );
+  const affectedStates = matchedRegions.map((r) => r.name);
+
+  // If coordinates weren't explicitly stated in RSS snippet, anchor to first matched state's representative point (and note approximate)
+  const hasExactCoords = latitude !== null && longitude !== null;
+  if (!hasExactCoords && matchedRegions.length > 0) {
+    latitude = matchedRegions[0].lat;
+    longitude = matchedRegions[0].lng;
+  }
+  if (latitude === null || longitude === null) {
+    latitude = 16.5;
+    longitude = 85.5;
+  }
+
+  // Determine basin
+  let basin = 'North Indian Ocean';
+  if (/bay of bengal/i.test(combined)) basin = 'Bay of Bengal';
+  else if (/arabian sea/i.test(combined)) basin = 'Arabian Sea';
+  else if (/(coastal odisha|interior odisha|over .*odisha|over .*andhra|over .*bengal|inland)/i.test(combined)) {
+    basin = 'Coastal / Inland India';
+  }
+
+  // Determine threat levels conservatively from severity & classification
+  const isRed = /(red alert|red warning|extremely heavy|severe cyclonic|very severe|extremely severe|super cyclonic)/i.test(lower);
+  const isOrange = /(orange alert|orange warning|deep depression|cyclonic storm|very heavy)/i.test(lower);
+  const threat: ThreatLevel = isRed ? 'RED' : isOrange ? 'ORANGE' : 'YELLOW';
+
+  const isWeakened = /(weakened into|remnant|dissipated)/i.test(lower);
+  const status: 'ACTIVE' | 'WEAKENED' | 'DISSIPATED' = /dissipated|less marked/i.test(lower)
+    ? 'DISSIPATED'
+    : isWeakened
+    ? 'WEAKENED'
+    : 'ACTIVE';
+
+  const locationSummaryMatch = combined.match(/(?:over|near|centred\s+(?:over|near)|centered\s+(?:over|near))\s+([^.,;]{5,80})/i);
+  const currentLocation = locationSummaryMatch
+    ? `${locationSummaryMatch[1].trim()}${hasExactCoords ? ` (${latitude.toFixed(1)}°N, ${longitude.toFixed(1)}°E)` : ''}`
+    : hasExactCoords
+    ? `${latitude.toFixed(1)}°N, ${longitude.toFixed(1)}°E`
+    : affectedStates.length > 0
+    ? `Near ${affectedStates[0]} (Approximate bulletin sector)`
+    : 'North Indian Ocean';
+
+  const idSlug = (meta.id || systemName)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48);
+
+  return {
+    id: idSlug || `imd-sys-${Date.now()}`,
+    name: systemName,
+    classification,
+    basin,
+    source: meta.source || 'IMD / NDMA SACHET CAP Feed',
+    sourceUrl: meta.sourceUrl || 'https://rsmcnewdelhi.imd.gov.in/',
+    latitude,
+    longitude,
+    pressure: pressureMatch ? `${pressureMatch[1]} hPa` : 'Unavailable in feed',
+    maxSustainedWind: windMatch ? windMatch[1].replace(/kmph/i, 'km/h') : 'Refer to official IMD bulletin',
+    windGust: gustMatch ? gustMatch[1].replace(/kmph/i, 'km/h') : 'Unavailable in feed',
+    movementDirection: moveDirMatch ? moveDirMatch[1] : 'Unavailable in feed',
+    movementSpeed: moveSpeedMatch ? `${moveSpeedMatch[1]} km/h` : 'Unavailable in feed',
+    currentLocation,
+    forecastTrack: [], // Strictly empty unless official forecast coordinates are explicitly parsed
+    historicalTrack: [],
+    expectedLandfall: /over .*odisha|inland|remnant/i.test(lower)
+      ? 'System currently inland / weakened — refer to latest IMD bulletin'
+      : 'Not specified in CAP summary (see RSMC New Delhi)',
+    expectedLandfallWindow: 'See official IMD RSMC bulletin',
+    issuedAt,
+    updatedAt: issuedAt,
+    nextBulletinAt: 'Next scheduled IMD synoptic cycle',
+    status,
+    affectedStates,
+    affectedDistricts: [],
+    rainfallThreat: threat,
+    windThreat: threat,
+    stormSurgeThreat: basin === 'Coastal / Inland India' ? 'NOT_AVAILABLE' : isRed ? 'ORANGE' : 'YELLOW',
+    thunderstormThreat: threat,
+    coastalConditionsThreat: threat,
+    sourceStatus: 'LIVE',
+    fetchedAt,
+    advisoryText: text.slice(0, 600),
+  };
+}
+
+interface ParsedCapRssItem {
+  title: string;
+  description: string;
+  link: string;
+  pubDate: string;
+  sourceName: string;
+}
+
+function parseRssItems(xml: string, sourceName: string): ParsedCapRssItem[] {
+  if (!xml || !xml.includes('<item')) return [];
+  const items: ParsedCapRssItem[] = [];
+  const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+  let m: RegExpExecArray | null;
+
+  const getTag = (block: string, tag: string) => {
+    const match = block.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    return match ? decodeXmlText(match[1]) : '';
+  };
+
+  while ((m = itemRegex.exec(xml)) !== null) {
+    const block = m[1];
+    const title = getTag(block, 'title');
+    if (!title) continue;
+    items.push({
+      title,
+      description: getTag(block, 'description') || title,
+      link: getTag(block, 'link') || 'https://sachet.ndma.gov.in/',
+      pubDate: getTag(block, 'pubDate') || '',
+      sourceName,
+    });
+  }
+  return items;
+}
+
+const WARNING_LEVEL_RANK: Record<WarningLevel, number> = {
+  RED: 4,
+  ORANGE: 3,
+  YELLOW: 2,
+  WATCH: 1,
+  NO_WARNING: 0,
+  UNKNOWN: -1,
+};
+
+function deriveRegionalWarningsFromCapItems(
+  items: ParsedCapRssItem[],
+  fetchTimestamp: string
+): RegionalWarningStatus[] {
+  const byRegion = new Map<
+    string,
+    { level: WarningLevel; hazards: Set<string>; warnings: any[]; latestTime: string }
+  >();
+
+  for (const item of items) {
+    const combined = `${item.title} ${item.description}`;
+    const lower = combined.toLowerCase();
+
+    let level: WarningLevel = 'YELLOW';
+    if (/(red\s*(alert|warning)|extreme|severe cyclonic|super cyclonic)/i.test(lower)) {
+      level = 'RED';
+    } else if (/(orange\s*(alert|warning)|deep depression|cyclone warning|very heavy)/i.test(lower)) {
+      level = 'ORANGE';
+    } else if (/(watch|advisory|yellow)/i.test(lower)) {
+      level = 'YELLOW';
+    }
+
+    const hazardLabel = /cyclone|depression/i.test(lower)
+      ? 'Cyclonic Disturbance'
+      : /thunderstorm|lightning/i.test(lower)
+      ? 'Thunderstorm & Lightning'
+      : /rain|flood/i.test(lower)
+      ? 'Heavy Rainfall'
+      : /wind|squall|gale/i.test(lower)
+      ? 'Strong Winds'
+      : /heat/i.test(lower)
+      ? 'Heatwave'
+      : 'Weather Advisory';
+
+    for (const region of ALL_36_INDIA_REGIONS) {
+      const matched =
+        lower.includes(region.name.toLowerCase()) ||
+        region.aliases.some((a) => a.length > 3 && lower.includes(a));
+      if (!matched) continue;
+
+      const entry = byRegion.get(region.code) || {
+        level: 'NO_WARNING',
+        hazards: new Set<string>(),
+        warnings: [],
+        latestTime: fetchTimestamp,
+      };
+      if (WARNING_LEVEL_RANK[level] > WARNING_LEVEL_RANK[entry.level]) {
+        entry.level = level;
+      }
+      entry.hazards.add(hazardLabel);
+      entry.warnings.push({
+        title: item.title,
+        source: item.sourceName,
+        issuedAt: item.pubDate || fetchTimestamp,
+        link: item.link,
+      });
+      if (item.pubDate) entry.latestTime = item.pubDate;
+      byRegion.set(region.code, entry);
+    }
+  }
+
+  return ALL_36_INDIA_REGIONS.map((region) => {
+    const match = byRegion.get(region.code);
+    if (!match || match.warnings.length === 0) {
+      return {
+        regionCode: region.code,
+        regionName: region.name,
+        regionType: region.type,
+        warningLevel: 'NO_WARNING' as WarningLevel,
+        hazards: [],
+        affectedDistricts: [],
+        sourceWarnings: [],
+        validFrom: fetchTimestamp,
+        validUntil: 'Routine Synoptic Surveillance',
+        lastUpdated: fetchTimestamp,
+        status: 'NO_ACTIVE_WARNING' as RegionalWarningState,
+      };
+    }
+
+    return {
+      regionCode: region.code,
+      regionName: region.name,
+      regionType: region.type,
+      warningLevel: match.level,
+      hazards: Array.from(match.hazards),
+      affectedDistricts: [],
+      sourceWarnings: match.warnings.slice(0, 5),
+      validFrom: match.latestTime,
+      validUntil: 'Active per official CAP bulletin',
+      lastUpdated: fetchTimestamp,
+      status: 'ACTIVE_WARNING' as RegionalWarningState,
+    };
+  });
+}
+
 export class CycloneIngestionService {
   private static instance: CycloneIngestionService;
 
@@ -137,7 +497,6 @@ export class CycloneIngestionService {
   private readonly STALE_TTL_MS = 15 * 60 * 1000; // 15 mins
 
   private rsmcUrl = 'https://rsmcnewdelhi.imd.gov.in';
-  private imdCycloneUrl = 'https://mausam.imd.gov.in/responsive/cycloneinformation.php';
   private imdCapRssUrl = 'https://cap-sources.s3.amazonaws.com/in-imd-en/rss.xml';
   private sachetRssUrl = 'https://sachet.ndma.gov.in/cap_public_website/rss/rss_india.xml';
 
@@ -159,7 +518,7 @@ export class CycloneIngestionService {
       this.cachedPayload = payload;
       this.lastFetchTime = now;
       return payload;
-    } catch (err: any) {
+    } catch {
       if (this.cachedPayload && now - this.lastFetchTime < this.STALE_TTL_MS) {
         return {
           ...this.cachedPayload,
@@ -183,6 +542,14 @@ export class CycloneIngestionService {
     let sachetHealth: CycloneProviderHealth;
 
     let liveSystems: WeatherSystemEvent[] = [];
+    const parsedCapItems: ParsedCapRssItem[] = [];
+
+    // Always probe live public CAP RSS feeds alongside authenticated IMD API (if configured)
+    const [rsmcRes, imdCapRes, sachetRes] = await Promise.allSettled([
+      this.fetchWithTimeout(this.rsmcUrl, 5500),
+      this.fetchWithTimeout(this.imdCapRssUrl, 5500),
+      this.fetchWithTimeout(this.sachetRssUrl, 5500),
+    ]);
 
     if (useAuthApi) {
       const startTime = Date.now();
@@ -209,13 +576,6 @@ export class CycloneIngestionService {
         };
       }
     } else {
-      // Probe authoritative public sources truthfully
-      const [rsmcRes, imdCapRes, sachetRes] = await Promise.allSettled([
-        this.fetchWithTimeout(this.rsmcUrl, 5000),
-        this.fetchWithTimeout(this.imdCapRssUrl, 5000),
-        this.fetchWithTimeout(this.sachetRssUrl, 5000),
-      ]);
-
       const rsmcOk = rsmcRes.status === 'fulfilled' && rsmcRes.value.ok;
       imdCycloneHealth = {
         status: rsmcOk ? 'LIVE' : 'UNAVAILABLE',
@@ -225,45 +585,70 @@ export class CycloneIngestionService {
         endpoint: this.rsmcUrl,
         error: rsmcOk ? null : 'RSMC New Delhi feed unreachable',
       };
-
-      const imdCapOk = imdCapRes.status === 'fulfilled' && imdCapRes.value.ok;
-      imdWarningsHealth = {
-        status: imdCapOk ? 'LIVE' : 'UNAVAILABLE',
-        latencyMs: imdCapRes.status === 'fulfilled' && imdCapOk ? imdCapRes.value.latencyMs : null,
-        lastFetch: imdCapOk ? fetchTimestamp : null,
-        httpStatus: imdCapRes.status === 'fulfilled' && imdCapRes.value.status ? imdCapRes.value.status : null,
-        endpoint: this.imdCapRssUrl,
-        error: imdCapOk ? null : 'IMD CAP RSS feed unreachable',
-      };
-
-      const sachetOk = sachetRes.status === 'fulfilled' && sachetRes.value.ok;
-      sachetHealth = {
-        status: sachetOk ? 'LIVE' : 'UNAVAILABLE',
-        latencyMs: sachetRes.status === 'fulfilled' && sachetOk ? sachetRes.value.latencyMs : null,
-        lastFetch: sachetOk ? fetchTimestamp : null,
-        httpStatus: sachetRes.status === 'fulfilled' && sachetRes.value.status ? sachetRes.value.status : null,
-        endpoint: this.sachetRssUrl,
-        error: sachetOk ? null : 'NDMA SACHET RSS feed unreachable',
-      };
     }
 
-    imdWarningsHealth = imdWarningsHealth || {
-      status: 'UNAVAILABLE',
-      latencyMs: null,
-      lastFetch: null,
-      httpStatus: null,
+    const imdCapOk = imdCapRes.status === 'fulfilled' && imdCapRes.value.ok;
+    imdWarningsHealth = {
+      status: imdCapOk ? 'LIVE' : 'UNAVAILABLE',
+      latencyMs: imdCapRes.status === 'fulfilled' && imdCapOk ? imdCapRes.value.latencyMs : null,
+      lastFetch: imdCapOk ? fetchTimestamp : null,
+      httpStatus: imdCapRes.status === 'fulfilled' && imdCapRes.value.status ? imdCapRes.value.status : null,
       endpoint: this.imdCapRssUrl,
+      error: imdCapOk ? null : 'IMD CAP RSS feed unreachable',
     };
+    if (imdCapOk && imdCapRes.status === 'fulfilled') {
+      parsedCapItems.push(...parseRssItems(imdCapRes.value.body, 'IMD CAP RSS'));
+    }
 
-    sachetHealth = sachetHealth || {
-      status: 'UNAVAILABLE',
-      latencyMs: null,
-      lastFetch: null,
-      httpStatus: null,
+    const sachetOk = sachetRes.status === 'fulfilled' && sachetRes.value.ok;
+    sachetHealth = {
+      status: sachetOk ? 'LIVE' : 'UNAVAILABLE',
+      latencyMs: sachetRes.status === 'fulfilled' && sachetOk ? sachetRes.value.latencyMs : null,
+      lastFetch: sachetOk ? fetchTimestamp : null,
+      httpStatus: sachetRes.status === 'fulfilled' && sachetRes.value.status ? sachetRes.value.status : null,
       endpoint: this.sachetRssUrl,
+      error: sachetOk ? null : 'NDMA SACHET RSS feed unreachable',
     };
+    if (sachetOk && sachetRes.status === 'fulfilled') {
+      parsedCapItems.push(...parseRssItems(sachetRes.value.body, 'NDMA SACHET CAP RSS'));
+    }
 
-    const anyLive = imdCycloneHealth.status === 'LIVE' || imdWarningsHealth.status === 'LIVE' || sachetHealth.status === 'LIVE';
+    // Parse live cyclonic disturbances directly from live SACHET / IMD CAP items when not already supplied by IMD API
+    if (liveSystems.length === 0 && parsedCapItems.length > 0) {
+      const cycloneCandidates = parsedCapItems.filter((item) =>
+        /(cyclone|cyclonic|deep depression|depression|well[\s-]*marked low pressure|tropical storm)/i.test(
+          `${item.title} ${item.description}`
+        )
+      );
+
+      const seenNames = new Set<string>();
+      for (const item of cycloneCandidates) {
+        const parsedDate = item.pubDate ? new Date(item.pubDate) : null;
+        const issuedIso =
+          parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString() : fetchTimestamp;
+        const parsedSystem = parseCycloneBulletinText(item.description, {
+          title: item.title,
+          source: item.sourceName,
+          sourceUrl: item.link,
+          issuedAt: issuedIso,
+          fetchedAt: fetchTimestamp,
+        });
+
+        if (parsedSystem) {
+          const dedupKey = parsedSystem.name.toLowerCase();
+          if (!seenNames.has(dedupKey)) {
+            seenNames.add(dedupKey);
+            liveSystems.push(parsedSystem);
+          }
+        }
+      }
+    }
+
+    const anyLive =
+      imdCycloneHealth.status === 'LIVE' ||
+      imdWarningsHealth.status === 'LIVE' ||
+      sachetHealth.status === 'LIVE';
+
     if (!anyLive) {
       return {
         systems: [],
@@ -294,16 +679,26 @@ export class CycloneIngestionService {
       };
     }
 
-    return this.buildTruthfulSynopticPayload(fetchTimestamp, {
-      imdCyclone: imdCycloneHealth,
-      imdWarnings: imdWarningsHealth,
-      sachet: sachetHealth,
-    }, liveSystems);
+    const regionalWarnings =
+      parsedCapItems.length > 0
+        ? deriveRegionalWarningsFromCapItems(parsedCapItems, fetchTimestamp)
+        : undefined;
+
+    return this.buildTruthfulSynopticPayload(
+      fetchTimestamp,
+      {
+        imdCyclone: imdCycloneHealth,
+        imdWarnings: imdWarningsHealth,
+        sachet: sachetHealth,
+      },
+      liveSystems,
+      regionalWarnings
+    );
   }
 
   /**
-   * Truthful synoptic payload when live RSMC/CAP RSS endpoints confirm reachability.
-   * Never fabricates active cyclones, depressions, or regional warnings.
+   * Truthful synoptic payload grounded in live RSMC/CAP RSS ingestion.
+   * Never fabricates active cyclones, forecast tracks, or regional warnings.
    */
   private buildTruthfulSynopticPayload(
     fetchTimestamp: string,
@@ -312,25 +707,28 @@ export class CycloneIngestionService {
       imdWarnings: CycloneProviderHealth;
       sachet: CycloneProviderHealth;
     },
-    systems: WeatherSystemEvent[] = []
+    systems: WeatherSystemEvent[] = [],
+    parsedRegionalWarnings?: RegionalWarningStatus[]
   ): CyclonePayload {
-    const regionalWarnings: RegionalWarningStatus[] = ALL_36_INDIA_REGIONS.map((region) => ({
-      regionCode: region.code,
-      regionName: region.name,
-      regionType: region.type,
-      warningLevel: 'NO_WARNING',
-      hazards: [],
-      affectedDistricts: [],
-      sourceWarnings: [],
-      validFrom: fetchTimestamp,
-      validUntil: 'Routine Synoptic Surveillance',
-      lastUpdated: fetchTimestamp,
-      status: 'NO_ACTIVE_WARNING',
-    }));
+    const regionalWarnings: RegionalWarningStatus[] =
+      parsedRegionalWarnings ||
+      ALL_36_INDIA_REGIONS.map((region) => ({
+        regionCode: region.code,
+        regionName: region.name,
+        regionType: region.type,
+        warningLevel: 'NO_WARNING',
+        hazards: [],
+        affectedDistricts: [],
+        sourceWarnings: [],
+        validFrom: fetchTimestamp,
+        validUntil: 'Routine Synoptic Surveillance',
+        lastUpdated: fetchTimestamp,
+        status: 'NO_ACTIVE_WARNING',
+      }));
 
     const states = regionalWarnings.filter((r) => r.regionType === 'STATE');
     const uts = regionalWarnings.filter((r) => r.regionType === 'UNION_TERRITORY');
-    const activeSystems = systems.filter((s) => s.status === 'ACTIVE');
+    const activeSystems = systems.filter((s) => s.status === 'ACTIVE' || s.status === 'WEAKENED');
 
     return {
       systems,
@@ -349,11 +747,9 @@ export class CycloneIngestionService {
     };
   }
 
-  private httpCache: Map<string, { etag: string | null; lastModified: string | null; body: string; timestamp: number }> = new Map();
-
   private async fetchWithTimeout(
     url: string,
-    timeoutMs = 5000
+    timeoutMs = 5500
   ): Promise<{ ok: boolean; status: number; body: string; latencyMs: number }> {
     const start = Date.now();
     const controller = new AbortController();
@@ -364,7 +760,7 @@ export class CycloneIngestionService {
         method: 'GET',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 MausamCyclone/3.0',
-          Accept: 'text/html, application/xhtml+xml, application/xml, text/xml, */*',
+          Accept: 'application/rss+xml, application/xml, text/xml, text/html, */*',
         },
         signal: controller.signal,
       });

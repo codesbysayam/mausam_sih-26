@@ -137,10 +137,10 @@ export const LayerDock: React.FC = () => {
 
   return (
     <>
-      {/* Desktop (>=1024px): Collapsible Left Observatory Rail */}
+      {/* Desktop (>=1024px): Collapsible Left Observatory Rail (clears dynamic header height) */}
       <aside
         aria-label="Atmospheric Layers and Stations"
-        className="hidden lg:flex fixed left-3 top-[68px] z-30 flex-col gap-2 pointer-events-none"
+        className="explore-layer-rail hidden lg:flex fixed left-3 top-[68px] z-30 flex-col gap-2 pointer-events-none"
       >
         {isDesktopCollapsed ? (
           <button
@@ -195,7 +195,7 @@ export const LayerDock: React.FC = () => {
 
             {activeRailTab === 'layers' ? (
               <>
-                <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2 max-h-[calc(100dvh-258px)] overflow-y-auto scrollbar-thin">
+                <div className="explore-layer-rail-scroll spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2 scrollbar-thin">
                   {CATEGORY_ORDER.map((category) => {
                     const items = SPATIAL_LAYERS.filter((l) => l.category === category);
                     return (
@@ -265,7 +265,7 @@ export const LayerDock: React.FC = () => {
               </>
             ) : (
               /* Accessible 36-Station List Equivalent for All 3D Observatory Beacons */
-              <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2 max-h-[calc(100dvh-160px)]">
+              <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2">
                 <input
                   type="text"
                   value={stationFilter}
@@ -277,7 +277,7 @@ export const LayerDock: React.FC = () => {
                 <div
                   role="list"
                   aria-label="Indian State and UT Weather Beacons"
-                  className="overflow-y-auto scrollbar-thin flex flex-col gap-1 max-h-[calc(100dvh-230px)]"
+                  className="explore-layer-stations-scroll scrollbar-thin flex flex-col gap-1"
                 >
                   {filteredStations.map((pt) => {
                     const hasWarn = pt.state.warningLevel && pt.state.warningLevel !== 'normal';
@@ -325,8 +325,8 @@ export const LayerDock: React.FC = () => {
         )}
       </aside>
 
-      {/* Tablet & Mobile (<1024px): Compact Layer & Station Drawer */}
-      <div className="lg:hidden fixed left-2.5 right-2.5 top-[118px] sm:top-[68px] z-30 pointer-events-none flex flex-col items-start gap-1.5 max-w-[360px]">
+      {/* Tablet & Mobile (<1024px): Compact Layer & Station Drawer (anchored below dynamic header) */}
+      <div className="explore-layer-mobile lg:hidden fixed left-2.5 right-2.5 z-30 pointer-events-none flex flex-col items-start gap-1.5 max-w-[360px]">
         <button
           type="button"
           onClick={() => setIsDrawerOpen((v) => !v)}
@@ -346,7 +346,7 @@ export const LayerDock: React.FC = () => {
         </button>
 
         {isDrawerOpen && (
-          <div className="pointer-events-auto w-full spatial-hud-surface-elevated rounded-[11px] p-2.5 flex flex-col gap-2 max-h-[60dvh] overflow-y-auto scrollbar-thin">
+          <div className="explore-layer-mobile-drawer pointer-events-auto w-full spatial-hud-surface-elevated rounded-[11px] p-2.5 flex flex-col gap-2 scrollbar-thin">
             <div className="flex items-center gap-1 border-b border-[var(--m-border)] pb-2">
               <button
                 type="button"

@@ -77,12 +77,14 @@ const CustomTrendTooltip = ({ active, payload, label }: any) => {
       : aqi <= 50
       ? { name: 'Good', color: 'var(--m-ok)' }
       : aqi <= 100
-      ? { name: 'Satisfactory', color: 'var(--m-ok)' }
-      : aqi <= 200
       ? { name: 'Moderate', color: 'var(--m-watch)' }
+      : aqi <= 150
+      ? { name: 'Unhealthy (Sensitive)', color: 'var(--m-alert)' }
+      : aqi <= 200
+      ? { name: 'Unhealthy', color: 'var(--m-danger)' }
       : aqi <= 300
-      ? { name: 'Poor', color: 'var(--m-alert)' }
-      : { name: 'Very Poor', color: 'var(--m-danger)' };
+      ? { name: 'Very Unhealthy', color: 'var(--m-danger)' }
+      : { name: 'Hazardous', color: 'var(--m-danger)' };
 
   const pollenRisk =
     pollen === undefined || pollen === null
@@ -379,36 +381,30 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
   const getAqiCategory = (val: number | null) => {
     if (val === null || Number.isNaN(val)) return 'Not reported';
     if (val <= 50) return 'Good';
-    if (val <= 100) return 'Satisfactory';
-    if (val <= 200) return 'Moderate';
-    if (val <= 300) return 'Poor';
-    if (val <= 400) return 'Very Poor';
-    return 'Severe';
+    if (val <= 100) return 'Moderate';
+    if (val <= 150) return 'Unhealthy for Sensitive Groups';
+    if (val <= 200) return 'Unhealthy';
+    if (val <= 300) return 'Very Unhealthy';
+    return 'Hazardous';
   };
 
+  // Strictly show live coordinate telemetry — never fabricate static city rows as live benchmarks
   const cityAqiData = [
     {
       city: `${selectedLocation.city || 'Selected Location'}`,
       state: selectedLocation.state || 'India',
-      dataClass: 'Live Model Telemetry',
+      dataClass: 'Open-Meteo Model Estimate (US EPA AQI)',
       aqi: activeAqi,
       category: getAqiCategory(activeAqi),
       pm25: activePm25,
       pm10: activePm10,
       isLiveSelected: true,
     },
-    { city: 'Cuttack', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 112, category: 'Moderate', pm25: 52, pm10: 94 },
-    { city: 'Rourkela', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 145, category: 'Moderate', pm25: 64, pm10: 120 },
-    { city: 'Puri', state: 'Odisha', dataClass: 'Static Reference Benchmark', aqi: 45, category: 'Good', pm25: 18, pm10: 42 },
-    { city: 'New Delhi', state: 'Delhi', dataClass: 'Static Reference Benchmark', aqi: 240, category: 'Poor', pm25: 110, pm10: 215 },
-    { city: 'Mumbai', state: 'Maharashtra', dataClass: 'Static Reference Benchmark', aqi: 92, category: 'Satisfactory', pm25: 38, pm10: 76 },
-    { city: 'Kolkata', state: 'West Bengal', dataClass: 'Static Reference Benchmark', aqi: 135, category: 'Moderate', pm25: 58, pm10: 110 },
-    { city: 'Bengaluru', state: 'Karnataka', dataClass: 'Static Reference Benchmark', aqi: 62, category: 'Satisfactory', pm25: 26, pm10: 54 },
   ];
 
   const cityColumns: ColumnDef<any>[] = [
     {
-      header: 'Station / City',
+      header: 'Active Location',
       render: (item) => (
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
@@ -421,15 +417,15 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
             </button>
             <span className="text-[11px] text-[var(--m-text-muted)]">({item.state})</span>
           </div>
-          <span className={`text-[10px] font-mono ${item.isLiveSelected ? 'text-[var(--m-ok)] font-semibold' : 'text-[var(--m-text-muted)]'}`}>
+          <span className="text-[10px] font-mono text-[var(--m-accent)] font-semibold">
             {item.dataClass}
           </span>
         </div>
       ),
-      width: '240px',
+      width: '260px',
     },
     {
-      header: 'NAQI Index',
+      header: 'US EPA AQI',
       render: (item) => (
         <span className="font-mono font-bold text-[var(--m-text-primary)] text-sm tabular-nums">
           {item.aqi !== null && item.aqi !== undefined ? item.aqi : 'Not reported'}
@@ -445,11 +441,11 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
           variant={
             item.aqi === null || item.aqi === undefined
               ? 'info'
-              : item.aqi <= 100
+              : item.aqi <= 50
               ? 'good'
-              : item.aqi <= 200
+              : item.aqi <= 100
               ? 'warning'
-              : item.aqi <= 300
+              : item.aqi <= 150
               ? 'alert'
               : 'danger'
           }
@@ -507,12 +503,12 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
     <div className="flex flex-col gap-5 w-full pb-12">
       {/* Unified Observatory Page Header */}
       <PageHeader
-        eyebrow="CPCB NAQI · OPEN-METEO ATMOSPHERIC CHEMISTRY"
-        title={`Air Quality & Bio-Aerosol Telemetry — ${selectedLocation.city || 'Station'}`}
-        description={`Real-time particulate matter, gaseous pollutants, and 7-day dispersion history for ${formatLocationTitle(selectedLocation)}.`}
+        eyebrow="OPEN-METEO MODEL ESTIMATE · US EPA AQI (SEPARATE FROM CPCB GROUND STATIONS)"
+        title={`Air Quality & Bio-Aerosol Telemetry — ${selectedLocation.city || 'Location'}`}
+        description={`Modelled particulate matter, trace gases, and 7-day dispersion series for ${formatLocationTitle(selectedLocation)}. Physical CPCB CAAQMS ground-station AQI requires an authorized station feed.`}
         coordinates={formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}
-        status={headerStatus}
-        source={aqiState.source || 'Open-Meteo Air Quality'}
+        status={headerStatus === 'LIVE' ? 'MODELLED' : headerStatus}
+        source="Open-Meteo Air Quality Model (US EPA AQI)"
         updatedAt={current.observationTimeFormatted || current.lastUpdated || null}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -861,13 +857,13 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
         />
       </div>
 
-      {/* Regional Reference Table */}
+      {/* Active Location Telemetry Summary & Official CPCB Registry Link */}
       <DataPanel className="flex flex-col gap-4">
         <SectionHeading
-          title="Selected Location & Static Regional CAAQMS Reference Benchmarks"
-          subtitle="Row 1 reflects live Open-Meteo model telemetry for your active coordinates; all remaining rows are static CPCB/SPCB reference benchmarks (not live station feeds)."
+          title="Active Location Model Telemetry & Official CPCB Station Portal"
+          subtitle="Displays live Open-Meteo model grid output for your selected coordinates only. Static city benchmarks have been removed to prevent confusion with live CPCB CAAQMS station sensors."
           icon={<MapPin className="w-4 h-4" />}
-          badge={<SourceStatus status="REFERENCE" labelOverride="LIVE + STATIC BENCHMARKS" />}
+          badge={<SourceStatus status="MODELLED" labelOverride="MODEL ESTIMATE · US EPA AQI" />}
         />
 
         <div className="table-wrapper">
@@ -876,6 +872,20 @@ export const AirQualityPage: React.FC<AirQualityPageProps> = ({
             columns={cityColumns}
             keyExtractor={(item) => item.city}
           />
+        </div>
+
+        <div className="rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <span className="text-[var(--m-text-secondary)]">
+            For official 24-hour multi-pollutant Indian CPCB National AQI (NAQI) from physical ground monitoring stations, consult the Central Pollution Control Board CAAQMS portal.
+          </span>
+          <a
+            href="https://airquality.cpcb.gov.in/AQI_India/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-mono font-semibold text-[var(--m-accent)] hover:underline shrink-0"
+          >
+            Open CPCB CAAQMS Portal →
+          </a>
         </div>
       </DataPanel>
     </div>

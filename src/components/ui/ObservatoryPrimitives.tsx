@@ -20,6 +20,7 @@ export type ProvenanceStatus =
   | 'OBSERVED'
   | 'FORECAST'
   | 'MODEL_DERIVED'
+  | 'MODELLED'
   | 'ESTIMATED'
   | 'DERIVED';
 
@@ -53,6 +54,11 @@ const STATUS_META: Record<
   },
   MODEL_DERIVED: {
     label: 'MODEL-DERIVED',
+    containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
+    Icon: Info,
+  },
+  MODELLED: {
+    label: 'MODELLED',
     containerClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/30',
     Icon: Info,
   },

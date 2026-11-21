@@ -10,6 +10,7 @@ import {
   ProviderDescriptor,
   ProviderId,
   ProviderState,
+  ProviderStatus,
   ProviderStore,
   SystemDataStatus,
 } from '../types/providers';
@@ -20,6 +21,11 @@ import {
 } from '../services/providers/providerRegistry';
 import { deriveSystemDataStatus } from '../services/providers/providerStatus';
 import { useLocation } from '../context/LocationContext';
+import {
+  safeStorageGetJson,
+  safeStorageRemove,
+  safeStorageSetJson,
+} from '../utils/safeStorage';
 
 export const PROVIDER_DESCRIPTORS: Record<ProviderId, ProviderDescriptor> = {
   SACHET: {
@@ -96,46 +102,65 @@ function createDefaultProviderState<T = unknown>(id: ProviderId): ProviderState<
   };
 }
 
+const VALID_PROVIDER_STATUSES = new Set<ProviderStatus>([
+  'LIVE',
+  'STALE',
+  'UNAVAILABLE',
+  'ERROR',
+  'LOADING',
+]);
+
+function isValidCachedProviderPayload(
+  value: unknown
+): value is ProviderState & { _cachedAt?: number } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  if (candidate.status !== undefined && !VALID_PROVIDER_STATUSES.has(candidate.status as ProviderStatus)) {
+    return false;
+  }
+  if (candidate._cachedAt !== undefined && typeof candidate._cachedAt !== 'number') {
+    return false;
+  }
+  return true;
+}
+
 function readCachedProviderState(id: ProviderId): ProviderState | null {
-  if (typeof window === 'undefined' || !window.sessionStorage) return null;
-  try {
-    const raw = window.sessionStorage.getItem(PROVIDER_DESCRIPTORS[id].cacheKey);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as ProviderState & { _cachedAt?: number };
-    if (!parsed || typeof parsed !== 'object') return null;
-    const maxAgeMs = Math.max(PROVIDER_DESCRIPTORS[id].refreshIntervalMs * 2, 10 * 60 * 1000);
-    if (parsed._cachedAt && Date.now() - parsed._cachedAt > maxAgeMs) {
-      return null;
-    }
-    return {
-      status: parsed.status || 'STALE',
-      data: parsed.data ?? null,
-      error: parsed.error ?? null,
-      fetchedAt: parsed.fetchedAt ?? null,
-      latencyMs: parsed.latencyMs ?? null,
-      source: parsed.source || PROVIDER_DESCRIPTORS[id].defaultSource,
-      lastSuccessfulFetch: parsed.lastSuccessfulFetch ?? null,
-      lastAttemptedFetch: parsed.lastAttemptedFetch ?? null,
-      endpointType: parsed.endpointType,
-      requestId: parsed.requestId ?? null,
-    };
-  } catch {
+  const parsed = safeStorageGetJson<ProviderState & { _cachedAt?: number }>(
+    'session',
+    PROVIDER_DESCRIPTORS[id].cacheKey,
+    isValidCachedProviderPayload
+  );
+  if (!parsed) return null;
+
+  const maxAgeMs = Math.max(PROVIDER_DESCRIPTORS[id].refreshIntervalMs * 2, 10 * 60 * 1000);
+  if (parsed._cachedAt && Date.now() - parsed._cachedAt > maxAgeMs) {
+    safeStorageRemove('session', PROVIDER_DESCRIPTORS[id].cacheKey);
     return null;
   }
+
+  return {
+    status: VALID_PROVIDER_STATUSES.has(parsed.status) ? parsed.status : 'STALE',
+    data: parsed.data ?? null,
+    error: typeof parsed.error === 'string' ? parsed.error : null,
+    fetchedAt: typeof parsed.fetchedAt === 'string' ? parsed.fetchedAt : null,
+    latencyMs: typeof parsed.latencyMs === 'number' && Number.isFinite(parsed.latencyMs) ? parsed.latencyMs : null,
+    source: typeof parsed.source === 'string' && parsed.source.trim()
+      ? parsed.source
+      : PROVIDER_DESCRIPTORS[id].defaultSource,
+    lastSuccessfulFetch: typeof parsed.lastSuccessfulFetch === 'string' ? parsed.lastSuccessfulFetch : null,
+    lastAttemptedFetch: typeof parsed.lastAttemptedFetch === 'string' ? parsed.lastAttemptedFetch : null,
+    endpointType: typeof parsed.endpointType === 'string' ? parsed.endpointType : PROVIDER_DESCRIPTORS[id].description,
+    requestId: typeof parsed.requestId === 'string' ? parsed.requestId : null,
+  };
 }
 
 function writeCachedProviderState(id: ProviderId, state: ProviderState): void {
-  if (typeof window === 'undefined' || !window.sessionStorage) return;
-  try {
-    if (state.status === 'LOADING') return;
-    const payload = {
-      ...state,
-      _cachedAt: Date.now(),
-    };
-    window.sessionStorage.setItem(PROVIDER_DESCRIPTORS[id].cacheKey, JSON.stringify(payload));
-  } catch {
-    // Ignore storage quota or serialization errors
-  }
+  if (state.status === 'LOADING') return;
+  const payload = {
+    ...state,
+    _cachedAt: Date.now(),
+  };
+  safeStorageSetJson('session', PROVIDER_DESCRIPTORS[id].cacheKey, payload);
 }
 
 export function createInitialProviderStore(hydrateFromCache = true): ProviderStore {

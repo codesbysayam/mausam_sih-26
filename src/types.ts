@@ -157,7 +157,7 @@ export interface CurrentWeather {
   co?: number | null; // µg/m³
   o3?: number | null; // µg/m³
   dust?: number | null; // µg/m³
-  aqiStatus: 'Good' | 'Moderate' | 'Unhealthy for Sensitive' | 'Unhealthy' | 'Hazardous' | 'Unavailable';
+  aqiStatus: 'Good' | 'Moderate' | 'Unhealthy for Sensitive' | 'Unhealthy' | 'Very Unhealthy' | 'Hazardous' | 'Unavailable';
   precipitation: number | null; // mm currently
   precipitationMm?: number | null;
   rainfall?: number | null; // mm

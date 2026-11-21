@@ -6,17 +6,385 @@ import {
   StateWarningSummary,
   EmergencyHelpline,
   IndiaMetRegion,
+  HazardCategory,
 } from '../types/warningTypes';
 import {
-  NATIONAL_WARNINGS_DATABASE,
   STATE_ALERT_SEVERITIES,
   EMERGENCY_HELPLINES,
   STATE_DISASTER_NUMBERS,
 } from '../data/nationalWarningsData';
+import { ALL_INDIA_STATES_MET_PROFILES, StateMeteorologicalProfile } from '../data/allIndiaStatesProfiles';
 import { LocationRecord } from '../types';
 import { formatIndianDateTime } from '../utils/dateUtils';
 
+export interface ReconciledNationalWarnings {
+  activeWarnings: WarningRecord[];
+  stateSummaries: Record<string, StateWarningSummary>;
+  stateSummariesList: StateWarningSummary[];
+  unmappedOrNationalBulletins: WarningRecord[];
+  totalBulletins: number;
+  redBulletins: number;
+  orangeBulletins: number;
+  yellowBulletins: number;
+  advisoryBulletins: number;
+  redStates: number;
+  orangeStates: number;
+  yellowStates: number;
+  advisoryStates: number;
+  affectedStateCount: number;
+  normalStateCount: number;
+  totalStatesAndUTs: number;
+  latestIssuedAt: string | null;
+  isUnavailable: boolean;
+}
+
+const SEVERITY_RANK: Record<AlertSeverity, number> = {
+  red: 4,
+  orange: 3,
+  yellow: 2,
+  purple: 1,
+  green: 0,
+};
+
+// Canonical alias map for state code variations (e.g. TS -> TG, OR -> OD, UA -> UK)
+const STATE_CODE_ALIASES: Record<string, string> = {
+  ts: 'tg',
+  or: 'od',
+  ua: 'uk',
+  dd: 'dnhdd',
+  dn: 'dnhdd',
+  dnh: 'dnhdd',
+  an: 'an',
+  lk: 'ld',
+  po: 'py',
+};
+
+function resolveCanonicalStateProfile(
+  stateName?: string,
+  stateCode?: string,
+  textFallback?: string
+): StateMeteorologicalProfile | null {
+  const cleanCode = (stateCode || '').toLowerCase().replace(/^in-/, '').trim();
+  const mappedCode = STATE_CODE_ALIASES[cleanCode] || cleanCode;
+
+  if (mappedCode && mappedCode !== 'all' && mappedCode !== 'in') {
+    const byCode = ALL_INDIA_STATES_MET_PROFILES.find(
+      (p) => p.code.toLowerCase() === mappedCode
+    );
+    if (byCode) return byCode;
+  }
+
+  const cleanName = (stateName || '').toLowerCase().trim();
+  if (cleanName && cleanName !== 'all' && cleanName !== 'india' && cleanName !== 'national') {
+    const exact = ALL_INDIA_STATES_MET_PROFILES.find(
+      (p) =>
+        p.name.toLowerCase() === cleanName ||
+        p.aliases.some((a) => a.toLowerCase() === cleanName)
+    );
+    if (exact) return exact;
+
+    const partial = ALL_INDIA_STATES_MET_PROFILES.find(
+      (p) =>
+        cleanName.includes(p.name.toLowerCase()) ||
+        p.name.toLowerCase().includes(cleanName)
+    );
+    if (partial) return partial;
+  }
+
+  if (textFallback) {
+    const lowerText = textFallback.toLowerCase();
+    for (const profile of ALL_INDIA_STATES_MET_PROFILES) {
+      if (lowerText.includes(profile.name.toLowerCase())) {
+        return profile;
+      }
+    }
+  }
+
+  return null;
+}
+
+function isWarningActive(warn: WarningRecord, nowMs: number): boolean {
+  const statusText = `${warn.severityLabel || ''} ${warn.title || ''}`.toLowerCase();
+  if (/\b(cancelled|canceled|withdrawn|expired)\b/.test(statusText)) {
+    return false;
+  }
+  if (typeof warn.validityTimestamp === 'number' && Number.isFinite(warn.validityTimestamp)) {
+    if (warn.validityTimestamp > 0 && warn.validityTimestamp < nowMs) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function inferHazardCategory(text: string): { category: HazardCategory; label: string; icon: string } {
+  const lower = text.toLowerCase();
+  if (/(cyclone|cyclonic|deep depression|depression|storm surge)/i.test(lower)) {
+    return { category: 'cyclone', label: 'Cyclonic System / Depression', icon: 'cyclone' };
+  }
+  if (/(flood|inundation|flash flood)/i.test(lower)) {
+    return { category: 'flood', label: 'Flood Warning', icon: 'flood' };
+  }
+  if (/(thunderstorm|lightning|squall|hail)/i.test(lower)) {
+    return { category: 'thunderstorm', label: 'Thunderstorm & Lightning', icon: 'thunderstorm' };
+  }
+  if (/(heat\s*wave|warm night|extreme heat)/i.test(lower)) {
+    return { category: 'heatwave', label: 'Heatwave', icon: 'local_fire_department' };
+  }
+  if (/(cold\s*wave|frost|ground frost|cold day)/i.test(lower)) {
+    return { category: 'cold_wave', label: 'Cold Wave', icon: 'ac_unit' };
+  }
+  if (/(fog|visibility)/i.test(lower)) {
+    return { category: 'dense_fog', label: 'Dense Fog', icon: 'foggy' };
+  }
+  if (/(gale|squally wind|strong wind|gust)/i.test(lower)) {
+    return { category: 'strong_wind', label: 'Strong Surface Winds', icon: 'air' };
+  }
+  if (/(swell|high wave|fishermen|coastal|sea condition)/i.test(lower)) {
+    return { category: 'coastal_warning', label: 'Coastal & Marine Warning', icon: 'tsunami' };
+  }
+  return { category: 'heavy_rain', label: 'Heavy Rainfall', icon: 'rainy' };
+}
+
 class WarningService {
+  /**
+   * Parse official CAP RSS XML (SACHET / IMD CAP) into structured WarningRecord entries.
+   * Strictly represents official government bulletins only — never contextual news wires.
+   */
+  parseCapRssFeedXml(xml: string, sourceLabel = 'NDMA SACHET / IMD CAP Feed'): WarningRecord[] {
+    if (!xml || !xml.includes('<item')) return [];
+    const records: WarningRecord[] = [];
+    const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+    let m: RegExpExecArray | null;
+    let idx = 0;
+
+    const extractTag = (block: string, tag: string): string => {
+      const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
+      const match = block.match(re);
+      if (!match) return '';
+      return match[1]
+        .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+
+    while ((m = itemRegex.exec(xml)) !== null) {
+      const block = m[1];
+      const title = extractTag(block, 'title');
+      const description = extractTag(block, 'description') || title;
+      const pubDate = extractTag(block, 'pubDate');
+      const guid = extractTag(block, 'guid') || extractTag(block, 'link') || `cap-rss-${idx++}`;
+      const category = extractTag(block, 'category');
+
+      if (!title) continue;
+      const combined = `${title} ${description} ${category}`;
+      const lower = combined.toLowerCase();
+
+      let severity: AlertSeverity = 'yellow';
+      let severityLabel = 'YELLOW WATCH — BE UPDATED';
+      if (/(red\s*(alert|warning)|extreme|take action|severe cyclonic|super cyclonic)/i.test(lower)) {
+        severity = 'red';
+        severityLabel = 'RED ALERT — TAKE ACTION';
+      } else if (/(orange\s*(alert|warning)|severe|be prepared|deep depression|cyclone warning)/i.test(lower)) {
+        severity = 'orange';
+        severityLabel = 'ORANGE ALERT — BE PREPARED';
+      } else if (/(advisory|information|statement)/i.test(lower) && !/(watch|yellow|warning|alert)/i.test(lower)) {
+        severity = 'purple';
+        severityLabel = 'ADVISORY BULLETIN';
+      }
+
+      const profile = resolveCanonicalStateProfile(undefined, undefined, combined);
+      const hazard = inferHazardCategory(combined);
+      const parsedDate = pubDate ? new Date(pubDate) : null;
+      const issuedAt =
+        parsedDate && !Number.isNaN(parsedDate.getTime())
+          ? formatIndianDateTime(parsedDate)
+          : 'Timestamp unavailable';
+
+      records.push({
+        id: `cap-${idx}-${guid.slice(-18).replace(/[^a-zA-Z0-9_-]/g, '')}`,
+        bulletinNo: guid.slice(0, 48),
+        title,
+        severity,
+        severityLabel,
+        hazardCategory: hazard.category,
+        hazardLabel: hazard.label,
+        hazardIcon: hazard.icon,
+        state: profile?.name || 'India (Multi-State)',
+        stateCode: profile ? `in-${profile.code.toLowerCase()}` : 'in-all',
+        subdivision: profile?.rmcMc || 'National Synoptic Sector',
+        region: 'all',
+        affectedDistricts: [],
+        affectedAreaText: profile ? profile.name : 'Multi-State / Regional Sector',
+        issuedAt,
+        validFrom: issuedAt,
+        validUntil: 'As per active CAP validity window',
+        description,
+        impacts: [],
+        recommendedActions: [
+          'Follow official IMD and State Disaster Management Authority advisories.',
+        ],
+        expectedConditions: {},
+        timeline: [],
+        source: sourceLabel,
+        authorityAgency: 'India Meteorological Department / NDMA SACHET',
+        emergencyContact: {
+          title: 'National Emergency Helpline',
+          number: '112 / 1070',
+          description: '24x7 Disaster & Emergency Operations',
+        },
+        isRedAlert: severity === 'red',
+      });
+    }
+
+    return records;
+  }
+
+  /**
+   * Single canonical reconciliation shared across NationalAlertStatus, NationalWarningMap,
+   * StateWatchlistPanel, and AlertsPage.
+   * - Filters expired/cancelled bulletins.
+   * - Resolves all state aliases (OR->OD, TS->TG, UA->UK, etc.) onto the 36 States & UTs.
+   * - Separates bulletin counts from state/UT counts so 7 bulletins across 2 states is crystal clear.
+   * - Never falls back to static STATE_ALERT_SEVERITIES or marks unverified states as normal when offline.
+   */
+  reconcileNationalWarnings(
+    warnings: WarningRecord[],
+    options?: { isUnavailable?: boolean; nowMs?: number }
+  ): ReconciledNationalWarnings {
+    const isUnavailable = Boolean(options?.isUnavailable);
+    const nowMs = options?.nowMs ?? Date.now();
+    const totalStatesAndUTs = ALL_INDIA_STATES_MET_PROFILES.length; // 36
+
+    const activeWarnings = isUnavailable
+      ? []
+      : (warnings || []).filter((w) => isWarningActive(w, nowMs));
+
+    const groupedByCode = new Map<string, WarningRecord[]>();
+    const unmappedOrNationalBulletins: WarningRecord[] = [];
+
+    let redBulletins = 0;
+    let orangeBulletins = 0;
+    let yellowBulletins = 0;
+    let advisoryBulletins = 0;
+    let latestIssuedAt: string | null = null;
+
+    for (const warn of activeWarnings) {
+      if (warn.severity === 'red') redBulletins++;
+      else if (warn.severity === 'orange') orangeBulletins++;
+      else if (warn.severity === 'yellow') yellowBulletins++;
+      else if (warn.severity === 'purple') advisoryBulletins++;
+
+      if (!latestIssuedAt && warn.issuedAt && warn.issuedAt !== 'Unavailable') {
+        latestIssuedAt = warn.issuedAt;
+      }
+
+      if (warn.severity === 'green') continue;
+
+      const profile = resolveCanonicalStateProfile(
+        warn.state,
+        warn.stateCode,
+        `${warn.affectedAreaText || ''} ${warn.subdivision || ''} ${warn.title || ''}`
+      );
+
+      if (profile) {
+        const key = profile.code.toLowerCase();
+        const existing = groupedByCode.get(key) || [];
+        existing.push(warn);
+        groupedByCode.set(key, existing);
+      } else {
+        unmappedOrNationalBulletins.push(warn);
+      }
+    }
+
+    const stateSummaries: Record<string, StateWarningSummary> = {};
+    let redStates = 0;
+    let orangeStates = 0;
+    let yellowStates = 0;
+    let advisoryStates = 0;
+
+    for (const profile of ALL_INDIA_STATES_MET_PROFILES) {
+      const key = profile.code.toLowerCase();
+      const matched = groupedByCode.get(key) || [];
+
+      if (matched.length > 0 && !isUnavailable) {
+        const sorted = [...matched].sort(
+          (a, b) => (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0)
+        );
+        const top = sorted[0];
+
+        if (top.severity === 'red') redStates++;
+        else if (top.severity === 'orange') orangeStates++;
+        else if (top.severity === 'yellow') yellowStates++;
+        else if (top.severity === 'purple') advisoryStates++;
+
+        stateSummaries[key] = {
+          stateCode: `in-${key}`,
+          stateName: profile.name,
+          capital: profile.capital,
+          highestSeverity: top.severity,
+          activeCount: matched.length,
+          primaryHazard: top.hazardCategory,
+          primaryHazardLabel: top.hazardLabel,
+          representativeStation: profile.representativeStation,
+          bulletinHeadline: top.title,
+          validityRange: top.validUntil,
+        };
+      } else {
+        stateSummaries[key] = {
+          stateCode: `in-${key}`,
+          stateName: profile.name,
+          capital: profile.capital,
+          highestSeverity: 'green',
+          activeCount: 0,
+          primaryHazard: 'agromet_advisory',
+          primaryHazardLabel: isUnavailable ? 'Feed Unverified' : 'Normal Seasonal Conditions',
+          representativeStation: profile.representativeStation,
+          bulletinHeadline: isUnavailable
+            ? 'Official SACHET / IMD feed unreachable — status unverified.'
+            : 'No active severe weather warning',
+          validityRange: isUnavailable ? 'Unavailable' : 'Routine Synoptic Cycle',
+        };
+      }
+    }
+
+    const stateSummariesList = Object.values(stateSummaries).sort((a, b) => {
+      const rankDiff = (SEVERITY_RANK[b.highestSeverity] ?? 0) - (SEVERITY_RANK[a.highestSeverity] ?? 0);
+      if (rankDiff !== 0) return rankDiff;
+      if (b.activeCount !== a.activeCount) return b.activeCount - a.activeCount;
+      return a.stateName.localeCompare(b.stateName);
+    });
+
+    const affectedStateCount = redStates + orangeStates + yellowStates + advisoryStates;
+    const normalStateCount = isUnavailable ? 0 : Math.max(0, totalStatesAndUTs - affectedStateCount);
+    const totalBulletins = redBulletins + orangeBulletins + yellowBulletins + advisoryBulletins;
+
+    return {
+      activeWarnings,
+      stateSummaries,
+      stateSummariesList,
+      unmappedOrNationalBulletins,
+      totalBulletins,
+      redBulletins,
+      orangeBulletins,
+      yellowBulletins,
+      advisoryBulletins,
+      redStates,
+      orangeStates,
+      yellowStates,
+      advisoryStates,
+      affectedStateCount,
+      normalStateCount,
+      totalStatesAndUTs,
+      latestIssuedAt,
+      isUnavailable,
+    };
+  }
+
   /**
    * Filter the warnings database based on user selections
    */
@@ -91,43 +459,27 @@ class WarningService {
   }
 
   /**
-   * Calculate real-time stats across national bulletins
+   * Calculate reconciled real-time stats across national bulletins & 36 States/UTs
    */
-  calculateStats(warnings: WarningRecord[]): WarningStats {
-    let severeRed = 0;
-    let moderateOrange = 0;
-    let advisoryYellow = 0;
-    let infoPurple = 0;
-    const statesSet = new Set<string>();
-
-    warnings.forEach((w) => {
-      if (w.severity === 'red') severeRed++;
-      else if (w.severity === 'orange') moderateOrange++;
-      else if (w.severity === 'yellow') advisoryYellow++;
-      else if (w.severity === 'purple') infoPurple++;
-
-      if (w.severity !== 'green') {
-        statesSet.add(w.stateCode);
-      }
-    });
-
+  calculateStats(warnings: WarningRecord[], isUnavailable = false): WarningStats {
+    const rec = this.reconcileNationalWarnings(warnings, { isUnavailable });
     const now = new Date();
     const lastUpdatedIst = formatIndianDateTime(now);
 
     return {
-      totalActive: severeRed + moderateOrange + advisoryYellow + infoPurple,
-      statesAffected: statesSet.size,
-      severeRed,
-      moderateOrange,
-      advisoryYellow,
-      infoPurple,
-      greenNormalStates: 36 - statesSet.size,
+      totalActive: rec.totalBulletins,
+      statesAffected: rec.affectedStateCount,
+      severeRed: rec.redBulletins,
+      moderateOrange: rec.orangeBulletins,
+      advisoryYellow: rec.yellowBulletins,
+      infoPurple: rec.advisoryBulletins,
+      greenNormalStates: rec.normalStateCount,
       lastUpdatedIst,
     };
   }
 
   /**
-   * Get overall highest national alert status
+   * Get overall highest national alert status derived strictly from reconciled live records
    */
   getNationalOverallStatus(warnings: WarningRecord[]): {
     severity: AlertSeverity;
@@ -136,50 +488,63 @@ class WarningService {
     description: string;
     statusColor: string;
   } {
-    const hasRed = warnings.some((w) => w.severity === 'red');
-    const hasOrange = warnings.some((w) => w.severity === 'orange');
-    const hasYellow = warnings.some((w) => w.severity === 'yellow');
+    const rec = this.reconcileNationalWarnings(warnings);
+    const formatAffectedList = (sev: AlertSeverity): string => {
+      const names = rec.stateSummariesList
+        .filter((s) => s.highestSeverity === sev)
+        .map((s) => s.stateName);
+      if (names.length === 0) return 'monitored subdivisions';
+      if (names.length <= 3) return names.join(', ');
+      return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
+    };
 
-    if (hasRed) {
-      const redCount = warnings.filter((w) => w.severity === 'red').length;
+    if (rec.redBulletins > 0) {
       return {
         severity: 'red',
         badgeLabel: 'RED ALERT — ACTIVE SEVERE WEATHER',
         headline: 'NATIONAL WEATHER WARNING: SEVERE ADVISORIES ACTIVE',
-        description: `IMD has issued Red Warnings across ${redCount} meteorological sub-divisions (Odisha Coast, Brahmaputra Basin & Meghalaya). Disaster relief teams (NDRF/SDRF) on active emergency footing.`,
-        statusColor: '#FF0000',
+        description: `${rec.redBulletins} official Red Warning bulletin${rec.redBulletins === 1 ? '' : 's'} active across ${formatAffectedList('red')} (${rec.affectedStateCount} of ${rec.totalStatesAndUTs} States & UTs alerted). Follow NDMA SACHET and IMD protective directives immediately.`,
+        statusColor: '#C94F4B',
       };
     }
 
-    if (hasOrange) {
+    if (rec.orangeBulletins > 0) {
       return {
         severity: 'orange',
         badgeLabel: 'ORANGE ALERT — BE PREPARED',
         headline: 'NATIONAL WEATHER STATUS: MODERATE WARNINGS IN EFFECT',
-        description:
-          'Moderate to heavy precipitation and coastal swell warnings active across Western Ghats and coastal sectors. Public advised to monitor regional bulletins.',
-        statusColor: '#FFA500',
+        description: `${rec.orangeBulletins} official Orange Alert bulletin${rec.orangeBulletins === 1 ? '' : 's'} active across ${formatAffectedList('orange')} (${rec.affectedStateCount} of ${rec.totalStatesAndUTs} States & UTs alerted). Public advised to stay prepared and monitor regional IMD bulletins.`,
+        statusColor: '#D98548',
       };
     }
 
-    if (hasYellow) {
+    if (rec.yellowBulletins > 0) {
       return {
         severity: 'yellow',
         badgeLabel: 'YELLOW WATCH — BE UPDATED',
         headline: 'NATIONAL WEATHER STATUS: SCATTERED ADVISORIES ISSUED',
-        description:
-          'Scattered weather watches in effect for isolated thunderstorm activity and thermal variations. Routine precautions recommended.',
-        statusColor: '#FFFF00',
+        description: `${rec.yellowBulletins} active Yellow Watch bulletin${rec.yellowBulletins === 1 ? '' : 's'} across ${formatAffectedList('yellow')} (${rec.affectedStateCount} of ${rec.totalStatesAndUTs} States & UTs alerted${rec.unmappedOrNationalBulletins.length > 0 ? `, plus ${rec.unmappedOrNationalBulletins.length} regional bulletin(s)` : ''}). Stay updated with official releases.`,
+        statusColor: '#D8B14F',
+      };
+    }
+
+    if (rec.advisoryBulletins > 0) {
+      return {
+        severity: 'purple',
+        badgeLabel: 'ADVISORY — ROUTINE BULLETIN',
+        headline: 'NATIONAL WEATHER STATUS: INFORMATIONAL ADVISORIES ACTIVE',
+        description: `${rec.advisoryBulletins} informational bulletin${rec.advisoryBulletins === 1 ? '' : 's'} published in the active CAP feed. No severe Orange or Red weather warnings are currently in force.`,
+        statusColor: '#A7C5C5',
       };
     }
 
     return {
       severity: 'green',
       badgeLabel: 'GREEN — NORMAL / NO SEVERE WEATHER',
-      headline: 'NATIONAL WEATHER STATUS: SYNOPTIC ATMOSPHERE STABLE',
+      headline: 'NATIONAL WEATHER STATUS: NO ACTIVE SEVERE WARNINGS',
       description:
-        'No widespread severe meteorological warnings are currently active across India. Diurnal seasonal conditions observed.',
-      statusColor: '#008000',
+        'No active severe weather warnings were returned by the official NDMA SACHET / IMD CAP feed across all 36 States & Union Territories.',
+      statusColor: '#5C9A79',
     };
   }
 

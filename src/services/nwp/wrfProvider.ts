@@ -11,6 +11,7 @@
 // ====================================================================
 
 import { NWPModelRun } from '../../types/nwp';
+import { safeStorageGet } from '../../utils/safeStorage';
 
 export interface NWPProvider {
   getLatestRun(latitude: number, longitude: number, signal?: AbortSignal): Promise<NWPModelRun>;
@@ -20,12 +21,10 @@ export class WRFProvider implements NWPProvider {
   public readonly name = 'IMD WRF Mesoscale NWP Provider';
 
   private getWrfConfig(): { url: string; token: string } | null {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const storedUrl = localStorage.getItem('mausam_imd_wrf_url');
-      const storedToken = localStorage.getItem('mausam_imd_wrf_token');
-      if (storedUrl && storedUrl.trim().length > 0) {
-        return { url: storedUrl.trim(), token: storedToken?.trim() || '' };
-      }
+    const storedUrl = safeStorageGet('local', 'mausam_imd_wrf_url');
+    const storedToken = safeStorageGet('local', 'mausam_imd_wrf_token');
+    if (storedUrl && storedUrl.trim().length > 0) {
+      return { url: storedUrl.trim(), token: storedToken?.trim() || '' };
     }
 
     if (typeof process !== 'undefined' && process.env) {

@@ -1,4 +1,5 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 @import "./styles/mausam.css";
+@import "./styles/responsive-observatory.css";
 @import "leaflet/dist/leaflet.css";

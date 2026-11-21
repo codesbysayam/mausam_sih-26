@@ -188,11 +188,17 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     if (!container) return;
 
     // 1. Verify WebGL support cleanly & detect software rasterizers
-    let testCanvas: HTMLCanvasElement | null = document.createElement('canvas');
-    const glCheck =
-      testCanvas.getContext('webgl2') ||
-      testCanvas.getContext('webgl') ||
-      testCanvas.getContext('experimental-webgl');
+    let testCanvas: HTMLCanvasElement | null = null;
+    let glCheck: RenderingContext | null = null;
+    try {
+      testCanvas = document.createElement('canvas');
+      glCheck =
+        testCanvas.getContext('webgl2') ||
+        testCanvas.getContext('webgl') ||
+        testCanvas.getContext('experimental-webgl');
+    } catch {
+      glCheck = null;
+    }
     if (!glCheck) {
       latestRef.current.onWebGLUnavailable('WebGL context unavailable on this browser.');
       return;
@@ -1075,19 +1081,22 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // 16. Responsive Container ResizeObserver
+    // 16. Responsive Container ResizeObserver + Viewport Orientation Sync
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
       if (w < 10 || h < 10) return;
       renderer.setPixelRatio(resolveEffectivePixelRatio());
-      renderer.setSize(w, h);
+      renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     };
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(container);
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(handleResize) : null;
+    resizeObserver?.observe(container);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
 
     // 17. WebGL Context Loss -> Automatic 2D Map Fallback
     const handleContextLost = (event: Event) => {
@@ -1096,7 +1105,11 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
         'WebGL rendering context lost. Switched to interactive 2D map.'
       );
     };
+    const handleContextRestored = () => {
+      handleResize();
+    };
     domEl.addEventListener('webglcontextlost', handleContextLost);
+    domEl.addEventListener('webglcontextrestored', handleContextRestored);
 
     // 18. Main Render Loop with Tab-Visibility Pause & Software-WebGL fenceSync Pacing
     let rafId = 0;
@@ -1236,7 +1249,9 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       if (cooldownTimer) clearTimeout(cooldownTimer);
       timer.dispose();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       window.removeEventListener('keydown', handleKeyDown);
       controls.removeEventListener('start', cancelFlyTo);
       controls.dispose();
@@ -1245,6 +1260,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       domEl.removeEventListener('pointermove', handlePointerMove);
       domEl.removeEventListener('pointerup', handlePointerUp);
       domEl.removeEventListener('webglcontextlost', handleContextLost);
+      domEl.removeEventListener('webglcontextrestored', handleContextRestored);
 
       windParticles.dispose();
       terrainTexture.dispose();

@@ -18,6 +18,7 @@ import { PublicationItem } from '../components/reports/PublicationItem';
 import { RecentlyViewedReports } from '../components/reports/RecentlyViewedReports';
 import { ReportPreviewDrawer } from '../components/reports/ReportPreviewDrawer';
 import { ResearchSourcesSection } from '../components/reports/ResearchSourcesSection';
+import { WeatherNewsSection } from '../components/warnings/WeatherNewsSection';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { DataTable, ColumnDef } from '../components/common/DataTable';
 import { PageHeader, DataPanel, MetricValue } from '../components/ui/ObservatoryPrimitives';
@@ -60,14 +61,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
   const hasPressure = isValidNumeric(cur?.pressure);
   const hasWind = isValidNumeric(cur?.windSpeed);
 
-  // Dynamically generate a district bulletin synchronized to verified location telemetry
+  // Dynamically generate an in-app telemetry synthesis synchronized to verified location feeds
   const dynamicDistrictBulletin: MeteorologicalPublication = useMemo(() => {
     const temp = hasTemp ? `${cur!.temp}°C` : 'Unavailable';
     const humidity = hasHumidity ? `${cur!.humidity}%` : 'Unavailable';
     const condition = cur?.condition || 'Telemetry pending';
     const pressure = hasPressure ? `${cur!.pressure} hPa` : 'Unavailable';
     const windSpeed = hasWind ? `${cur!.windSpeed} km/h` : 'Unavailable';
-    const sourceLabel = cur?.dataSource || 'Open-Meteo / IMD Feed';
+    const sourceLabel = cur?.source || 'Open-Meteo NWP Model Grid';
+    const provenanceLabel = cur?.provenance?.isStationObservation
+      ? 'Station Observed'
+      : 'Numerical Model Grid (Open-Meteo)';
 
     const refDate = weatherBundle?.lastFetchedAt ? new Date(weatherBundle.lastFetchedAt) : new Date();
     const safeDate = Number.isNaN(refDate.getTime()) ? new Date() : refDate;
@@ -77,46 +81,52 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
       year: 'numeric',
       timeZone: 'Asia/Kolkata',
     });
+    const formattedTime = safeDate.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata',
+    }) + ' IST';
     const isoDate = safeDate.toISOString().slice(0, 10);
 
     return {
       id: `district-bulletin-${selectedLocation.id || 'live'}`,
-      title: `District Meteorological Bulletin — ${formatLocationTitle(selectedLocation)}`,
-      category: 'Sub-Divisional Report',
-      type: 'PDF Bulletin',
+      title: `Live Location Weather Synthesis — ${formatLocationTitle(selectedLocation)}`,
+      category: 'Live Telemetry Summary',
+      type: 'In-App Synthesis',
       date: formattedDate,
-      size: '1.1 MB',
-      issuingAuthority: `MAUSAM Regional Synthesis (${sourceLabel})`,
-      documentNumber: `MAUSAM-RMC-${selectedLocation.state.slice(0, 3).toUpperCase()}-${isoDate}`,
-      author: 'State Meteorological & Surface Synthesis Division',
-      abstract: `Location-specific meteorological summary and telemetry report for ${formatLocationTitle(selectedLocation)} derived from ${sourceLabel} point observations and 7-day numerical forecast guidance.`,
-      keywords: [selectedLocation.city, selectedLocation.state, 'Surface Telemetry', 'Local Nowcast', sourceLabel],
-      synopticSummary: `Latest telemetry for ${selectedLocation.city} (${sourceLabel}) reports surface temperature of ${temp}, relative humidity at ${humidity}, mean sea-level pressure of ${pressure}, and surface wind at ${windSpeed} (${condition}).`,
+      size: 'In-App View',
+      issuingAuthority: 'MAUSAM-Generated Summary (Unofficial)',
+      documentNumber: `MAUSAM-SYNTHESIS-${selectedLocation.state.slice(0, 3).toUpperCase()}-${isoDate}`,
+      author: 'MAUSAM Automated Telemetry Engine',
+      abstract: `In-app meteorological summary for ${formatLocationTitle(selectedLocation)} generated at ${formattedTime} from ${sourceLabel} (${provenanceLabel}). This is a MAUSAM automated telemetry synthesis, not an official IMD RMC PDF release.`,
+      keywords: [selectedLocation.city, selectedLocation.state, 'In-App Synthesis', 'Live Telemetry', sourceLabel],
+      synopticSummary: `Fetched at ${formattedTime} (${provenanceLabel}): surface temperature ${temp}, relative humidity ${humidity}, mean sea-level pressure ${pressure}, wind speed ${windSpeed}, sky condition ${condition}.`,
       recommendations: [
-        `Public and district authorities in ${selectedLocation.city} should monitor localized radar nowcasts during convective periods.`,
-        'Agricultural workers in adjoining taluks should adjust field irrigation in accordance with 3-day precipitation probabilities.',
-        'Transport and municipal authorities should keep drainage pathways clear during heavy rainfall periods.'
+        `Consult official IMD / SACHET warning bulletins for ${selectedLocation.state} before emergency action.`,
+        'Treat Open-Meteo point values as numerical weather model estimates unless marked as an IMD surface station observation.',
+        'Cross-check official IMD All-India Daily Weather Reports and RSMC cyclone bulletins via the verified external links below.',
       ],
       sections: [
         {
-          title: `1. Surface Telemetry at ${selectedLocation.city}`,
-          content: `Sensor and point model values for ${selectedLocation.city} (Source: ${sourceLabel}${selectedLocation.stationId ? `, Station ID: ${selectedLocation.stationId}` : ''}):`,
+          title: `1. Live Surface Telemetry & Provenance at ${selectedLocation.city}`,
+          content: `Feed source: ${sourceLabel} · Observation class: ${provenanceLabel} · Fetched: ${formattedDate} ${formattedTime}${selectedLocation.stationId ? ` · Reference Station ID: ${selectedLocation.stationId}` : ''}.`,
           tableData: {
-            headers: ['Atmospheric Metric', 'Current Reading', 'Unit / Reference', 'Status'],
+            headers: ['Atmospheric Metric', 'Current Reading', 'Unit / Reference', 'Provenance'],
             rows: [
-              ['Surface Temperature', temp, '°C (2m Air)', hasTemp ? 'Telemetry Recorded' : 'Unavailable'],
-              ['Relative Humidity', humidity, '% RH', hasHumidity ? 'Telemetry Recorded' : 'Unavailable'],
-              ['Atmospheric Pressure', pressure, 'hPa (MSLP)', hasPressure ? 'Telemetry Recorded' : 'Unavailable'],
-              ['Wind Velocity', windSpeed, 'km/h (10m)', hasWind ? 'Telemetry Recorded' : 'Unavailable'],
-              ['General Condition', condition, 'Sky State', cur?.condition ? 'Current' : 'Unavailable']
-            ]
-          }
+              ['Surface Temperature', temp, '°C (2m Air)', hasTemp ? provenanceLabel : 'Unavailable'],
+              ['Relative Humidity', humidity, '% RH', hasHumidity ? provenanceLabel : 'Unavailable'],
+              ['Atmospheric Pressure', pressure, 'hPa (MSLP)', hasPressure ? provenanceLabel : 'Unavailable'],
+              ['Wind Velocity', windSpeed, 'km/h (10m)', hasWind ? provenanceLabel : 'Unavailable'],
+              ['General Condition', condition, 'WMO Code', cur?.condition ? provenanceLabel : 'Unavailable'],
+            ],
+          },
         },
         {
-          title: '2. Sub-Divisional Quantitative Precipitation & Alert Status',
-          content: `Evaluation of regional convective potential and 72-hour precipitation guidance across ${selectedLocation.district || selectedLocation.city} district.`
-        }
-      ]
+          title: '2. Official Government Verification Notice',
+          content: `For legally binding warnings, district rainfall normals, or aviation/marine clearances across ${selectedLocation.district || selectedLocation.city}, refer directly to India Meteorological Department (mausam.imd.gov.in) and SACHET NDMA CAP feeds.`,
+        },
+      ],
     };
   }, [weatherBundle, selectedLocation, cur, hasTemp, hasHumidity, hasPressure, hasWind]);
 
@@ -138,12 +148,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
     ).length;
     const official = allPublications.filter(
       (p) =>
-        p.type === 'PDF Bulletin' ||
-        p.type === 'GKMS Bulletin' ||
-        p.type === 'Government Publication' ||
-        p.category === 'National Weather Observation' ||
-        p.category === 'Sub-Divisional Report' ||
-        p.category === 'Agricultural Meteorology'
+        p.type !== 'In-App Synthesis' &&
+        (p.type === 'PDF Bulletin' ||
+          p.type === 'GKMS Bulletin' ||
+          p.type === 'Government Publication' ||
+          p.category === 'National Weather Observation' ||
+          p.category === 'Sub-Divisional Report' ||
+          p.category === 'Agricultural Meteorology')
     ).length;
     const technical = allPublications.filter(
       (p) =>
@@ -207,6 +218,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
           pub.category === 'Climatological Study';
       } else if (selectedCategory === 'WEATHER') {
         matchesCategory =
+          pub.category === 'Live Telemetry Summary' ||
           pub.category === 'National Weather Observation' ||
           pub.category === 'Sub-Divisional Report' ||
           pub.keywords.some((k) => k.toLowerCase().includes('weather') || k.toLowerCase().includes('telemetry'));
@@ -381,8 +393,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         description="Meteorological bulletins, climatological studies, agrometeorological advisories, and technical monographs curated across national earth-science institutes."
         coordinates={`${formatLocationShort(selectedLocation)} · ${formatCoordinatePair(selectedLocation.lat, selectedLocation.lng, 2)}`}
         status={hasTemp ? 'LIVE' : 'REFERENCE'}
-        statusLabel={hasTemp ? 'DISTRICT SYNTHESIS LIVE' : 'ARCHIVE + PENDING TELEMETRY'}
-        source={cur?.dataSource ? `${cur.dataSource} · IMD / MoES Archive` : 'IMD / MoES Institutional Archive'}
+        statusLabel={hasTemp ? 'IN-APP SYNTHESIS READY' : 'ARCHIVE + PENDING TELEMETRY'}
+        source={cur?.source ? `${cur.source} · Institutional Reference Archive` : 'Institutional Reference Archive'}
         updatedAt={updatedAtIST}
         actions={
           <button
@@ -390,7 +402,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
             onClick={() => handleOpenPublication(dynamicDistrictBulletin)}
             className="min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-lg bg-[var(--m-accent)] hover:opacity-95 text-[var(--m-on-accent)] text-xs font-mono font-bold transition-opacity cursor-pointer inline-flex items-center gap-2 m-focus-ring"
           >
-            <span>Open District Bulletin ({selectedLocation.city})</span>
+            <span>Open Live Synthesis ({selectedLocation.city})</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
         }
@@ -543,7 +555,49 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
         )}
       </div>
 
-      {/* 9. Institutional Authorities & Data Provenance */}
+      {/* 9. Live Weather News & Verified Meteorological Coverage */}
+      <WeatherNewsSection compact title="Live Weather News & Research Wire" />
+
+      {/* 10. Official External IMD / MoES Live Bulletin Portals */}
+      <DataPanel className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-[var(--m-text-primary)]">
+              Official External Government Bulletin Portals
+            </h3>
+            <p className="text-xs text-[var(--m-text-muted)]">
+              Direct live portals for statutory IMD, RSMC New Delhi, GKMS, and CPCB releases (distinct from MAUSAM in-app synthesis)
+            </p>
+          </div>
+          <span className="text-[10px] font-mono uppercase px-2 py-1 rounded bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-muted)]">
+            Official External Links
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { label: 'IMD All-India Weather Bulletins', authority: 'mausam.imd.gov.in', url: 'https://mausam.imd.gov.in/' },
+            { label: 'RSMC Tropical Cyclone Advisories', authority: 'rsmcnewdelhi.imd.gov.in', url: 'https://rsmcnewdelhi.imd.gov.in/' },
+            { label: 'IMD GKMS Agromet Advisories', authority: 'imdagrimet.gov.in', url: 'https://mausam.imd.gov.in/responsive/agromet_adv_ser_state_current.php' },
+            { label: 'CPCB National AQI Bulletin', authority: 'airquality.cpcb.gov.in', url: 'https://airquality.cpcb.gov.in/' },
+          ].map((portal) => (
+            <a
+              key={portal.url}
+              href={portal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="m-panel-inset p-3 flex items-center justify-between gap-2 hover:border-[var(--m-accent)]/60 transition-colors"
+            >
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-[var(--m-text-primary)] block truncate">{portal.label}</span>
+                <span className="text-[10px] font-mono text-[var(--m-text-muted)] block truncate">{portal.authority}</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0" />
+            </a>
+          ))}
+        </div>
+      </DataPanel>
+
+      {/* 11. Institutional Authorities & Data Provenance */}
       <ResearchSourcesSection />
 
       {/* 10. Slide-in Document Reader Drawer */}

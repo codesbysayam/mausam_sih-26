@@ -13,6 +13,7 @@ import { getWeatherCondition } from './weatherConditions';
 import { calculateLunarEphemeris, calculateNightDuration } from '../utils/astronomyCalculator';
 import { crossTabSync } from './crossTabSync';
 import type { DataProvenance } from '../types/dataProvenance';
+import { safeStorageGetJson, safeStorageSetJson } from '../utils/safeStorage';
 
 export class OpenMeteoPayloadError extends Error {
   public readonly code = 'OPEN_METEO_INVALID_PAYLOAD';
@@ -104,38 +105,31 @@ class WeatherService {
   }
 
   private hydrateFromStorage() {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem('mausam_weather_cache_v1');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const now = Date.now();
-        // Keep entries newer than 2 hours
-        Object.entries(parsed).forEach(([key, val]: [string, any]) => {
-          if (
-            val &&
-            val.timestamp &&
-            now - val.timestamp < 2 * 3600 * 1000 &&
-            val.data?.current &&
-            typeof val.data.current.temp === 'number' &&
-            Number.isFinite(val.data.current.temp)
-          ) {
-            val.data.lastFetchedAt = new Date(val.data.lastFetchedAt);
-            this.cache.set(key, val);
-          }
-        });
+    const parsed = safeStorageGetJson<Record<string, any>>('local', 'mausam_weather_cache_v1');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+    const now = Date.now();
+    // Keep entries newer than 2 hours
+    Object.entries(parsed).forEach(([key, val]: [string, any]) => {
+      if (
+        val &&
+        val.timestamp &&
+        now - val.timestamp < 2 * 3600 * 1000 &&
+        val.data?.current &&
+        typeof val.data.current.temp === 'number' &&
+        Number.isFinite(val.data.current.temp)
+      ) {
+        val.data.lastFetchedAt = new Date(val.data.lastFetchedAt);
+        this.cache.set(key, val);
       }
-    } catch {}
+    });
   }
 
   private persistToStorage(key: string, data: WeatherDataBundle, timestamp: number) {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem('mausam_weather_cache_v1');
-      const parsed = stored ? JSON.parse(stored) : {};
-      parsed[key] = { data, timestamp };
-      localStorage.setItem('mausam_weather_cache_v1', JSON.stringify(parsed));
-    } catch {}
+    const existing = safeStorageGetJson<Record<string, any>>('local', 'mausam_weather_cache_v1');
+    const parsed =
+      existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : {};
+    parsed[key] = { data, timestamp };
+    safeStorageSetJson('local', 'mausam_weather_cache_v1', parsed);
   }
 
   setDemoOverride(override: DemoWeatherOverride) {
@@ -551,35 +545,20 @@ class WeatherService {
     const liveO3 = numOrNull(airCurrent.ozone) !== null ? Math.round(airCurrent.ozone * 10) / 10 : null;
     const liveDust = numOrNull(airCurrent.dust) !== null ? Math.round(airCurrent.dust * 10) / 10 : null;
 
-    let cpcbAqi: number | null = null;
     const aqiPm25 = rawPm25 !== null ? Math.round(rawPm25 * 10) / 10 : null;
     const livePm10 = rawPm10 !== null ? Math.round(rawPm10 * 10) / 10 : null;
 
-    if (aqiPm25 !== null) {
-      if (aqiPm25 <= 30) {
-        cpcbAqi = Math.round(aqiPm25 * (50 / 30));
-      } else if (aqiPm25 <= 60) {
-        cpcbAqi = Math.round(50 + ((aqiPm25 - 30) * 50) / 30);
-      } else if (aqiPm25 <= 90) {
-        cpcbAqi = Math.round(100 + ((aqiPm25 - 60) * 100) / 30);
-      } else if (aqiPm25 <= 120) {
-        cpcbAqi = Math.round(200 + ((aqiPm25 - 90) * 100) / 30);
-      } else if (aqiPm25 <= 250) {
-        cpcbAqi = Math.round(300 + ((aqiPm25 - 120) * 100) / 130);
-      } else {
-        cpcbAqi = Math.round(400 + ((aqiPm25 - 250) * 100) / 130);
-      }
-    } else {
-      const upstreamAqi = numOrNull(airCurrent.us_aqi) ?? numOrNull(airCurrent.european_aqi);
-      cpcbAqi = upstreamAqi !== null ? Math.round(upstreamAqi) : null;
-    }
+    // Strictly use Open-Meteo US EPA AQI (never synthesize Indian CPCB NAQI from PM2.5 alone)
+    const upstreamUsAqi = numOrNull(airCurrent.us_aqi);
+    const cpcbAqi: number | null = upstreamUsAqi !== null ? Math.round(upstreamUsAqi) : null;
 
     let aqiStatus: CurrentWeather['aqiStatus'] = 'Unavailable';
     if (cpcbAqi !== null) {
-      if (cpcbAqi > 400 || (aqiPm25 !== null && aqiPm25 > 250)) aqiStatus = 'Hazardous';
-      else if (cpcbAqi > 300 || (aqiPm25 !== null && aqiPm25 > 120)) aqiStatus = 'Unhealthy';
-      else if (cpcbAqi > 200 || (aqiPm25 !== null && aqiPm25 > 90)) aqiStatus = 'Unhealthy for Sensitive';
-      else if (cpcbAqi > 100 || (aqiPm25 !== null && aqiPm25 > 60)) aqiStatus = 'Moderate';
+      if (cpcbAqi > 300) aqiStatus = 'Hazardous';
+      else if (cpcbAqi > 200) aqiStatus = 'Very Unhealthy';
+      else if (cpcbAqi > 150) aqiStatus = 'Unhealthy';
+      else if (cpcbAqi > 100) aqiStatus = 'Unhealthy for Sensitive';
+      else if (cpcbAqi > 50) aqiStatus = 'Moderate';
       else aqiStatus = 'Good';
     }
 

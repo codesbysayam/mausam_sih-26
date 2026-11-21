@@ -1,6 +1,12 @@
 import { LocationRecord, WeatherStation } from '../types';
 import { ALL_INDIA_LOCATIONS } from '../data/allIndiaLocations';
 import { PRIMARY_ODISHA_LOCATION } from '../data/odishaLocations';
+import {
+  safeStorageGet,
+  safeStorageGetJson,
+  safeStorageRemove,
+  safeStorageSet,
+} from '../utils/safeStorage';
 
 export interface SmartSearchResult {
   location: LocationRecord;
@@ -18,16 +24,12 @@ class LocationService {
 
   constructor() {
     // Check if there was a previously saved detected location
-    try {
-      const saved = localStorage.getItem('mausam_detected_location');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.record?.id) {
-          this.dynamicLocations.set(parsed.record.id, parsed.record);
-        }
-      }
-    } catch {
-      // Ignore
+    const parsed = safeStorageGetJson<{ record?: LocationRecord }>(
+      'local',
+      'mausam_detected_location'
+    );
+    if (parsed?.record?.id) {
+      this.dynamicLocations.set(parsed.record.id, parsed.record);
     }
   }
 
@@ -273,28 +275,20 @@ class LocationService {
   }
 
   getSelectedLocation(): LocationRecord {
-    try {
-      const storedId = localStorage.getItem('mausam_selected_location_id');
-      if (storedId) {
-        const found = this.findLocationById(storedId);
-        if (found) {
-          this.selectedLocationId = found.id;
-          return found;
-        }
+    const storedId = safeStorageGet('local', 'mausam_selected_location_id');
+    if (storedId) {
+      const found = this.findLocationById(storedId);
+      if (found) {
+        this.selectedLocationId = found.id;
+        return found;
       }
-    } catch {
-      // Ignore in restricted environments
     }
     return this.getLocationById(this.selectedLocationId);
   }
 
   getLocationSource(): 'DEVICE_GPS' | 'MANUAL_SEARCH' {
-    try {
-      const source = localStorage.getItem('mausam_location_source');
-      if (source === 'DEVICE_GPS') return 'DEVICE_GPS';
-    } catch {
-      // Ignore
-    }
+    const source = safeStorageGet('local', 'mausam_location_source');
+    if (source === 'DEVICE_GPS') return 'DEVICE_GPS';
     return 'MANUAL_SEARCH';
   }
 
@@ -302,31 +296,27 @@ class LocationService {
     const loc = typeof target === 'string' ? this.getLocationById(target) : target;
     this.registerDynamicLocation(loc);
     this.selectedLocationId = loc.id;
-    try {
-      localStorage.setItem('mausam_selected_location_id', loc.id);
-      localStorage.setItem('mausam_location_source', source);
-      if (typeof window !== 'undefined') {
+    safeStorageSet('local', 'mausam_selected_location_id', loc.id);
+    safeStorageSet('local', 'mausam_location_source', source);
+    if (typeof window !== 'undefined') {
+      try {
         window.dispatchEvent(
           new CustomEvent('mausam_location_changed', {
             detail: { id: loc.id, state: loc.state, city: loc.city, record: loc },
           })
         );
+      } catch {
+        // Ignore CustomEvent error
       }
-    } catch {
-      // Ignore in restricted iframe
     }
     return loc;
   }
 
   clearSavedLocation(): void {
     this.selectedLocationId = PRIMARY_ODISHA_LOCATION.id;
-    try {
-      localStorage.removeItem('mausam_selected_location_id');
-      localStorage.removeItem('mausam_location_source');
-      localStorage.removeItem('mausam_detected_location');
-    } catch {
-      // Ignore
-    }
+    safeStorageRemove('local', 'mausam_selected_location_id');
+    safeStorageRemove('local', 'mausam_location_source');
+    safeStorageRemove('local', 'mausam_detected_location');
   }
 
   /**

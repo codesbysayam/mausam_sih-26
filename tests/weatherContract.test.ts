@@ -9,7 +9,10 @@ import {
 import { resolveWeatherCondition } from '../src/services/weatherResolver';
 import { getWeatherCondition, getConditionLabel } from '../src/services/weatherConditions';
 import weatherHandler from '../api/weather';
-import cycloneHandler from '../api/cyclone';
+import cycloneHandler, {
+  extractOfficialClassification,
+  parseCycloneBulletinText,
+} from '../api/cyclone';
 import {
   weatherService,
   OpenMeteoPayloadError,
@@ -19,7 +22,22 @@ import { getAgrometBulletin } from '../src/services/agrometService';
 import { CycloneLiveDataService } from '../src/services/CycloneLiveDataService';
 import { calculateSolarAstronomicalData } from '../src/utils/astronomyCalculator';
 import { formatLocationTitle, formatLocationShort } from '../src/utils/locationFormatter';
+import { warningService } from '../src/services/warningService';
+import {
+  normalizeSpokenText,
+  buildBroadcastBulletinChunks,
+} from '../src/services/WarningReadoutService';
+import {
+  clearTransientMausamCaches,
+  isStorageAvailable,
+  safeStorageGet,
+  safeStorageGetJson,
+  safeStorageSet,
+} from '../src/utils/safeStorage';
+import { createInitialProviderStore } from '../src/store/providerStore';
+import { isChunkLoadError, loadModuleWithRetry } from '../src/utils/lazyWithRetry';
 import type { LocationRecord } from '../src/types';
+import type { WarningRecord } from '../src/types/warningTypes';
 
 function createMockRes() {
   const headers: Record<string, string> = {};
@@ -497,6 +515,366 @@ test('formatLocationTitle and formatLocationShort deduplicate repeated administr
 
   assert.equal(formatLocationTitle(null), 'Selected location');
 });
+
+test('warningService.reconcileNationalWarnings reconciles multi-bulletin states, resolves aliases (OR/TS), filters expired alerts, and reports offline honestly', () => {
+  const nowMs = Date.UTC(2026, 10, 20, 12, 0, 0);
+  const futureTs = nowMs + 6 * 3600 * 1000;
+  const pastTs = nowMs - 2 * 3600 * 1000;
+
+  const makeWarn = (overrides: Partial<WarningRecord>): WarningRecord => ({
+    id: 'w-1',
+    bulletinNo: 'CAP-1',
+    title: 'Thunderstorm & Lightning Watch',
+    severity: 'yellow',
+    severityLabel: 'Yellow Watch',
+    hazardCategory: 'thunderstorm',
+    hazardLabel: 'Thunderstorm',
+    hazardIcon: 'cloud-lightning',
+    state: 'Chhattisgarh',
+    stateCode: 'CG',
+    subdivision: 'Chhattisgarh',
+    region: 'central',
+    affectedDistricts: ['Raipur'],
+    affectedAreaText: 'Raipur, Bilaspur',
+    issuedAt: '20 Nov 2026, 05:00 pm IST',
+    validFrom: '20 Nov 2026, 05:00 pm IST',
+    validUntil: '20 Nov 2026, 11:00 pm IST',
+    validityTimestamp: futureTs,
+    description: 'Isolated thunderstorm activity likely.',
+    impacts: ['Minor localized disruption.'],
+    recommendedActions: ['Stay indoors during lightning'],
+    expectedConditions: {},
+    timeline: [],
+    source: 'SACHET NDMA / IMD CAP',
+    authorityAgency: 'NDMA SACHET / IMD',
+    emergencyContact: { title: 'NDMA', number: '112', description: 'Emergency' },
+    isRedAlert: false,
+    ...overrides,
+  });
+
+  // 7 active yellow bulletins across 3 states (CG: 4, TG via alias TS: 2, OD via alias OR: 1) + 1 expired bulletin
+  const warnings: WarningRecord[] = [
+    makeWarn({ id: 'cg-1', state: 'Chhattisgarh', stateCode: 'CG' }),
+    makeWarn({ id: 'cg-2', state: 'Chhattisgarh', stateCode: 'CG' }),
+    makeWarn({ id: 'cg-3', state: 'Chhattisgarh', stateCode: 'CG' }),
+    makeWarn({ id: 'cg-4', state: 'Chhattisgarh', stateCode: 'CG' }),
+    makeWarn({ id: 'tg-1', state: 'Telangana', stateCode: 'TS' }),
+    makeWarn({ id: 'tg-2', state: 'Telangana', stateCode: 'TS' }),
+    makeWarn({ id: 'od-1', state: 'Odisha', stateCode: 'OR' }),
+    makeWarn({ id: 'expired-1', state: 'Bihar', stateCode: 'BR', validityTimestamp: pastTs }),
+  ];
+
+  const reconciled = warningService.reconcileNationalWarnings(warnings, { nowMs });
+  assert.equal(reconciled.totalStatesAndUTs, 36);
+  assert.equal(reconciled.totalBulletins, 7);
+  assert.equal(reconciled.yellowBulletins, 7);
+  assert.equal(reconciled.affectedStateCount, 3);
+  assert.equal(reconciled.yellowStates, 3);
+  assert.equal(reconciled.normalStateCount, 33);
+  assert.equal(reconciled.stateSummaries['cg'].activeCount, 4);
+  assert.equal(reconciled.stateSummaries['tg'].activeCount, 2);
+  assert.equal(reconciled.stateSummaries['od'].activeCount, 1);
+  assert.equal(reconciled.stateSummaries['br'].activeCount, 0);
+
+  // Offline / unavailable mode must NOT claim 36 normal states
+  const offline = warningService.reconcileNationalWarnings([], { isUnavailable: true, nowMs });
+  assert.equal(offline.isUnavailable, true);
+  assert.equal(offline.normalStateCount, 0);
+  assert.equal(offline.affectedStateCount, 0);
+
+  // CAP RSS XML parser produces structured active records
+  const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>
+  <rss version="2.0"><channel>
+    <item>
+      <title>Orange Alert: Heavy Rain over Coastal Odisha</title>
+      <description>Deep Depression over south coastal Odisha likely to bring heavy rain across Puri and Khordha.</description>
+      <pubDate>Fri, 20 Nov 2026 15:30:00 +0530</pubDate>
+      <guid>sachet-od-20261120-01</guid>
+      <author>India Meteorological Department</author>
+    </item>
+  </channel></rss>`;
+  const parsedCap = warningService.parseCapRssFeedXml(sampleXml);
+  assert.equal(parsedCap.length, 1);
+  assert.equal(parsedCap[0].severity, 'orange');
+  assert.equal(parsedCap[0].stateCode, 'in-od');
+});
+
+test('parseCycloneBulletinText preserves weakened Deep Depression status for Akvan remnant and never fabricates forecastTrack', () => {
+  const akvanBulletin =
+    'As of 21:04 IST on 20 November 2026, Cyclone Akvan had weakened into a Deep Depression (remnant of Severe Cyclonic Storm Akvan) over south coastal Odisha near 20.0°N, 84.9°E, about 80 km north of Gopalpur, moving northwards at 15 km/h. Forecast to weaken into a Depression and then a Well-Marked Low Pressure Area.';
+
+  assert.equal(extractOfficialClassification(akvanBulletin), 'Deep Depression');
+
+  const parsed = parseCycloneBulletinText(akvanBulletin, {
+    id: 'imd-akvan-20261120',
+    title: 'IMD National Weather Forecasting Centre Bulletin',
+    source: 'IMD National Weather Forecasting Centre',
+    issuedAt: '2026-11-20T15:34:00.000Z',
+  });
+
+  assert.ok(parsed);
+  assert.equal(parsed!.classification, 'Deep Depression');
+  assert.notEqual(parsed!.classification, 'Severe Cyclonic Storm');
+  assert.equal(parsed!.latitude, 20);
+  assert.equal(parsed!.longitude, 84.9);
+  assert.equal(parsed!.movementSpeed, '15 km/h');
+  assert.equal(parsed!.forecastTrack.length, 0);
+});
+
+test('weatherService.parseOpenMeteoBundle reports US EPA AQI honestly and never synthesizes CPCB AQI from PM2.5 alone', () => {
+  const nowIso = '2026-11-20T09:00:00Z';
+  const baseWeather = {
+    current: {
+      time: nowIso,
+      temperature_2m: 26.4,
+      relative_humidity_2m: 74,
+      pressure_msl: 1008.2,
+      wind_speed_10m: 14,
+      precipitation: 0,
+      weather_code: 3,
+      is_day: 1,
+    },
+    hourly: { time: [nowIso], temperature_2m: [26.4], precipitation: [0], precipitation_probability: [10] },
+    daily: { time: ['2026-11-20'], temperature_2m_max: [29], temperature_2m_min: [22], precipitation_sum: [0], precipitation_probability_max: [10] },
+  };
+
+  // When us_aqi is absent (only pm2_5 present), aqi must stay null — never fake a CPCB AQI number
+  const noUsAqiBundle = weatherService.parseOpenMeteoBundle(SAMPLE_LOCATION, baseWeather, {
+    current: { pm2_5: 55.0, pm10: 90.0 },
+  });
+  assert.equal(noUsAqiBundle.current.aqi, null);
+  assert.equal(noUsAqiBundle.current.aqiStatus, 'Unavailable');
+
+  // When us_aqi is present (e.g., 215), classify via official US EPA AQI band ('Very Unhealthy')
+  const withUsAqiBundle = weatherService.parseOpenMeteoBundle(SAMPLE_LOCATION, baseWeather, {
+    current: { us_aqi: 215, pm2_5: 140.2, pm10: 195.0 },
+  });
+  assert.equal(withUsAqiBundle.current.aqi, 215);
+  assert.equal(withUsAqiBundle.current.aqiStatus, 'Very Unhealthy');
+});
+
+test('agrometService never emits fake official bulletin IDs or fabricated soil moisture when telemetry is absent', () => {
+  const withoutSoil = getAgrometBulletin('Odisha', 'Khordha (Bhubaneswar)');
+  assert.equal(withoutSoil.bulletinNo, 'Weather-Derived Operational Guidance');
+  assert.equal(withoutSoil.soilMoisture.available, false);
+  assert.equal(withoutSoil.soilMoisture.status, 'Unavailable');
+  assert.ok(!withoutSoil.issueDate.includes('August 24, 2026'));
+
+  const withSoil = getAgrometBulletin('Odisha', 'Khordha (Bhubaneswar)', {
+    current: {
+      temp: 27,
+      unit: 'C',
+      high: 30,
+      low: 23,
+      condition: 'Overcast',
+      normalizedCondition: 'CLOUDY',
+      weatherType: 'rain',
+      icon: 'cloudy',
+      feelsLike: 29,
+      humidity: 82,
+      dewPoint: 23,
+      visibility: 8,
+      windSpeed: 12,
+      windDirection: 'NE',
+      pressure: 1009,
+      uvIndex: 4,
+      pollen: 'Low',
+      aqi: 75,
+      aqiPm25: 24,
+      aqiStatus: 'Moderate',
+      precipitation: 2,
+      precipitationProbability: 60,
+      isRainingNow: true,
+      soilMoisture: 0.34,
+      stationName: 'Khordha',
+      stationCode: 'KHD',
+      lastUpdated: new Date().toISOString(),
+      source: 'Open-Meteo',
+      dataSource: 'Open-Meteo',
+    },
+    hourly: [],
+    daily: [],
+    trends: [],
+    alerts: [],
+    isLive: true,
+    lastFetchedAt: new Date(),
+  });
+  assert.equal(withSoil.soilMoisture.available, true);
+  assert.ok(withSoil.soilMoisture.overallPct > 0);
+});
+
+test('WarningReadoutService normalizes units/acronyms cleanly in English & Hindi with zero raw markdown or English leak in Hindi', () => {
+  const enNorm = normalizeSpokenText('IMD alert: 55 km/h winds, 1004 hPa, 20.0°N 84.9°E. Visit https://mausam.imd.gov.in', 'en');
+  assert.ok(enNorm.includes('India Meteorological Department'));
+  assert.match(enNorm, /kilomet(?:er|re)s per hour/i);
+  assert.ok(enNorm.includes('hectopascals'));
+  assert.ok(!enNorm.includes('https://'));
+
+  const hiNorm = normalizeSpokenText('IMD: 55 km/h winds, 1004 hPa in Odisha & Bay of Bengal.', 'hi');
+  assert.ok(hiNorm.includes('भारतीय मौसम विज्ञान विभाग'));
+  assert.ok(hiNorm.includes('किलोमीटर प्रति घंटा'));
+  assert.ok(hiNorm.includes('ओडिशा'));
+  assert.ok(!hiNorm.includes('km/h'));
+
+  const sampleWarning = {
+    name: 'Deep Depression (Remnant of Akvan)',
+    classification: 'Deep Depression',
+    basin: 'Bay of Bengal',
+    status: 'ACTIVE',
+    threatLevel: 'HIGH',
+    intensityKmh: 55,
+    pressureHpa: 1004,
+    movementSpeedKmh: 15,
+    movementDirection: 'North',
+    coordinates: { lat: 20.0, lng: 84.9 },
+    affectedRegions: ['Odisha', 'Andhra Pradesh'],
+    issuedAt: '2026-11-20T15:34:00.000Z',
+    source: 'India Meteorological Department',
+    advisoryText: 'Weakened into a Deep Depression over south coastal Odisha.',
+    guidance: ['Fishermen advised not to venture into sea.'],
+  };
+
+  const enChunks = buildBroadcastBulletinChunks(sampleWarning, 'en');
+  const hiChunks = buildBroadcastBulletinChunks(sampleWarning, 'hi');
+  assert.ok(enChunks.length >= 4);
+  assert.ok(hiChunks.length >= 4);
+  assert.ok(enChunks[0].text.includes('MAUSAM'));
+  assert.ok(hiChunks.every((c) => !/\b(Deep Depression|Bay of Bengal|Odisha|km\/h|hPa)\b/.test(c.text)));
+});
+
+test('safeStorage & createInitialProviderStore survive blocked storage getters (SecurityError), quota errors, and corrupted JSON', () => {
+  const origWindow = (globalThis as any).window;
+  try {
+    // Failure injection 1: window.sessionStorage & window.localStorage property getters throw SecurityError
+    const restrictedWindow: Record<string, unknown> = {};
+    Object.defineProperty(restrictedWindow, 'sessionStorage', {
+      get() {
+        throw new DOMException('Blocked by privacy policy', 'SecurityError');
+      },
+      configurable: true,
+    });
+    Object.defineProperty(restrictedWindow, 'localStorage', {
+      get() {
+        throw new DOMException('Blocked by privacy policy', 'SecurityError');
+      },
+      configurable: true,
+    });
+    (globalThis as any).window = restrictedWindow;
+
+    assert.equal(isStorageAvailable('local'), false);
+    assert.equal(isStorageAvailable('session'), false);
+    assert.equal(safeStorageGet('local', 'mausam_language'), null);
+    assert.equal(safeStorageSet('session', 'provider:sachet', '{}'), false);
+
+    // Must never throw during ProviderStoreProvider initialization
+    const storeFromBlocked = createInitialProviderStore(true);
+    assert.equal(storeFromBlocked.SACHET.status, 'LOADING');
+    assert.equal(storeFromBlocked.WEATHER.status, 'LOADING');
+
+    // Failure injection 2: corrupted JSON & non-destructive transient cache reset
+    const localMap = new Map<string, string>([
+      ['mausam_saved_locations', '["bhubaneswar","puri"]'],
+      ['mausam_language', 'hi'],
+      ['mausam_surface_theme_v3', 'dark'],
+      ['mausam_weather_cache_v1', '{broken-json'],
+    ]);
+    const sessionMap = new Map<string, string>([
+      ['provider:sachet', '{"status":"INVALID_ENUM","_cachedAt":"not-a-number"}'],
+      ['provider:weather', '{malformed'],
+      ['mausam_retry_lazy_reload_ts', '123456'],
+      ['unrelated_app_key', 'keep-me'],
+    ]);
+
+    const makeMockStorage = (map: Map<string, string>): Storage => ({
+      get length() {
+        return map.size;
+      },
+      clear() {
+        map.clear();
+      },
+      getItem(k: string) {
+        return map.has(k) ? map.get(k)! : null;
+      },
+      key(index: number) {
+        return Array.from(map.keys())[index] ?? null;
+      },
+      removeItem(k: string) {
+        map.delete(k);
+      },
+      setItem(k: string, v: string) {
+        map.set(k, String(v));
+      },
+    });
+
+    (globalThis as any).window = {
+      localStorage: makeMockStorage(localMap),
+      sessionStorage: makeMockStorage(sessionMap),
+    };
+
+    // Corrupted provider JSON is discarded cleanly without throwing
+    const storeFromCorrupt = createInitialProviderStore(true);
+    assert.equal(storeFromCorrupt.SACHET.status, 'LOADING');
+    assert.equal(storeFromCorrupt.WEATHER.status, 'LOADING');
+    assert.equal(safeStorageGetJson('local', 'mausam_weather_cache_v1'), null);
+
+    // Non-destructive cache reset clears ONLY transient caches and preserves user data
+    sessionMap.set('provider:imd', '{"status":"LIVE"}');
+    localMap.set('mausam_weather_cache_v1', '{"cached":true}');
+    clearTransientMausamCaches();
+
+    assert.equal(localMap.has('mausam_weather_cache_v1'), false);
+    assert.equal(sessionMap.has('provider:imd'), false);
+    assert.equal(sessionMap.has('mausam_retry_lazy_reload_ts'), false);
+    assert.equal(sessionMap.get('unrelated_app_key'), 'keep-me');
+    assert.equal(localMap.get('mausam_saved_locations'), '["bhubaneswar","puri"]');
+    assert.equal(localMap.get('mausam_language'), 'hi');
+    assert.equal(localMap.get('mausam_surface_theme_v3'), 'dark');
+  } finally {
+    if (origWindow === undefined) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = origWindow;
+    }
+  }
+});
+
+test('lazyWithRetry classifies genuine chunk errors strictly, retries bounded times, and never masks runtime TypeErrors', async () => {
+  assert.equal(isChunkLoadError(new Error('Failed to fetch dynamically imported module: /assets/Alerts-abc.js')), true);
+  assert.equal(isChunkLoadError(new Error('Importing a module script failed.')), true);
+  assert.equal(isChunkLoadError(new TypeError("Cannot read properties of undefined (reading 'map')")), false);
+
+  // Non-chunk runtime TypeError must fail immediately on attempt 1 without retrying
+  let runtimeAttempts = 0;
+  await assert.rejects(
+    loadModuleWithRetry(
+      async () => {
+        runtimeAttempts++;
+        throw new TypeError('Synthetic component runtime bug');
+      },
+      { retries: 3, intervalMs: 5, allowReload: false }
+    ),
+    /Synthetic component runtime bug/
+  );
+  assert.equal(runtimeAttempts, 1);
+
+  // Genuine chunk load error retries and resolves when a subsequent attempt succeeds
+  let chunkAttempts = 0;
+  const FakeComponent = () => null;
+  const loaded = await loadModuleWithRetry(
+    async () => {
+      chunkAttempts++;
+      if (chunkAttempts < 2) {
+        throw new Error('Failed to fetch dynamically imported module: /assets/Alerts.js');
+      }
+      return { AlertsPage: FakeComponent };
+    },
+    { exportName: 'AlertsPage', retries: 3, intervalMs: 5, allowReload: false }
+  );
+  assert.equal(chunkAttempts, 2);
+  assert.equal(loaded.default, FakeComponent);
+});
+
+
 
 
 

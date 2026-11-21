@@ -80,48 +80,48 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
       return {
         category: 'Unavailable',
         badgeClass: 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]',
-        description: 'Ambient particulate telemetry is currently unavailable from the upstream AQI feed.',
+        description: 'Ambient air quality model estimate is currently unavailable from Open-Meteo.',
       };
     }
     if (val <= 50) {
       return {
         category: 'Good',
         badgeClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35',
-        description: 'Minimal health impact. Air quality meets ambient cleanliness standards.',
+        description: 'Air quality is satisfactory under US EPA AQI bands, with little or no pollution risk.',
       };
     }
     if (val <= 100) {
       return {
-        category: 'Satisfactory',
-        badgeClass: 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35',
-        description: 'Acceptable ambient air quality; minor discomfort possible for highly sensitive groups.',
+        category: 'Moderate',
+        badgeClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
+        description: 'Acceptable air quality; unusually sensitive individuals may experience mild respiratory discomfort.',
+      };
+    }
+    if (val <= 150) {
+      return {
+        category: 'Unhealthy for Sensitive Groups',
+        badgeClass: 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border-[var(--m-alert)]/35',
+        description: 'Sensitive groups (asthma, elderly, children) should reduce prolonged outdoor exertion.',
       };
     }
     if (val <= 200) {
       return {
-        category: 'Moderate',
-        badgeClass: 'bg-[var(--m-watch-soft)] text-[var(--m-watch)] border-[var(--m-watch)]/35',
-        description: 'Breathing discomfort possible for people with lung disease, asthma, or heart conditions.',
+        category: 'Unhealthy',
+        badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35',
+        description: 'Everyone may begin to experience health effects; limit prolonged outdoor exertion.',
       };
     }
     if (val <= 300) {
       return {
-        category: 'Poor',
-        badgeClass: 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border-[var(--m-alert)]/35',
-        description: 'Breathing discomfort on prolonged outdoor exposure.',
-      };
-    }
-    if (val <= 400) {
-      return {
-        category: 'Very Poor',
-        badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/35',
-        description: 'Respiratory illness risk on prolonged exposure.',
+        category: 'Very Unhealthy',
+        badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/45',
+        description: 'Health alert: increased risk of respiratory effects for everyone.',
       };
     }
     return {
-      category: 'Severe',
-      badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/50',
-      description: 'Health warning: avoid prolonged outdoor exertion.',
+      category: 'Hazardous',
+      badgeClass: 'bg-[var(--m-danger-soft)] text-[var(--m-danger)] border-[var(--m-danger)]/55',
+      description: 'Health warning of emergency conditions: avoid outdoor exposure.',
     };
   };
 
@@ -130,16 +130,16 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
     aqiState.status === 'LOADING'
       ? 'LOADING'
       : aqi !== null || pm25Value !== null
-      ? 'LIVE'
+      ? 'MODELLED'
       : 'UNAVAILABLE';
 
   const pollutants = [
-    { name: 'PM2.5', value: pm25Value, unit: 'µg/m³', std: '60 (24h Std)', precision: 0 },
-    { name: 'PM10', value: pm10Value, unit: 'µg/m³', std: '100 (24h Std)', precision: 0 },
-    { name: 'NO₂', value: no2Val, unit: 'µg/m³', std: '80 (24h Std)', precision: 0 },
-    { name: 'SO₂', value: so2Val, unit: 'µg/m³', std: '80 (24h Std)', precision: 0 },
-    { name: 'CO', value: formatCo(coVal), unit: 'mg/m³', std: '2.0 (8h Std)', precision: 1 },
-    { name: 'Ozone (O₃)', value: o3Val, unit: 'µg/m³', std: '100 (8h Std)', precision: 0 },
+    { name: 'PM2.5', value: pm25Value, unit: 'µg/m³', std: 'WHO/CPCB Ref', precision: 0 },
+    { name: 'PM10', value: pm10Value, unit: 'µg/m³', std: 'WHO/CPCB Ref', precision: 0 },
+    { name: 'NO₂', value: no2Val, unit: 'µg/m³', std: 'Trace Gas', precision: 0 },
+    { name: 'SO₂', value: so2Val, unit: 'µg/m³', std: 'Trace Gas', precision: 0 },
+    { name: 'CO', value: formatCo(coVal), unit: 'mg/m³', std: 'Trace Gas', precision: 1 },
+    { name: 'Ozone (O₃)', value: o3Val, unit: 'µg/m³', std: 'Surface O₃', precision: 0 },
   ];
 
   const allPollutantsEmpty = pollutants.every((p) => p.value === null) && aqi === null;
@@ -147,13 +147,14 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
   return (
     <DataPanel className="flex flex-col gap-4">
       <SectionHeading
-        title="Local Air Quality Index (NAQI Scale)"
-        subtitle="Particulate & trace gas atmospheric chemistry readings"
+        title="Local Air Quality Index (US EPA AQI · Model Estimate)"
+        subtitle="Open-Meteo atmospheric chemistry grid estimate (separate from physical CPCB CAAQMS ground stations)"
         icon={<Wind className="w-4 h-4" />}
         badge={
           <SourceStatus
             status={provenance}
-            source={aqiState.source || 'Open-Meteo Air Quality'}
+            source="Open-Meteo Model"
+            labelOverride={provenance === 'MODELLED' ? 'MODEL ESTIMATE · US EPA AQI' : undefined}
           />
         }
       />
@@ -185,7 +186,7 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
                   <span className="text-4xl font-bold text-[var(--m-text-primary)] font-mono">
                     {aqi !== null ? aqi : '—'}
                   </span>
-                  <span className="text-xs text-[var(--m-text-muted)] font-mono">NAQI (0–500)</span>
+                  <span className="text-xs text-[var(--m-text-muted)] font-mono">US EPA AQI (0–500)</span>
                 </div>
               </div>
 

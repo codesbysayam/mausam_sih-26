@@ -249,24 +249,14 @@ function formatTimeIST(isoOrUnix: unknown): string | null {
   });
 }
 
-function computeCpcbAqiFromPm25(pm25: number | null): number | null {
-  if (pm25 === null || !Number.isFinite(pm25)) return null;
-  if (pm25 <= 30) return Math.round(pm25 * (50 / 30));
-  if (pm25 <= 60) return Math.round(50 + ((pm25 - 30) * 50) / 30);
-  if (pm25 <= 90) return Math.round(100 + ((pm25 - 60) * 100) / 30);
-  if (pm25 <= 120) return Math.round(200 + ((pm25 - 90) * 100) / 30);
-  if (pm25 <= 250) return Math.round(300 + ((pm25 - 120) * 100) / 130);
-  return Math.round(400 + ((pm25 - 250) * 100) / 130);
-}
-
-function classifyAqi(aqiVal: number | null): { category: string; color: string } {
-  if (aqiVal === null) return { category: 'Unavailable', color: '#8295A8' };
-  if (aqiVal <= 50) return { category: 'Good', color: '#22C7A0' };
-  if (aqiVal <= 100) return { category: 'Satisfactory', color: '#84CC16' };
-  if (aqiVal <= 200) return { category: 'Moderate', color: '#F59E0B' };
-  if (aqiVal <= 300) return { category: 'Poor', color: '#F97316' };
-  if (aqiVal <= 400) return { category: 'Very Poor', color: '#EF4444' };
-  return { category: 'Severe', color: '#A855F7' };
+function classifyUsEpaAqi(aqiVal: number | null): { category: string; color: string } {
+  if (aqiVal === null || !Number.isFinite(aqiVal)) return { category: 'Unavailable', color: '#8295A8' };
+  if (aqiVal <= 50) return { category: 'Good', color: '#5C9A79' };
+  if (aqiVal <= 100) return { category: 'Moderate', color: '#D8B14F' };
+  if (aqiVal <= 150) return { category: 'Unhealthy for Sensitive Groups', color: '#D98548' };
+  if (aqiVal <= 200) return { category: 'Unhealthy', color: '#C94F4B' };
+  if (aqiVal <= 300) return { category: 'Very Unhealthy', color: '#9D4EDD' };
+  return { category: 'Hazardous', color: '#7F1D1D' };
 }
 
 function getCurrentCropSeason(): 'Kharif' | 'Rabi' | 'Zaid' {
@@ -416,8 +406,8 @@ export default async function handler(req: any, res: any) {
       const coUg = roundOrNull(cur.carbon_monoxide, 0);
       const o3 = roundOrNull(cur.ozone, 1);
       const dust = roundOrNull(cur.dust, 1);
-      const aqiVal = computeCpcbAqiFromPm25(pm25) ?? roundOrNull(cur.us_aqi) ?? roundOrNull(cur.european_aqi);
-      const { category, color } = classifyAqi(aqiVal);
+      const aqiVal = roundOrNull(cur.us_aqi);
+      const { category, color } = classifyUsEpaAqi(aqiVal);
       const hasMetrics = aqiVal !== null || pm25 !== null || pm10 !== null;
 
       const curPollenVals = [
@@ -528,7 +518,7 @@ export default async function handler(req: any, res: any) {
         .map(([dateStr, b]) => {
           const dayPm25 = avg(b.pm25, 1);
           const dayPm10 = avg(b.pm10, 1);
-          const dayAqi = computeCpcbAqiFromPm25(dayPm25) ?? avg(b.aqi, 0);
+          const dayAqi = avg(b.aqi, 0);
           const dayPollenGrains = b.pollenGrains.length ? avg(b.pollenGrains, 0) : null;
           const dayPollenLevel =
             dayPollenGrains === null
@@ -553,7 +543,8 @@ export default async function handler(req: any, res: any) {
             pm25: dayPm25,
             pm10: dayPm10,
             aqi: dayAqi,
-            aqiCategory: classifyAqi(dayAqi).category,
+            aqiScale: 'US EPA AQI',
+            aqiCategory: classifyUsEpaAqi(dayAqi).category,
             pollen: dayPollenLevel,
             totalPollenGrains: dayPollenGrains,
             no2: avg(b.no2, 1),
@@ -581,13 +572,18 @@ export default async function handler(req: any, res: any) {
           ? 'Improving'
           : 'Stable';
 
+      const fetchedAtIso = new Date().toISOString();
       const payload = {
         status: hasMetrics ? 'success' : 'error',
-        source: 'Open-Meteo Air Quality Model',
-        provider: 'OPEN_METEO_AQ',
+        source: 'Open-Meteo Air Quality Model (US EPA AQI)',
+        provider: 'Open-Meteo',
+        aqiScale: 'US EPA AQI',
+        observationType: 'MODELLED',
         dataStatus: hasMetrics ? 'MODEL_LIVE' : 'UNAVAILABLE',
-        observedAt: cur.time || new Date().toISOString(),
-        stationId: (query.stationId as string) || stationLabel,
+        observedAt: typeof cur.time === 'string' && cur.time ? cur.time : null,
+        fetchedAt: fetchedAtIso,
+        stationId: null,
+        stationName: null,
         startDate: observations[0]?.date || null,
         sevenDayAveragePm25,
         peakConcentration,
@@ -599,12 +595,16 @@ export default async function handler(req: any, res: any) {
           pm25,
           pm10,
           aqi: aqiVal,
+          aqiScale: 'US EPA AQI',
+          observationType: 'MODELLED',
           pollen: curPollenLevel,
           totalPollenGrains: curTotalPollenGrains,
         },
         raw: aqiData,
         data: {
           aqi: aqiVal,
+          aqiScale: 'US EPA AQI',
+          observationType: 'MODELLED',
           category,
           dominantPollutant: pm25 !== null ? 'PM2.5' : pm10 !== null ? 'PM10' : 'Unavailable',
           color,
@@ -619,12 +619,14 @@ export default async function handler(req: any, res: any) {
           },
           advisory:
             aqiVal === null
-              ? 'Air quality telemetry is unavailable for this coordinate.'
-              : aqiVal > 200
-              ? 'Poor air quality: limit prolonged outdoor exertion and wear N95 protection if sensitive.'
+              ? 'Air quality model estimate is unavailable for this coordinate.'
+              : aqiVal > 150
+              ? 'Unhealthy air quality (US EPA scale): limit prolonged outdoor exertion and consider N95 protection.'
               : aqiVal > 100
-              ? 'Moderate air quality: sensitive individuals should pace heavy outdoor activity.'
-              : 'Air quality is within satisfactory ambient limits.',
+              ? 'Unhealthy for Sensitive Groups (US EPA scale): sensitive individuals should pace outdoor activity.'
+              : aqiVal > 50
+              ? 'Moderate air quality (US EPA scale): acceptable for most; unusually sensitive people should monitor symptoms.'
+              : 'Good air quality (US EPA scale): minimal air pollution risk.',
         },
       };
 
@@ -892,8 +894,8 @@ export default async function handler(req: any, res: any) {
       const so2 = roundOrNull(aqCur.sulphur_dioxide, 1);
       const co = roundOrNull(aqCur.carbon_monoxide, 0);
       const o3 = roundOrNull(aqCur.ozone, 1);
-      const aqiVal = computeCpcbAqiFromPm25(pm25) ?? roundOrNull(aqCur.us_aqi) ?? roundOrNull(aqCur.european_aqi);
-      const { category: aqiCat, color: aqiColor } = classifyAqi(aqiVal);
+      const aqiVal = roundOrNull(aqCur.us_aqi);
+      const { category: aqiCat, color: aqiColor } = classifyUsEpaAqi(aqiVal);
 
       const treeP = roundOrNull((numOrNull(aqCur.birch_pollen) ?? 0) + (numOrNull(aqCur.alder_pollen) ?? 0), 0);
       const grassP = roundOrNull(aqCur.grass_pollen, 0);

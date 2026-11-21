@@ -113,171 +113,195 @@ export const RainfallAndSoilSection: React.FC<RainfallAndSoilSectionProps> = ({ 
 
       {/* 2. Dual Panels: Soil Intelligence (Vertical Profile) & Irrigation Decision Tool */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT (6 Cols): SOIL INTELLIGENCE (Vertical Soil Profile) */}
+        {/* LEFT (6 Cols): SOIL INTELLIGENCE */}
         <div className="lg:col-span-6 rounded-3xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-6 sm:p-8 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-[var(--m-border)]">
+            <div className="flex items-center justify-between pb-4 mb-5 border-b border-[var(--m-border)] gap-2">
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#2ECC71]" />
                 <h3 className="text-lg font-black text-white uppercase tracking-tight">
                   Soil Intelligence
                 </h3>
               </div>
-              <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
-                Estimated from rainfall/weather model
+              <span className="text-[10px] text-[var(--m-text-muted)] font-mono text-right">
+                {soil.available ? 'NWP Soil Moisture Model' : 'Soil Telemetry Unavailable'}
               </span>
             </div>
 
-            {/* Vertical Stratified Soil Profile */}
-            <div className="space-y-3 mb-6">
-              {/* Layer 1: Topsoil (0-15cm) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[var(--m-surface-2)] to-[var(--m-surface-1)] border border-[#2ECC71]/40 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#2ECC71] uppercase tracking-wider font-mono">
-                      TOPSOIL (0–15 cm)
+            {soil.available ? (
+              <div className="space-y-3 mb-6">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-[var(--m-surface-2)] to-[var(--m-surface-1)] border border-[#2ECC71]/40 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#2ECC71] uppercase tracking-wider font-mono">
+                        TOPSOIL (0–15 cm)
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#2ECC71]/20 text-[#2ECC71] font-mono font-bold">
+                        {soil.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--m-text-secondary)] mt-1">
+                      Modelled moisture for shallow germination and surface root intake.
+                    </p>
+                  </div>
+                  <div className="text-right pl-3 shrink-0">
+                    <span className="text-2xl font-black font-mono text-white">{soil.topsoilPct}%</span>
+                    <span className="text-[10px] text-[#2ECC71] block font-mono">Model Est.</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[var(--m-accent)] uppercase tracking-wider font-mono">
+                        ROOT ZONE (15–45 cm)
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-mono font-bold">
+                        {soil.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--m-text-secondary)] mt-1">
+                      Modelled moisture sustaining active crop root zone.
+                    </p>
+                  </div>
+                  <div className="text-right pl-3 shrink-0">
+                    <span className="text-2xl font-black font-mono text-white">{soil.rootZonePct}%</span>
+                    <span className="text-[10px] text-[var(--m-accent)] block font-mono">Root Zone</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-[var(--m-text-muted)] uppercase tracking-wider font-mono">
+                      SUBSOIL (45–100 cm)
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#2ECC71]/20 text-[#2ECC71] font-mono font-bold">
-                      {soil.status}
+                    <span className="text-xs text-[var(--m-text-muted)] block mt-0.5">
+                      Deep profile buffer inferred from modelled volumetric soil moisture.
                     </span>
                   </div>
-                  <p className="text-xs text-[var(--m-text-secondary)] mt-1">
-                    Moisture available for shallow germination and surface root intake.
-                  </p>
-                </div>
-                <div className="text-right pl-3 shrink-0">
-                  <span className="text-2xl font-black font-mono text-white">{soil.overallPct}%</span>
-                  <span className="text-[10px] text-[#2ECC71] block font-mono">Moisture</span>
-                </div>
-              </div>
-
-              {/* Layer 2: Root Zone (15-45cm) */}
-              <div className="p-4 rounded-2xl bg-[var(--m-surface-2)] border border-[var(--m-border)] flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[var(--m-accent)] uppercase tracking-wider font-mono">
-                      ROOT ZONE (15–45 cm)
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] font-mono font-bold">
-                      Adequate
-                    </span>
+                  <div className="text-right pl-3 shrink-0">
+                    <span className="text-xl font-bold font-mono text-[var(--m-text-muted)]">{soil.subsoilPct}%</span>
+                    <span className="text-[10px] text-[var(--m-text-muted)] block font-mono">Buffer Est.</span>
                   </div>
-                  <p className="text-xs text-[var(--m-text-secondary)] mt-1">
-                    Effective moisture sustaining active vegetative tillering.
-                  </p>
-                </div>
-                <div className="text-right pl-3 shrink-0">
-                  <span className="text-2xl font-black font-mono text-white">{soil.rootZonePct}%</span>
-                  <span className="text-[10px] text-[var(--m-accent)] block font-mono">Water Capacity</span>
                 </div>
               </div>
-
-              {/* Layer 3: Subsoil (45-100cm) */}
-              <div className="p-3.5 rounded-2xl bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-[var(--m-text-muted)] uppercase tracking-wider font-mono">
-                    SUBSOIL (45–100 cm)
-                  </span>
-                  <span className="text-xs text-[var(--m-text-muted)] block mt-0.5">
-                    Deep profile storage maintaining buffer capacity.
-                  </span>
+            ) : (
+              <div className="p-5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] space-y-2.5 mb-6">
+                <div className="flex items-center gap-2 text-[var(--m-watch)] text-xs font-mono font-bold uppercase">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>Direct Soil Moisture Telemetry Unavailable</span>
                 </div>
-                <div className="text-right pl-3 shrink-0">
-                  <span className="text-xl font-bold font-mono text-[var(--m-text-muted)]">72%</span>
-                  <span className="text-[10px] text-[var(--m-text-muted)] block font-mono">Saturation</span>
-                </div>
+                <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
+                  {soil.sourceNote}. MAUSAM does not synthesize topsoil, root-zone, or subsoil saturation percentages without a verified moisture feed.
+                </p>
+                <p className="text-[11px] font-mono text-[var(--m-text-muted)]">
+                  Field check: Inspect top 5–10 cm of soil manually and align pumping with the live 5-day NWP rainfall forecast above.
+                </p>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Micro Soil Trend Bar */}
           <div className="pt-4 border-t border-[var(--m-border)] grid grid-cols-3 gap-3 text-xs">
             <div>
               <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">SOIL MOISTURE</span>
-              <span className="text-sm font-bold text-white font-mono">{soil.overallPct}%</span>
-            </div>
-            <div>
-              <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">TREND</span>
-              <span className="text-sm font-bold text-[#2ECC71] font-mono flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" />
-                Increasing
+              <span className="text-sm font-bold text-white font-mono">
+                {soil.available ? `${soil.overallPct}%` : 'Unavailable'}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">IRRIGATION NEED</span>
-              <span className="text-sm font-bold text-[var(--m-accent)] font-mono">Low Requirement</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">TREND</span>
+              <span className="text-sm font-bold text-[#2ECC71] font-mono flex items-center gap-1 capitalize">
+                <TrendingUp className="w-3.5 h-3.5" />
+                {soil.available ? soil.trend : '—'}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">SOURCE BASIS</span>
+              <span className="text-sm font-bold text-[var(--m-accent)] font-mono">
+                {soil.available ? 'NWP Model' : 'Rain Forecast'}
+              </span>
             </div>
           </div>
         </div>
 
         {/* RIGHT (6 Cols): IRRIGATION DECISION PANEL */}
-        <div className="lg:col-span-6 rounded-3xl bg-gradient-to-br from-[var(--m-surface-1)] to-[var(--m-surface-1)] border-2 border-[var(--m-accent)]/40 p-6 sm:p-8 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-[var(--m-border)]">
-              <div className="flex items-center gap-2">
-                <Droplets className="w-5 h-5 text-[var(--m-accent)]" />
-                <h3 className="text-lg font-black text-white uppercase tracking-tight">
-                  Irrigation Decision Tool
-                </h3>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/40 text-xs font-mono font-black">
-                Active Directive
-              </span>
-            </div>
+        {(() => {
+          const rain24 = Math.round((rainList[0]?.amountMm || 0) * 10) / 10;
+          const rain48 = Math.round(((rainList[0]?.amountMm || 0) + (rainList[1]?.amountMm || 0)) * 10) / 10;
+          const holdIrrigation = rain48 >= 8 || (soil.available && soil.overallPct > 70);
+          const directive = holdIrrigation ? 'HOLD / WAIT' : soil.available ? 'LIGHT IRRIGATION' : 'CHECK TOPSOIL';
+          const reason = holdIrrigation
+            ? `48-hour rainfall outlook (${rain48} mm) ${soil.available ? `and modelled soil moisture (${soil.overallPct}%) ` : ''}indicate delaying pumping until showers pass.`
+            : soil.available
+            ? `Low 48-hour rainfall (${rain48} mm) and ${soil.overallPct}% modelled moisture support shallow morning irrigation.`
+            : `Low 48-hour rainfall forecast (${rain48} mm). Verify topsoil moisture in-field before scheduling morning irrigation.`;
 
-            {/* Large Status Callout */}
-            <div className="p-5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] mb-5 flex items-center justify-between">
+          return (
+            <div className="lg:col-span-6 rounded-3xl bg-gradient-to-br from-[var(--m-surface-1)] to-[var(--m-surface-1)] border-2 border-[var(--m-accent)]/40 p-6 sm:p-8 shadow-xl flex flex-col justify-between">
               <div>
-                <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase font-bold block mb-1">
-                  CURRENT DIRECTIVE
-                </span>
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[var(--m-accent)] tracking-tight">
-                  WAIT
-                </span>
-                <p className="text-xs text-[var(--m-text-secondary)] mt-1">
-                  Hold water applications. Convective showers provide natural topsoil replenishment.
-                </p>
+                <div className="flex items-center justify-between pb-4 mb-5 border-b border-[var(--m-border)]">
+                  <div className="flex items-center gap-2">
+                    <Droplets className="w-5 h-5 text-[var(--m-accent)]" />
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                      Irrigation Decision Tool
+                    </h3>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/40 text-xs font-mono font-black">
+                    Weather-Derived
+                  </span>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[var(--m-surface-inset)] border border-[var(--m-border-strong)] mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase font-bold block mb-1">
+                      OPERATIONAL GUIDANCE
+                    </span>
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--m-accent)] tracking-tight">
+                      {directive}
+                    </span>
+                    <p className="text-xs text-[var(--m-text-secondary)] mt-1">{reason}</p>
+                  </div>
+                  <div className="text-right shrink-0 pl-4 border-l border-[var(--m-border)]">
+                    <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">24h Rain Forecast</span>
+                    <span className="text-xl font-bold font-mono text-white">{rain24} mm</span>
+                    <span className="text-[10px] text-[#2ECC71] block font-mono mt-1">48h: {rain48} mm</span>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <span className="text-xs font-bold text-[var(--m-text-muted)] font-mono uppercase tracking-wider block mb-2">
+                    Decision Action Sequence
+                  </span>
+                  <div className="grid grid-cols-5 gap-1 text-center font-mono">
+                    <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
+                      NOW
+                    </div>
+                    <div className={`p-2 rounded-lg text-[10px] font-bold border ${holdIrrigation ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-accent)]' : 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)] text-[var(--m-text-primary)]'}`}>
+                      {holdIrrigation ? 'WAIT' : 'INSPECT'}
+                    </div>
+                    <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
+                      {rain48 > 0 ? 'RAIN' : 'DRY'}
+                    </div>
+                    <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
+                      REASSESS
+                    </div>
+                    <div className={`p-2 rounded-lg text-[10px] font-bold border ${!holdIrrigation ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)] text-[var(--m-accent)]' : 'bg-[var(--m-surface-2)] border-[var(--m-border-strong)] text-[var(--m-text-primary)]'}`}>
+                      IRRIGATE
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="text-right shrink-0 pl-4 border-l border-[var(--m-border)]">
-                <span className="text-[10px] text-[var(--m-text-muted)] font-mono uppercase block">Rain Influx</span>
-                <span className="text-xl font-bold font-mono text-white">10–15 mm</span>
-                <span className="text-[10px] text-[#2ECC71] block font-mono mt-1">Next 24 Hours</span>
+
+              <div className="pt-4 border-t border-[var(--m-border)] flex items-center justify-between text-xs text-[var(--m-text-muted)]">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+                  Basis Window:
+                </span>
+                <span className="text-white font-mono font-bold">{bulletin.validPeriod}</span>
               </div>
             </div>
-
-            {/* Decision Progression Timeline */}
-            <div className="mb-4">
-              <span className="text-xs font-bold text-[var(--m-text-muted)] font-mono uppercase tracking-wider block mb-2">
-                Decision Action Sequence
-              </span>
-              <div className="grid grid-cols-5 gap-1 text-center font-mono">
-                <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
-                  NOW
-                </div>
-                <div className="p-2 rounded-lg bg-[var(--m-accent-soft)] border border-[var(--m-accent)] text-[10px] text-[var(--m-accent)] font-bold">
-                  WAIT
-                </div>
-                <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
-                  RAIN
-                </div>
-                <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
-                  REASSESS
-                </div>
-                <div className="p-2 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border-strong)] text-[10px] text-[var(--m-text-primary)] font-bold">
-                  IRRIGATE
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-[var(--m-border)] flex items-center justify-between text-xs text-[var(--m-text-muted)]">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-              Next Scheduled Review:
-            </span>
-            <span className="text-white font-mono font-bold">Tomorrow Morning 08:30 IST</span>
-          </div>
-        </div>
+          );
+        })()}
       </div>
     </section>
   );

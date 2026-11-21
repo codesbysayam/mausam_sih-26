@@ -91,7 +91,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     return (
       <div
         role="status"
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-[11px] px-4 py-2 text-xs text-[var(--m-text-muted)] font-mono"
+        className="explore-forecast-timeline fixed bottom-3 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-[11px] px-4 py-2 text-xs text-[var(--m-text-muted)] font-mono max-w-[calc(100vw-20px)] text-center"
       >
         Timeline disabled — awaiting verified hourly or radar time series.
       </div>
@@ -101,7 +101,7 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   return (
     <section
       aria-label="Atmospheric Time Progression"
-      className="fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
+      className="explore-forecast-timeline fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
     >
       <div className="spatial-hud-surface rounded-[11px] px-3 py-2 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">

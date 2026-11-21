@@ -1,8 +1,23 @@
 export interface MeteorologicalPublication {
   id: string;
   title: string;
-  category: 'National Weather Observation' | 'Sub-Divisional Report' | 'Climatological Study' | 'Environmental Registry' | 'Agricultural Meteorology' | 'Severe Weather & Cyclones' | 'Scientific Monograph';
-  type: 'PDF Bulletin' | 'Technical Monograph' | 'Government Publication' | 'GKMS Bulletin' | 'Research Article' | 'Scientific Monograph';
+  category:
+    | 'Live Telemetry Summary'
+    | 'National Weather Observation'
+    | 'Sub-Divisional Report'
+    | 'Climatological Study'
+    | 'Environmental Registry'
+    | 'Agricultural Meteorology'
+    | 'Severe Weather & Cyclones'
+    | 'Scientific Monograph';
+  type:
+    | 'In-App Synthesis'
+    | 'PDF Bulletin'
+    | 'Technical Monograph'
+    | 'Government Publication'
+    | 'GKMS Bulletin'
+    | 'Research Article'
+    | 'Scientific Monograph';
   date: string;
   size: string;
   issuingAuthority: string;

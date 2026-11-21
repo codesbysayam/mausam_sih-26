@@ -90,11 +90,13 @@ export interface RainfallDay {
 }
 
 export interface SoilMoistureData {
+  available: boolean;
+  sourceNote: string;
   topsoilPct: number; // 0-15 cm
   rootZonePct: number; // 15-45 cm
   subsoilPct: number; // 45-100 cm
   overallPct: number;
-  status: 'Saturated' | 'Optimal' | 'Adequate' | 'Deficit / Dry';
+  status: 'Saturated' | 'Optimal' | 'Adequate' | 'Deficit / Dry' | 'Unavailable';
   trend: 'increasing' | 'stable' | 'decreasing';
   fieldCapacityPct: number;
   wiltingPointPct: number;
@@ -184,107 +186,102 @@ export interface ExtendedAgrometBulletin extends AgrometDistrictBulletin {
   }[];
 }
 
-export const AGROMET_BULLETINS: Record<string, AgrometDistrictBulletin> = {
+export interface RegionalCropReferenceTemplate {
+  state: string;
+  district: string;
+  amfuUnit: string;
+  crops: CropAdvisory[];
+}
+
+export const AGROMET_BULLETINS: Record<string, RegionalCropReferenceTemplate> = {
   'Punjab-Ludhiana': {
     state: 'Punjab',
     district: 'Ludhiana',
     amfuUnit: 'AMFU Ludhiana • Punjab Agricultural University (PAU)',
-    bulletinNo: 'PAU/AGMET/2026/68',
-    issueDay: 'Tuesday',
-    issueDate: 'August 24, 2026',
-    validPeriod: '24 Aug - 28 Aug 2026',
-    weatherSummary: 'Partly cloudy sky with light convective rainfall (10-25mm) expected in the next 48 hours. Max temp: 31-33°C, Min temp: 24-25°C. High morning RH (75-85%). Wind from South-East at 10-14 km/h.',
-    rainfallForecast5Days: 'Day 1: 15mm | Day 2: 10mm | Day 3: Nil | Day 4: Nil | Day 5: 5mm',
     crops: [
       {
         cropName: 'Rice (Paddy)',
         stage: 'Tillering to Panicle Initiation',
-        sowingAdvice: 'Direct Seeded Rice (DSR) should be monitored for weed emergence; maintain shallow moisture.',
-        irrigationAdvice: 'Postpone irrigation for the next 2 days due to light showers. Maintain 2-3 cm standing water thereafter.',
-        fertilizerAdvice: 'Apply second split of Urea @ 35 kg/acre only after rain subsides and foliage is dry.',
-        pestDiseaseAdvice: 'High humidity is conducive for Bacterial Leaf Blight & Sheath Blight. Spray Streptocycline (30g) + Copper Oxychloride (500g) in 200L water if lesions appear.',
-        harvestingAdvice: 'Early short-duration basmati crops should be inspected for lodging risk.',
+        sowingAdvice: 'Monitor Direct Seeded Rice (DSR) for weed emergence; maintain shallow moisture without stagnation.',
+        irrigationAdvice: 'Adjust irrigation intervals strictly to measured 48-hour precipitation; maintain 2–3 cm shallow standing water only during dry spells.',
+        fertilizerAdvice: 'Apply split nitrogen top-dressing only when foliage is dry and no heavy shower is forecast within 24 hours.',
+        pestDiseaseAdvice: 'Scout under humid spells for Bacterial Leaf Blight & Sheath Blight; verify local PAU/AMFU spray schedules before chemical control.',
+        harvestingAdvice: 'Inspect early maturing plots for lodging risk ahead of gusty wind events.',
         riskLevel: 'Moderate',
-        riskAlert: 'Humidity spike increases fungal sheath rot vulnerability.',
+        riskAlert: 'Elevated humidity increases foliar and sheath fungal vulnerability.',
       },
       {
         cropName: 'Cotton',
         stage: 'Square Formation to Flowering',
-        sowingAdvice: 'Ensure field drainage channels are cleared to avoid water stagnation after anticipated showers.',
-        irrigationAdvice: 'No irrigation needed until soil moisture drops below 50% field capacity.',
-        fertilizerAdvice: 'Spray 2% Potassium Nitrate (13:0:45) at flowering stage during clear sunny hours.',
-        pestDiseaseAdvice: 'Monitor for Whitefly (ETL: 6-8 adults/leaf) and Pink Bollworm. Install pheromone traps @ 5/acre.',
-        harvestingAdvice: 'Not applicable for current crop stage.',
+        sowingAdvice: 'Keep field drainage channels clear to prevent water stagnation after convective showers.',
+        irrigationAdvice: 'Avoid over-irrigation; irrigate only when topsoil dries during extended dry spells.',
+        fertilizerAdvice: 'Apply foliar potassium nitrate (13:0:45) at flowering stage during calm, clear morning hours.',
+        pestDiseaseAdvice: 'Monitor for Whitefly (ETL: 6–8 adults/leaf) and Pink Bollworm using pheromone traps @ 5/acre.',
+        harvestingAdvice: 'Plan dry picking slots once bolls open cleanly.',
         riskLevel: 'High',
-        riskAlert: 'Whitefly counts rising in border rows due to overcast weather.',
+        riskAlert: 'Overcast humid spells elevate sucking pest scouting priority.',
       },
       {
         cropName: 'Maize (Corn)',
         stage: 'Knee-high to Tasseling',
-        sowingAdvice: 'Inter-cultivation recommended before rain to suppress broadleaf weeds.',
-        irrigationAdvice: 'Avoid waterlogging; ensure prompt drainage in heavy clay soils.',
-        fertilizerAdvice: 'Top dress Nitrogen @ 25 kg/ha along with Zinc Sulphate if deficient.',
-        pestDiseaseAdvice: 'Scout for Fall Armyworm (FAW) egg masses in central whorls. Apply Emamectin Benzoate 5 SG @ 0.4 g/L if required.',
-        harvestingAdvice: 'Green cob harvesting for local markets can proceed under dry intervals.',
+        sowingAdvice: 'Perform inter-cultivation during dry breaks to suppress broadleaf weeds and aerate ridges.',
+        irrigationAdvice: 'Avoid waterlogging; ensure prompt surface drainage in heavy soils.',
+        fertilizerAdvice: 'Top dress nitrogen with zinc sulphate where deficiency symptoms appear.',
+        pestDiseaseAdvice: 'Scout central whorls for Fall Armyworm (FAW) egg masses and apply IPM control when ETL is crossed.',
+        harvestingAdvice: 'Harvest green cobs during dry intervals for fresh local markets.',
         riskLevel: 'Low',
-        riskAlert: 'Favorable crop conditions with adequate thermal units.',
+        riskAlert: 'General field conditions manageable with routine drainage checks.',
       },
       {
         cropName: 'Sugarcane',
         stage: 'Grand Growth Stage',
-        sowingAdvice: 'Earthing-up operation should be carried out to prevent crop lodging from gusty winds.',
-        irrigationAdvice: 'Irrigate at 8-10 days interval if rainfall remains below 10mm.',
-        fertilizerAdvice: 'Apply Urea @ 50 kg/ha with irrigation water.',
-        pestDiseaseAdvice: 'Monitor for Top Borer and Pyrilla infestation. Spray Chlorpyrifos 20 EC @ 2ml/L if required.',
-        harvestingAdvice: 'Ratoon management for succeeding harvest cycle.',
+        sowingAdvice: 'Complete earthing-up and propping to limit lodging risk during gusty winds.',
+        irrigationAdvice: 'Schedule irrigation at 8–10 day intervals during dry weeks.',
+        fertilizerAdvice: 'Follow PAU recommended split nutrient schedule after soil moisture stabilizes.',
+        pestDiseaseAdvice: 'Scout for Top Borer and Pyrilla; prefer bio-control and need-based sprays.',
+        harvestingAdvice: 'Maintain ratoon drainage channels cleanly.',
         riskLevel: 'Moderate',
-        riskAlert: 'Wind gusts (20 km/h) require propping of tall canes.',
+        riskAlert: 'Tall cane stands require propping ahead of wind gusts.',
       },
     ],
   },
   'Odisha-Khordha (Bhubaneswar)': {
     state: 'Odisha',
     district: 'Khordha (Bhubaneswar)',
-    amfuUnit: 'AMFU Bhubaneswar • Orissa University of Agriculture & Technology (OUAT)',
-    bulletinNo: 'OUAT/AGMET/2026/71',
-    issueDay: 'Tuesday',
-    issueDate: 'August 24, 2026',
-    validPeriod: '24 Aug - 28 Aug 2026',
-    weatherSummary: 'Monsoon low pressure trough active over coastal Odisha. Moderate to heavy rainfall with thunderstorm spells. Max temp: 31°C, Min temp: 25°C, RH: 85-95%. Wind from South-West at 16-22 km/h.',
-    rainfallForecast5Days: 'Day 1: 28mm | Day 2: 35mm | Day 3: 14mm | Day 4: 6mm | Day 5: 18mm',
+    amfuUnit: 'AMFU Bhubaneswar • Odisha University of Agriculture & Technology (OUAT)',
     crops: [
       {
         cropName: 'Rice (Paddy)',
-        stage: 'Active Tillering to Stem Elongation',
-        sowingAdvice: 'Ensure drainage outlets on field bunds are free from silt and weed clogging.',
-        irrigationAdvice: 'Suspend all irrigation pumps. Excess rainwater should be channelized into farm ponds (Jalkund).',
-        fertilizerAdvice: 'Strictly avoid broadcasting Urea or DAP during rainy spells to prevent runoff losses.',
-        pestDiseaseAdvice: 'High risk of Brown Spot, Bacterial Leaf Streak, and Caseworm. Drain stagnant water and apply Carbendazim + Mancozeb @ 2g/L after rain stops.',
-        harvestingAdvice: 'Keep harvested seed bags on raised wooden platforms inside dry storage.',
+        stage: 'Active Vegetative to Maturity (Season-Dependent)',
+        sowingAdvice: 'Keep field bund outlets clear of silt and weeds to drain sudden coastal downpours quickly.',
+        irrigationAdvice: 'Withhold pumping whenever 48-hour forecast indicates rain; conserve excess runoff in farm ponds.',
+        fertilizerAdvice: 'Avoid broadcasting urea or DAP ahead of rain spells to prevent leaching and runoff loss.',
+        pestDiseaseAdvice: 'Watch for Brown Spot, Bacterial Leaf Streak, and BPH after humid coastal spells; follow OUAT/GKMS recommended dosages.',
+        harvestingAdvice: 'Move harvested paddy bundles to raised covered platforms immediately when coastal rain or depression advisories are active.',
         riskLevel: 'High',
-        riskAlert: 'Water stagnation and leaf moisture duration exceed 12 hours.',
+        riskAlert: 'Coastal humidity and depression-linked showers raise lodging and fungal risk.',
       },
       {
         cropName: 'Tomato & Vegetables',
-        stage: 'Vegetative & Staking',
-        sowingAdvice: 'Provide strong bamboo staking and earthing-up to prevent waterlogged root suffocation.',
-        irrigationAdvice: 'Withhold irrigation completely; dig drainage furrows 20 cm deep between rows.',
-        fertilizerAdvice: 'Spray micronutrient mixture (0.2%) once foliage dries.',
-        pestDiseaseAdvice: 'Watch for Damping-off and Early Blight. Apply Copper Oxychloride 50 WP @ 2.5 g/L.',
-        harvestingAdvice: 'Pick ready fruits immediately in clear morning slots to avoid fruit cracking.',
+        stage: 'Vegetative & Fruiting',
+        sowingAdvice: 'Use raised beds with 20 cm inter-row drainage furrows and sturdy bamboo staking.',
+        irrigationAdvice: 'Withhold irrigation during wet spells; resume light watering only when topsoil dries.',
+        fertilizerAdvice: 'Apply foliar micronutrient sprays only on dry foliage in calm morning windows.',
+        pestDiseaseAdvice: 'Monitor nurseries and lower leaves for Damping-off and Early Blight after prolonged leaf wetness.',
+        harvestingAdvice: 'Pick mature fruits during dry morning slots to avoid cracking and transit rot.',
         riskLevel: 'High',
-        riskAlert: 'Fungal damping-off threat in nursery seedbeds.',
+        riskAlert: 'Excess surface moisture raises root-rot and damping-off susceptibility.',
       },
       {
         cropName: 'Groundnut',
-        stage: 'Flowering & Pegging',
-        sowingAdvice: 'Avoid soil compaction around the collar region.',
-        irrigationAdvice: 'No supplemental watering needed; ensure excess surface water drains quickly.',
-        fertilizerAdvice: 'Apply Gypsum @ 150 kg/acre after rainfall subsides.',
-        pestDiseaseAdvice: 'Scout for Tikka leaf spot and Spodoptera larvae.',
-        harvestingAdvice: 'Not applicable for current crop stage.',
+        stage: 'Flowering, Pegging & Pod Development',
+        sowingAdvice: 'Avoid soil compaction around collar zone after rain.',
+        irrigationAdvice: 'Ensure rapid drainage in low-lying fields; irrigate lightly only during dry pegging intervals.',
+        fertilizerAdvice: 'Apply gypsum as recommended by OUAT during dry spells prior to earthing-up.',
+        pestDiseaseAdvice: 'Scout for Tikka leaf spot and Spodoptera larvae on lower foliage.',
+        harvestingAdvice: 'Harvest at physiological maturity during clear dry weather for proper pod drying.',
         riskLevel: 'Moderate',
-        riskAlert: 'Excessive soil wetness can impede peg penetration in heavy clay.',
+        riskAlert: 'Waterlogged clay soils hinder pod development and aeration.',
       },
     ],
   },
@@ -292,80 +289,68 @@ export const AGROMET_BULLETINS: Record<string, AgrometDistrictBulletin> = {
     state: 'Maharashtra',
     district: 'Nashik',
     amfuUnit: 'AMFU Nashik • Mahatma Phule Krishi Vidyapeeth (MPKV)',
-    bulletinNo: 'MPKV/AGMET/2026/82',
-    issueDay: 'Friday',
-    issueDate: 'August 22, 2026',
-    validPeriod: '22 Aug - 26 Aug 2026',
-    weatherSummary: 'Moderate to heavy overcast with intermittent drizzle. Wind speed 18-22 km/h from South-West. Average temp 26°C, RH 80-90%. Evapotranspiration: 3.8 mm/day.',
-    rainfallForecast5Days: 'Day 1: 5mm | Day 2: 12mm | Day 3: 20mm | Day 4: 8mm | Day 5: Nil',
     crops: [
       {
         cropName: 'Tomato & Vegetables',
         stage: 'Fruiting and Harvesting',
-        sowingAdvice: 'Raise nursery beds by 15cm to prevent damping-off in upcoming spell.',
-        irrigationAdvice: 'Withhold drip irrigation for 3 days to prevent fruit cracking and root rot.',
-        fertilizerAdvice: 'Foliar application of Calcium Nitrate (5g/L) + Boron (1g/L) to enhance fruit firmness.',
-        pestDiseaseAdvice: 'High risk of Early Blight and Fruit Borer. Spray Mancozeb 75 WP @ 2.5g/L at clear weather breaks.',
-        harvestingAdvice: 'Harvest mature fruits immediately before predicted heavy shower on Day 3.',
+        sowingAdvice: 'Maintain raised nursery beds by 15 cm to prevent damping-off during wet spells.',
+        irrigationAdvice: 'Regulate drip schedules directly against observed rainfall to avoid fruit cracking.',
+        fertilizerAdvice: 'Apply foliar calcium and boron during calm, dry morning hours to support fruit firmness.',
+        pestDiseaseAdvice: 'Scout for Early Blight, Downy Mildew, and Fruit Borer; apply sprays only during rain-free intervals.',
+        harvestingAdvice: 'Harvest mature produce ahead of forecast heavy rain days.',
         riskLevel: 'High',
-        riskAlert: 'Downy mildew and fruit rot alerts active across Niphad & Dindori blocks.',
+        riskAlert: 'Extended leaf wetness elevates blight and mildew pressure.',
       },
       {
         cropName: 'Soybean',
-        stage: 'Pod Formation',
-        sowingAdvice: 'Keep ridges and furrows open to channel excess runoff away from roots.',
-        irrigationAdvice: 'Rainfall will meet crop water requirements; avoid supplemental pumping.',
-        fertilizerAdvice: 'Foliar spray of 0:52:34 @ 10g/L during pod filling stage.',
-        pestDiseaseAdvice: 'Check for Girdle Beetle and Semilooper. Spray Chlorantraniliprole 18.5 SC @ 3ml/10L water.',
-        harvestingAdvice: 'Prepare drying yards and threshing mats for early maturing varieties.',
+        stage: 'Pod Formation & Grain Filling',
+        sowingAdvice: 'Keep ridges and furrows open to route excess runoff out of root zones.',
+        irrigationAdvice: 'Provide protective irrigation only during dry pod-filling breaks.',
+        fertilizerAdvice: 'Apply water-soluble foliar nutrition only in dry calm morning windows.',
+        pestDiseaseAdvice: 'Scout for Girdle Beetle and Semilooper; follow MPKV ETL guidelines.',
+        harvestingAdvice: 'Prepare clean drying yards and moisture checks ahead of harvest.',
         riskLevel: 'Moderate',
-        riskAlert: 'Excess soil saturation can induce root rot in low-lying fields.',
+        riskAlert: 'Poor drainage in low plots elevates root-rot risk.',
       },
       {
         cropName: 'Sugarcane',
         stage: 'Grand Growth Stage',
-        sowingAdvice: 'Remove lower dried leaves (trash mulching) to improve aeration in dense canopy.',
-        irrigationAdvice: 'Postpone drip cycle; resume only after topsoil dries.',
-        fertilizerAdvice: 'Fertigation can be suspended until soil moisture stabilizes.',
-        pestDiseaseAdvice: 'Inspect for White Grub in root zone; drench with Chlorpyrifos if required.',
-        harvestingAdvice: 'Maintain farm drains.',
+        sowingAdvice: 'Practice trash mulching and lower-leaf detrashing to improve canopy airflow.',
+        irrigationAdvice: 'Pause drip cycles after rainfall until topsoil moisture recedes.',
+        fertilizerAdvice: 'Resume fertigation once field moisture stabilizes.',
+        pestDiseaseAdvice: 'Inspect root zone for White Grub and canopy for Pyrilla.',
+        harvestingAdvice: 'Keep perimeter field drains open.',
         riskLevel: 'Low',
-        riskAlert: 'Optimal thermal accumulation for vegetative biomass.',
+        riskAlert: 'Routine canopy ventilation and drainage maintenance advised.',
       },
     ],
   },
   'Maharashtra-Pune': {
     state: 'Maharashtra',
     district: 'Pune',
-    amfuUnit: 'AMFU Pune • College of Agriculture Pune & IMD Agromet Central',
-    bulletinNo: 'IMD/COA/PUN/2026/85',
-    issueDay: 'Tuesday',
-    issueDate: 'August 24, 2026',
-    validPeriod: '24 Aug - 28 Aug 2026',
-    weatherSummary: 'Generally cloudy sky with light showers in western ghat catchments. Max temp: 28°C, Min temp: 22°C. RH: 75-88%. Gusty winds up to 24 km/h.',
-    rainfallForecast5Days: 'Day 1: 8mm | Day 2: 12mm | Day 3: 5mm | Day 4: 2mm | Day 5: 4mm',
+    amfuUnit: 'AMFU Pune • College of Agriculture Pune & IMD Agrimet',
     crops: [
       {
         cropName: 'Sugarcane',
         stage: 'Tillering to Grand Growth',
-        sowingAdvice: 'Propping and tying of canes to prevent lodging under gusty monsoon wind.',
-        irrigationAdvice: 'Rainfall is adequate; ensure water is not allowed to stagnate.',
-        fertilizerAdvice: 'Apply 3rd split of nitrogen alongside micronutrient spray.',
-        pestDiseaseAdvice: 'Scout for Woolly Aphid and Pyrilla. Release bio-agents like Chrysoperla.',
-        harvestingAdvice: 'Not applicable.',
+        sowingAdvice: 'Prop and tie tall canes ahead of gusty wind spells.',
+        irrigationAdvice: 'Avoid standing water; adjust drip runtime to daily rainfall forecast.',
+        fertilizerAdvice: 'Apply recommended split nitrogen with micronutrients during dry intervals.',
+        pestDiseaseAdvice: 'Scout for Woolly Aphid and Pyrilla; preserve natural predators.',
+        harvestingAdvice: 'Follow local sugar-factory maturity scheduling.',
         riskLevel: 'Low',
-        riskAlert: 'Good vegetative vigor with balanced soil moisture.',
+        riskAlert: 'Monitor wind gusts and drainage in ghat-adjacent catchments.',
       },
       {
         cropName: 'Soybean',
         stage: 'Flowering to Pod Initiation',
-        sowingAdvice: 'Weeding and hoeing in dry spells to break soil crust.',
-        irrigationAdvice: 'Natural precipitation is sufficient for next 5 days.',
-        fertilizerAdvice: 'Foliar spray of Potassium Nitrate @ 10g/L during clear morning.',
-        pestDiseaseAdvice: 'Monitor for Spodoptera and Leaf Miner. Install yellow sticky traps.',
-        harvestingAdvice: 'Keep equipment serviced.',
+        sowingAdvice: 'Perform shallow hoeing during dry breaks to break surface crust.',
+        irrigationAdvice: 'Use supplemental irrigation only when dry spells exceed 7 days.',
+        fertilizerAdvice: 'Apply foliar potassium nitrate in calm morning hours when dry.',
+        pestDiseaseAdvice: 'Install yellow sticky traps and scout for Spodoptera and Leaf Miner.',
+        harvestingAdvice: 'Keep harvesting and threshing tarpaulins ready.',
         riskLevel: 'Moderate',
-        riskAlert: 'High humidity favors foliar anthracnose lesions.',
+        riskAlert: 'Humid spells increase anthracnose scouting priority.',
       },
     ],
   },
@@ -373,34 +358,28 @@ export const AGROMET_BULLETINS: Record<string, AgrometDistrictBulletin> = {
     state: 'Uttar Pradesh',
     district: 'Varanasi',
     amfuUnit: 'AMFU Varanasi • Banaras Hindu University (BHU)',
-    bulletinNo: 'BHU/AGMET/2026/51',
-    issueDay: 'Tuesday',
-    issueDate: 'August 24, 2026',
-    validPeriod: '24 Aug - 28 Aug 2026',
-    weatherSummary: 'Warm and humid condition with isolated thundershowers. Max temp: 34°C, Min temp: 26°C. High solar radiation indices (UV 8.5). RH 65-80%.',
-    rainfallForecast5Days: 'Day 1: 8mm | Day 2: 2mm | Day 3: 15mm | Day 4: Nil | Day 5: Nil',
     crops: [
       {
         cropName: 'Rice (Paddy)',
-        stage: 'Active Vegetative & Tillering',
-        sowingAdvice: 'Remove rogue plants and maintain pure stand density.',
-        irrigationAdvice: 'Provide light irrigation on Day 2 and Day 4; maintain thin layer of water (3-5 cm).',
-        fertilizerAdvice: 'Apply remaining 1/3 dose of Nitrogen with 20% Zinc coating for higher assimilation.',
-        pestDiseaseAdvice: 'Watch for Yellow Stem Borer dead hearts. Install Trichogramma cards @ 20,000 parasitoids/acre.',
-        harvestingAdvice: 'Store harvested straw safely from rain.',
+        stage: 'Active Vegetative to Grain Filling',
+        sowingAdvice: 'Maintain clean bunds and uniform plant spacing for canopy airflow.',
+        irrigationAdvice: 'Maintain shallow moisture during dry spells; avoid pumping before forecast rain.',
+        fertilizerAdvice: 'Apply recommended split nitrogen with zinc only on dry foliage.',
+        pestDiseaseAdvice: 'Watch for Yellow Stem Borer dead hearts and deploy Trichogramma cards per BHU guidance.',
+        harvestingAdvice: 'Keep harvested straw and grain protected from sudden showers.',
         riskLevel: 'Low',
-        riskAlert: 'Good vegetative vigor with optimum solar exposure.',
+        riskAlert: 'Monitor thermal load and intermittent convective showers.',
       },
       {
         cropName: 'Sugarcane',
         stage: 'Grand Growth Stage',
-        sowingAdvice: 'Earthing-up operation should be carried out to prevent crop lodging from gusty winds.',
-        irrigationAdvice: 'Irrigate at 8-10 days interval if rainfall remains below 10mm.',
-        fertilizerAdvice: 'Apply Urea @ 50 kg/ha with irrigation water.',
-        pestDiseaseAdvice: 'Monitor for Top Borer and Pyrilla infestation. Spray Chlorpyrifos 20 EC @ 2ml/L if required.',
-        harvestingAdvice: 'Ratoon management for succeeding harvest cycle.',
+        sowingAdvice: 'Complete earthing-up to protect stands from gusty winds.',
+        irrigationAdvice: 'Irrigate at 8–10 day intervals during rain-free periods.',
+        fertilizerAdvice: 'Apply split nitrogen per local soil health card.',
+        pestDiseaseAdvice: 'Scout for Top Borer and Pyrilla before any intervention.',
+        harvestingAdvice: 'Plan ratoon management cleanly.',
         riskLevel: 'Moderate',
-        riskAlert: 'Wind gusts (25 km/h) require propping of tall canes.',
+        riskAlert: 'Propping advised where wind gusts exceed 20 km/h.',
       },
     ],
   },
@@ -408,34 +387,28 @@ export const AGROMET_BULLETINS: Record<string, AgrometDistrictBulletin> = {
     state: 'Tamil Nadu',
     district: 'Thanjavur',
     amfuUnit: 'AMFU Thanjavur • Tamil Nadu Rice Research Institute (TRRI)',
-    bulletinNo: 'TRRI/AGMET/2026/74',
-    issueDay: 'Friday',
-    issueDate: 'August 22, 2026',
-    validPeriod: '22 Aug - 26 Aug 2026',
-    weatherSummary: 'Dry and bright weather with moderate coastal winds. Max temp: 36°C, Min temp: 27°C. Evapotranspiration rate: 6.2 mm/day. Low precipitation risk.',
-    rainfallForecast5Days: 'Day 1: Nil | Day 2: Nil | Day 3: 2mm | Day 4: Nil | Day 5: Nil',
     crops: [
       {
         cropName: 'Rice (Paddy)',
-        stage: 'Kuruvai Heading & Grain Filling',
-        sowingAdvice: 'Nursery preparation for upcoming Thaladi crop can be initiated.',
-        irrigationAdvice: 'Critical irrigation needed during grain hardening. Maintain 5cm water depth.',
-        fertilizerAdvice: 'Spray 1% DAP + 1% Potassium Chloride to accelerate uniform grain filling.',
-        pestDiseaseAdvice: 'Monitor for Brown Plant Hopper (BPH) at base of tillers. Keep field bunds free of weeds.',
-        harvestingAdvice: 'Plan harvest of early Kuruvai plots when 80% grains turn golden yellow.',
+        stage: 'Kuruvai / Samba / Thaladi (Season-Dependent)',
+        sowingAdvice: 'Coordinate nursery preparation and bund drainage with Northeast / Southwest monsoon outlook.',
+        irrigationAdvice: 'Regulate canal/pump irrigation strictly against 5-day rainfall forecast.',
+        fertilizerAdvice: 'Follow TNAU/TRRI leaf colour chart (LCC) before nitrogen top-dressing.',
+        pestDiseaseAdvice: 'Monitor base of tillers for Brown Plant Hopper (BPH) and keep bunds weed-free.',
+        harvestingAdvice: 'Harvest promptly when 80% panicles mature during dry weather windows.',
         riskLevel: 'Moderate',
-        riskAlert: 'High heat index requires vigilant water level regulation to prevent grain chaffiness.',
+        riskAlert: 'Delta drainage and coastal rainfall alerts require close tracking.',
       },
       {
         cropName: 'Groundnut',
         stage: 'Pegging to Pod Development',
-        sowingAdvice: 'Soil loosening around root zone to facilitate smooth peg penetration.',
-        irrigationAdvice: 'Ensure adequate moisture during pegging stage; apply light sprinkler irrigation.',
-        fertilizerAdvice: 'Apply Gypsum @ 200 kg/acre followed by light hoeing.',
-        pestDiseaseAdvice: 'Scout for Tikka leaf spot and Spodoptera. Spray Carbendazim (1g/L) if spots appear on lower leaves.',
-        harvestingAdvice: 'Not ready for harvest.',
+        sowingAdvice: 'Loosen topsoil gently around root zone to assist peg penetration.',
+        irrigationAdvice: 'Maintain even moisture during pegging without waterlogging.',
+        fertilizerAdvice: 'Apply gypsum per TNAU guidance followed by light hoeing.',
+        pestDiseaseAdvice: 'Scout lower leaves for Tikka leaf spot and Spodoptera.',
+        harvestingAdvice: 'Avoid harvesting wet pods ahead of forecast showers.',
         riskLevel: 'Low',
-        riskAlert: 'Healthy pod initiation with optimal soil aeration.',
+        riskAlert: 'Check coastal rainfall alerts before lifting mature pods.',
       },
     ],
   },
@@ -480,11 +453,8 @@ export function getAgrometBulletin(
   const hasLiveWeather = typeof liveCurr?.temp === 'number' && Number.isFinite(liveCurr.temp);
 
   let weatherSummary =
-    storedTemplate?.weatherSummary ||
-    `Monitoring synoptic surface conditions over ${district}, ${state}. Refer to live Open-Meteo / IMD guidance below.`;
-  let rainfallForecast5Days =
-    storedTemplate?.rainfallForecast5Days ||
-    'Day 1: 0mm | Day 2: 0mm | Day 3: 0mm | Day 4: 0mm | Day 5: 0mm';
+    `Weather-derived operational outlook for ${district}, ${state}. Live surface telemetry is pending; verify official IMD GKMS district advisories before field actions.`;
+  let rainfallForecast5Days = 'Day 1: Nil | Day 2: Nil | Day 3: Nil | Day 4: Nil | Day 5: Nil';
 
   if (hasLiveWeather && liveCurr) {
     const tStr = `${Math.round(liveCurr.temp!)}°C`;
@@ -508,10 +478,8 @@ export function getAgrometBulletin(
     district,
     amfuUnit:
       storedTemplate?.amfuUnit ||
-      `AMFU ${district} • State Agricultural University & IMD Agromet Node`,
-    bulletinNo:
-      storedTemplate?.bulletinNo?.replace(/2026/g, dyn.year) ||
-      `IMD/AMFU/${district.toUpperCase().slice(0, 4)}/${dyn.year}/LIVE`,
+      `AMFU ${district} • Regional Agricultural University & IMD GKMS Node`,
+    bulletinNo: 'Weather-Derived Operational Guidance',
     issueDay: dyn.issueDay,
     issueDate: dyn.issueDate,
     validPeriod: dyn.validPeriod,
@@ -654,26 +622,33 @@ function parse5DayRainfall(rawString: string, weatherBundle?: WeatherDataBundle)
 }
 
 function deriveSoilMoisture(
-  cumulativeRain: number,
+  _cumulativeRain: number,
   todayRain: number,
   weatherBundle?: WeatherDataBundle
 ): SoilMoistureData {
   const rawSm = weatherBundle?.current?.soilMoisture;
-  let overall = typeof rawSm === 'number' && Number.isFinite(rawSm)
-    ? Math.max(15, Math.min(95, Math.round(rawSm * 100 * 2.1)))
-    : cumulativeRain > 50
-    ? 82
-    : cumulativeRain > 25
-    ? 72
-    : cumulativeRain > 10
-    ? 62
-    : cumulativeRain > 0
-    ? 54
-    : 45;
+  const hasRealSoilTelemetry = typeof rawSm === 'number' && Number.isFinite(rawSm) && rawSm >= 0;
 
-  const topsoilPct = Math.min(95, Math.round(overall * (todayRain > 5 ? 1.12 : 0.95)));
+  if (!hasRealSoilTelemetry) {
+    return {
+      available: false,
+      sourceNote: 'Direct soil moisture telemetry unavailable in current weather payload',
+      topsoilPct: 0,
+      rootZonePct: 0,
+      subsoilPct: 0,
+      overallPct: 0,
+      status: 'Unavailable',
+      trend: 'stable',
+      fieldCapacityPct: 82,
+      wiltingPointPct: 28,
+      waterAvailableMm: 0,
+    };
+  }
+
+  const overall = Math.max(10, Math.min(95, Math.round(rawSm * 100 * 2.1)));
+  const topsoilPct = Math.min(95, Math.round(overall * (todayRain > 5 ? 1.08 : 0.96)));
   const rootZonePct = Math.round(overall);
-  const subsoilPct = Math.max(35, Math.round(overall * 0.92));
+  const subsoilPct = Math.max(15, Math.round(overall * 0.92));
 
   let status: SoilMoistureData['status'] = 'Optimal';
   if (overall > 82) status = 'Saturated';
@@ -684,6 +659,8 @@ function deriveSoilMoisture(
   const trend: SoilMoistureData['trend'] = todayRain > 5 ? 'increasing' : todayRain > 0 ? 'stable' : 'decreasing';
 
   return {
+    available: true,
+    sourceNote: 'Open-Meteo NWP soil moisture model estimate (not in-situ field probe)',
     topsoilPct,
     rootZonePct,
     subsoilPct,
@@ -708,13 +685,15 @@ function deriveActionPlan(
   const actions: FarmActionItem[] = [];
 
   // 1. Irrigation
-  if (willRainSoon || soil.overallPct > 70) {
+  if (willRainSoon || (soil.available && soil.overallPct > 70)) {
     actions.push({
       id: 'act-irrigation',
       category: 'irrigation',
       title: 'IRRIGATION MANAGEMENT',
       action: 'POSTPONE / WAIT',
-      reason: `Anticipated rainfall (${Math.round((rainToday + rainTomorrow) * 10) / 10} mm in 48h) and current soil moisture (${soil.overallPct}%) fulfill crop water requirements. Avoid electrical pumping.`,
+      reason: soil.available
+        ? `Forecast rainfall (${Math.round((rainToday + rainTomorrow) * 10) / 10} mm in 48h) and modelled soil moisture (${soil.overallPct}%) cover immediate water demand.`
+        : `Forecast rainfall (${Math.round((rainToday + rainTomorrow) * 10) / 10} mm in 48h) supports holding irrigation until rain clears; verify topsoil manually.`,
       when: 'Next 24–48 Hours',
       priority: 'High Priority',
       icon: 'water_drop',
@@ -725,8 +704,10 @@ function deriveActionPlan(
       id: 'act-irrigation',
       category: 'irrigation',
       title: 'IRRIGATION MANAGEMENT',
-      action: 'LIGHT IRRIGATION RECOMMENDED',
-      reason: `Soil moisture at ${soil.overallPct}%. Provide shallow watering in morning hours to prevent moisture stress.`,
+      action: soil.available ? 'LIGHT IRRIGATION RECOMMENDED' : 'CHECK TOPSOIL BEFORE IRRIGATING',
+      reason: soil.available
+        ? `Modelled soil moisture at ${soil.overallPct}% with low 48h rainfall. Provide shallow watering in cool morning hours.`
+        : `Low 48h rainfall forecast (${Math.round((rainToday + rainTomorrow) * 10) / 10} mm). Direct soil moisture telemetry is unavailable — inspect top 5 cm of field soil before pumping.`,
       when: 'Morning 06:30 – 09:30 AM',
       priority: 'Actionable',
       icon: 'water_drop',
@@ -811,29 +792,31 @@ function deriveImpactTimeline(todayRain: number, soil: SoilMoistureData): Impact
       label: 'RAINFALL OUTLOOK',
       value: todayRain > 0 ? `${todayRain} mm Expected` : 'Dry / Low Rain',
       status: todayRain > 15 ? 'caution' : 'favorable',
-      description: todayRain > 0 ? 'Showers replenishing topsoil profile' : 'Favorable solar insolation for photosynthesis',
+      description: todayRain > 0 ? 'Showers replenishing topsoil profile' : 'Dry interval suitable for planned field work',
       icon: 'cloud',
     },
     {
       step: 2,
       label: 'SOIL MOISTURE',
-      value: `${soil.overallPct}% (${soil.status})`,
-      status: soil.overallPct > 80 ? 'caution' : 'favorable',
-      description: 'Root zone moisture estimate for crop transpiration',
+      value: soil.available ? `${soil.overallPct}% (${soil.status})` : 'Telemetry Unavailable',
+      status: soil.available && soil.overallPct > 80 ? 'caution' : 'favorable',
+      description: soil.available
+        ? 'NWP model root-zone moisture estimate for crop transpiration'
+        : 'Direct soil probe telemetry unavailable; inspect field topsoil manually',
       icon: 'grass',
     },
     {
       step: 3,
       label: 'DISEASE RISK',
-      value: soil.overallPct > 70 ? 'Elevated Fungal Risk' : 'Low Pathogen Threat',
-      status: soil.overallPct > 70 ? 'caution' : 'favorable',
+      value: (soil.available && soil.overallPct > 70) || todayRain > 10 ? 'Elevated Fungal Risk' : 'Routine Scouting',
+      status: (soil.available && soil.overallPct > 70) || todayRain > 10 ? 'caution' : 'favorable',
       description: 'Surface leaf wetness & humidity determine spore germination rate',
       icon: 'bug_report',
     },
     {
       step: 4,
       label: 'IRRIGATION NEED',
-      value: todayRain > 5 || soil.overallPct > 65 ? 'POSTPONE 24-48H' : 'NORMAL SCHEDULE',
+      value: todayRain > 5 || (soil.available && soil.overallPct > 65) ? 'POSTPONE 24-48H' : 'VERIFY TOPSOIL',
       status: 'favorable',
       description: 'Align farm pumping with real forecast precipitation',
       icon: 'water_drop',
@@ -906,8 +889,14 @@ function deriveRiskAnalysis(
     temp === null ? 25 : temp >= 40 ? 85 : temp >= 36 ? 62 : temp <= 8 ? 55 : 26;
   const windScore =
     wind === null ? 25 : wind >= 35 ? 80 : wind >= 22 ? 55 : Math.max(15, Math.round(wind * 1.8));
-  const pestScore = hum !== null ? (hum > 78 ? 72 : hum > 60 ? 48 : 28) : soil.overallPct > 70 ? 68 : 42;
-  const waterloggingScore = soil.overallPct > 80 ? 68 : 30;
+  const pestScore = hum !== null ? (hum > 78 ? 72 : hum > 60 ? 48 : 28) : cumulativeRain > 25 ? 60 : 35;
+  const waterloggingScore = soil.available
+    ? soil.overallPct > 80
+      ? 68
+      : 30
+    : cumulativeRain > 40
+    ? 64
+    : 28;
 
   const overallScore = Math.round(
     rainScore * 0.25 +
@@ -939,12 +928,14 @@ function deriveRiskAnalysis(
       ? `Thermal bounds (Max ${Math.round(curr.high)}°C / Min ${Math.round(curr.low)}°C) factored into stress scoring.`
       : temp !== null
       ? `Ambient temperature (${Math.round(temp)}°C) factored into crop heat stress.`
-      : `Awaiting live station thermal readings.`;
+      : `Awaiting live surface thermal readings.`;
 
   const whyExplanation = [
-    `5-day precipitation total (${Math.round(cumulativeRain * 10) / 10} mm) contributes ${rainScore}/100 to rainfall risk.`,
-    `${hum !== null ? `Measured humidity (${Math.round(hum)}%)` : 'Moisture conditions'} yields fungal pressure score ${pestScore}/100.`,
-    `Estimated root-zone saturation stands at ${soil.overallPct}% (waterlogging score ${waterloggingScore}/100).`,
+    `5-day precipitation forecast (${Math.round(cumulativeRain * 10) / 10} mm) contributes ${rainScore}/100 to rainfall risk.`,
+    `${hum !== null ? `Measured humidity (${Math.round(hum)}%)` : 'Precipitation proxy'} yields fungal pressure score ${pestScore}/100.`,
+    soil.available
+      ? `Modelled root-zone saturation stands at ${soil.overallPct}% (waterlogging score ${waterloggingScore}/100).`
+      : `Direct soil moisture telemetry is unavailable; drainage caution (${waterloggingScore}/100) is inferred from 5-day rainfall only.`,
     hiLowNote,
   ];
 

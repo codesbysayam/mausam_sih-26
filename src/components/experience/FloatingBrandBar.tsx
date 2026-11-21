@@ -78,6 +78,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -151,11 +152,38 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
   const isExplore = mode === 'explore';
   const locationPlaceholder = formatLocationShort(selectedLocation);
 
+  // Measure actual rendered Explore header bottom edge (handles 1-row, 2-row, or 3-row wrapping)
+  // so LayerDock and WeatherHUD never collide with FloatingBrandBar at any viewport or zoom level.
+  useEffect(() => {
+    if (typeof document === 'undefined' || !isExplore) return;
+    const headerEl = headerRef.current;
+    if (!headerEl) return;
+
+    const syncHeaderHeight = () => {
+      const rect = headerEl.getBoundingClientRect();
+      const bottomPx = Math.max(48, Math.ceil(rect.bottom));
+      document.documentElement.style.setProperty('--explore-header-height', `${bottomPx}px`);
+    };
+
+    syncHeaderHeight();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(syncHeaderHeight) : null;
+    ro?.observe(headerEl);
+    window.addEventListener('resize', syncHeaderHeight);
+    window.addEventListener('orientationchange', syncHeaderHeight);
+
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', syncHeaderHeight);
+      window.removeEventListener('orientationchange', syncHeaderHeight);
+    };
+  }, [isExplore]);
+
   return (
     <header
+      ref={headerRef}
       className={
         isExplore
-          ? 'fixed top-2.5 left-2.5 right-2.5 z-40 pointer-events-none flex flex-wrap items-center justify-between gap-2 safe-area-top'
+          ? 'explore-brand-bar fixed top-2.5 left-2.5 right-2.5 z-40 pointer-events-none flex flex-wrap items-center justify-between gap-2 safe-area-top'
           : 'sticky top-0 z-40 w-full bg-[var(--m-surface-1)]/95 backdrop-blur-md border-b border-[var(--m-border)] safe-area-top'
       }
       role="banner"
@@ -163,12 +191,12 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
       <div
         className={
           isExplore
-            ? 'w-full flex flex-wrap items-center justify-between gap-2'
+            ? 'explore-brand-bar-inner w-full flex flex-wrap items-center justify-between gap-2'
             : 'mausam-page min-h-[64px] py-2 flex flex-wrap items-center justify-between gap-2.5'
         }
       >
         {/* Left Cluster: Brand + Location Search & GPS */}
-        <div className="pointer-events-auto flex items-center gap-2.5 min-w-0 max-w-full">
+        <div className="explore-brand-cluster pointer-events-auto flex items-center gap-2.5 min-w-0 max-w-full">
           <button
             type="button"
             onClick={() => {
@@ -204,13 +232,13 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           </button>
 
           {/* Quick Search + Location Anchor */}
-          <div ref={searchWrapperRef} className="relative flex items-center">
+          <div ref={searchWrapperRef} className="relative flex items-center flex-1 sm:flex-initial min-w-0">
             <div
               className={`${
                 isExplore
-                  ? 'spatial-hud-surface'
-                  : 'bg-[var(--m-surface-2)]/75 border border-[var(--m-border)] focus-within:border-[var(--m-accent)] focus-within:bg-[var(--m-surface-1)]'
-              } rounded-[11px] flex items-center min-h-[44px] sm:min-h-[40px] px-2.5 gap-1.5 w-[176px] sm:w-[240px] md:w-[270px] transition-colors`}
+                  ? 'spatial-hud-surface explore-search-box'
+                  : 'bg-[var(--m-surface-2)]/75 border border-[var(--m-border)] focus-within:border-[var(--m-accent)] focus-within:bg-[var(--m-surface-1)] explore-search-box'
+              } rounded-[11px] flex items-center min-h-[44px] sm:min-h-[40px] px-2.5 gap-1.5 transition-colors`}
             >
               <Search className="w-3.5 h-3.5 text-[var(--m-text-muted)] shrink-0" />
               <input
@@ -298,7 +326,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             isExplore
               ? 'spatial-hud-surface'
               : 'bg-[var(--m-surface-2)] border border-[var(--m-border)]'
-          } pointer-events-auto rounded-[11px] p-1 flex items-center gap-0.5`}
+          } explore-mode-switcher pointer-events-auto rounded-[11px] p-1 flex items-center gap-0.5`}
         >
           {(
             [
@@ -327,7 +355,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
         </nav>
 
         {/* Right Cluster: Warnings Status, Ask MAUSAM, Settings & Help */}
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        <div className="explore-actions-cluster pointer-events-auto flex items-center gap-1.5">
           {isExplore && (
             <button
               type="button"
@@ -354,7 +382,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             ) : (
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
             )}
-            <span className="tabular-nums">{alertSummary.label}</span>
+            <span className="tabular-nums whitespace-nowrap">{alertSummary.label}</span>
           </button>
 
           <button
@@ -365,10 +393,10 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               isExplore
                 ? 'spatial-hud-surface text-[var(--m-text-primary)]'
                 : 'bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
-            } rounded-[11px] min-h-[40px] px-3 hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring`}
+            } rounded-[11px] min-h-[44px] sm:min-h-[40px] px-2.5 sm:px-3 inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring`}
             title="Open Ask MAUSAM Brief"
           >
-            <span className="text-[var(--m-accent)]">Ask MAUSAM</span>
+            <span className="text-[var(--m-accent)] whitespace-nowrap">Ask MAUSAM</span>
           </button>
 
           {/* Render & Accessibility Settings Popover */}

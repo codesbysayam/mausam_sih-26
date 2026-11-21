@@ -4,19 +4,29 @@ import App from './App.tsx';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { LocationProvider } from './context/LocationContext';
 import { ProviderStoreProvider } from './store/providerStore';
-import { ExperienceProvider } from './context/ExperienceContext';
+import { ExperienceMode, ExperienceProvider } from './context/ExperienceContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import './index.css';
 
-console.log('[MAUSAM] main.tsx initializing...');
+// Determine initial workspace mode synchronously from pathname so direct sub-route
+// loads (e.g. /warnings, /forecast, /radar) mount directly in Analyze mode without
+// transiently mounting and tearing down the 3D WebGL stage.
+function resolveInitialExperienceMode(): ExperienceMode {
+  if (typeof window === 'undefined') return 'explore';
+  const cleanPath = (window.location.pathname || '/').toLowerCase().replace(/\/+$/, '');
+  if (cleanPath === '' || cleanPath === '/' || cleanPath === '/index.html' || cleanPath.endsWith('/index.html')) {
+    return 'explore';
+  }
+  return 'analyze';
+}
 
 // Helper to classify development-only Vite HMR socket errors
 function isDevelopmentHMRSocketError(error: any): boolean {
   if (!error) return false;
-  const message = typeof error === 'string' 
-    ? error 
+  const message = typeof error === 'string'
+    ? error
     : (error.message || error.reason || error.error?.message || '');
-  
+
   if (
     message.includes('WebSocket closed without opened') ||
     message.includes('failed to connect to websocket') ||
@@ -27,7 +37,6 @@ function isDevelopmentHMRSocketError(error: any): boolean {
     return true;
   }
 
-  // Check if error event target is a WebSocket connection to Vite dev server
   const target = error.target;
   if (target && (target instanceof WebSocket || Object.prototype.toString.call(target) === '[object WebSocket]')) {
     const url = target.url || '';
@@ -39,7 +48,7 @@ function isDevelopmentHMRSocketError(error: any): boolean {
   return false;
 }
 
-// Global runtime error monitor for diagnostics
+// Global runtime error monitor for diagnostics (suppresses ONLY benign HMR/ResizeObserver/Abort noise)
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (e) => {
     if (isDevelopmentHMRSocketError(e) || isDevelopmentHMRSocketError(e.error)) {
@@ -77,7 +86,7 @@ if (typeof window !== 'undefined') {
 
     const isAudioPermission =
       reason?.name === 'NotAllowedError' ||
-      reason?.message?.includes?.('user didn\'t interact with the document first');
+      reason?.message?.includes?.("user didn't interact with the document first");
 
     if (isAbort || isAudioPermission) {
       e.stopImmediatePropagation();
@@ -85,40 +94,35 @@ if (typeof window !== 'undefined') {
       return;
     }
 
-    // Call preventDefault to mark the rejection as handled
-    e.preventDefault();
-    console.warn('[MAUSAM Unhandled Promise Rejection Prevented]:', reason);
+    // Do NOT silently swallow real unhandled rejections — log diagnostic context clearly
+    console.error('[MAUSAM Unhandled Promise Rejection]:', reason);
   });
 }
 
 const rootElement = document.getElementById('root');
-console.log('[MAUSAM] Document readyState:', typeof document !== 'undefined' ? document.readyState : 'n/a');
-console.log('[MAUSAM] Target #root element found:', Boolean(rootElement), rootElement);
 
 if (!rootElement) {
   console.error('[MAUSAM FATAL]: #root element not found in DOM!');
 } else {
   try {
+    const initialMode = resolveInitialExperienceMode();
     const root = createRoot(rootElement);
-    console.log('[MAUSAM] React root created successfully, invoking render()...');
     root.render(
       <StrictMode>
-        <ErrorBoundary>
+        <ErrorBoundary scope="root">
           <LanguageProvider>
             <LocationProvider>
               <ProviderStoreProvider>
-                <ExperienceProvider>
+                <ExperienceProvider initialMode={initialMode}>
                   <App />
                 </ExperienceProvider>
               </ProviderStoreProvider>
             </LocationProvider>
           </LanguageProvider>
         </ErrorBoundary>
-      </StrictMode>,
+      </StrictMode>
     );
-    console.log('[MAUSAM] root.render() dispatched without synchronous exception');
   } catch (err) {
     console.error('[MAUSAM FATAL]: Exception during createRoot / render initialization:', err);
   }
 }
-

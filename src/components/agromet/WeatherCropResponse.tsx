@@ -34,15 +34,26 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
 }) => {
   const [activeMetric, setActiveMetric] = useState<'all' | 'rain' | 'soil' | 'risk'>('all');
 
-  const chartData = [
-    { day: 'Today (31 Aug)', temp: 31, rain: 15, soilMoisture: 68, cropRisk: 72 },
-    { day: 'Tue (01 Sep)', temp: 32, rain: 10, soilMoisture: 74, cropRisk: 75 },
-    { day: 'Wed (02 Sep)', temp: 33, rain: 0, soilMoisture: 66, cropRisk: 55 },
-    { day: 'Thu (03 Sep)', temp: 34, rain: 0, soilMoisture: 58, cropRisk: 38 },
-    { day: 'Fri (04 Sep)', temp: 33, rain: 5, soilMoisture: 62, cropRisk: 48 },
-    { day: 'Sat (05 Sep)', temp: 32, rain: 8, soilMoisture: 67, cropRisk: 58 },
-    { day: 'Sun (06 Sep)', temp: 31, rain: 2, soilMoisture: 60, cropRisk: 42 },
-  ];
+  const activeCrop =
+    bulletin.crops.find((c) => c.cropName === selectedCrop) || bulletin.crops[0];
+  const todayRain = bulletin.rainfall5DaysList[0]?.amountMm ?? 0;
+  const irrigationAction = bulletin.actionPlan.find((a) => a.category === 'irrigation');
+
+  const chartData = bulletin.sevenDayCalendar.map((d) => ({
+    day: `${d.day} (${d.date})`,
+    temp: d.tempMax > 0 ? Math.round(d.tempMax) : null,
+    rain: Math.round(d.rainMm * 10) / 10,
+    soilMoisture: bulletin.soilMoisture.available ? bulletin.soilMoisture.overallPct : null,
+    cropRisk: Math.min(
+      100,
+      Math.max(
+        15,
+        Math.round(
+          bulletin.riskAnalysis.overallScore * 0.55 + d.rainMm * 1.4 + d.rainProb * 0.25
+        )
+      )
+    ),
+  }));
 
   return (
     <section id="weather-crop-response-section" className="space-y-6">
@@ -52,15 +63,15 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
           <div className="flex items-center gap-2">
             <GitBranch className="w-4 h-4 text-[var(--m-accent)]" />
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--m-accent)]">
-              Causal Agronomic Synthesis
+              Weather-Derived Agronomic Synthesis
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
-            How Weather Affects Your Crop
+            How Forecast Weather Affects Your Crop
           </h2>
         </div>
         <span className="text-xs font-mono text-[var(--m-text-muted)]">
-          Predictive multi-variable causal modeling for {selectedCrop}
+          Derived from live NWP forecast for {selectedCrop} · {bulletin.district}
         </span>
       </div>
 
@@ -68,10 +79,10 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
       <div className="rounded-3xl bg-[var(--m-surface-1)] border border-[var(--m-border)] p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-            Live Agronomic Causal Chain
+            Derived Agronomic Causal Chain
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/30">
-            Real-Time Synthesis
+            Weather-Derived Guidance
           </span>
         </div>
 
@@ -82,9 +93,11 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <span className="text-[10px] font-mono font-bold text-[var(--m-accent)]">01 • WEATHER</span>
               <CloudRain className="w-3.5 h-3.5 text-[var(--m-accent)]" />
             </div>
-            <h4 className="text-sm font-bold text-white">RH 78% &amp; 15mm Rain</h4>
+            <h4 className="text-sm font-bold text-white">
+              {todayRain > 0 ? `${todayRain} mm Today` : 'Dry / Low Rain'}
+            </h4>
             <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
-              Warm convective rain with sustained morning leaf wetness.
+              5-day total forecast: {Math.round(bulletin.cumulativeRainfallMm * 10) / 10} mm across {bulletin.district}.
             </p>
           </div>
 
@@ -94,9 +107,15 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <span className="text-[10px] font-mono font-bold text-[var(--m-ok)]">02 • SOIL</span>
               <Droplets className="w-3.5 h-3.5 text-[var(--m-ok)]" />
             </div>
-            <h4 className="text-sm font-bold text-white">68% Field Capacity</h4>
+            <h4 className="text-sm font-bold text-white">
+              {bulletin.soilMoisture.available
+                ? `${bulletin.soilMoisture.overallPct}% (${bulletin.soilMoisture.status})`
+                : 'Telemetry Unavailable'}
+            </h4>
             <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
-              Topsoil fully saturated; root-zone moisture surplus.
+              {bulletin.soilMoisture.available
+                ? 'Modelled root-zone soil moisture from Open-Meteo.'
+                : 'Inspect field topsoil manually before pumping.'}
             </p>
           </div>
 
@@ -106,9 +125,9 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <span className="text-[10px] font-mono font-bold text-[var(--m-watch)]">03 • CROP STAGE</span>
               <Activity className="w-3.5 h-3.5 text-[var(--m-watch)]" />
             </div>
-            <h4 className="text-sm font-bold text-white">Active Tillering</h4>
+            <h4 className="text-sm font-bold text-white">{activeCrop?.stage || 'Active Field Stage'}</h4>
             <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
-              Dense canopy closure creates high humidity microclimate.
+              Reference guidance for {activeCrop?.cropName || selectedCrop} in {bulletin.state}.
             </p>
           </div>
 
@@ -118,9 +137,11 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <span className="text-[10px] font-mono font-bold text-[var(--m-danger)]">04 • RISK</span>
               <ShieldAlert className="w-3.5 h-3.5 text-[var(--m-danger)]" />
             </div>
-            <h4 className="text-sm font-bold text-white">Fungal Sheath Rot</h4>
+            <h4 className="text-sm font-bold text-white">
+              {bulletin.riskAnalysis.riskLevel} ({bulletin.riskAnalysis.overallScore}/100)
+            </h4>
             <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
-              High risk of Rhizoctonia spore colonization on leaf sheaths.
+              {bulletin.pestDiseaseWatch.primaryConcern}.
             </p>
           </div>
 
@@ -130,9 +151,11 @@ export const WeatherCropResponse: React.FC<WeatherCropResponseProps> = ({
               <span className="text-[10px] font-mono font-bold text-[#A78BFA]">05 • ACTION</span>
               <TrendingUp className="w-3.5 h-3.5 text-[#A78BFA]" />
             </div>
-            <h4 className="text-sm font-bold text-white">Hold Irrigation</h4>
+            <h4 className="text-sm font-bold text-white">
+              {irrigationAction?.action || 'Follow Live Forecast'}
+            </h4>
             <p className="text-[11px] text-[var(--m-text-muted)] leading-relaxed">
-              Postpone water &amp; spray Streptocycline upon dry foliage.
+              {irrigationAction?.when || 'Review with official IMD GKMS advisory.'}
             </p>
           </div>
         </div>

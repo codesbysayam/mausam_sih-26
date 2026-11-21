@@ -514,10 +514,50 @@ The application will boot on `http://localhost:3000`. In development mode:
 - Express serves the backend API routes on `/api/*`.
 - Vite runs as middleware, compiling React components with Hot Module Replacement.
 
-### 5. Run Linter & Type Check
+### 5. Run Linter, Unit Contract Tests & Production Build (Node 22+)
+MAUSAM targets **Node.js `>=22.0.0`** (declared in `package.json` `engines` and `.github/workflows/ci.yml`). Always install cleanly from the committed lockfile:
+
 ```bash
+npm ci
 npm run lint
+npx tsx --test tests/weatherContract.test.ts
+npm run build
 ```
+
+---
+
+## Runtime Resilience, Fault Isolation & Responsive Observatory
+
+### Storage-Safe Contract (`src/utils/safeStorage.ts`)
+All optional browser `localStorage` and `sessionStorage` access is routed through `safeStorage.ts`, which catches property-getter `SecurityError` (strict privacy / sandboxed iframe modes), `QuotaExceededError`, and corrupted JSON payloads.
+- **Non-Destructive Recovery**: Error recovery (`clearTransientMausamCaches`) removes **only** disposable telemetry caches (`mausam_weather_cache_v1`, `provider:*`, `mausam_retry_*`). It **never** calls `.clear()` and **never** deletes user saved locations (`mausam_saved_locations`), language, surface theme (`mausam_surface_theme_v3`), or saved report bookmarks.
+
+### ErrorBoundary Hierarchy & Lazy Chunk Retry Policy
+- **Root Shell Boundary (`src/main.tsx`)**: Last-resort fail-safe with full `error.message`, `error.stack`, and React `componentStack` diagnostics.
+- **Independent Workspace Boundaries (`src/App.tsx`)**: `ExploreWorkspace`, `AnalyzeWorkspace`, and `ClassicWorkspace` each mount inside an isolated `ErrorBoundary` (`scope="workspace"`) so a fault inside one mode never removes `FloatingBrandBar` or prevents switching workspaces.
+- **Route-Level Boundary (`src/components/experience/AnalyzeWorkspace.tsx`)**: Every lazy route (`/warnings`, `/forecast`, `/radar`, `/aqi`, `/agromet`, `/cyclone-tracker`, `/reports`) is wrapped in a keyed `ErrorBoundary` so a route failure isolates cleanly without crashing global navigation.
+- **Direct Sub-Route Boot**: `main.tsx` resolves `initialMode` synchronously from `window.location.pathname` so deep routes such as `/warnings` boot directly into Analyze mode without transiently mounting Three.js WebGL.
+- **Hardened Lazy Loader (`src/utils/lazyWithRetry.ts`)**: Retries **only** genuine stale-chunk / dynamic module import failures with bounded exponential backoff and a 60-second time-windowed single reload guard (skipping reload entirely if `sessionStorage` is unavailable to guarantee zero reload loops). Runtime `TypeError`s pass directly to the nearest `ErrorBoundary`.
+- **WebGL Safety (`src/components/scene/AtmosphereScene.tsx`)**: Guards WebGL capability detection, handles `webglcontextlost` / `webglcontextrestored`, and automatically degrades to the interactive 2D Leaflet map (`AccessibleMapFallback`) when WebGL is unavailable.
+
+### Responsive Viewport & Aspect-Ratio Matrix (`src/styles/responsive-observatory.css`)
+`src/styles/responsive-observatory.css` is the single responsive source of truth. `FloatingBrandBar` measures its live rendered bottom edge into `--explore-header-height` via `ResizeObserver` so `LayerDock` and `WeatherHUD` never overlap wrapped multi-row navigation bars.
+
+| Viewport Profile | Target Dimensions | Explore Layout Behavior |
+|---|---|---|
+| **Ultrawide / Desktop** | `1440×900` – `2560×1080` | Full-bleed `100dvh` 3D stage, single-row brand bar, left layer rail (`252px`), right weather inspector (`308px`), centered timeline. |
+| **Compact Laptop / Split-Screen** | `1246×737`, `1180×820`, `1024×768` | Intentional multi-row brand bar; both HUD rails anchor dynamically below `--explore-header-height` with independent vertical scroll; 2-line location title prevents clipping. |
+| **Tablet Portrait** | `768×1024` | Desktop right inspector collapses into compact bottom-right summary + expandable sheet; layer selector uses collapsible drawer below header. |
+| **Mobile Portrait** | `320×568` – `430×932` | Stacked brand/search, full-width mode switcher, reachable Ask MAUSAM & Alerts actions, compact bottom weather sheet above safe-area timeline. |
+| **Mobile Landscape / Short Height** | `667×375`, `844×390` (`<=520px` tall) | Compact header & timeline clearance (`env(safe-area-inset-*)`), right-aligned compact weather sheet preserving central India map visibility. |
+
+### Direct-Route & Failure-Injection QA Matrix
+- **Direct Deep-Link Routes**: `/`, `/warnings`, `/forecast`, `/radar`, `/aqi`, `/agromet`, `/cyclone-tracker`, `/reports`.
+- **Failure Injections Verified in Unit Suite (`tests/weatherContract.test.ts`)**:
+  1. Blocked `window.localStorage` / `window.sessionStorage` getters throwing `SecurityError`.
+  2. Corrupted/malformed provider JSON in `sessionStorage` and weather cache in `localStorage`.
+  3. Non-destructive transient cache reset preserving `mausam_saved_locations`, `mausam_language`, and `mausam_surface_theme_v3`.
+  4. Strict chunk-error classification vs immediate passthrough of non-chunk `TypeError`.
 
 ---
 
@@ -537,7 +577,7 @@ npm start
 This executes `node dist/server.cjs`, serving the optimized static assets from `dist/` and hosting the unified `/api/*` endpoints.
 
 ### Deploying to Vercel
-1. Link your repository to Vercel.
+1. Link your repository to Vercel (Node.js 22.x runtime).
 2. Vercel automatically detects Vite and the output directory `dist`.
 3. Configure environment variables in the Vercel Project Settings:
    - `DATABASE_URL` (e.g., from Neon or Supabase)

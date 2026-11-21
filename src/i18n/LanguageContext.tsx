@@ -17,6 +17,7 @@ import {
   formatLocalizedDate,
 } from './translations';
 import { getRegionLanguageConfig, SupportedLanguageMode } from '../types/regionLanguages';
+import { safeStorageGet, safeStorageGetJson, safeStorageSet } from '../utils/safeStorage';
 
 interface LanguageContextType {
   language: Language;
@@ -44,41 +45,37 @@ function resolveRegionalLanguageForState(stateName?: string): Language {
 }
 
 function getInitialState(): { language: Language; mode: SupportedLanguageMode } {
-  try {
-    const savedMode = localStorage.getItem(MODE_STORAGE_KEY) as SupportedLanguageMode | null;
-    const savedLang = localStorage.getItem(STORAGE_KEY) as Language | null;
+  const savedMode = safeStorageGet('local', MODE_STORAGE_KEY) as SupportedLanguageMode | null;
+  const savedLang = safeStorageGet('local', STORAGE_KEY) as Language | null;
 
-    // Check detected location state to prevent regional language desync
-    let detectedState = 'Odisha';
-    try {
-      const locStr = localStorage.getItem('mausam_detected_location');
-      if (locStr) {
-        const parsed = JSON.parse(locStr);
-        if (parsed?.record?.state) detectedState = parsed.record.state;
-      }
-    } catch {}
+  // Check detected location state to prevent regional language desync
+  const parsedLoc = safeStorageGetJson<{ record?: { state?: string } }>(
+    'local',
+    'mausam_detected_location'
+  );
+  const detectedState =
+    typeof parsedLoc?.record?.state === 'string' && parsedLoc.record.state.trim()
+      ? parsedLoc.record.state
+      : 'Odisha';
 
-    const regionalLang = resolveRegionalLanguageForState(detectedState);
+  const regionalLang = resolveRegionalLanguageForState(detectedState);
 
-    // If explicit mode is regional, or if user was in regional mode
-    if (savedMode === 'regional') {
-      return { language: regionalLang, mode: 'regional' };
-    }
+  // If explicit mode is regional, or if user was in regional mode
+  if (savedMode === 'regional') {
+    return { language: regionalLang, mode: 'regional' };
+  }
 
-    if (savedMode === 'hi' || savedLang === 'hi') {
-      return { language: 'hi', mode: 'hi' };
-    }
+  if (savedMode === 'hi' || savedLang === 'hi') {
+    return { language: 'hi', mode: 'hi' };
+  }
 
-    if (savedMode === 'en' || savedLang === 'en') {
-      return { language: 'en', mode: 'en' };
-    }
+  if (savedMode === 'en' || savedLang === 'en') {
+    return { language: 'en', mode: 'en' };
+  }
 
-    // If savedLang is a valid regional language
-    if (savedLang && VALID_LANGUAGES.has(savedLang)) {
-      return { language: savedLang, mode: 'regional' };
-    }
-  } catch {
-    // Storage access fallback
+  // If savedLang is a valid regional language
+  if (savedLang && VALID_LANGUAGES.has(savedLang)) {
+    return { language: savedLang, mode: 'regional' };
   }
 
   return { language: 'en', mode: 'en' };
@@ -99,10 +96,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         lang === 'en' ? 'en' : lang === 'hi' ? 'hi' : 'regional';
 
       setState({ language: lang, mode: newMode });
-      try {
-        localStorage.setItem(STORAGE_KEY, lang);
-        localStorage.setItem(MODE_STORAGE_KEY, newMode);
-      } catch {}
+      safeStorageSet('local', STORAGE_KEY, lang);
+      safeStorageSet('local', MODE_STORAGE_KEY, newMode);
     }
   }, []);
 
@@ -117,10 +112,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     setState({ language: targetLang, mode: newMode });
-    try {
-      localStorage.setItem(STORAGE_KEY, targetLang);
-      localStorage.setItem(MODE_STORAGE_KEY, newMode);
-    } catch {}
+    safeStorageSet('local', STORAGE_KEY, targetLang);
+    safeStorageSet('local', MODE_STORAGE_KEY, newMode);
   }, []);
 
   const languageModeRef = useRef(languageMode);
@@ -148,14 +141,14 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       const customEvent = e as CustomEvent<SupportedLanguageMode>;
       const val = customEvent.detail;
       if (val === 'en' || val === 'hi' || val === 'regional') {
-        let stateName = 'Odisha';
-        try {
-          const locStr = localStorage.getItem('mausam_detected_location');
-          if (locStr) {
-            const parsed = JSON.parse(locStr);
-            if (parsed?.record?.state) stateName = parsed.record.state;
-          }
-        } catch {}
+        const parsedLoc = safeStorageGetJson<{ record?: { state?: string } }>(
+          'local',
+          'mausam_detected_location'
+        );
+        const stateName =
+          typeof parsedLoc?.record?.state === 'string' && parsedLoc.record.state.trim()
+            ? parsedLoc.record.state
+            : 'Odisha';
         setLanguageMode(val, stateName);
       }
     };
