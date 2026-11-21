@@ -56,8 +56,8 @@ export interface ProviderHealthDetail {
   requests: number;
   successful_requests: number;
   failed_requests: number;
-  cache_hits: number;
-  cache_misses: number;
+  cache_hits: number | null;
+  cache_misses: number | null;
   error: string | null;
   source: string;
   endpoint: string;
@@ -272,8 +272,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.OPEN_METEO.requests,
         successful_requests: this.providerMetrics.OPEN_METEO.success,
         failed_requests: this.providerMetrics.OPEN_METEO.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.4),
-        cache_misses: Math.round(cacheStats.misses * 0.4),
+        cache_hits: null,
+        cache_misses: null,
         error: omHealth.error || null,
         source: 'Open-Meteo Atmospheric Models (ECMWF, GFS, ICON)',
         endpoint: 'https://api.open-meteo.com/v1/forecast',
@@ -309,8 +309,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.IMD.requests,
         successful_requests: this.providerMetrics.IMD.success,
         failed_requests: this.providerMetrics.IMD.failed,
-        cache_hits: 0,
-        cache_misses: 0,
+        cache_hits: null,
+        cache_misses: null,
         error: imdHealth.error || (!imdHealth.configured ? 'Official IMD credentials/access not configured' : null),
         source: 'India Meteorological Department (Ministry of Earth Sciences, Govt of India)',
         endpoint: process.env.IMD_API_BASE_URL || 'https://city.imd.gov.in',
@@ -344,8 +344,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.CPCB.requests,
         successful_requests: this.providerMetrics.CPCB.success,
         failed_requests: this.providerMetrics.CPCB.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.2),
-        cache_misses: Math.round(cacheStats.misses * 0.2),
+        cache_hits: null,
+        cache_misses: null,
         error: cpcbHealth.configured && !cpcbHealth.operational ? cpcbHealth.error : (!cpcbHealth.configured ? 'CPCB credentials not configured' : null),
         source: cpcbHealth.configured ? 'CPCB CAAQMS Real-Time Network & NAQI Gateway' : 'Open-Meteo CAMS Air Quality (Indian NAQI Standard)',
         endpoint: cpcbHealth.configured ? 'https://app.cpcbccr.com/caaqms' : 'https://air-quality-api.open-meteo.com/v1/air-quality',
@@ -371,8 +371,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.SACHET.requests,
         successful_requests: this.providerMetrics.SACHET.success,
         failed_requests: this.providerMetrics.SACHET.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.15),
-        cache_misses: Math.round(cacheStats.misses * 0.15),
+        cache_hits: null,
+        cache_misses: null,
         error: sachetHealth.error || null,
         source: 'National Disaster Management Authority (NDMA) & SACHET CAP Protocol',
         endpoint: 'https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails',
@@ -408,8 +408,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.INCOIS.requests,
         successful_requests: this.providerMetrics.INCOIS.success,
         failed_requests: this.providerMetrics.INCOIS.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.1),
-        cache_misses: Math.round(cacheStats.misses * 0.1),
+        cache_hits: null,
+        cache_misses: null,
         error: incoisHealth.error || null,
         source: incoisHealth.configured ? 'Indian National Centre for Ocean Information Services (INCOIS)' : 'Open-Meteo Marine Data (Open Data)',
         endpoint: incoisHealth.configured ? 'https://incois.gov.in' : 'https://marine-api.open-meteo.com/v1/marine',
@@ -435,8 +435,8 @@ export class SystemHealthService {
         requests: this.providerMetrics.RADAR.requests,
         successful_requests: this.providerMetrics.RADAR.success,
         failed_requests: this.providerMetrics.RADAR.failed,
-        cache_hits: Math.round(cacheStats.hits * 0.15),
-        cache_misses: Math.round(cacheStats.misses * 0.15),
+        cache_hits: null,
+        cache_misses: null,
         error: radarHealth.error || null,
         source: 'Radar Source: RainViewer (Open Weather Maps API)',
         endpoint: 'https://api.rainviewer.com/public/weather-maps.json',
@@ -466,8 +466,8 @@ export class SystemHealthService {
         requests: 1,
         successful_requests: accuHealth.operational ? 1 : 0,
         failed_requests: accuHealth.operational ? 0 : 1,
-        cache_hits: 0,
-        cache_misses: 1,
+        cache_hits: null,
+        cache_misses: null,
         error: accuHealth.error || null,
         source: 'AccuWeather Commercial & GFS Model Stream Gateway',
         endpoint: process.env.ACCUWEATHER_API_KEY ? 'https://dataservice.accuweather.com' : 'https://api.open-meteo.com/v1/forecast?models=gfs_seamless',
@@ -497,8 +497,8 @@ export class SystemHealthService {
         requests: 1,
         successful_requests: googleHealth.operational ? 1 : 0,
         failed_requests: googleHealth.operational ? 0 : 1,
-        cache_hits: 0,
-        cache_misses: 1,
+        cache_hits: null,
+        cache_misses: null,
         error: googleHealth.error || null,
         source: 'Google Maps Platform / Weather & ECMWF IFS Stream Gateway',
         endpoint: process.env.GOOGLE_WEATHER_API_KEY ? 'https://weather.googleapis.com' : 'https://api.open-meteo.com/v1/forecast?models=ecmwf_ifs025',
@@ -521,7 +521,10 @@ export class SystemHealthService {
 
     const totalSources = Object.keys(providers).length;
     const activeProviders = operational + degraded;
-    const providerAvailabilityPct = Math.round((operational / (totalSources - notConfigured)) * 1000) / 10;
+    const eligibleProviders = Math.max(0, totalSources - notConfigured);
+    const providerAvailabilityPct = eligibleProviders > 0
+      ? Math.round((operational / eligibleProviders) * 1000) / 10
+      : 0;
 
     const overallStatus: 'HEALTHY' | 'DEGRADED' | 'CRITICAL' =
       operational >= 3 ? 'HEALTHY' : operational >= 1 ? 'DEGRADED' : 'CRITICAL';
