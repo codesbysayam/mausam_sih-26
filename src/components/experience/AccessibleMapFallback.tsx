@@ -66,13 +66,16 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
         r.name.toLowerCase() === state.name.toLowerCase() ||
         r.representativeCity.toLowerCase() === (state.city || '').toLowerCase()
     );
+    if (!region || !Number.isFinite(region.latitude) || !Number.isFinite(region.longitude)) {
+      return;
+    }
     onSelectFeature({
       kind: 'state',
       id: state.id,
       title: state.name,
-      subtitle: `${state.city || state.name} · ${region?.code || state.id}`,
-      lat: region?.latitude ?? 21.5,
-      lng: region?.longitude ?? 79.0,
+      subtitle: `${state.city || state.name} · ${region.code}`,
+      lat: region.latitude,
+      lng: region.longitude,
       stateName: state.name,
       warningLevel: state.warningLevel,
       warningMessage: state.warningMessage,
