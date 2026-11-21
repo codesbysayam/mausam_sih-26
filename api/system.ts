@@ -155,7 +155,7 @@ async function safeProbe(
 
 async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
   const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
-  const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'auto').trim().toLowerCase();
+  const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
   const assistantLocalMode = assistantMode === 'local' || assistantMode === 'offline';
   const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
   const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
