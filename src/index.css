@@ -2,3 +2,5 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "./styles/mausam.css";
 @import "leaflet/dist/leaflet.css";
+
+@import "./styles/responsive-observatory.css";
