@@ -139,6 +139,7 @@ function getMetricValue(state: StateWeatherData, metric: WeatherMapMetric): numb
     case 'rainfall':
       return state.rainfall;
     case 'warnings':
+      if (!state.warningLevel) return undefined;
       return state.warningLevel === 'severe'
         ? 4
         : state.warningLevel === 'alert'
