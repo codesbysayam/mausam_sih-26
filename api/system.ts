@@ -157,7 +157,8 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
   const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
   const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'auto').trim().toLowerCase();
   const assistantLocalMode = assistantMode === 'local' || assistantMode === 'offline';
-  const assistantConfigured = assistantLocalMode || Boolean(assistantUrl);
+  const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+  const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
   const cpcbConfigured = Boolean(process.env.CPCB_API_KEY);
 
   const [openMeteo, sachet, radar, osm, imdCycloneProbe, imdCapProbe] = await Promise.all([
@@ -235,8 +236,10 @@ async function checkAllProviders(): Promise<ProviderDiagnostic[]> {
     error: assistantLocalMode
       ? 'Grounded local mode; no remote endpoint required.'
       : assistantConfigured
-        ? 'Endpoint configured; live availability is verified during an assistant request.'
-        : 'MAUSAM_ASSISTANT_API_URL is not configured. Grounded local mode remains available.',
+        ? 'Gemini endpoint and key are configured; live availability is verified during an assistant request.'
+        : assistantUrl && !assistantApiKey
+          ? 'MAUSAM_ASSISTANT_API_KEY is missing. Add the Gemini API key in server-side deployment settings.'
+          : 'MAUSAM_ASSISTANT_API_URL is not configured. Grounded local mode remains available.',
   };
 
   const cpcb: ProviderDiagnostic = {
