@@ -196,13 +196,13 @@ const KNOWN_PROVIDER_META: Record<
     core: false,
     requiredKey: null,
   },
-  gemini: {
-    name: 'Google Gemini Meteorological Assistant',
-    code: 'GEMINI_AI',
+  assistant: {
+    name: 'MAUSAM Meteorological Assistant',
+    code: 'MAUSAM_ASSISTANT',
     category: 'COMMERCIAL',
-    role: 'Server-Side Ask MAUSAM AI & Neural TTS',
+    role: 'Optional Server-Side Conversational Assistant',
     core: false,
-    requiredKey: 'GEMINI_API_KEY',
+    requiredKey: 'MAUSAM_ASSISTANT_API_KEY',
   },
   imd: {
     name: 'India Meteorological Department Direct API',

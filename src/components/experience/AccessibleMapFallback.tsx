@@ -17,6 +17,7 @@ interface AccessibleMapFallbackProps {
   activeLayer: SpatialLayerId;
   selectedLocation: LocationRecord;
   radarData?: RadarApiResponse | null;
+  timelineIndex?: number;
   reason?: string | null;
   onSelectFeature: (feature: InspectedSpatialFeature) => void;
   onSwitchBackTo3D?: () => void;
@@ -47,6 +48,7 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
   activeLayer,
   selectedLocation,
   radarData,
+  timelineIndex = 0,
   reason,
   onSelectFeature,
   onSwitchBackTo3D,
@@ -54,11 +56,23 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
   const viewMode = activeLayer === 'radar' || activeLayer === 'rain' ? 'radar' : 'synoptic';
   const activeMetric = mapLayerTo2DMetric(activeLayer);
 
+  const activeRadarFrame = useMemo(() => {
+    if (!radarData?.host) return null;
+    const past = Array.isArray(radarData.pastFrames) ? radarData.pastFrames : [];
+    const nowcast = Array.isArray(radarData.nowcastFrames) ? radarData.nowcastFrames : [];
+    const combined = [
+      ...past.map((frame) => ({ frame, kind: 'OBSERVED' as const })),
+      ...nowcast.map((frame) => ({ frame, kind: 'NOWCAST' as const })),
+    ];
+    if (combined.length === 0) return null;
+    const safeIdx = Math.max(0, Math.min(timelineIndex, combined.length - 1));
+    return combined[safeIdx];
+  }, [radarData, timelineIndex]);
+
   const radarTileUrl = useMemo(() => {
-    if (!radarData?.host || !radarData?.pastFrames?.length) return null;
-    const latest = radarData.pastFrames[radarData.pastFrames.length - 1];
-    return `${radarData.host}${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
-  }, [radarData]);
+    if (!radarData?.host || !activeRadarFrame?.frame?.path) return null;
+    return `${radarData.host}${activeRadarFrame.frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+  }, [radarData, activeRadarFrame]);
 
   const handleSelectState = (state: StateWeatherData) => {
     const region = INDIA_STATES_UTS.find(
@@ -66,13 +80,16 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
         r.name.toLowerCase() === state.name.toLowerCase() ||
         r.representativeCity.toLowerCase() === (state.city || '').toLowerCase()
     );
+    if (!region || !Number.isFinite(region.latitude) || !Number.isFinite(region.longitude)) {
+      return;
+    }
     onSelectFeature({
       kind: 'state',
       id: state.id,
       title: state.name,
-      subtitle: `${state.city || state.name} · ${region?.code || state.id}`,
-      lat: region?.latitude ?? 21.5,
-      lng: region?.longitude ?? 79.0,
+      subtitle: `${state.city || state.name} · ${region.code || state.id}`,
+      lat: region.latitude,
+      lng: region.longitude,
       stateName: state.name,
       warningLevel: state.warningLevel,
       warningMessage: state.warningMessage,
@@ -132,9 +149,30 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
         radarTileUrl={radarTileUrl}
         userCoords={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
         heightClass="h-full"
-        showRadarLegend={false}
+        showRadarLegend={viewMode === 'radar'}
         showTimeLapseControl={false}
       />
+
+      {viewMode === 'radar' && activeRadarFrame && (
+        <div
+          role="status"
+          className="absolute top-16 right-3 z-30 spatial-hud-surface rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 text-[11px] font-mono text-[var(--m-text-primary)]"
+        >
+          <span
+            className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border ${
+              activeRadarFrame.kind === 'OBSERVED'
+                ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
+                : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
+            }`}
+          >
+            {activeRadarFrame.kind}
+          </span>
+          <span className="tabular-nums">
+            {activeRadarFrame.frame.formattedTime || activeRadarFrame.frame.relativeLabel || 'Time unavailable'}
+          </span>
+          <span className="text-[var(--m-text-muted)] hidden sm:inline">· RainViewer</span>
+        </div>
+      )}
 
       {reason && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 spatial-hud-surface rounded-[11px] px-3.5 py-2 flex items-center gap-3 text-xs text-[var(--m-text-primary)]">

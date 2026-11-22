@@ -11,8 +11,9 @@ import {
   MarineContext,
   DataSourceContext,
 } from '../../types/askMausam';
+import { finiteNumber } from '../../../shared/weatherContract';
 import { fetchImdObservation } from './imdAdapter';
-import { fetchOpenMeteoBundle } from './openMeteoAdapter';
+import { fetchOpenMeteoBundle, OpenMeteoBundle } from './openMeteoAdapter';
 
 export interface UnifiedWeatherResult {
   current?: CurrentWeatherContext;
@@ -22,12 +23,136 @@ export interface UnifiedWeatherResult {
   sources: DataSourceContext[];
 }
 
+export interface LiveMarineTelemetry {
+  waveHeightM?: number | null;
+  seaSurfaceTempC?: number | null;
+  tideStatus?: string;
+}
+
+/**
+ * Pure derivation of agriculture context from verified current & soil telemetry.
+ * Never fabricates default humidity (60%), wind (10 km/h), or rainfall (0 mm).
+ */
+export function deriveAgricultureContext(
+  current: CurrentWeatherContext | undefined,
+  soilData?: Pick<OpenMeteoBundle, 'soilMoisture' | 'soilTemperature' | 'evapotranspiration'>
+): AgricultureContext | undefined {
+  if (!current) return undefined;
+
+  const soilMoisture = finiteNumber(soilData?.soilMoisture) ?? undefined;
+  const soilTemp = finiteNumber(soilData?.soilTemperature) ?? undefined;
+  const et0 = finiteNumber(soilData?.evapotranspiration) ?? undefined;
+  const rainProb = finiteNumber(current.precipitationProbability) ?? undefined;
+  const rainMm = finiteNumber(current.precipitationMm) ?? undefined;
+  const temp = finiteNumber(current.temperatureC) ?? undefined;
+  const humidity = finiteNumber(current.humidity) ?? undefined;
+  const windSpeed = finiteNumber(current.windSpeedKmh) ?? undefined;
+
+  let spraySuitability: 'OPTIMAL' | 'MODERATE' | 'NOT_RECOMMENDED' | undefined;
+  const hasDecisionMetric =
+    rainProb !== undefined ||
+    rainMm !== undefined ||
+    windSpeed !== undefined ||
+    temp !== undefined;
+
+  if (hasDecisionMetric) {
+    if (
+      (rainProb !== undefined && rainProb > 40) ||
+      (rainMm !== undefined && rainMm > 2) ||
+      (windSpeed !== undefined && windSpeed > 20)
+    ) {
+      spraySuitability = 'NOT_RECOMMENDED';
+    } else if (
+      (rainProb !== undefined && rainProb > 20) ||
+      (windSpeed !== undefined && windSpeed > 15) ||
+      (temp !== undefined && temp > 35)
+    ) {
+      spraySuitability = 'MODERATE';
+    } else {
+      spraySuitability = 'OPTIMAL';
+    }
+  }
+
+  const moistureSentence =
+    soilMoisture !== undefined
+      ? `Topsoil moisture is ${Math.round(soilMoisture * 100)}%. `
+      : 'Topsoil moisture observation is currently unavailable. ';
+
+  let guidanceSentence = 'Insufficient surface telemetry to score spraying suitability.';
+  if (spraySuitability === 'NOT_RECOMMENDED') {
+    guidanceSentence = 'Pesticide/fertilizer spraying NOT recommended due to elevated wind or rain risk.';
+  } else if (spraySuitability === 'MODERATE') {
+    guidanceSentence = 'Exercise caution during chemical application; calm morning window preferred.';
+  } else if (spraySuitability === 'OPTIMAL') {
+    guidanceSentence = 'Observed surface conditions are favorable for spraying, irrigation scheduling, and field operations.';
+  }
+
+  return {
+    soilMoisture0To1cm: soilMoisture,
+    soilTemperatureC: soilTemp,
+    rainfall24hMm: rainMm,
+    precipitationProbability: rainProb,
+    temperatureC: temp,
+    humidity,
+    evapotranspirationMm: et0,
+    spraySuitability,
+    advisoryText: `${moistureSentence}${guidanceSentence}`,
+  };
+}
+
+/**
+ * Pure derivation of marine context.
+ * Strictly prohibits fabricating wave height from wind speed or SST from air temperature.
+ */
+export function deriveMarineContext(
+  isCoastal: boolean | undefined,
+  current: CurrentWeatherContext | undefined,
+  liveMarine?: LiveMarineTelemetry
+): MarineContext | undefined {
+  if (!isCoastal || !current) return undefined;
+
+  const windKmh = finiteNumber(current.windSpeedKmh);
+  const windKts = windKmh !== null ? Math.round(windKmh * 0.539957) : undefined;
+  const waveHeightM = finiteNumber(liveMarine?.waveHeightM) ?? undefined;
+  const seaSurfaceTempC = finiteNumber(liveMarine?.seaSurfaceTempC) ?? undefined;
+
+  const seaCondition =
+    waveHeightM !== undefined
+      ? waveHeightM >= 2.5
+        ? 'Rough'
+        : waveHeightM >= 1.25
+          ? 'Moderate'
+          : 'Smooth to Slight'
+      : undefined;
+
+  let coastalAdvisory: string;
+  if (windKts !== undefined && windKts > 25) {
+    coastalAdvisory =
+      'Squally coastal winds detected; fishermen should check official INCOIS/IMD marine bulletins before venturing offshore.';
+  } else if (waveHeightM === undefined && seaSurfaceTempC === undefined) {
+    coastalAdvisory =
+      'Live marine buoy wave height and sea-surface temperature are unavailable in this surface feed; consult INCOIS/Open-Meteo Marine for sea state.';
+  } else {
+    coastalAdvisory = 'Consult official INCOIS and IMD coastal bulletins prior to marine operations.';
+  }
+
+  return {
+    waveHeightM,
+    seaSurfaceTempC,
+    tideStatus: liveMarine?.tideStatus,
+    windSpeedKts: windKts,
+    seaCondition,
+    coastalAdvisory,
+  };
+}
+
 export async function getAuthoritativeWeather(
   latitude: number,
   longitude: number,
   options?: {
     stationCode?: string;
     isCoastal?: boolean;
+    liveMarine?: LiveMarineTelemetry;
   }
 ): Promise<UnifiedWeatherResult> {
   const sources: DataSourceContext[] = [];
@@ -41,65 +166,10 @@ export async function getAuthoritativeWeather(
   sources.push(openMeteoRes.source);
 
   // Determine current weather: prefer IMD if available, otherwise Open-Meteo
-  let current = imdRes.available && imdRes.current ? imdRes.current : openMeteoRes.current;
+  const current = imdRes.available && imdRes.current ? imdRes.current : openMeteoRes.current;
 
-  // Build agriculture context if atmospheric variables exist
-  let agriculture: AgricultureContext | undefined;
-  if (current) {
-    const soilMoisture = openMeteoRes.soilMoisture;
-    const soilTemp = openMeteoRes.soilTemperature;
-    const et0 = openMeteoRes.evapotranspiration;
-    const rainProb = current.precipitationProbability ?? 0;
-    const rainMm = current.precipitationMm ?? 0;
-    const temp = current.temperatureC;
-    const humidity = current.humidity ?? 60;
-    const windSpeed = current.windSpeedKmh ?? 10;
-
-    let spraySuitability: 'OPTIMAL' | 'MODERATE' | 'NOT_RECOMMENDED' = 'OPTIMAL';
-    if (rainProb > 40 || rainMm > 2 || windSpeed > 20) {
-      spraySuitability = 'NOT_RECOMMENDED';
-    } else if (rainProb > 20 || windSpeed > 15 || temp > 35) {
-      spraySuitability = 'MODERATE';
-    }
-
-    let advisoryText = `Soil moisture is at ${soilMoisture !== undefined ? `${Math.round(soilMoisture * 100)}%` : 'seasonal levels'}. `;
-    if (spraySuitability === 'NOT_RECOMMENDED') {
-      advisoryText += 'Pesticide/fertilizer spraying NOT recommended due to wind/rain risk.';
-    } else if (spraySuitability === 'MODERATE') {
-      advisoryText += 'Exercise caution during chemical application; morning window preferred.';
-    } else {
-      advisoryText += 'Atmospheric conditions are favorable for spraying, irrigation scheduling, and harvesting.';
-    }
-
-    agriculture = {
-      soilMoisture0To1cm: soilMoisture,
-      soilTemperatureC: soilTemp,
-      rainfall24hMm: rainMm,
-      precipitationProbability: rainProb,
-      temperatureC: temp,
-      humidity,
-      evapotranspirationMm: et0,
-      spraySuitability,
-      advisoryText,
-    };
-  }
-
-  // Build marine context if coastal or requested
-  let marine: MarineContext | undefined;
-  if (options?.isCoastal && current) {
-    const windKts = Math.round((current.windSpeedKmh ?? 10) * 0.539957);
-    const estWaveHeight = Math.round((windKts * 0.1) * 10) / 10;
-    marine = {
-      waveHeightM: estWaveHeight,
-      seaSurfaceTempC: Math.round((current.temperatureC - 2) * 10) / 10,
-      tideStatus: 'Normal tidal cycle',
-      windSpeedKts: windKts,
-      seaCondition: windKts > 25 ? 'Rough' : windKts > 15 ? 'Moderate' : 'Smooth to Slight',
-      coastalAdvisory: windKts > 25
-        ? 'Fishermen advised not to venture into deep sea due to squally weather.'
-        : 'Sea conditions normal for coastal navigation and artisanal fisheries.',
-    };
-  }
+  const agriculture = deriveAgricultureContext(current, openMeteoRes);
+  const marine = deriveMarineContext(options?.isCoastal, current, options?.liveMarine);
 
   return {
     current,

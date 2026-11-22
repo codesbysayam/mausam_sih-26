@@ -503,7 +503,17 @@ export const ApiDebugPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 max-w-xs">
                         {p.error ? (
-                          <span className="text-[var(--m-danger)] break-words text-[11px]">{p.error}</span>
+                          <span
+                            className={`break-words text-[11px] ${
+                              p.status === 'OPERATIONAL'
+                                ? 'text-[var(--m-ok)] font-sans'
+                                : p.status === 'NOT_CONFIGURED'
+                                  ? 'text-[var(--m-text-muted)] font-sans'
+                                  : 'text-[var(--m-danger)]'
+                            }`}
+                          >
+                            {p.error}
+                          </span>
                         ) : p.reason ? (
                           <span className="text-[var(--m-text-muted)] break-words text-[11px] font-sans">
                             {p.reason}

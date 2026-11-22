@@ -166,12 +166,12 @@ flowchart TD
     subgraph Storage [Data & Persistence Tier]
         Redis[Upstash Redis / Memory Cache]
         Postgres[(PostgreSQL Database)]
-        Gemini[Google Gemini 2.5 Flash API]
+        Assistant[Gemini OpenAI-Compatible Endpoint]
     end
 
     UI -->|HTTP Requests| Router
     Health -->|Fetch Health| Router
-    AskAI -->|POST /api/chat| Router
+    AskAI -->|POST /api/ai| Router
 
     Router --> Norm
     Router --> HealthSvc
@@ -190,7 +190,7 @@ flowchart TD
     Norm --> DbSvc
     DbSvc -.->|Async Logging| Postgres
 
-    Router -->|Server-Side SDK| Gemini
+    Router -->|Server-Side HTTPS| Assistant
 ```
 
 ---
@@ -232,10 +232,10 @@ flowchart TD
 - **Spray & Irrigation Windows**: Evaluates wind velocity, precipitation probability, and soil moisture conditions to recommend optimal chemical spray and irrigation timings.
 
 ### 7. Ask MAUSAM AI Assistant
-- **Server-Side Google Gen AI**: Powered by Google's `@google/genai` TypeScript SDK using `gemini-2.5-flash`.
+- **Gemini OpenAI-Compatible Endpoint**: Uses Google's OpenAI-compatible Gemini chat-completions endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`) via server-side HTTPS requests, or any OpenAI-compatible provider.
 - **Atmospheric Context Grounding**: System prompts inject current location telemetry, active NDMA alerts, NAQI readings, and seasonal context directly into the model context window.
-- **Bilingual / Plain-Language Responses**: Delivers actionable agricultural, travel, and safety guidance in plain English and Hindi without hallucinations.
-- **Zero API Key Leakage**: All AI interactions route through the server-side `/api/chat` proxy; no Gemini API keys are exposed to the client.
+- **Grounded Local Fallback**: In `auto` mode, MAUSAM uses the configured remote endpoint when both URL and API key are set, and falls back deterministically to verified local telemetry otherwise.
+- **Zero API Key Leakage**: All assistant interactions route through the server-side `/api/ai` proxy; no API keys are exposed to frontend code.
 
 ---
 
@@ -328,7 +328,7 @@ Every API response carries full attribution metadata:
 | **Server TypeScript**| `tsx` & `esbuild` | `^4.21.0` / `^0.25.0`| Production single-file CommonJS bundling (`dist/server.cjs`) |
 | **Database** | PostgreSQL (`pg`) | `^8.23.0` | Relational storage for observations and health logs |
 | **Cache** | Upstash Redis REST | REST API / In-Memory | Distributed caching with TTL and stale fallbacks |
-| **AI Engine** | Google Gen AI SDK | `@google/genai: ^2.4.0` | Server-side Gemini 2.5 Flash atmospheric assistant |
+| **AI Assistant** | OpenAI-Compatible HTTPS | `MAUSAM_ASSISTANT_*` | Server-side Gemini OpenAI-compatible assistant with grounded local fallback |
 | **Validation** | Zod | `^4.5.4` | Data validation and schema parsing |
 
 ---
@@ -435,47 +435,63 @@ The unified API router is mounted under `/api/*`. All atmospheric endpoints prio
 
 ## Environment Configuration
 
-Create a `.env` file in the project root based on `.env.example`. **No API keys are required for basic local operation**—the platform will run using the free baseline providers and in-memory caching.
+Create a `.env` file in the project root based on `.env.example`. **No API keys are required for basic local operation**—the platform will run using the free baseline providers, grounded local assistant fallback, and in-memory caching.
+
+### Grounded Local Assistant (default) & Optional Remote Gemini Mode
+
+MAUSAM runs **keyless by default** (`MAUSAM_ASSISTANT_MODE=local`), serving grounded meteorological summaries directly from verified surface, AQI, and warning telemetry without requiring any API key.
+
+To explicitly opt into Google's OpenAI-compatible Gemini chat-completions endpoint, configure these values in the server-side environment:
+
+- `MAUSAM_ASSISTANT_MODE=remote`
+- `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`
+- `MAUSAM_ASSISTANT_API_KEY=YOUR_GEMINI_API_KEY`
+- `MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash`
+
+The exact chat endpoint is:
+
+`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+
+Authentication is handled through:
+
+`Authorization: Bearer YOUR_GEMINI_API_KEY`
+
+The server requires `MAUSAM_ASSISTANT_MODE=remote` plus both the endpoint and API key before making remote requests. If either credential is missing, the assistant automatically falls back to grounded local mode.
+
+The API key must never be exposed to frontend code.
+
+A configured remote endpoint is not considered operational until an actual assistant request succeeds.
 
 ```env
-# ====================================================================
-# MAUSAM - Environment Configuration Template
-# ====================================================================
+# ==========================================================
+# MAUSAM — DEFAULT KEYLESS CONFIGURATION
+# ==========================================================
 
-# 1. PostgreSQL Database (Optional - Neon / Supabase / Local)
-DATABASE_URL=
-POSTGRES_URL=
+# 1. Assistant Mode (defaults to keyless grounded-local mode)
+MAUSAM_ASSISTANT_MODE=local
+# Optional remote Gemini integration (set MAUSAM_ASSISTANT_MODE=remote to opt in)
+MAUSAM_ASSISTANT_API_URL=
+MAUSAM_ASSISTANT_API_KEY=
+MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash
 
-# 2. Redis Persistent Cache (Optional - Upstash Redis REST / Vercel KV)
+# 2. Shared Cache & Database (Optional)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
-KV_REST_API_URL=
-KV_REST_API_TOKEN=
+DATABASE_URL=
 
-# 3. National Government Providers (Optional)
-IMD_ENABLED=false
-IMD_API_BASE_URL=https://api.imd.gov.in/api/v1
+# 3. Official IMD Gateway (Optional — leave IMD_API_ENABLED=false unless authorized)
+IMD_API_BASE_URL=
 IMD_API_KEY=
+IMD_API_TOKEN=
+IMD_API_ENABLED=false
 
-CPCB_ENABLED=true
+# 4. Other Optional Providers
 CPCB_API_KEY=
-
-SACHET_ENABLED=true
-SACHET_FEED_URL=https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails
-
-INCOIS_ENABLED=true
-INCOIS_BASE_URL=https://incois.gov.in
-
-RADAR_ENABLED=true
-
-# 4. Commercial Providers (Optional)
+INCOIS_API_KEY=
 ACCUWEATHER_API_KEY=
 GOOGLE_WEATHER_API_KEY=
 
-# 5. Server-Side AI Assistant (Optional)
-GEMINI_API_KEY=
-
-# 6. Environment
+# 5. Environment
 NODE_ENV=development
 ```
 
@@ -504,7 +520,7 @@ npm install
 ```bash
 cp .env.example .env
 ```
-*(Optional: Add `GEMINI_API_KEY` for AI features or `DATABASE_URL` for persistent logging. Leave empty for free baseline operation).*
+*(Optional: Set `MAUSAM_ASSISTANT_API_KEY` for remote Gemini assistant completions or `DATABASE_URL` for persistent logging. Leave empty for free baseline operation with grounded local telemetry).*
 
 ### 4. Run the Development Server
 ```bash
@@ -577,7 +593,7 @@ All three endpoints enforce `Cache-Control: no-store, no-cache, must-revalidate,
 ### Independent Server-Side Probe Contract
 - **Parallel Isolation**: Every upstream provider probe runs via `Promise.allSettled` with bounded per-provider timeouts (`3500–4200 ms`) and guaranteed `clearTimeout` cleanup inside `finally`.
 - **Payload Completeness Verification**: HTTP `200` alone does not mark a provider `OPERATIONAL`. Each adapter verifies expected response structure (e.g., numeric `current.temperature_2m` for Open-Meteo, RSS/CAP XML tags for SACHET/IMD CAP, non-empty `radar.past` array for RainViewer, `image/*` content-type for OSM tiles, `models` array for Gemini, `records` array for CPCB). Malformed `200` bodies are classified as `DEGRADED`.
-- **Key Presence Is Never Proof of Availability**: Optional credentialed providers (`GEMINI_API_KEY`, `IMD_API_KEY`, `CPCB_API_KEY`, `INCOIS_API_KEY`, `ACCUWEATHER_API_KEY`, `GOOGLE_WEATHER_API_KEY`) report `NOT_CONFIGURED` when unset and execute real authenticated server-side probes when set, with secrets redacted from error diagnostics.
+- **Key Presence Is Never Proof of Availability**: Optional credentialed providers (`MAUSAM_ASSISTANT_API_KEY`, `IMD_API_KEY`, `CPCB_API_KEY`, `INCOIS_API_KEY`, `ACCUWEATHER_API_KEY`, `GOOGLE_WEATHER_API_KEY`) report `NOT_CONFIGURED` when unset. The remote assistant reports `DEGRADED` (pending verification on an actual assistant request) so diagnostics never consume tokens, while data feeds execute real authenticated server-side probes with secrets redacted from error diagnostics.
 - **Latency Measurement Separation**: Per-provider latencies are measured server-side (`Date.now() - startMs`) inside `api/system.ts` with zero hardcoded values. Client-side diagnostics separately report **Browser-to-Gateway RTT** (`gatewayLatencyMs`) so network transit time is never conflated with upstream provider response time.
 - **Serverless Cache & Database Truthfulness**: Serverless instances do not share process-local memory. Unless Upstash Redis / Vercel KV is configured and passes a live `PING`, cache telemetry truthfully reports `reported: false`, `provider: "NOT_REPORTED"`, and `null` counters rather than fabricating zeros or claiming `In-Memory Cache`.
 - **Gateway Reachability vs Provider Degradation**: A reachable gateway whose upstream probes detect a failing feed displays **Gateway Reachable · Providers Degraded** (`DEGRADED`) rather than falsely claiming the gateway itself is unavailable. Client requests enforce `cache: 'no-store'`, a `7000 ms` timeout, `AbortController` concurrency cancellation, and structured error reporting (`TIMEOUT`, `NETWORK_ERROR`, `HTTP_ERROR`, `MALFORMED_JSON`, `INVALID_CONTRACT`).
@@ -622,19 +638,22 @@ This executes `node dist/server.cjs`, serving the optimized static assets from `
 ### Deploying to Vercel
 1. Link your repository to Vercel (Node.js 22.x runtime).
 2. Vercel automatically detects Vite and the output directory `dist`.
-3. Configure environment variables in the Vercel Project Settings:
-   - `DATABASE_URL` (e.g., from Neon or Supabase)
-   - `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN` (from Upstash)
-   - `GEMINI_API_KEY` (from Google AI Studio)
-4. Deploy. The platform leverages Vercel KV / Upstash Redis for serverless caching.
+3. Configure server-side environment variables in Vercel → Project Settings → Environment Variables (Preview and Production):
+   - `MAUSAM_ASSISTANT_MODE=auto`
+   - `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`
+   - `MAUSAM_ASSISTANT_API_KEY=<YOUR_GEMINI_API_KEY>` (raw key without `Bearer`)
+   - `MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash`
+   - `DATABASE_URL` (optional, e.g., Neon or Supabase)
+   - `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN` (optional, from Upstash)
+4. Deploy. Do not place real API keys in GitHub or frontend files.
 
 ---
 
 ## Security Practices
 
-- **Zero Client-Side Secrets**: All third-party credentials (`GEMINI_API_KEY`, `IMD_API_KEY`, database passwords) are strictly confined to the server-side environment. No secrets are prefixed with `VITE_`.
+- **Zero Client-Side Secrets**: All third-party credentials (`MAUSAM_ASSISTANT_API_KEY`, `IMD_API_KEY`, `IMD_API_TOKEN`, database passwords) are strictly confined to the server-side environment. No secrets are prefixed with `VITE_`.
 - **Coordinates Sanitization**: All incoming query coordinates are validated and bounded to valid geographical ranges ($-90 \le \text{lat} \le 90$, $-180 \le \text{lon} \le 180$) to prevent injection.
-- **Fail-Safe Lazy Initialization**: SDKs that require credentials (e.g., Gemini GenAI, PostgreSQL Pool) initialize lazily. If a key is missing, only that specific feature is disabled gracefully without crashing the server.
+- **Fail-Safe Lazy Initialization**: Integrations that require credentials (e.g., remote assistant endpoint, IMD gateway, PostgreSQL Pool) initialize lazily. If a key is missing, only that specific feature degrades gracefully without crashing the server.
 - **Content Security & Safe Links**: All external portal links use `rel="noreferrer"` and `target="_blank"`. Images load with safe referrer policies.
 
 ---

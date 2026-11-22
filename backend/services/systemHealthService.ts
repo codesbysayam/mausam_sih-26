@@ -675,18 +675,37 @@ export class SystemHealthService {
         errorMessage: health.providers.radar.error,
         environment: env,
       },
-      {
-        provider: 'GEMINI_AI',
-        name: 'Google Gemini (Mausam Assistant)',
-        configured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== ''),
-        reachable: false,
-        status: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '') ? 'DEGRADED' : 'NOT_CONFIGURED',
-        lastSuccess: null,
-        latency: null,
-        errorCode: !process.env.GEMINI_API_KEY ? 'NOT_CONFIGURED' : 'UNPROBED',
-        errorMessage: !process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY not configured' : 'Use /api/system?mode=health for live Gemini probe verification',
-        environment: env,
-      },
+      (() => {
+        const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
+        const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
+        const assistantLocalMode = assistantMode !== 'remote';
+        const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+        const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
+        return {
+          provider: 'MAUSAM_ASSISTANT',
+          name: 'MAUSAM Assistant',
+          configured: assistantConfigured,
+          reachable: assistantLocalMode,
+          status: (assistantLocalMode
+            ? 'OPERATIONAL'
+            : assistantConfigured
+              ? 'DEGRADED'
+              : 'NOT_CONFIGURED') as ProviderStatusCode,
+          lastSuccess: null,
+          latency: null,
+          errorCode: assistantLocalMode
+            ? null
+            : assistantConfigured
+              ? 'PENDING_LIVE_REQUEST'
+              : 'NOT_CONFIGURED',
+          errorMessage: assistantLocalMode
+            ? 'Grounded local assistant active. No API key required.'
+            : assistantConfigured
+              ? 'Remote assistant configured. Live availability is verified during an actual request.'
+              : 'Remote assistant is optional. Grounded local mode remains available.',
+          environment: env,
+        };
+      })(),
       {
         provider: 'ACCUWEATHER',
         name: health.providers.accuweather.name,
@@ -779,12 +798,24 @@ export class SystemHealthService {
         ok: true,
         message: health.providers.radar.status === 'OPERATIONAL' ? 'Doppler radar feed active' : 'Radar cache active',
       },
-      ai: {
-        status: Boolean(process.env.GEMINI_API_KEY) ? 'CONFIGURED' : 'NOT_CONFIGURED',
-        required: false,
-        ok: true,
-        message: Boolean(process.env.GEMINI_API_KEY) ? 'Gemini AI assistant enabled' : 'Deterministic atmospheric intelligence active',
-      },
+      ai: (() => {
+        const mode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
+        const local = mode !== 'remote';
+        const remoteConfigured = Boolean(
+          process.env.MAUSAM_ASSISTANT_API_URL?.trim() &&
+            process.env.MAUSAM_ASSISTANT_API_KEY?.trim()
+        );
+        return {
+          status: local ? 'OPERATIONAL' : remoteConfigured ? 'CONFIGURED' : 'NOT_CONFIGURED',
+          required: false,
+          ok: true,
+          message: local
+            ? 'Grounded local assistant active. No API key required.'
+            : remoteConfigured
+              ? 'Remote assistant configured. Live availability is verified during an actual request.'
+              : 'Remote assistant is optional. Grounded local mode remains available.',
+        };
+      })(),
     };
 
     let readinessStatus: 'READY' | 'DEGRADED' | 'NOT_READY';

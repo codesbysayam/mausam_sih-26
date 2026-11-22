@@ -8,6 +8,89 @@ export type ProviderTelemetryStatus =
   | 'UNAVAILABLE'
   | 'ERROR';
 
+export type DataKind =
+  | 'OBSERVED'
+  | 'MODEL_ANALYSIS'
+  | 'FORECAST'
+  | 'NOWCAST'
+  | 'CLIMATOLOGY'
+  | 'UNAVAILABLE';
+
+export type Freshness = 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE';
+
+export interface MetricEnvelope<T> {
+  value: T | null;
+  unit?: string;
+  kind: DataKind;
+  freshness: Freshness;
+  source: string;
+  observedAt?: string | null;
+  validAt?: string | null;
+  retrievedAt: string;
+  reason?: string;
+}
+
+/**
+ * Returns a finite number if valid (preserving 0), otherwise null.
+ */
+export function finiteNumber(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
+  }
+  return value;
+}
+
+/**
+ * Rounds a finite number to `decimals` places (preserving 0), or returns null.
+ */
+export function roundedNumber(value: unknown, decimals = 0): number | null {
+  const num = finiteNumber(value);
+  if (num === null) return null;
+  if (decimals <= 0) return Math.round(num);
+  const factor = 10 ** decimals;
+  return Math.round(num * factor) / factor;
+}
+
+function parseMeteorologicalTimestampMs(raw: string | number | null | undefined): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return raw < 1e12 ? raw * 1000 : raw;
+  }
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const hasOffset = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(trimmed);
+  const normalized = hasOffset ? trimmed : `${trimmed}+05:30`;
+  const parsed = Date.parse(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Matches a reference observation timestamp against an hourly timestamp array
+ * by nearest epoch (interpreting naive ISO timestamps in IST +05:30).
+ * Returns -1 if `times` is empty or contains no parseable timestamps.
+ */
+export function findNearestHourlyIndex(
+  times: readonly string[] | null | undefined,
+  referenceTime?: string | number | null
+): number {
+  if (!Array.isArray(times) || times.length === 0) return -1;
+  const refMs = parseMeteorologicalTimestampMs(referenceTime) ?? Date.now();
+  let bestIdx = -1;
+  let bestDiff = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < times.length; i++) {
+    const tMs = parseMeteorologicalTimestampMs(times[i]);
+    if (tMs === null) continue;
+    const diff = Math.abs(tMs - refMs);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+
+  return bestIdx;
+}
+
 export interface ParsedCoordinatesSuccess {
   ok: true;
   lat: number;

@@ -104,9 +104,18 @@ export class ProviderService {
       return cached.data;
     }
 
-    const imdConfigured = !!(process.env.IMD_API_KEY && process.env.IMD_API_KEY.trim().length > 0);
-    const geminiConfigured = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
-    const cpcbConfigured = !!(process.env.CPCB_API_KEY && process.env.CPCB_API_KEY.trim().length > 0);
+    const imdEnabled = (process.env.IMD_API_ENABLED || 'false').trim().toLowerCase() === 'true';
+    const imdConfigured = Boolean(
+      imdEnabled &&
+        process.env.IMD_API_BASE_URL?.trim() &&
+        (process.env.IMD_API_KEY?.trim() || process.env.IMD_API_TOKEN?.trim())
+    );
+    const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
+    const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
+    const assistantLocalMode = assistantMode !== 'remote';
+    const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
+    const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
+    const cpcbConfigured = Boolean(process.env.CPCB_API_KEY?.trim());
 
     const sachetProbe = (async (): Promise<ProviderDiagnostic> => {
       const start = performance.now();
@@ -212,14 +221,23 @@ export class ProviderService {
           }),
     ]);
 
-    const gemini: ProviderDiagnostic = {
-      id: 'gemini',
-      name: 'Google Gemini Meteorological Assistant',
+    const assistant: ProviderDiagnostic = {
+      id: 'assistant',
+      name: 'MAUSAM Assistant',
       category: 'AI_ASSISTANT',
-      configured: geminiConfigured,
-      operational: geminiConfigured,
-      status: geminiConfigured ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      configured: assistantConfigured,
+      operational: assistantLocalMode,
+      status: assistantLocalMode
+        ? 'OPERATIONAL'
+        : assistantConfigured
+          ? 'DEGRADED'
+          : 'NOT_CONFIGURED',
       latencyMs: null,
+      error: assistantLocalMode
+        ? 'Grounded local assistant active. No API key required.'
+        : assistantConfigured
+          ? 'Remote assistant configured. Live availability is verified during an actual request.'
+          : 'Remote assistant is optional. Grounded local mode remains available.',
     };
 
     const providersMap: Record<string, ProviderDiagnostic> = {
@@ -229,10 +247,10 @@ export class ProviderService {
       osm,
       imd,
       cpcb,
-      gemini,
+      assistant,
     };
 
-    const items = [openMeteo, sachet, radar, osm, imd, cpcb, gemini];
+    const items = [openMeteo, sachet, radar, osm, imd, cpcb, assistant];
     const operationalCount = items.filter((p) => p.status === 'OPERATIONAL').length;
     const overallStatus = operationalCount >= 2 ? 'OPERATIONAL' : operationalCount >= 1 ? 'DEGRADED' : 'OFFLINE';
 
@@ -523,7 +541,7 @@ export class ProviderService {
         accuweather: accuweatherDetail,
         googleWeather: googleWeatherDetail,
         osm: diagnostic.providers.osm,
-        gemini: diagnostic.providers.gemini,
+        assistant: diagnostic.providers.assistant,
       },
     };
   }

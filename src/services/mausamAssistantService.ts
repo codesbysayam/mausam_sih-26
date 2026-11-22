@@ -65,7 +65,17 @@ export function matchMausamQuery(
 
   // 1. Check if the user is asking specifically about any of India's 28 States or 8 Union Territories
   const matchedState = ALL_INDIA_STATES_MET_PROFILES.find((state) => {
-    return state.aliases.some((alias) => q.includes(alias.toLowerCase()));
+    return state.aliases.some((alias) => {
+      const normalized = alias.trim().toLowerCase();
+      if (!normalized) return false;
+      // Use word-boundary matching for ASCII aliases to prevent 2-letter state codes (e.g., 'ar', 'up')
+      // from falsely matching inside unrelated words like 'maharashtra' or 'update'.
+      if (/^[a-z0-9\s.&-]+$/i.test(normalized)) {
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`\\b${escaped}\\b`, 'i').test(q);
+      }
+      return q.includes(normalized);
+    });
   });
 
   if (
@@ -80,33 +90,55 @@ export function matchMausamQuery(
       q.includes('update') ||
       q.length < 30)
   ) {
-    const isCurrentActiveState =
+    const isCurrentActiveState = Boolean(
       activeStation?.state?.toLowerCase().includes(matchedState.name.toLowerCase()) ||
-      activeStation?.name?.toLowerCase().includes(matchedState.name.toLowerCase());
-    const tempToUse = isCurrentActiveState ? activeWeather.temp : matchedState.normalTemp.max - 2;
-    const humidityToUse = isCurrentActiveState ? activeWeather.humidity : matchedState.typicalHumidity;
-    const conditionToUse = isCurrentActiveState ? condStr : translateConditionToLang(matchedState.typicalCondition, langKey);
-    const aqiToUse = isCurrentActiveState
-      ? activeWeather.aqiIndex ?? activeWeather.aqiPm25 ?? matchedState.typicalAqi
-      : matchedState.typicalAqi;
-    const aqiStatToUse = isCurrentActiveState
-      ? aqiStatusStr
-      : translateAqiStatusToLang(matchedState.typicalAqiStatus, langKey);
+        activeStation?.name?.toLowerCase().includes(matchedState.name.toLowerCase())
+    );
+
+    const activeTempStr =
+      typeof activeWeather.temp === 'number' && Number.isFinite(activeWeather.temp)
+        ? `${activeWeather.temp}°C`
+        : 'Unavailable';
+    const activeHumidityStr =
+      typeof activeWeather.humidity === 'number' && Number.isFinite(activeWeather.humidity)
+        ? `${activeWeather.humidity}%`
+        : 'Unavailable';
+    const activeAqiVal = activeWeather.aqiIndex ?? activeWeather.aqiPm25 ?? null;
+    const activeAqiStr =
+      typeof activeAqiVal === 'number' && Number.isFinite(activeAqiVal)
+        ? `${activeAqiVal} (${aqiStatusStr})`
+        : 'Unavailable';
+    const activeStationLabel = activeStation?.name
+      ? `${activeStation.name}${activeStation.state ? `, ${activeStation.state}` : ''}`
+      : 'another station';
+    const climatologyCondStr = translateConditionToLang(matchedState.typicalCondition, langKey);
+    const climatologyAqiStatStr = translateAqiStatusToLang(matchedState.typicalAqiStatus, langKey);
 
     let localizedStateAnswer = '';
     let followUps: string[] = [];
 
     if (langKey === 'or') {
-      localizedStateAnswer = `### ପାଣିପାଗ ପ୍ରୋଫାଇଲ୍ ଏବଂ ଟେଲିମେଟ୍ରି: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'କେନ୍ଦ୍ରଶାସିତ ଅଞ୍ଚଳ' : 'ରାଜ୍ୟ'})
+      const telemetryBlock = isCurrentActiveState
+        ? `**ସକ୍ରିୟ ବାୟୁମଣ୍ଡଳୀୟ ପର୍ଯ୍ୟବେକ୍ଷଣ (${activeStationLabel})**:
+• **ବାୟୁ ତାପମାତ୍ରା**: ${activeTempStr} (ସ୍ୱାଭାବିକ ଦୈନିକ ସୀମା: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
+• **ପାଣିପାଗ ସ୍ଥିତି**: ${condStr}
+• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${activeHumidityStr}
+• **ଜାତୀୟ ବାୟୁ ଗୁଣବତ୍ତା ସୂଚକାଙ୍କ (NAQI)**: ${activeAqiStr}`
+        : `**ସକ୍ରିୟ ଲାଇଭ୍ ଟେଲିମେଟ୍ରି**:
+• ${matchedState.name} ପାଇଁ ଲାଇଭ୍ ପାଣିପାଗ ତଥ୍ୟ ବର୍ତ୍ତମାନ ଲୋଡ୍ ହୋଇନାହିଁ (ବର୍ତ୍ତମାନ ସକ୍ରିୟ କେନ୍ଦ୍ର: ${activeStationLabel})। ଲାଇଭ୍ ତଥ୍ୟ ଦେଖିବା ପାଇଁ ସ୍ଥାନ ପରିବର୍ତ୍ତନ କରନ୍ତୁ।
+
+**ଐତିହାସିକ ଜଳବାୟୁ ମାନକ (Climatology — ଲାଇଭ୍ ପର୍ଯ୍ୟବେକ୍ଷଣ ନୁହେଁ)**:
+• **ସାଧାରଣ ତାପମାତ୍ରା ସୀମା**: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C
+• **ସାଧାରଣ ପାଣିପାଗ**: ${climatologyCondStr}
+• **ସାଧାରଣ ଆର୍ଦ୍ରତା**: ~${matchedState.typicalHumidity}%
+• **ସାଧାରଣ NAQI ସନ୍ଦର୍ଭ**: ~${matchedState.typicalAqi} (${climatologyAqiStatStr})`;
+
+      localizedStateAnswer = `### ପାଣିପାଗ ପ୍ରୋଫାଇଲ୍: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'କେନ୍ଦ୍ରଶାସିତ ଅଞ୍ଚଳ' : 'ରାଜ୍ୟ'})
 • **ଆଞ୍ଚଳିକ ପାଣିପାଗ କେନ୍ଦ୍ର (RMC/MC)**: ${matchedState.rmcMc}
 • **ପ୍ରମୁଖ ପାଣିପାଗ ବେଧଶାଳା**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **ଡପଲର ପାଣିପାଗ ରାଡାର୍ କଭରେଜ୍**: ${matchedState.primaryRadar}
 
-**ସକ୍ରିୟ ବାୟୁମଣ୍ଡଳୀୟ ପର୍ଯ୍ୟବେକ୍ଷଣ ଓ ତଥ୍ୟ**:
-• **ବାୟୁ ତାପମାତ୍ରା**: ${tempToUse}°C (ସ୍ୱାଭାବିକ ଦୈନିକ ସୀମା: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
-• **ପାଣିପାଗ ସ୍ଥିତି**: ${conditionToUse}
-• **ଆପେକ୍ଷିକ ଆର୍ଦ୍ରତା**: ${humidityToUse}%
-• **ଜାତୀୟ ବାୟୁ ଗୁଣବତ୍ତା ସୂଚକାଙ୍କ (NAQI)**: ${aqiToUse} (${aqiStatToUse})
+${telemetryBlock}
 • **କୃଷି-ପରିବେଶ ଜୋନ୍**: ${matchedState.agroZone}
 
 **ଆଞ୍ଚଳିକ ପାଣିପାଗ ବିଶେଷତା**:
@@ -115,7 +147,7 @@ export function matchMausamQuery(
 **ପାଣିପାଗ ବିପଦ ଓ ସତର୍କତା**:
 • ${matchedState.synopticHazards}
 
-*ତଥ୍ୟ ଅଦ୍ୟତନ: ${timeStr} IST | ଭାରତୀୟ ପାଣିପାଗ ବିଭାଗ (IMD) ଦ୍ୱାରା ପ୍ରମାଣିତ*`;
+*ସନ୍ଦର୍ଭ ସମୟ: ${timeStr} IST | ${isCurrentActiveState ? 'ସକ୍ରିୟ ଟେଲିମେଟ୍ରି' : 'IMD ଜଳବାୟୁ ପ୍ରୋଫାଇଲ୍ (ଲାଇଭ୍ ନୁହେଁ)'}*`;
       followUps = [
         `${matchedState.name} ପାଇଁ ଆଗାମୀ ବର୍ଷା ପୂର୍ବାନୁମାନ କ’ଣ?`,
         `${matchedState.name} ପାଇଁ କୃଷି ପାଣିପାଗ ପରାମର୍ଶ`,
@@ -123,16 +155,27 @@ export function matchMausamQuery(
         'ବର୍ତ୍ତମାନ ପାଣିପାଗ ଓ ବର୍ଷା ସ୍ଥିତି କିପରି ଅଛି?',
       ];
     } else if (langKey === 'hi') {
-      localizedStateAnswer = `### मौसम विज्ञान प्रोफाइल एवं टेलीमेट्री: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'केंद्र शासित प्रदेश' : 'राज्य'})
+      const telemetryBlock = isCurrentActiveState
+        ? `**सक्रिय वायुमंडलीय अवलोकन (${activeStationLabel})**:
+• **वायु तापमान**: ${activeTempStr} (सामान्य तापमान सीमा: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
+• **मौसम की स्थिति**: ${condStr}
+• **सापेक्ष आर्द्रता**: ${activeHumidityStr}
+• **राष्ट्रीय वायु गुणवत्ता सूचकांक (NAQI)**: ${activeAqiStr}`
+        : `**सक्रिय लाइव टेलीमेट्री**:
+• ${matchedState.name} के लिए लाइव सतही और AQI डेटा अभी लोड नहीं है (वर्तमान सिंक स्टेशन: ${activeStationLabel})। लाइव रीडिंग के लिए स्थान बदलें।
+
+**ऐतिहासिक जलवायु मानक (Climatology — लाइव अवलोकन नहीं)**:
+• **सामान्य तापमान सीमा**: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C
+• **सामान्य मौसमी स्थिति**: ${climatologyCondStr}
+• **सामान्य आर्द्रता**: ~${matchedState.typicalHumidity}%
+• **सामान्य NAQI संदर्भ**: ~${matchedState.typicalAqi} (${climatologyAqiStatStr})`;
+
+      localizedStateAnswer = `### मौसम विज्ञान प्रोफाइल: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'केंद्र शासित प्रदेश' : 'राज्य'})
 • **क्षेत्रीय मौसम केंद्र (RMC/MC)**: ${matchedState.rmcMc}
 • **प्रमुख वेधशाला**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **डॉपलर रडार कवरेज**: ${matchedState.primaryRadar}
 
-**सक्रिय वायुमंडलीय अवलोकन एवं मानक**:
-• **वायु तापमान**: ${tempToUse}°C (सामान्य तापमान सीमा: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
-• **मौसम की स्थिति**: ${conditionToUse}
-• **सापेक्ष आर्द्रता**: ${humidityToUse}%
-• **राष्ट्रीय वायु गुणवत्ता सूचकांक (NAQI)**: ${aqiToUse} (${aqiStatToUse})
+${telemetryBlock}
 • **कृषि-पारिस्थितिकीय क्षेत्र**: ${matchedState.agroZone}
 
 **क्षेत्रीय मौसम की मुख्य विशेषताएं**:
@@ -141,7 +184,7 @@ export function matchMausamQuery(
 **मौसम संबंधी खतरे व संवेदनशीलता**:
 • ${matchedState.synopticHazards}
 
-*डेटा सिंक: ${timeStr} IST | भारतीय मौसम विज्ञान विभाग (IMD) द्वारा सत्यापित*`;
+*संदर्भ समय: ${timeStr} IST | ${isCurrentActiveState ? 'सक्रिय टेलीमेट्री' : 'IMD जलवायु प्रोफाइल (लाइव नहीं)'}*`;
       followUps = [
         `${matchedState.name} के लिए वर्षा का पूर्वानुमान क्या है?`,
         `${matchedState.name} के लिए कृषि मौसम सलाह`,
@@ -149,16 +192,27 @@ export function matchMausamQuery(
         'वर्तमान मौसम और तापमान की स्थिति',
       ];
     } else if (langKey === 'bn') {
-      localizedStateAnswer = `### আবহাওয়া প্রোফাইল এবং টেলিমেট্রি: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'কেন্দ্রশাসিত অঞ্চল' : 'রাজ্য'})
+      const telemetryBlock = isCurrentActiveState
+        ? `**সক্রিয় বায়ুমণ্ডলীয় পর্যবেক্ষণ (${activeStationLabel})**:
+• **বায়ুর তাপমাত্রা**: ${activeTempStr} (স্বাভাবিক তাপমাত্রা: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
+• **আবহাওয়ার অবস্থা**: ${condStr}
+• **আপেক্ষিক আর্দ্রতা**: ${activeHumidityStr}
+• **জাতীয় বায়ুর মান সূচক (NAQI)**: ${activeAqiStr}`
+        : `**সক্রিয় লাইভ টেলিমেট্রি**:
+• ${matchedState.name}-এর লাইভ পর্যবেক্ষণ বর্তমানে লোড করা নেই (বর্তমান সিঙ্ক করা স্টেশন: ${activeStationLabel})। লাইভ ডেটা পেতে অবস্থান পরিবর্তন করুন।
+
+**ঐতিহাসিক জলবায়ু মানদণ্ড (Climatology — লাইভ পর্যবেক্ষণ নয়)**:
+• **স্বাভাবিক তাপমাত্রার পরিসর**: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C
+• **সাধারণ মৌসুমি অবস্থা**: ${climatologyCondStr}
+• **সাধারণ আর্দ্রতা**: ~${matchedState.typicalHumidity}%
+• **সাধারণ NAQI রেফারেন্স**: ~${matchedState.typicalAqi} (${climatologyAqiStatStr})`;
+
+      localizedStateAnswer = `### আবহাওয়া প্রোফাইল: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'কেন্দ্রশাসিত অঞ্চল' : 'রাজ্য'})
 • **আঞ্চলিক আবহাওয়া কেন্দ্র (RMC/MC)**: ${matchedState.rmcMc}
 • **প্রধান মানমন্দির**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **ডপলার রাডার কভারেজ**: ${matchedState.primaryRadar}
 
-**সক্রিয় বায়ুমণ্ডলীয় পর্যবেক্ষণ**:
-• **বায়ুর তাপমাত্রা**: ${tempToUse}°C (স্বাভাবিক তাপমাত্রা: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
-• **আবহাওয়ার অবস্থা**: ${conditionToUse}
-• **আপেক্ষিক আর্দ্রতা**: ${humidityToUse}%
-• **জাতীয় বায়ুর মান সূচক (NAQI)**: ${aqiToUse} (${aqiStatToUse})
+${telemetryBlock}
 • **কৃষি-বাস্তুতান্ত্রিক অঞ্চল**: ${matchedState.agroZone}
 
 **আঞ্চলিক আবহাওয়ার বৈশিষ্ট্য**:
@@ -167,7 +221,7 @@ export function matchMausamQuery(
 **আবহাওয়া সংক্রান্ত ঝুঁকি ও সতর্কতা**:
 • ${matchedState.synopticHazards}
 
-*তথ্য আপডেট: ${timeStr} IST | ভারতীয় আবহাওয়া অধিদপ্তর (IMD) দ্বারা যাচাইকৃত*`;
+*সময়: ${timeStr} IST | ${isCurrentActiveState ? 'সক্রিয় টেলিমেট্রি' : 'IMD জলবায়ু প্রোফাইল (লাইভ নয়)'}*`;
       followUps = [
         `${matchedState.name}-এর জন্য বৃষ্টির পূর্বাভাস কী?`,
         `${matchedState.name}-এর জন্য কৃষি আবহাওয়া পরামর্শ`,
@@ -175,16 +229,27 @@ export function matchMausamQuery(
         'বর্তমান আবহাওয়া ও তাপমাত্রার অবস্থা',
       ];
     } else {
-      localizedStateAnswer = `### Meteorological Profile & Telemetry: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'Union Territory' : 'State'})
+      const telemetryBlock = isCurrentActiveState
+        ? `**Active Atmospheric Telemetry (${activeStationLabel})**:
+• **Air Temperature**: ${activeTempStr} (Seasonal Normal Range: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
+• **Atmospheric Condition**: ${condStr}
+• **Relative Humidity**: ${activeHumidityStr}
+• **National Air Quality Index (NAQI)**: ${activeAqiStr}`
+        : `**Live Telemetry Status**:
+• Live surface & AQI telemetry is not loaded for ${matchedState.name} (currently synced to ${activeStationLabel}). Switch location to fetch live observations.
+
+**Historical Climatology Baseline (Seasonal Normals — Not Live Observations)**:
+• **Typical Diurnal Temperature Range**: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C
+• **Typical Seasonal Condition**: ${climatologyCondStr}
+• **Typical Relative Humidity**: ~${matchedState.typicalHumidity}%
+• **Typical NAQI Reference**: ~${matchedState.typicalAqi} (${climatologyAqiStatStr})`;
+
+      localizedStateAnswer = `### Meteorological Profile: ${matchedState.name} (${matchedState.type === 'UNION_TERRITORY' ? 'Union Territory' : 'State'})
 • **Regional Met Centre**: ${matchedState.rmcMc}
 • **Representative Observatory**: ${matchedState.representativeStation} (${formatCoordinatePair(matchedState.lat, matchedState.lng, 2)} | ID: ${matchedState.stationId})
 • **Doppler Radar Coverage**: ${matchedState.primaryRadar}
 
-**Active Atmospheric Telemetry & Baseline**:
-• **Air Temperature**: ${tempToUse}°C (Normal Diurnal Range: ${matchedState.normalTemp.min}°C – ${matchedState.normalTemp.max}°C)
-• **Atmospheric Condition**: ${conditionToUse}
-• **Relative Humidity**: ${humidityToUse}%
-• **National Air Quality Index (NAQI)**: ${aqiToUse} (${aqiStatToUse})
+${telemetryBlock}
 • **Agro-Ecological Zone**: ${matchedState.agroZone}
 
 **Regional Synoptic Highlights**:
@@ -193,7 +258,7 @@ export function matchMausamQuery(
 **Synoptic Hazards & Vulnerabilities**:
 • ${matchedState.synopticHazards}
 
-*Data Synced: ${timeStr} IST | Verified by India Meteorological Department (IMD)*`;
+*Generated: ${timeStr} IST | ${isCurrentActiveState ? 'Active Synced Telemetry' : 'Regional Climatology Profile (Non-Live Reference)'}*`;
       followUps = [
         `What is the rainfall forecast for ${matchedState.name}?`,
         `Agromet farming advisory for ${matchedState.name}`,
@@ -204,14 +269,16 @@ export function matchMausamQuery(
 
     return {
       answer: localizedStateAnswer,
-      source: `India Meteorological Department (IMD) — ${matchedState.rmcMc}`,
+      source: isCurrentActiveState
+        ? `Active Station Telemetry & IMD Reference — ${matchedState.rmcMc}`
+        : `Regional Climatology Reference (Non-Live) — ${matchedState.rmcMc}`,
       category: 'states_regional',
       groundingSources: [
         { title: `IMD ${matchedState.name} Regional Met Centre`, url: 'https://mausam.imd.gov.in', type: 'search' },
         { title: 'National Weather Forecasting Centre (NWFC)', url: 'https://mausam.imd.gov.in/imd_latest/contents/all_india_forcast_bulletin.php', type: 'search' },
       ],
       suggestedFollowUps: followUps,
-      modeUsed: 'state-grounded-intelligence',
+      modeUsed: isCurrentActiveState ? 'state-grounded-live-telemetry' : 'state-climatology-reference',
     };
   }
 

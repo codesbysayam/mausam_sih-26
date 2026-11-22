@@ -77,13 +77,13 @@ export const DailyForecast: React.FC<DailyForecastProps> = ({ daily }) => {
     {
       header: language === 'hi' ? 'वर्षा की संभावना' : language === 'or' ? 'ବର୍ଷାର ସମ୍ଭାବନା' : 'Rainfall & Probability',
       render: (item) => {
-        const prob = item.rainProb || 0;
+        const prob = typeof item.rainProb === 'number' && Number.isFinite(item.rainProb) ? Math.round(item.rainProb) : null;
         return (
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-mono font-bold ${prob > 40 ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-secondary)]'}`}>
-              {prob}%
+            <span className={`text-xs font-mono tabular-nums font-bold ${prob !== null && prob > 40 ? 'text-[var(--m-accent)]' : 'text-[var(--m-text-secondary)]'}`}>
+              {prob !== null ? `${prob}%` : '—'}
             </span>
-            {prob > 60 && (
+            {prob !== null && prob > 60 && (
               <StatusBadge
                 label={language === 'hi' ? 'संभावित' : language === 'or' ? 'ସମ୍ଭାବ୍ୟ' : 'Likely'}
                 variant="info"
@@ -96,21 +96,27 @@ export const DailyForecast: React.FC<DailyForecastProps> = ({ daily }) => {
     },
     {
       header: language === 'hi' ? 'आर्द्रता एवं हवा' : language === 'or' ? 'ଆର୍ଦ୍ରତା ଏବଂ ପବନ' : 'Humidity & Wind',
-      render: (item) => (
-        <div className="text-xs text-[var(--m-text-secondary)]">
-          <span>RH: <strong className="text-[var(--m-text-primary)] font-mono">{item.humidity}%</strong></span>
-          <span className="mx-1.5">•</span>
-          <span>Wind: <strong className="text-[var(--m-text-primary)] font-mono">{item.wind || '12 km/h NE'}</strong></span>
-        </div>
-      ),
+      render: (item) => {
+        const rh = typeof item.humidity === 'number' && Number.isFinite(item.humidity) ? `${Math.round(item.humidity)}%` : '—';
+        return (
+          <div className="text-xs text-[var(--m-text-secondary)] font-mono tabular-nums">
+            <span><span className="font-sans">RH:</span> <strong className="text-[var(--m-text-primary)]">{rh}</strong></span>
+            <span className="mx-1.5">•</span>
+            <span><span className="font-sans">Wind:</span> <strong className="text-[var(--m-text-primary)]">{item.wind || '—'}</strong></span>
+          </div>
+        );
+      },
     },
     {
       header: language === 'hi' ? 'मौसम दृष्टिकोण' : language === 'or' ? 'ପାଣିପାଗ ପରିଦୃଶ୍ୟ' : 'Meteorological Outlook',
-      render: (item) => (
-        <div className="text-xs text-[var(--m-text-secondary)]">
-          {item.condition ? `${tCondition(item.condition)} • UV ${item.uv}` : 'Fair weather with clear to partly cloudy skies'}
-        </div>
-      ),
+      render: (item) => {
+        const uvStr = typeof item.uv === 'number' && Number.isFinite(item.uv) ? ` • UV ${item.uv.toFixed(1)}` : '';
+        return (
+          <div className="text-xs text-[var(--m-text-secondary)]">
+            {item.condition ? `${tCondition(item.condition)}${uvStr}` : '—'}
+          </div>
+        );
+      },
     },
   ];
 

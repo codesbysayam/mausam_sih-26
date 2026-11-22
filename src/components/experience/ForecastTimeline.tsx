@@ -5,11 +5,19 @@
 // with 0.5x / 1x / 2x playback speed and honest provenance badges.
 // ====================================================================
 
-import React, { useEffect, useMemo } from 'react';
-import { Play, Pause, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Play, Pause, SkipBack, SkipForward, RotateCcw, Repeat } from 'lucide-react';
 import type { HourlyForecastItem } from '../../types';
 import type { RadarApiResponse } from '../../services/radarService';
 import { useExperience } from '../../context/ExperienceContext';
+import {
+  buildTimelineSeries,
+  getPlaybackIntervalMs,
+  reconcileIndexOnRefresh,
+  stepTimelineIndex,
+  type TimelineFrame,
+  type TimelineSeriesKind,
+} from '../../utils/playbackController';
 
 interface ForecastTimelineProps {
   hourly: HourlyForecastItem[];
@@ -25,67 +33,96 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
     setTimelineIndex,
     isTimelinePlaying,
     setIsTimelinePlaying,
+    isTimelineLooping,
+    setIsTimelineLooping,
     playbackSpeed,
     setPlaybackSpeed,
   } = useExperience();
 
-  const isRadarMode = activeLayer === 'radar' && (radarData?.pastFrames?.length || 0) > 0;
+  const series = useMemo(
+    () => buildTimelineSeries(activeLayer, hourly, radarData),
+    [activeLayer, hourly, radarData]
+  );
 
-  const radarFrames = useMemo(() => {
-    if (!isRadarMode || !radarData) return [];
-    return [...(radarData.pastFrames || []), ...(radarData.nowcastFrames || [])];
-  }, [isRadarMode, radarData]);
+  const totalSlots = series.frames.length;
+  const safeIdx = totalSlots > 0 ? Math.max(0, Math.min(timelineIndex, totalSlots - 1)) : 0;
 
-  const hourlySlots = useMemo(() => (hourly || []).slice(0, 24), [hourly]);
-  const totalSlots = isRadarMode ? radarFrames.length : hourlySlots.length;
-  const safeIdx = totalSlots > 0 ? Math.min(timelineIndex, totalSlots - 1) : 0;
+  const prevModeRef = useRef<TimelineSeriesKind>(series.modeKey);
+  const prevFramesRef = useRef<TimelineFrame[]>(series.frames);
+  const timelineIndexRef = useRef<number>(timelineIndex);
+  timelineIndexRef.current = timelineIndex;
 
-  // Auto-advance playback scaled cleanly by playbackSpeed (0.5x / 1x / 2x)
+  // Reset timeline index & pause cleanly on series mode switch (radar <-> forecast);
+  // preserve active timestamp across background data refreshes within the same mode.
+  useEffect(() => {
+    if (prevModeRef.current !== series.modeKey) {
+      prevModeRef.current = series.modeKey;
+      prevFramesRef.current = series.frames;
+      setIsTimelinePlaying(false);
+      setTimelineIndex(0);
+      return;
+    }
+
+    if (prevFramesRef.current !== series.frames) {
+      const reconciled = reconcileIndexOnRefresh(
+        prevFramesRef.current,
+        timelineIndexRef.current,
+        series.frames
+      );
+      prevFramesRef.current = series.frames;
+      if (reconciled !== timelineIndexRef.current) {
+        setTimelineIndex(reconciled);
+      }
+      if (series.frames.length <= 1) {
+        setIsTimelinePlaying(false);
+      }
+    }
+  }, [series, setIsTimelinePlaying, setTimelineIndex]);
+
+  // Pause playback automatically when browser tab becomes hidden
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        setIsTimelinePlaying(false);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [setIsTimelinePlaying]);
+
+  // Auto-advance playback with explicit Loop ON/OFF handling
   useEffect(() => {
     if (!isTimelinePlaying || totalSlots <= 1) return;
-    const intervalMs = Math.round(1100 / playbackSpeed);
+    const intervalMs = getPlaybackIntervalMs(playbackSpeed);
     const timer = setInterval(() => {
-      setTimelineIndex((prev) => (prev + 1 >= totalSlots ? 0 : prev + 1));
+      let stopped = false;
+      setTimelineIndex((prev) => {
+        const res = stepTimelineIndex(prev, totalSlots, isTimelineLooping);
+        stopped = res.shouldStop;
+        return res.nextIndex;
+      });
+      if (stopped) {
+        setIsTimelinePlaying(false);
+      }
     }, intervalMs);
     return () => clearInterval(timer);
-  }, [isTimelinePlaying, totalSlots, playbackSpeed, setTimelineIndex]);
+  }, [isTimelinePlaying, isTimelineLooping, totalSlots, playbackSpeed, setTimelineIndex, setIsTimelinePlaying]);
 
-  const activeLabel = useMemo(() => {
-    if (isRadarMode && radarFrames[safeIdx]) {
-      const f = radarFrames[safeIdx];
-      return {
-        time: f.formattedTime || f.relativeLabel || 'Radar Scan',
-        kind: (f.ageMinutes ?? 0) <= 0 ? 'NOWCAST' : 'OBSERVED',
-        detail: f.relativeLabel || `${f.ageMinutes}m ago`,
-        source: 'IMD / RainViewer Radar',
-      };
-    }
-    const h = hourlySlots[safeIdx];
-    if (!h) {
-      return {
+  const activeFrame = series.frames[safeIdx];
+  const activeLabel = activeFrame
+    ? {
+        time: activeFrame.timeLabel,
+        kind: activeFrame.kind,
+        detail: activeFrame.detail,
+        source: activeFrame.source,
+      }
+    : {
         time: 'Unavailable',
-        kind: 'UNAVAILABLE',
-        detail: 'No verified hourly model series loaded',
-        source: 'Open-Meteo Model Grid',
+        kind: 'UNAVAILABLE' as const,
+        detail: 'No verified hourly or radar time series loaded',
+        source: series.source,
       };
-    }
-    const tempStr =
-      typeof h.temp === 'number' && Number.isFinite(h.temp) ? `${Math.round(h.temp)}°C` : '—';
-    const rainStr =
-      typeof h.rainProb === 'number' && Number.isFinite(h.rainProb)
-        ? `Rain ${Math.round(h.rainProb)}%`
-        : 'Rain —';
-    const windStr =
-      typeof h.windSpeed === 'number' && Number.isFinite(h.windSpeed)
-        ? `${Math.round(h.windSpeed)} km/h`
-        : 'Wind —';
-    return {
-      time: h.time,
-      kind: safeIdx === 0 || h.isNow ? 'MODEL VALID' : 'FORECAST',
-      detail: `${tempStr} · ${rainStr} · ${windStr}`,
-      source: 'Open-Meteo Model Grid',
-    };
-  }, [isRadarMode, radarFrames, hourlySlots, safeIdx]);
 
   if (totalSlots === 0) {
     return (
@@ -101,15 +138,18 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
   return (
     <section
       aria-label="Atmospheric Time Progression"
-      className="explore-forecast-timeline fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(740px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
+      className="explore-forecast-timeline fixed bottom-2.5 left-2.5 right-2.5 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[min(760px,calc(100vw-40px))] z-30 pointer-events-auto safe-area-bottom"
     >
       <div className="spatial-hud-surface rounded-[11px] px-3 py-2 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
-          {/* Playback & Speed Controls */}
+          {/* Playback, Loop & Speed Controls */}
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              onClick={() => setTimelineIndex((p) => (p > 0 ? p - 1 : totalSlots - 1))}
+              onClick={() => {
+                setIsTimelinePlaying(false);
+                setTimelineIndex((p) => (p > 0 ? p - 1 : totalSlots - 1));
+              }}
               aria-label="Previous time step"
               className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
@@ -117,7 +157,12 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             </button>
             <button
               type="button"
-              onClick={() => setIsTimelinePlaying((v) => !v)}
+              onClick={() => {
+                if (!isTimelinePlaying && safeIdx >= totalSlots - 1 && !isTimelineLooping) {
+                  setTimelineIndex(0);
+                }
+                setIsTimelinePlaying((v) => !v);
+              }}
               aria-label={
                 isTimelinePlaying ? 'Pause atmospheric playback' : 'Play atmospheric playback'
               }
@@ -131,11 +176,30 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
             </button>
             <button
               type="button"
-              onClick={() => setTimelineIndex((p) => (p + 1) % totalSlots)}
+              onClick={() => {
+                setIsTimelinePlaying(false);
+                setTimelineIndex((p) => (p + 1) % totalSlots);
+              }}
               aria-label="Next time step"
               className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
             >
               <SkipForward className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Loop ON/OFF Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsTimelineLooping((v) => !v)}
+              aria-pressed={isTimelineLooping}
+              title={isTimelineLooping ? 'Loop playback: ON' : 'Loop playback: OFF'}
+              aria-label={isTimelineLooping ? 'Disable loop playback' : 'Enable loop playback'}
+              className={`min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer m-focus-ring ${
+                isTimelineLooping
+                  ? 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
+                  : 'bg-transparent text-[var(--m-text-muted)] border-transparent hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
+              }`}
+            >
+              <Repeat className="w-3.5 h-3.5" />
             </button>
 
             {/* Playback Speed Switcher (0.5x / 1x / 2x) */}
@@ -168,8 +232,8 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
                   setIsTimelinePlaying(false);
                   setTimelineIndex(0);
                 }}
-                title="Jump to current slot"
-                aria-label="Reset to current slot"
+                title="Jump to first frame"
+                aria-label="Reset to first frame"
                 className="min-w-[40px] min-h-[40px] sm:min-w-[32px] sm:min-h-[32px] flex items-center justify-center rounded-lg text-[var(--m-accent)] hover:bg-[var(--m-accent-soft)] cursor-pointer m-focus-ring"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -183,7 +247,9 @@ export const ForecastTimeline: React.FC<ForecastTimelineProps> = ({ hourly, rada
               className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 border ${
                 activeLabel.kind === 'OBSERVED'
                   ? 'bg-[var(--m-ok-soft)] text-[var(--m-ok)] border-[var(--m-ok)]/35'
-                  : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
+                  : activeLabel.kind === 'UNAVAILABLE'
+                    ? 'bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border-[var(--m-border)]'
+                    : 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35'
               }`}
             >
               {activeLabel.kind}

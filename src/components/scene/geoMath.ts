@@ -108,25 +108,48 @@ export interface SpatialRegionPoint {
 }
 
 /**
- * Joins the 36 live-schema StateWeatherData records with verified coordinates from indiaRegions.ts.
+ * Pure join of StateWeatherData records with verified coordinates from indiaRegions.ts.
+ * Any state without verified finite coordinates is omitted rather than plotted at a
+ * fabricated central-India fallback coordinate.
  */
-export function getMergedStatePoints(): SpatialRegionPoint[] {
-  return INDIA_WEATHER_DATA.map((state) => {
+export function resolveMergedStatePoints(
+  states: readonly StateWeatherData[],
+  regions: readonly {
+    name: string;
+    representativeCity: string;
+    latitude: number;
+    longitude: number;
+    code: string;
+  }[]
+): SpatialRegionPoint[] {
+  const points: SpatialRegionPoint[] = [];
+  for (const state of states) {
     const norm = state.name.toLowerCase().trim();
-    const region = INDIA_STATES_UTS.find(
+    const region = regions.find(
       (r) =>
         r.name.toLowerCase() === norm ||
         r.name.toLowerCase().includes(norm) ||
         norm.includes(r.name.toLowerCase()) ||
         (state.city && r.representativeCity.toLowerCase() === state.city.toLowerCase())
     );
-    return {
+    if (!region || !Number.isFinite(region.latitude) || !Number.isFinite(region.longitude)) {
+      continue;
+    }
+    points.push({
       state,
-      lat: region?.latitude ?? 22.5,
-      lng: region?.longitude ?? 78.9,
-      code: region?.code ?? state.id.replace('IN-', ''),
-    };
-  });
+      lat: region.latitude,
+      lng: region.longitude,
+      code: region.code || state.id.replace('IN-', ''),
+    });
+  }
+  return points;
+}
+
+/**
+ * Joins the live-schema StateWeatherData records with verified coordinates from indiaRegions.ts.
+ */
+export function getMergedStatePoints(): SpatialRegionPoint[] {
+  return resolveMergedStatePoints(INDIA_WEATHER_DATA, INDIA_STATES_UTS);
 }
 
 /**

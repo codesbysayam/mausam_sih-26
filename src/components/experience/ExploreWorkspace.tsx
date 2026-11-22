@@ -104,6 +104,7 @@ export const ExploreWorkspace: React.FC<ExploreWorkspaceProps> = ({
           activeLayer={activeLayer}
           selectedLocation={selectedLocation}
           radarData={radarProvider.data}
+          timelineIndex={timelineIndex}
           reason={webglUnavailableReason || 'User switched to 2D Interactive Map'}
           onSelectFeature={(feature) => setInspectedFeature(feature)}
           onSwitchBackTo3D={() => setRendererMode('3d')}

@@ -18,6 +18,8 @@
 // 6. Live diagnostics ALWAYS emit Cache-Control: no-store headers.
 // ====================================================================
 
+import { getAssistantEndpoint } from '../lib/providers/ai';
+
 export const APP_BUILD_ID = process.env.APP_BUILD_ID || 'MAUSAM-V1.5.0-20261121';
 export const GIT_COMMIT_SHA =
   process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) ||
@@ -37,7 +39,7 @@ export interface ProviderDiagnostic {
   id: string;
   code: string;
   name: string;
-  category: 'OPEN_DATA' | 'GOVERNMENT' | 'COMMERCIAL';
+  category: 'OPEN_DATA' | 'GOVERNMENT' | 'COMMERCIAL' | 'ASSISTANT' | 'AI_ASSISTANT';
   role: string;
   core: boolean;
   requiredKey: string | null;
@@ -127,7 +129,7 @@ interface ProviderProbeDefinition {
   id: string;
   code: string;
   name: string;
-  category: 'OPEN_DATA' | 'GOVERNMENT' | 'COMMERCIAL';
+  category: 'OPEN_DATA' | 'GOVERNMENT' | 'COMMERCIAL' | 'ASSISTANT';
   role: string;
   core: boolean;
   requiredKey: string | null;
@@ -408,45 +410,6 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     },
   },
   {
-    id: 'gemini',
-    code: 'GEMINI_AI',
-    name: 'Google Gemini Meteorological Assistant',
-    category: 'COMMERCIAL',
-    role: 'Server-Side Ask MAUSAM AI & Neural TTS',
-    core: false,
-    requiredKey: 'GEMINI_API_KEY',
-    publicEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
-    attribution: 'Google GenAI API (Server-Side Only)',
-    timeoutMs: 3800,
-    buildRequest: (env) => {
-      const key = (env.GEMINI_API_KEY || '').trim();
-      return {
-        configured: key.length > 0,
-        url: 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1',
-        headers: key ? { 'x-goog-api-key': key, Accept: 'application/json' } : undefined,
-      };
-    },
-    validateResponse: async (res) => {
-      try {
-        const json = await res.json();
-        if (Array.isArray(json?.models) && json.models.length > 0) {
-          return { ok: true, status: 'OPERATIONAL', error: null };
-        }
-        return {
-          ok: false,
-          status: 'DEGRADED',
-          error: 'Gemini API responded HTTP 200 without models list',
-        };
-      } catch {
-        return {
-          ok: false,
-          status: 'DEGRADED',
-          error: 'Gemini API returned non-JSON response',
-        };
-      }
-    },
-  },
-  {
     id: 'imd',
     code: 'IMD',
     name: 'India Meteorological Department Direct API',
@@ -454,16 +417,34 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     role: 'Optional Authenticated IMD Surface Feed',
     core: false,
     requiredKey: 'IMD_API_KEY',
-    publicEndpoint: 'https://city.imd.gov.in',
+    publicEndpoint: 'Configured via IMD_API_BASE_URL',
     attribution: 'India Meteorological Department (IMD), MoES',
     timeoutMs: 4200,
     buildRequest: (env) => {
-      const key = (env.IMD_API_KEY || env.IMD_API_TOKEN || '').trim();
-      const base = (env.IMD_API_BASE_URL || 'https://city.imd.gov.in').trim().replace(/\/+$/, '');
+      const enabled = (env.IMD_API_ENABLED || 'false').trim().toLowerCase() === 'true';
+      const key = (env.IMD_API_KEY || '').trim();
+      const token = (env.IMD_API_TOKEN || '').trim();
+      const base = (env.IMD_API_BASE_URL || '').trim().replace(/\/+$/, '');
+      let validBase = false;
+      if (base) {
+        try {
+          const parsed = new URL(base);
+          const isPrivate =
+            /^(localhost|127\.|0\.0\.0\.0|::1|\[::1\]|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(
+              parsed.hostname.toLowerCase()
+            );
+          validBase = parsed.protocol === 'https:' && !isPrivate && !parsed.username && !parsed.password;
+        } catch {
+          validBase = false;
+        }
+      }
+      const headers: Record<string, string> = { Accept: 'application/json, text/html, */*' };
+      if (key) headers['X-IMD-API-KEY'] = key;
+      if (token) headers.Authorization = `Bearer ${token}`;
       return {
-        configured: key.length > 0,
-        url: base,
-        headers: key ? { Authorization: `Bearer ${key}`, Accept: 'application/json, text/html, */*' } : undefined,
+        configured: enabled && validBase && Boolean(key || token),
+        url: base || 'https://api.imd.gov.in',
+        headers,
       };
     },
     validateResponse: async (res) => {
@@ -671,7 +652,7 @@ export async function probeProvider(
   }
 
   const secretsToRedact = [
-    env.GEMINI_API_KEY,
+    env.MAUSAM_ASSISTANT_API_KEY,
     env.IMD_API_KEY,
     env.IMD_API_TOKEN,
     env.CPCB_API_KEY,
@@ -990,13 +971,62 @@ async function probeDatabase(deps: ProbeRuntimeDeps = {}): Promise<GatewayDataba
   };
 }
 
+function buildAssistantDiagnostic(
+  env: Record<string, string | undefined>,
+  checkedAt: string
+): ProviderDiagnostic {
+  const assistantMode = (env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
+  const assistantLocalMode = assistantMode !== 'remote';
+  const assistantApiKey = env.MAUSAM_ASSISTANT_API_KEY?.trim();
+  const normalizedEndpoint = getAssistantEndpoint(env as NodeJS.ProcessEnv);
+  const assistantConfigured = assistantLocalMode || Boolean(normalizedEndpoint && assistantApiKey);
+
+  const message = assistantLocalMode
+    ? 'Grounded local assistant active. No API key required.'
+    : assistantConfigured
+      ? 'Remote assistant configured. Live availability is verified during an actual request.'
+      : 'Remote assistant is optional. Grounded local mode remains available.';
+
+  return {
+    id: 'assistant',
+    code: 'MAUSAM_ASSISTANT',
+    name: 'MAUSAM Assistant',
+    category: 'AI_ASSISTANT',
+    role: assistantLocalMode
+      ? 'Grounded Local Meteorological Assistant (Keyless)'
+      : 'Optional Server-Side Conversational Assistant (OpenAI-Compatible)',
+    core: false,
+    requiredKey: assistantLocalMode ? null : 'MAUSAM_ASSISTANT_API_KEY',
+    configured: assistantConfigured,
+    operational: assistantLocalMode,
+    reachable: assistantLocalMode,
+    status: assistantLocalMode
+      ? 'OPERATIONAL'
+      : assistantConfigured
+        ? 'DEGRADED'
+        : 'NOT_CONFIGURED',
+    latencyMs: null,
+    httpStatus: null,
+    lastChecked: checkedAt,
+    lastSuccess: assistantLocalMode ? checkedAt : null,
+    lastFailure: null,
+    endpoint: assistantLocalMode
+      ? 'Grounded Local Telemetry (Keyless)'
+      : normalizedEndpoint || 'Optional via MAUSAM_ASSISTANT_API_URL',
+    error: message,
+    reason: message,
+    attribution: 'Grounded Local Telemetry / Optional Remote OpenAI-Compatible Endpoint (Server-Side Only)',
+  };
+}
+
 export async function checkAllProviders(deps: ProbeRuntimeDeps = {}): Promise<ProviderDiagnostic[]> {
+  const env = deps.env || process.env;
   const settled = await Promise.allSettled(
     PROVIDER_DEFINITIONS.map((def) => probeProvider(def, deps))
   );
 
   const now = new Date().toISOString();
-  return settled.map((result, idx) => {
+  const probed = settled.map((result, idx) => {
     const def = PROVIDER_DEFINITIONS[idx];
     if (result.status === 'fulfilled') {
       return result.value;
@@ -1024,6 +1054,9 @@ export async function checkAllProviders(deps: ProbeRuntimeDeps = {}): Promise<Pr
       attribution: def.attribution,
     };
   });
+
+  const assistant = buildAssistantDiagnostic(env, now);
+  return [...probed.slice(0, 6), assistant, ...probed.slice(6)];
 }
 
 export async function runHealthReport(deps: ProbeRuntimeDeps = {}): Promise<GatewayHealthPayload> {

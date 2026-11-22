@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI } from '@google/genai';
+import { MausamAssistantService } from './lib/providers/ai';
 import { imdRouter } from './server/routes/imdRoutes';
 import { authoritativeRouter } from './server/routes/authoritativeRoutes';
 import { realMausamRouter } from './server/routes/realMausamRoutes';
@@ -36,74 +36,11 @@ process.on('unhandledRejection', (reason) => {
   console.error('[Mausam Server] Unhandled Rejection:', reason);
 });
 
-let aiClient: GoogleGenAI | null = null;
-function getAIClient(): GoogleGenAI | null {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
-    aiClient = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
-  }
-  return aiClient;
-}
-
 interface GroundingLink {
   title: string;
   url: string;
   type: 'search' | 'maps';
   snippet?: string;
-}
-
-function isQuotaError(err: any): boolean {
-  if (!err) return false;
-  const str =
-    (typeof err === 'string' ? err : '') +
-    ' ' +
-    (err.message || '') +
-    ' ' +
-    (err.status || '') +
-    ' ' +
-    (err.code || '') +
-    ' ' +
-    JSON.stringify(err);
-  return (
-    str.includes('RESOURCE_EXHAUSTED') ||
-    str.includes('429') ||
-    str.includes('quota') ||
-    str.includes('exceeded your current quota') ||
-    str.includes('rate-limit')
-  );
-}
-
-function extractGroundingSources(response: any): GroundingLink[] {
-  const links: GroundingLink[] = [];
-  const candidate = response.candidates?.[0];
-  const chunks = candidate?.groundingMetadata?.groundingChunks;
-
-  if (Array.isArray(chunks)) {
-    for (const chunk of chunks) {
-      if (chunk.web?.uri) {
-        links.push({
-          title: chunk.web.title || chunk.web.uri,
-          url: chunk.web.uri,
-          type: 'search',
-        });
-      }
-      if (chunk.maps?.uri) {
-        links.push({
-          title: chunk.maps.title || 'Google Maps Location',
-          url: chunk.maps.uri,
-          type: 'maps',
-        });
-      }
-    }
-  }
-
-  return links;
 }
 
 async function startServer() {
@@ -171,130 +108,21 @@ async function startServer() {
   // Official IMD Agromet (GKMS) Live Metadata Endpoint
   app.use('/api/agromet', agrometImdRouter);
 
-  // Broadcast Neural TTS Endpoint (Gemini 3.8 Flash Lite TTS — Indian English & Hindi Bulletin Narration)
-  const ttsCache = new Map<string, { audioBase64: string; mimeType: string; voiceName: string; model: string; createdAt: number }>();
-  const TTS_CACHE_TTL_MS = 30 * 60 * 1000;
-  const TTS_CACHE_MAX = 24;
-
+  // Broadcast TTS Endpoint (gracefully instructs client to use Web Speech API when server TTS is not configured)
   app.post('/api/tts', async (req: express.Request, res: express.Response) => {
-    try {
-      const rawText = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
-      const language: 'en' | 'hi' = req.body?.language === 'hi' ? 'hi' : 'en';
-      const bulletinId = typeof req.body?.bulletinId === 'string' ? req.body.bulletinId.slice(0, 80) : 'default';
-
-      if (!rawText) {
-        return res.status(400).json({ ok: false, error: 'Missing bulletin text for speech synthesis.' });
-      }
-      if (rawText.length > 3500) {
-        return res.status(400).json({ ok: false, error: 'Bulletin text exceeds maximum narration length.' });
-      }
-
-      const voiceName = language === 'hi' ? 'Kore' : 'Charon';
-      const contentHash = crypto
-        .createHash('sha256')
-        .update(`${bulletinId}:${language}:${voiceName}:${rawText}`)
-        .digest('hex');
-
-      const cached = ttsCache.get(contentHash);
-      if (cached && Date.now() - cached.createdAt < TTS_CACHE_TTL_MS) {
-        return res.json({
-          ok: true,
-          cached: true,
-          engine: 'gemini-neural-tts',
-          model: cached.model,
-          voiceName: cached.voiceName,
-          language,
-          mimeType: cached.mimeType,
-          audioBase64: cached.audioBase64,
-        });
-      }
-
-      const client = getAIClient();
-      if (!client) {
-        return res.status(503).json({
-          ok: false,
-          code: 'TTS_PROVIDER_NOT_CONFIGURED',
-          error: 'Neural TTS server credentials are not configured; use browser speech fallback.',
-        });
-      }
-
-      const styleDirective =
-        language === 'hi'
-          ? 'Calm, authoritative Hindi meteorological news broadcaster in All India Radio / Doordarshan weather bulletin style. Crisp pronunciation of Indian state and city names, clear numerical readings, and measured natural pauses between sentences and paragraphs.'
-          : 'Calm, authoritative Indian English meteorological news broadcaster in India Meteorological Department / All India Radio bulletin style. Crisp pronunciation of Indian state, coastal, and district names, clear meteorological units and numbers, and measured natural pauses between sections.';
-
-      const ttsResponse = await client.models.generateContent({
-        model: 'gemini-3.8-flash-lite-tts',
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                text: rawText,
-                speechMetadata: {
-                  style: styleDirective,
-                },
-              } as any,
-            ],
-          },
-        ],
-        config: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName,
-              },
-            },
-          },
-        },
-      });
-
-      const audioPart = ttsResponse.candidates?.[0]?.content?.parts?.find(
-        (p: any) => p?.inlineData?.data
-      ) as any;
-      const base64Audio = audioPart?.inlineData?.data as string | undefined;
-      const mimeType = audioPart?.inlineData?.mimeType || 'audio/wav';
-
-      if (!base64Audio) {
-        return res.status(502).json({
-          ok: false,
-          code: 'TTS_EMPTY_AUDIO',
-          error: 'Neural TTS engine returned no audio stream.',
-        });
-      }
-
-      if (ttsCache.size >= TTS_CACHE_MAX) {
-        const oldestKey = ttsCache.keys().next().value;
-        if (oldestKey) ttsCache.delete(oldestKey);
-      }
-      ttsCache.set(contentHash, {
-        audioBase64: base64Audio,
-        mimeType,
-        voiceName,
-        model: 'gemini-3.8-flash-lite-tts',
-        createdAt: Date.now(),
-      });
-
-      return res.json({
-        ok: true,
-        cached: false,
-        engine: 'gemini-neural-tts',
-        model: 'gemini-3.8-flash-lite-tts',
-        voiceName,
-        language,
-        mimeType,
-        audioBase64: base64Audio,
-      });
-    } catch (err: any) {
-      const status = isQuotaError(err) ? 429 : 502;
-      console.warn('[Mausam TTS Error]', err?.message || err);
-      return res.status(status).json({
-        ok: false,
-        code: isQuotaError(err) ? 'TTS_QUOTA_EXCEEDED' : 'TTS_UPSTREAM_FAILED',
-        error: err?.message || 'Neural TTS generation failed.',
-      });
+    const rawText = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+    if (!rawText) {
+      return res.status(400).json({ ok: false, error: 'Missing bulletin text for speech synthesis.' });
     }
+    if (rawText.length > 3500) {
+      return res.status(400).json({ ok: false, error: 'Bulletin text exceeds maximum narration length.' });
+    }
+    return res.status(503).json({
+      ok: false,
+      code: 'TTS_PROVIDER_NOT_CONFIGURED',
+      fallback: 'browser-speech',
+      error: 'Server-side neural TTS is not configured; using browser Web Speech synthesis.',
+    });
   });
 
   // AI Assistant endpoint: Ask Mausam with Search & Maps Grounding
@@ -317,7 +145,7 @@ async function startServer() {
         warning,
         preferredLanguage,
       } = req.body;
-      const client = getAIClient();
+      const remoteAssistantEnabled = MausamAssistantService.isRemoteEnabled();
 
       const rawLat = typeof lat === 'number' && Number.isFinite(lat) ? lat : (location?.latitude ?? station?.lat ?? null);
       const rawLon = typeof lng === 'number' && Number.isFinite(lng) ? lng : (location?.longitude ?? station?.lng ?? null);
@@ -413,8 +241,8 @@ async function startServer() {
         });
       }
 
-      if (!client) {
-        // Fallback grounded meteorological intelligence strictly adhering to truthful source attribution
+      if (!remoteAssistantEnabled) {
+        // Grounded local meteorological intelligence strictly adhering to truthful source attribution
         const loc = telemetryContext.location;
         const obs = telemetryContext.observation;
         const aq = telemetryContext.airQuality;
@@ -442,173 +270,33 @@ Updated: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-
 Source: ${resolvedSource}`,
           source: resolvedSource,
           groundingSources: [],
-          modeUsed: 'offline',
+          modeUsed: 'grounded-local',
         });
-      }
-
-      // Determine appropriate grounding mode
-      let targetMode = mode;
-      if (targetMode === 'auto') {
-        const lower = (prompt || '').toLowerCase();
-        const mapKeywords = ['near', 'nearby', 'closest', 'where', 'location', 'radar station', 'shelter', 'hospital', 'direction', 'route', 'distance', 'coastal', 'district', 'city', 'map'];
-        const searchKeywords = ['news', 'latest', 'today', 'imd bulletin', 'cyclone update', 'warning', 'forecast', 'press release', 'current', 'monsoon', 'now'];
-
-        if (mapKeywords.some((kw) => lower.includes(kw))) {
-          targetMode = 'maps';
-        } else if (searchKeywords.some((kw) => lower.includes(kw))) {
-          targetMode = 'search';
-        } else {
-          targetMode = 'search'; // Default to search grounding for most up-to-date atmospheric information
-        }
       }
 
       const systemInstruction = buildMausamSystemInstruction(telemetryContext);
+      const completion = await MausamAssistantService.completeChat({
+        systemInstruction,
+        prompt: prompt || 'Provide a current meteorological briefing.',
+        temperature: 0.25,
+      });
 
-      let response: any = null;
-      let usedMode = targetMode;
-      let groundingSources: GroundingLink[] = [];
-
-      // Multi-tier execution: Try tool grounding -> Fallback to standard Gemini -> Fallback to IMD Telemetry Engine
-      if (client) {
-        try {
-          if (targetMode === 'maps') {
-            try {
-              response = await client.models.generateContent({
-                model: 'gemini-4-hydrogen',
-                contents: prompt,
-                config: {
-                  systemInstruction,
-                  tools: [{ googleMaps: {} }],
-                  toolConfig: {
-                    retrievalConfig: {
-                      latLng: {
-                        latitude,
-                        longitude,
-                      },
-                    },
-                  },
-                },
-              });
-            } catch (mapsErr: any) {
-              if (isQuotaError(mapsErr)) {
-                console.warn('API Quota reached during maps grounding, transitioning to IMD Grounded Telemetry Engine.');
-                response = null;
-              } else {
-                console.warn('Maps grounding tool unavailable, attempting standard generation:', mapsErr?.message || mapsErr);
-                try {
-                  usedMode = 'standard';
-                  response = await client.models.generateContent({
-                    model: 'gemini-4-hydrogen',
-                    contents: prompt,
-                    config: {
-                      systemInstruction,
-                    },
-                  });
-                } catch (stdErr: any) {
-                  console.warn('Standard message unavailable:', stdErr?.message || stdErr);
-                  response = null;
-                }
-              }
-            }
-          } else if (targetMode === 'search') {
-            try {
-              response = await client.models.generateContent({
-                model: 'gemini-4-hydrogen',
-                contents: prompt,
-                config: {
-                  systemInstruction,
-                  tools: [{ googleSearch: {} }],
-                },
-              });
-            } catch (searchErr: any) {
-              if (isQuotaError(searchErr)) {
-                console.warn('API Quota reached during search grounding, trying gemini-3.1-flash-lite fallback.');
-                try {
-                  usedMode = 'standard';
-                  response = await client.models.generateContent({
-                    model: 'gemini-3.1-flash-lite',
-                    contents: prompt,
-                    config: {
-                      systemInstruction,
-                    },
-                  });
-                } catch (liteErr: any) {
-                  console.warn('Fallback model also hit quota limit, transitioning to IMD Grounded Telemetry Engine.');
-                  response = null;
-                }
-              } else {
-                console.warn('Search grounding tool unavailable, attempting standard generation:', searchErr?.message || searchErr);
-                try {
-                  usedMode = 'standard';
-                  response = await client.models.generateContent({
-                    model: 'gemini-3.1-flash-lite',
-                    contents: prompt,
-                    config: {
-                      systemInstruction,
-                    },
-                  });
-                } catch (stdErr: any) {
-                  console.warn('Standard message unavailable:', stdErr?.message || stdErr);
-                  response = null;
-                }
-              }
-            }
-          } else {
-            try {
-              response = await client.models.generateContent({
-                model: 'gemini-4-hydrogen',
-                contents: prompt,
-                config: {
-                  systemInstruction,
-                },
-              });
-            } catch (genErr: any) {
-              if (isQuotaError(genErr)) {
-                console.warn('API Quota reached, attempting gemini-3.1-flash-lite.');
-                try {
-                  usedMode = 'standard';
-                  response = await client.models.generateContent({
-                    model: 'gemini-3.1-flash-lite',
-                    contents: prompt,
-                    config: {
-                      systemInstruction,
-                    },
-                  });
-                } catch {
-                  response = null;
-                }
-              } else {
-                console.warn('Standard generation unavailable:', genErr?.message || genErr);
-                response = null;
-              }
-            }
-          }
-
-          if (response) {
-            groundingSources = extractGroundingSources(response);
-          }
-        } catch (geminiError: any) {
-          console.warn('API query completed with fallback:', geminiError?.message || geminiError);
-          response = null;
-        }
-      }
-
-      if (response && response.text) {
+      if (completion.ok && completion.text) {
         return res.json({
-          response: response.text,
+          response: completion.text,
           source: resolvedSource,
-          groundingSources,
-          modeUsed: usedMode,
+          groundingSources: [] as GroundingLink[],
+          modeUsed: `assistant (${completion.model})`,
         });
       }
 
-      // Tier 3: Grounded High-Fidelity Atmospheric Intelligence Engine
+      // Deterministic grounded fallback when upstream assistant call fails
       const fallbackResponse = generateMausamGroundedFallback(prompt, telemetryContext);
       return res.json({
         response: fallbackResponse.text,
         source: resolvedSource,
         groundingSources: fallbackResponse.sources,
-        modeUsed: 'offline',
+        modeUsed: 'telemetry-grounded-fallback',
       });
     } catch (error: any) {
       console.error('Error in /api/ask-mausam:', error);
@@ -638,144 +326,69 @@ Source: ${errSource}`;
   app.post('/api/ask-mausam', handleAskMausam);
   app.post('/api/mausam/chat', handleAskMausam);
 
-  // Dedicated Google Search Grounding endpoint with quota fallback
+  // Grounded Meteorological Bulletin endpoint (provider-neutral with deterministic fallback)
   app.post('/api/ai/search-grounded-bulletin', async (req, res) => {
     const { query, state, district } = (req.body && typeof req.body === 'object' ? req.body : {}) as any;
-    const fallbackBulletin = `Latest Official IMD Guidance for ${district ? district + ', ' : ''}${state || 'India'}:
-Synoptic atmospheric conditions are normal across the meteorological sub-division. Rainfall probabilities align with seasonal diurnal trends. Local surface observations from Automatic Weather Stations (AWS) report stable barometer and temperature. Farmers and citizens are advised to follow daily district agromet advisories.`;
+    const regionLabel = `${district ? `${district}, ` : ''}${state || 'India'}`;
+    const fallbackBulletin = `Meteorological Guidance for ${regionLabel}:
+Live assistant narrative is not configured; consult the active IMD / SACHET Warnings, Doppler Radar, and NWP Forecast panels for verified observations and official bulletins.`;
 
-    try {
-      const client = getAIClient();
-      if (!client) {
-        return res.json({
-          bulletin: fallbackBulletin,
-          sources: [],
-        });
-      }
-
-      const prompt = query || `What is the latest official IMD weather forecast, severe weather warnings, or rain advisory for ${district ? district + ', ' : ''}${state || 'India'} today?`;
-
-      let response: any = null;
-      try {
-        response = await client.models.generateContent({
-          model: 'gemini-4-hydrogen',
-          contents: prompt,
-          config: {
-            systemInstruction: 'You are an IMD Meteorological Bulletin generator. Provide precise, up-to-date weather summaries with rainfall alerts and actionable advice.',
-            tools: [{ googleSearch: {} }],
-          },
-        });
-      } catch (err: any) {
-        if (isQuotaError(err)) {
-          console.warn('[search-grounded-bulletin] Quota limit reached, trying gemini-3.1-flash-lite fallback.');
-          response = await client.models.generateContent({
-            model: 'gemini-3.1-flash-lite',
-            contents: prompt,
-            config: {
-              systemInstruction: 'You are an IMD Meteorological Bulletin generator. Provide precise, up-to-date weather summaries.',
-            },
-          });
-        } else {
-          throw err;
-        }
-      }
-
-      const sources = extractGroundingSources(response);
-      return res.json({
-        bulletin: response.text || fallbackBulletin,
-        sources,
-      });
-    } catch (err: any) {
-      console.warn('[search-grounded-bulletin] Returning grounded bulletin fallback:', err?.message || err);
+    if (!MausamAssistantService.isRemoteEnabled()) {
       return res.json({
         bulletin: fallbackBulletin,
-        sources: [
-          { title: 'India Meteorological Department (IMD)', url: 'https://mausam.imd.gov.in' }
-        ],
+        sources: [{ title: 'India Meteorological Department (IMD)', url: 'https://mausam.imd.gov.in' }],
       });
     }
+
+    const prompt =
+      query ||
+      `Provide a concise meteorological guidance checklist and official IMD/NDMA bulletin pointers for ${regionLabel} without fabricating live measurements.`;
+    const completion = await MausamAssistantService.completeChat({
+      systemInstruction:
+        'You are an IMD Meteorological Bulletin assistant. Never fabricate live measurements or alert counts; clearly reference official IMD/NDMA verification channels.',
+      prompt,
+      temperature: 0.2,
+    });
+
+    return res.json({
+      bulletin: completion.ok && completion.text ? completion.text : fallbackBulletin,
+      sources: [{ title: 'India Meteorological Department (IMD)', url: 'https://mausam.imd.gov.in' }],
+    });
   });
 
-  // Dedicated Google Maps Grounding endpoint for nearby radar / observatory finding
+  // Nearby meteorological facilities endpoint (provider-neutral with verified official links)
   app.post('/api/ai/maps-grounded-places', async (req, res) => {
-    const { query, lat, lng, locationName } = (req.body && typeof req.body === 'object' ? req.body : {}) as any;
-    const numLat = typeof lat === 'number' ? lat : Number(lat);
-    const numLng = typeof lng === 'number' ? lng : Number(lng);
-    const hasValidCoords =
-      lat !== undefined &&
-      lat !== null &&
-      String(lat).trim() !== '' &&
-      lng !== undefined &&
-      lng !== null &&
-      String(lng).trim() !== '' &&
-      Number.isFinite(numLat) &&
-      Number.isFinite(numLng) &&
-      numLat >= -90 &&
-      numLat <= 90 &&
-      numLng >= -180 &&
-      numLng <= 180;
+    const { query, locationName } = (req.body && typeof req.body === 'object' ? req.body : {}) as any;
     const fallbackPlaces = [
-      { title: `IMD Meteorological Centre ${locationName || 'Regional'}`, url: 'https://mausam.imd.gov.in' },
-      { title: `District Emergency Operations Center (${locationName || 'Local'})`, url: 'https://ndma.gov.in' },
-      { title: 'National Doppler Weather Radar Network', url: 'https://mausam.imd.gov.in/radar' }
+      { title: `IMD Meteorological Centre (${locationName || 'Regional'})`, url: 'https://mausam.imd.gov.in' },
+      { title: `NDMA Emergency Operations Portal (${locationName || 'Local'})`, url: 'https://ndma.gov.in' },
+      { title: 'National Doppler Weather Radar Network', url: 'https://mausam.imd.gov.in/radar' },
     ];
 
-    try {
-      const client = getAIClient();
-      if (!client) {
-        return res.json({
-          analysis: `Key meteorological facilities for ${locationName || 'this sector'}: Regional IMD Automatic Weather Station network and District Disaster Management Authority are active.`,
-          places: fallbackPlaces,
-        });
-      }
-
-      const prompt = query || `List the closest IMD Doppler Weather Radar (DWR) stations, meteorological observatories, cyclone shelters, or emergency weather facilities near ${locationName || 'my location'}.`;
-
-      let response: any = null;
-      try {
-        response = await client.models.generateContent({
-          model: 'gemini-4-hydrogen',
-          contents: prompt,
-          config: {
-            systemInstruction: 'You are an IMD Geographic and Spatial Meteorology assistant. Identify key nearby radar towers, weather stations, coastal observatories, and emergency facilities with exact locations.',
-            tools: [{ googleMaps: {} }],
-            ...(hasValidCoords
-              ? {
-                  toolConfig: {
-                    retrievalConfig: {
-                      latLng: {
-                        latitude: numLat,
-                        longitude: numLng,
-                      },
-                    },
-                  },
-                }
-              : {}),
-          },
-        });
-      } catch (err: any) {
-        if (isQuotaError(err)) {
-          console.warn('[maps-grounded-places] Quota limit reached, returning verified locations.');
-          return res.json({
-            analysis: `Verified meteorological and disaster monitoring facilities serving ${locationName || 'this region'}: State Emergency Operations Centre and IMD Doppler Network station.`,
-            places: fallbackPlaces,
-          });
-        }
-        throw err;
-      }
-
-      const places = extractGroundingSources(response);
+    if (!MausamAssistantService.isRemoteEnabled()) {
       return res.json({
-        analysis: response.text,
-        places: places.length > 0 ? places : fallbackPlaces,
-      });
-    } catch (err: any) {
-      console.warn('[maps-grounded-places] Returning verified locations fallback:', err?.message || err);
-      return res.json({
-        analysis: `Operational facilities for ${locationName || 'this region'}: IMD Regional Meteorological Centre, Automatic Weather Stations (AWS), and NDMA emergency centers.`,
+        analysis: `Key meteorological infrastructure references for ${locationName || 'this sector'}: IMD Regional Meteorological Centres, Automatic Weather Stations (AWS), and NDMA District Emergency Operations Centres.`,
         places: fallbackPlaces,
       });
     }
+
+    const prompt =
+      query ||
+      `Summarize the types of IMD Doppler Weather Radar stations, observatories, and NDMA emergency resources relevant near ${locationName || 'this region'} without fabricating coordinates or distances.`;
+    const completion = await MausamAssistantService.completeChat({
+      systemInstruction:
+        'You are a geographic meteorology assistant for India. Describe relevant IMD and NDMA facility networks concisely without inventing unverified coordinates or distances.',
+      prompt,
+      temperature: 0.2,
+    });
+
+    return res.json({
+      analysis:
+        completion.ok && completion.text
+          ? completion.text
+          : `Operational facilities for ${locationName || 'this region'}: IMD Regional Meteorological Centre, Automatic Weather Stations (AWS), and NDMA emergency centers.`,
+      places: fallbackPlaces,
+    });
   });
 
   // Open-Meteo and Air Quality server-side proxy routes to bypass browser cross-origin blocks

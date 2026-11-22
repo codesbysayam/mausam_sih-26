@@ -352,7 +352,7 @@ const ArchitectureSection: React.FC = () => (
 │   • server.ts                     • /api/weather.ts         │
 │   • /api/warnings (NDMA / IMD)    • /api/warnings.ts        │
 │   • /api/imd/* (Direct Proxy)     • /api/radar.ts           │
-│   • /api/ask-mausam (Gemini AI)   • /api/system.ts          │
+│   • /api/ask-mausam (Assistant)   • /api/system.ts          │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                 ┌──────────────┴──────────────┐
@@ -455,7 +455,7 @@ const RulesSection: React.FC = () => (
             Zero Client-Side Secrets
           </h3>
           <p className="text-[11px] text-[var(--m-text-secondary)] leading-relaxed">
-            All private credentials (<code className="text-[var(--m-text-primary)] font-mono">GEMINI_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">IMD_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">DATABASE_URL</code>) remain strictly on the backend. Never prefix secrets with <code className="text-[var(--m-text-primary)] font-mono">VITE_</code>.
+            All private credentials (<code className="text-[var(--m-text-primary)] font-mono">MAUSAM_ASSISTANT_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">IMD_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">DATABASE_URL</code>) remain strictly on the backend. Never prefix secrets with <code className="text-[var(--m-text-primary)] font-mono">VITE_</code>.
           </p>
         </div>
 

@@ -82,6 +82,8 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef<boolean>(true);
+  const consecutiveFailuresRef = useRef<number>(0);
+  const nextAllowedPollAtRef = useRef<number>(0);
 
   const fetchWeatherData = useCallback(async () => {
     // Abort previous in-flight request if any
@@ -96,7 +98,9 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
       const [currentRes, forecastRes, warningsRes] = await Promise.allSettled([
         imdClient.getCurrentWeather(station.id),
         imdClient.getCityForecast(station.id),
-        fetch(`/api/weather?mode=imd&route=district-warning&id=${station.id}`).then((r) => r.json()),
+        fetch(`/api/weather?mode=imd&route=district-warning&id=${encodeURIComponent(station.id)}`, {
+          signal: controller.signal,
+        }).then((r) => (r.ok ? r.json() : null)),
       ]);
 
       if (!isMountedRef.current) return;
@@ -109,6 +113,15 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
       const hasError =
         (currentRes.status === 'rejected' || (currentRes.status === 'fulfilled' && currentRes.value.status === 'error')) &&
         (forecastRes.status === 'rejected' || (forecastRes.status === 'fulfilled' && forecastRes.value.status === 'error'));
+
+      if (hasError) {
+        consecutiveFailuresRef.current = Math.min(consecutiveFailuresRef.current + 1, 5);
+        const backoffMs = Math.min(POLL_INTERVAL * Math.pow(2, consecutiveFailuresRef.current), 15 * 60 * 1000);
+        nextAllowedPollAtRef.current = Date.now() + backoffMs;
+      } else {
+        consecutiveFailuresRef.current = 0;
+        nextAllowedPollAtRef.current = 0;
+      }
 
       const isCached =
         (currentRes.status === 'fulfilled' && currentRes.value.status === 'cached') ||
@@ -134,6 +147,10 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
           : null,
       }));
     } catch (err: any) {
+      if (err?.name === 'AbortError') return;
+      consecutiveFailuresRef.current = Math.min(consecutiveFailuresRef.current + 1, 5);
+      const backoffMs = Math.min(POLL_INTERVAL * Math.pow(2, consecutiveFailuresRef.current), 15 * 60 * 1000);
+      nextAllowedPollAtRef.current = Date.now() + backoffMs;
       if (isMountedRef.current) {
         setState((prev) => ({
           ...prev,
@@ -149,10 +166,14 @@ export function useIMDWeather(targetLocation?: Partial<IMDLocationInfo>): IMDWea
 
   useEffect(() => {
     isMountedRef.current = true;
+    consecutiveFailuresRef.current = 0;
+    nextAllowedPollAtRef.current = 0;
     fetchWeatherData();
 
-    // Single polling loop every 60s
+    // Single polling loop every 60s, paused while hidden or backing off after errors
     const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (nextAllowedPollAtRef.current > Date.now()) return;
       fetchWeatherData();
     }, POLL_INTERVAL);
 

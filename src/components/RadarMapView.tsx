@@ -67,9 +67,8 @@ export const RadarMapView: React.FC<RadarMapViewProps> = ({
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 bg-[var(--m-surface-inset)] px-3 py-1.5 rounded-lg card-border text-xs text-[#2ECC71] font-semibold">
-            <span className="w-2 h-2 rounded-full bg-[#2ECC71] animate-pulse"></span>
-            <span>36 States &amp; UTs Synced</span>
+          <div className="flex items-center gap-2 bg-[var(--m-surface-inset)] px-3 py-1.5 rounded-lg card-border text-xs text-[#2ECC71] font-mono font-semibold">
+            <span>36 States &amp; UTs Mapped</span>
           </div>
           <a
             href="https://mausam.imd.gov.in/"
@@ -132,9 +131,17 @@ export const RadarMapView: React.FC<RadarMapViewProps> = ({
                 </p>
               </div>
 
-              <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-[rgba(226, 219, 200,0.12)] text-xs">
-                <span className="text-[#FFFFFF] font-bold">{station.temp}°C</span>
-                <span className="text-[var(--m-accent)] font-semibold">{station.reflectivityDbz || 30} dBZ</span>
+              <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-[rgba(226, 219, 200,0.12)] text-xs font-mono tabular-nums">
+                <span className="text-[#FFFFFF] font-bold">
+                  {typeof station.temp === 'number' && Number.isFinite(station.temp)
+                    ? `${station.temp}°C`
+                    : '—'}
+                </span>
+                <span className="text-[var(--m-accent)] font-semibold">
+                  {typeof station.reflectivityDbz === 'number' && Number.isFinite(station.reflectivityDbz)
+                    ? `${station.reflectivityDbz} dBZ`
+                    : '— dBZ'}
+                </span>
               </div>
             </div>
           ))}

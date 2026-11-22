@@ -373,7 +373,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
           <button
             type="button"
             onClick={() => setIsAlertDrawerOpen(true)}
-            className={`rounded-[11px] min-h-[44px] sm:min-h-[40px] px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer m-focus-ring ${alertSummary.tone}`}
+            className={`explore-alert-btn rounded-[11px] min-h-[40px] px-2.5 sm:px-3 inline-flex items-center gap-1.5 text-xs font-semibold border transition-colors cursor-pointer m-focus-ring shrink-0 ${alertSummary.tone}`}
             title="Open SACHET / IMD Hazard Alerts"
           >
             {alertSummary.kind === 'warning' ? (
@@ -383,7 +383,16 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
             ) : (
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
             )}
-            <span className="tabular-nums whitespace-nowrap">{alertSummary.label}</span>
+            <span className="tabular-nums whitespace-nowrap">
+              <span className="hidden sm:inline">{alertSummary.label}</span>
+              <span className="sm:hidden">
+                {alertSummary.kind === 'warning'
+                  ? alertSummary.label
+                  : alertSummary.kind === 'offline'
+                  ? 'Offline'
+                  : 'No Alerts'}
+              </span>
+            </span>
           </button>
 
           <button
@@ -394,7 +403,7 @@ export const FloatingBrandBar: React.FC<FloatingBrandBarProps> = ({
               isExplore
                 ? 'spatial-hud-surface text-[var(--m-text-primary)]'
                 : 'bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
-            } rounded-[11px] min-h-[44px] sm:min-h-[40px] px-2.5 sm:px-3 inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring`}
+            } rounded-[11px] min-h-[40px] px-2.5 sm:px-3 inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer m-focus-ring shrink-0`}
             title="Open Ask MAUSAM Brief"
           >
             <span className="text-[var(--m-accent)] whitespace-nowrap">Ask MAUSAM</span>

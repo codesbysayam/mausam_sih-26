@@ -228,8 +228,28 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const locationRef = useRef(locationContext);
   locationRef.current = locationContext;
 
+  const inFlightRef = useRef<Partial<Record<ProviderId, Promise<ProviderState>>>>({});
+  const cooldownUntilRef = useRef<Partial<Record<ProviderId, number>>>({});
+
   const updateProvider = useCallback((id: ProviderId, nextState: ProviderState) => {
     setProviders((prev) => updateProviderInStore(prev, id, nextState));
+  }, []);
+
+  const computeCooldownMs = useCallback((state: ProviderState): number => {
+    const err = (state.error || '').toLowerCase();
+    if (
+      err.includes('401') ||
+      err.includes('403') ||
+      err.includes('not configured') ||
+      err.includes('unauthorized') ||
+      err.includes('forbidden')
+    ) {
+      return 30 * 60 * 1000; // 30-minute pause for auth/unconfigured providers
+    }
+    if (err.includes('429') || err.includes('rate limit')) {
+      return 10 * 60 * 1000; // 10-minute backoff on rate-limit responses
+    }
+    return 0;
   }, []);
 
   const refreshProvider = useCallback(
@@ -238,6 +258,16 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
       overrideLocation?: ProviderLocationContext,
       force = true
     ): Promise<ProviderState> => {
+      const existingPromise = inFlightRef.current[id];
+      if (existingPromise && !force) {
+        return existingPromise;
+      }
+
+      const cooldownUntil = cooldownUntilRef.current[id] || 0;
+      if (!force && cooldownUntil > Date.now()) {
+        return providersRef.current[id];
+      }
+
       const targetLoc = overrideLocation || locationRef.current;
       const current = providersRef.current[id];
       setProviders((prev) => ({
@@ -249,15 +279,27 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       }));
 
-      const nextState = await fetchSingleProvider(id, targetLoc, {
-        forceRefresh: force,
-        previousState: current,
-      });
+      const runPromise = (async () => {
+        try {
+          const nextState = await fetchSingleProvider(id, targetLoc, {
+            forceRefresh: force,
+            previousState: current,
+          });
+          const backoffMs = computeCooldownMs(nextState);
+          cooldownUntilRef.current[id] = backoffMs > 0 ? Date.now() + backoffMs : 0;
+          setProviders((prev) => updateProviderInStore(prev, id, nextState));
+          return nextState;
+        } finally {
+          if (inFlightRef.current[id] === runPromise) {
+            delete inFlightRef.current[id];
+          }
+        }
+      })();
 
-      setProviders((prev) => updateProviderInStore(prev, id, nextState));
-      return nextState;
+      inFlightRef.current[id] = runPromise;
+      return runPromise;
     },
-    []
+    [computeCooldownMs]
   );
 
   const refreshAllProviders = useCallback(
@@ -265,11 +307,13 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
       const targetLoc = overrideLocation || locationRef.current;
       const settledStore = await fetchAllProvidersParallel(targetLoc, force, providersRef.current);
       for (const id of ALL_PROVIDER_IDS) {
+        const backoffMs = computeCooldownMs(settledStore[id]);
+        cooldownUntilRef.current[id] = backoffMs > 0 ? Date.now() + backoffMs : 0;
         writeCachedProviderState(id, settledStore[id]);
       }
       setProviders(settledStore);
     },
-    []
+    [computeCooldownMs]
   );
 
   // Sync all providers in parallel whenever active location coordinates change
@@ -278,6 +322,8 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchAllProvidersParallel(locationContext, false, providersRef.current).then((settledStore) => {
       if (cancelled) return;
       for (const id of ALL_PROVIDER_IDS) {
+        const backoffMs = computeCooldownMs(settledStore[id]);
+        cooldownUntilRef.current[id] = backoffMs > 0 ? Date.now() + backoffMs : 0;
         writeCachedProviderState(id, settledStore[id]);
       }
       setProviders(settledStore);
@@ -285,9 +331,9 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       cancelled = true;
     };
-  }, [locationContext]);
+  }, [locationContext, computeCooldownMs]);
 
-  // Independent per-provider periodic refresh respecting tab visibility
+  // Independent per-provider periodic refresh respecting tab visibility and error backoff
   useEffect(() => {
     const timers: ReturnType<typeof setInterval>[] = [];
 
@@ -295,6 +341,8 @@ export const ProviderStoreProvider: React.FC<{ children: React.ReactNode }> = ({
       const intervalMs = PROVIDER_DESCRIPTORS[id].refreshIntervalMs;
       const timer = setInterval(() => {
         if (typeof document !== 'undefined' && document.hidden) return;
+        const cooldownUntil = cooldownUntilRef.current[id] || 0;
+        if (cooldownUntil > Date.now()) return;
         refreshProvider(id, locationRef.current, false).catch(() => {});
       }, intervalMs);
       timers.push(timer);

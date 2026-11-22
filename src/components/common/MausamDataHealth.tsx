@@ -15,7 +15,6 @@ import {
   Server,
   Activity,
   X,
-  Info,
   Wrench,
   Radio,
   AlertTriangle,
@@ -265,11 +264,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
       detail: provMap?.incois || null,
     },
     {
-      id: 'gemini',
-      name: 'Google Gemini AI',
-      fullName: 'Server-Side Ask MAUSAM & Neural TTS (Optional)',
+      id: 'assistant',
+      name: 'MAUSAM Assistant',
+      fullName: 'Server-Side Conversational Assistant (Optional)',
       category: 'Commercial',
-      detail: provMap?.gemini || null,
+      detail: provMap?.assistant || null,
     },
     {
       id: 'accuweather',
@@ -891,16 +890,12 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               );
             })()}
 
-            <div className="p-3.5 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)] flex flex-col gap-2">
-              <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-[var(--m-accent)]" /> Server-Side Environment Configuration
+            <div className="p-3 rounded-lg bg-[var(--m-surface-2)] border border-[var(--m-border)]">
+              <span className="text-[11px] font-bold text-[var(--m-text-primary)] uppercase tracking-wider block mb-1">
+                Optional Integration
               </span>
               <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
-                Provider credentials are strictly managed server-side and never entered in the browser. Configure{' '}
-                <code className="px-1.5 py-0.5 rounded bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-accent)] font-mono">
-                  {selectedProvider.detail?.requiredKey || 'see .env.example'}
-                </code>{' '}
-                in your deployment environment settings and redeploy to activate live probing.
+                This provider is optional. MAUSAM continues running on open meteorological data without requiring an API key.
               </p>
             </div>
 

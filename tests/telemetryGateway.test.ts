@@ -88,8 +88,8 @@ function createHealthyUpstreamFetch(overrides: Record<string, () => Promise<Resp
         headers: { 'Content-Type': 'image/png' },
       });
     }
-    if (url.includes('generativelanguage.googleapis.com')) {
-      return new Response(JSON.stringify({ models: [{ name: 'models/gemini-2.5-flash' }] }), {
+    if (url.includes('assistant.example.com/v1/models')) {
+      return new Response(JSON.stringify({ object: 'list', data: [{ id: 'gpt-4o-mini' }] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -121,8 +121,8 @@ test('1. Successful gateway health report: HEALTHY when all configured providers
   assert.equal(report.gateway.endpoint, '/api/system?mode=health');
   assert.equal(report.status, 'HEALTHY');
   assert.equal(report.summary.overallStatus, 'HEALTHY');
-  assert.equal(report.summary.operational, 6);
-  assert.equal(report.summary.notConfigured, 6);
+  assert.equal(report.summary.operational, 7);
+  assert.equal(report.summary.notConfigured, 5);
   assert.equal(report.summary.degraded, 0);
   assert.equal(report.summary.offline, 0);
   assert.equal(report.summary.providerAvailabilityPct, 100);
@@ -133,10 +133,18 @@ test('1. Successful gateway health report: HEALTHY when all configured providers
   assert.equal(report.providers.sachet.status, 'OPERATIONAL');
   assert.equal(report.providers.radar.status, 'OPERATIONAL');
 
-  // Optional credentialed providers without keys must be NOT_CONFIGURED with null latency
-  assert.equal(report.providers.gemini.status, 'NOT_CONFIGURED');
-  assert.equal(report.providers.gemini.configured, false);
-  assert.equal(report.providers.gemini.latencyMs, null);
+  // Default keyless assistant must report OPERATIONAL in grounded local mode
+  assert.equal(report.providers.assistant.status, 'OPERATIONAL');
+  assert.equal(report.providers.assistant.configured, true);
+  assert.equal(report.providers.assistant.operational, true);
+  assert.equal(report.providers.assistant.requiredKey, null);
+  assert.equal(report.providers.assistant.latencyMs, null);
+  assert.equal(
+    report.providers.assistant.error,
+    'Grounded local assistant active. No API key required.'
+  );
+
+  // Optional credentialed data providers without keys must be NOT_CONFIGURED with null latency
   assert.equal(report.providers.imd.status, 'NOT_CONFIGURED');
   assert.equal(report.providers.cpcb.status, 'NOT_CONFIGURED');
 
@@ -300,7 +308,7 @@ test('8. One upstream provider unavailable yields DEGRADED overall status while 
   assert.equal(report.providers.sachet.operational, false);
   assert.equal(report.providers.sachet.httpStatus, 503);
   assert.equal(report.providers.openMeteo.status, 'OPERATIONAL');
-  assert.equal(report.summary.operational, 5);
+  assert.equal(report.summary.operational, 6);
   assert.equal(report.summary.offline, 1);
 });
 
@@ -324,30 +332,69 @@ test('9. All core providers failing yields CRITICAL health report and NOT_READY 
   assert.equal(readiness.checks.radar.ok, false);
 });
 
-test('10. Configured API key NEVER proves operational status; auth/probe failure marks UNAVAILABLE/OFFLINE and redacts secrets', async () => {
-  const secretKey = 'SUPER_SECRET_GEMINI_TOKEN_987654';
+test('10. Configured API key NEVER proves operational status; remote assistant requires explicit remote opt-in, default unset/local mode is OPERATIONAL, and CPCB redacts secrets', async () => {
+  const secretKey = 'SUPER_SECRET_ASSISTANT_TOKEN_987654';
   const report = await runHealthReport({
     fetchFn: createHealthyUpstreamFetch({
-      'generativelanguage.googleapis.com': async () =>
-        new Response(JSON.stringify({ error: { message: 'API key invalid' } }), {
-          status: 401,
-          statusText: 'Unauthorized',
-        }),
       'api.data.gov.in': async () => {
         throw new Error(`Connection refused for key=${secretKey}`);
       },
     }),
     env: {
       NODE_ENV: 'test',
-      GEMINI_API_KEY: secretKey,
+      MAUSAM_ASSISTANT_MODE: 'remote',
+      MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      MAUSAM_ASSISTANT_API_KEY: secretKey,
       CPCB_API_KEY: secretKey,
     },
   });
 
-  assert.equal(report.providers.gemini.configured, true);
-  assert.equal(report.providers.gemini.operational, false);
-  assert.equal(report.providers.gemini.status, 'UNAVAILABLE');
-  assert.equal(report.providers.gemini.httpStatus, 401);
+  // Remote assistant configured with URL + key must NEVER claim OPERATIONAL without a live assistant request
+  assert.equal(report.providers.assistant.configured, true);
+  assert.equal(report.providers.assistant.operational, false);
+  assert.equal(report.providers.assistant.status, 'DEGRADED');
+  assert.equal(report.providers.assistant.latencyMs, null);
+  assert.equal(
+    report.providers.assistant.endpoint,
+    'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+  );
+  assert.equal(
+    report.providers.assistant.error,
+    'Remote assistant configured. Live availability is verified during an actual request.'
+  );
+
+  // Remote mode without API key must report NOT_CONFIGURED
+  const missingKeyReport = await runHealthReport({
+    fetchFn: createHealthyUpstreamFetch(),
+    env: {
+      NODE_ENV: 'test',
+      MAUSAM_ASSISTANT_MODE: 'remote',
+      MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    },
+  });
+  assert.equal(missingKeyReport.providers.assistant.configured, false);
+  assert.equal(missingKeyReport.providers.assistant.status, 'NOT_CONFIGURED');
+  assert.equal(
+    missingKeyReport.providers.assistant.error,
+    'Remote assistant is optional. Grounded local mode remains available.'
+  );
+
+  // Unset or local mode reports OPERATIONAL without requiring any API key
+  const localModeReport = await runHealthReport({
+    fetchFn: createHealthyUpstreamFetch(),
+    env: {
+      NODE_ENV: 'test',
+      MAUSAM_ASSISTANT_MODE: 'local',
+    },
+  });
+  assert.equal(localModeReport.providers.assistant.configured, true);
+  assert.equal(localModeReport.providers.assistant.operational, true);
+  assert.equal(localModeReport.providers.assistant.status, 'OPERATIONAL');
+  assert.equal(localModeReport.providers.assistant.requiredKey, null);
+  assert.equal(
+    localModeReport.providers.assistant.error,
+    'Grounded local assistant active. No API key required.'
+  );
 
   assert.equal(report.providers.cpcb.configured, true);
   assert.equal(report.providers.cpcb.operational, false);

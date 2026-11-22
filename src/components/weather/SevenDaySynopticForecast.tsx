@@ -236,13 +236,13 @@ export const SevenDaySynopticForecast: React.FC<SevenDaySynopticForecastProps> =
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <div className="flex items-baseline justify-between text-xs font-mono tabular-nums">
                   <span className="text-[var(--m-text-muted)] font-semibold">
-                    {lowVal !== null ? `${lowVal}°` : '—'}
+                    {lowVal !== null ? `${lowVal}°C` : '—'}
                   </span>
                   <span className="text-[var(--m-text-primary)] font-bold">
-                    {highVal !== null ? `${highVal}°` : '—'}
+                    {highVal !== null ? `${highVal}°C` : '—'}
                   </span>
                 </div>
 

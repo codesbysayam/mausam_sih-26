@@ -281,10 +281,10 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
         </div>
       </div>
 
-      {/* Horizontal Hourly Cards */}
+      {/* Horizontal Hourly Cards (Snap-scroll on mobile, scannable structured cards on desktop) */}
       <div
         id="hourly-forecast-cards-scroll"
-        className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#2F3534]"
+        className="overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory"
       >
         <div className="flex gap-2.5 min-w-max">
           {displayItems.map((item, idx) => {
@@ -305,7 +305,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
               <div
                 key={item.time ? `hourly-card-${item.time}-${idx}` : `hourly-card-${idx}`}
                 id={`hourly-card-${idx}`}
-                className={`p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-colors min-w-[112px] w-[116px] ${
+                className={`snap-start p-3 rounded-lg border flex flex-col items-center justify-between text-center transition-colors min-w-[126px] w-[132px] shrink-0 ${
                   item.isNow
                     ? 'bg-[var(--m-surface-2)] border-[var(--m-accent)]'
                     : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] hover:border-[var(--m-border-strong)]'
@@ -318,7 +318,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                   <span
                     className={`text-[9px] font-mono font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded mt-0.5 ${
                       item.isNow
-                        ? 'bg-[var(--m-accent)] text-[var(--m-text-primary)]'
+                        ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                         : phase === 'Observed'
                         ? 'bg-[var(--m-surface-1)] text-[var(--m-text-muted)]'
                         : 'bg-[var(--m-surface-1)] text-[var(--m-accent)]'
@@ -333,12 +333,12 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                     <IconComponent className={`w-5 h-5 ${visual.iconColor}`} />
                   </div>
                   <div className="text-base font-bold text-[var(--m-text-primary)] font-mono tabular-nums leading-none">
-                    {tempVal !== null ? `${tempVal}°` : '—'}
+                    {tempVal !== null ? `${tempVal}°C` : '—'}
                   </div>
                   <div className="text-[10px] text-[var(--m-text-muted)] font-mono tabular-nums mt-0.5">
-                    {feelsLikeVal !== null ? `Feels ${feelsLikeVal}°` : 'Feels —'}
+                    {feelsLikeVal !== null ? `Feels ${feelsLikeVal}°C` : 'Feels —'}
                   </div>
-                  <span className="text-[10px] text-[var(--m-text-secondary)] truncate max-w-[96px] mt-1">
+                  <span className="text-[10px] text-[var(--m-text-secondary)] truncate max-w-[108px] mt-1">
                     {item.condition || '—'}
                   </span>
                 </div>
@@ -356,7 +356,7 @@ export const HourlyWeatherTimeline: React.FC<HourlyWeatherTimelineProps> = ({
                       <Wind className="w-2.5 h-2.5 text-[var(--m-ok)]" />
                       Wind
                     </span>
-                    <strong className="text-[var(--m-text-primary)]">{windSpd !== null ? `${windSpd}k` : '—'}</strong>
+                    <strong className="text-[var(--m-text-primary)]">{windSpd !== null ? `${windSpd} km/h` : '—'}</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-sans">RH</span>

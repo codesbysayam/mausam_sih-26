@@ -70,7 +70,7 @@ export interface LocationMetadata {
 }
 
 export interface CurrentWeatherContext {
-  temperatureC: number;
+  temperatureC?: number;
   feelsLikeC?: number;
   humidity?: number;
   windSpeedKmh?: number;
@@ -91,21 +91,21 @@ export interface CurrentWeatherContext {
 export interface DailyForecastContext {
   date: string;
   dayName: string;
-  maxTempC: number;
-  minTempC: number;
-  precipitationMm: number;
-  precipitationProbability: number;
+  maxTempC?: number;
+  minTempC?: number;
+  precipitationMm?: number;
+  precipitationProbability?: number;
   condition: string;
-  weatherCode: number;
+  weatherCode?: number;
   windSpeedKmh?: number;
   uvIndexMax?: number;
 }
 
 export interface HourlyForecastContext {
   time: string;
-  temperatureC: number;
-  precipitationMm: number;
-  precipitationProbability: number;
+  temperatureC?: number;
+  precipitationMm?: number;
+  precipitationProbability?: number;
   condition: string;
   weatherCode?: number;
   humidity?: number;
