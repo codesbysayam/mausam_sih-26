@@ -97,19 +97,25 @@ body,
 .explore-layer-rail {
   top: var(--explore-hud-top) !important;
   left: calc(12px + env(safe-area-inset-left, 0px));
-  max-height: calc(100dvh - var(--explore-hud-top) - var(--explore-timeline-clearance));
+  max-height: calc(100dvh - var(--explore-hud-top) - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
 }
 
 .explore-layer-rail-scroll {
-  max-height: calc(100dvh - var(--explore-hud-top) - var(--explore-timeline-clearance) - 165px);
+  max-height: min(46dvh, calc(100dvh - var(--explore-hud-top) - 240px));
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .explore-layer-stations-scroll {
-  max-height: calc(100dvh - var(--explore-hud-top) - var(--explore-timeline-clearance) - 110px);
+  max-height: calc(100dvh - var(--explore-hud-top) - 168px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .explore-layer-mobile {
@@ -127,7 +133,7 @@ body,
 .explore-weather-hud {
   top: var(--explore-hud-top) !important;
   right: calc(12px + env(safe-area-inset-right, 0px));
-  max-height: calc(100dvh - var(--explore-hud-top) - var(--explore-timeline-clearance));
+  max-height: calc(100dvh - var(--explore-hud-top) - 16px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -144,6 +150,19 @@ body,
   overflow: hidden;
   white-space: normal;
   word-break: break-word;
+}
+
+.explore-inspected-toast {
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: min(460px, calc(100vw - 600px));
+  min-width: min(300px, calc(100vw - 24px));
+}
+
+@media (max-width: 1023px) {
+  .explore-inspected-toast {
+    bottom: calc(168px + env(safe-area-inset-bottom, 0px));
+    width: min(420px, calc(100vw - 24px));
+  }
 }
 
 .explore-weather-mobile {

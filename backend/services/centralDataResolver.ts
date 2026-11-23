@@ -28,6 +28,7 @@ import { systemHealthService } from './systemHealthService';
 import { findNearestRadarStation } from '../../src/data/radarStations';
 import { WarningsResponseData } from './warningService';
 import { UnifiedRadarResponse } from './radarService';
+import { ProviderAuthError } from '../../src/services/weather/officialProxyGateway';
 
 export type ResolvableSourceType =
   | 'WEATHER'
@@ -64,6 +65,9 @@ async function withTransientRetry<T>(
     try {
       return await action();
     } catch (err: any) {
+      if (err instanceof ProviderAuthError) {
+        throw err;
+      }
       attempt++;
       const isTransient =
         err?.name === 'AbortError' ||
@@ -169,18 +173,25 @@ export class CentralDataResolver {
       : 'Official IMD credentials/access not configured';
     const startTime = Date.now();
 
-    // 2. Try Primary Provider (IMD) if configured
+    // 2. Try Primary Provider (IMD) if configured and not in auth cooldown
     if (IMDProvider.isConfigured()) {
-      try {
-        weatherData = await withTransientRetry(() =>
-          IMDProvider.fetchCurrentWeather(loc, options.stationId)
-        );
-        if (weatherData) {
-          primaryStatus = 'OPERATIONAL';
-          systemHealthService.recordRequest(true, 'IMD', Date.now() - startTime);
+      if (IMDProvider.isAuthCooldownActive()) {
+        primaryReason = 'IMD credentials recently failed authentication (cooldown active); routed to Open-Meteo proxy';
+      } else {
+        try {
+          weatherData = await withTransientRetry(() =>
+            IMDProvider.fetchCurrentWeather(loc, options.stationId)
+          );
+          if (weatherData) {
+            primaryStatus = 'OPERATIONAL';
+            systemHealthService.recordRequest(true, 'IMD', Date.now() - startTime);
+          }
+        } catch (err: any) {
+          if (err instanceof ProviderAuthError) {
+            primaryReason = `IMD authentication failed (HTTP ${err.httpStatus}); automatically switched to Open-Meteo proxy`;
+          }
+          systemHealthService.recordRequest(false, 'IMD', Date.now() - startTime, err.message);
         }
-      } catch (err: any) {
-        systemHealthService.recordRequest(false, 'IMD', Date.now() - startTime, err.message);
       }
     }
 
@@ -309,16 +320,23 @@ export class CentralDataResolver {
     const startTime = Date.now();
 
     if (IMDProvider.isConfigured()) {
-      try {
-        forecastData = await withTransientRetry(() =>
-          IMDProvider.fetchForecast(loc, options.stationId)
-        );
-        if (forecastData) {
-          primaryStatus = 'OPERATIONAL';
-          systemHealthService.recordRequest(true, 'IMD', Date.now() - startTime);
+      if (IMDProvider.isAuthCooldownActive()) {
+        primaryReason = 'IMD credentials recently failed authentication (cooldown active); routed to Open-Meteo proxy';
+      } else {
+        try {
+          forecastData = await withTransientRetry(() =>
+            IMDProvider.fetchForecast(loc, options.stationId)
+          );
+          if (forecastData) {
+            primaryStatus = 'OPERATIONAL';
+            systemHealthService.recordRequest(true, 'IMD', Date.now() - startTime);
+          }
+        } catch (err: any) {
+          if (err instanceof ProviderAuthError) {
+            primaryReason = `IMD forecast authentication failed (HTTP ${err.httpStatus}); automatically switched to Open-Meteo proxy`;
+          }
+          systemHealthService.recordRequest(false, 'IMD', Date.now() - startTime, err.message);
         }
-      } catch (err: any) {
-        systemHealthService.recordRequest(false, 'IMD', Date.now() - startTime, err.message);
       }
     }
 
@@ -464,9 +482,21 @@ export class CentralDataResolver {
         primarySource: aqiData.source,
         fallbackUsed,
         primaryProvider: 'CPCB',
-        primaryStatus: CPCBProvider.isConfigured() ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+        primaryStatus: !CPCBProvider.isConfigured()
+          ? 'NOT_CONFIGURED'
+          : CPCBProvider.isAuthCooldownActive()
+          ? 'UNAVAILABLE'
+          : fallbackUsed
+          ? 'DEGRADED'
+          : 'OPERATIONAL',
         fallbackProvider: fallbackUsed ? aqiData.source : undefined,
-        reason: fallbackUsed ? 'Direct CPCB CAAQMS not configured; using verified atmospheric chemistry fallback' : undefined,
+        reason: fallbackUsed
+          ? !CPCBProvider.isConfigured()
+            ? 'Direct CPCB CAAQMS not configured; switched to public-domain Open-Meteo CAMS proxy'
+            : CPCBProvider.isAuthCooldownActive()
+            ? 'Direct CPCB CAAQMS authentication failed (401/403); switched to public-domain Open-Meteo CAMS proxy'
+            : 'Direct CPCB CAAQMS unavailable; switched to public-domain Open-Meteo CAMS proxy'
+          : undefined,
         nextAction: !CPCBProvider.isConfigured() ? 'Configure CPCB_API_KEY to enable direct CAAQMS telemetry.' : undefined,
         data: aqiData,
         error: null,

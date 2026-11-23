@@ -35,8 +35,7 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         injectRegister: 'auto',
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         },
         includeAssets: [
           'favicon.svg',
@@ -83,9 +82,9 @@ export default defineConfig(() => {
           clientsClaim: true,
           skipWaiting: true,
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          globPatterns: ['**/*.{js,mjs,css,html,ico,png,svg,woff2}'],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//],
+          navigateFallbackDenylist: [/^\/api\//, /^\/node_modules\//, /\.mjs$/i],
           runtimeCaching: [
             // CRITICAL: Never cache live telemetry diagnostics, health, or interactive AI/TTS routes
             {
@@ -167,6 +166,9 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
+    },
+    optimizeDeps: {
+      exclude: ['maplibre-gl'],
     },
     server: {
       allowedHosts: true as const,

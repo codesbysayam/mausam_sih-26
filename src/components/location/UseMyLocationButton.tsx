@@ -118,7 +118,7 @@ export const UseMyLocationButton: React.FC<UseMyLocationButtonProps> = ({
       </button>
 
       {locateError && (
-        <div className="absolute top-full mt-2 left-0 right-0 z-50 min-w-[280px] p-3 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-danger)]/40 text-xs shadow-2xl space-y-2 animate-fadeIn">
+        <div className="absolute top-full mt-2 left-0 z-50 w-[min(280px,calc(100vw-24px))] max-w-[calc(100vw-24px)] p-3 rounded-xl bg-[var(--m-surface-2)] border border-[var(--m-danger)]/40 text-xs shadow-2xl space-y-2 animate-fadeIn">
           <div className="flex items-start gap-2 text-[var(--m-danger)]">
             <AlertTriangle className="w-4 h-4 text-[var(--m-danger)] shrink-0 mt-0.5" />
             <div>

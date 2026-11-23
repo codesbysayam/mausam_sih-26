@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 @import "./styles/mausam.css";
+@import "./styles/motion.css";
 @import "./styles/responsive-observatory.css";
 @import "./styles/viewport-hardening.css";
+@import "./styles/multi-device.css";
+@import "./styles/global-map.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
 @import "leaflet/dist/leaflet.css";

@@ -25,6 +25,7 @@ import { OfficialAgrometAdvisories } from '../components/agromet/OfficialAgromet
 import { FieldOperationsCalendarGrid } from '../components/agromet/FieldOperationsCalendarGrid';
 import { NearestObservationNetwork } from '../components/agromet/NearestObservationNetwork';
 import { AgrometDataProvenanceFooter } from '../components/agromet/AgrometDataProvenanceFooter';
+import { AgrometRegionalMap } from '../components/agromet/AgrometRegionalMap';
 
 interface AgrometPageProps {
   weatherBundle?: WeatherDataBundle;
@@ -133,6 +134,15 @@ export const AgrometPage: React.FC<AgrometPageProps> = ({
         weather={weatherBundle}
         district={selectedDistrict}
         state={selectedState}
+      />
+
+      <AgrometRegionalMap
+        weather={weatherBundle}
+        selectedLocation={selectedLocation}
+        selectedState={selectedState}
+        selectedDistrict={selectedDistrict}
+        selectedCrop={selectedCrop}
+        selectedStage={selectedStage}
       />
 
       <FarmStatusOverview

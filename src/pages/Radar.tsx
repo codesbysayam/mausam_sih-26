@@ -20,10 +20,14 @@ import { RadarStationNetwork } from '../components/radar/RadarStationNetwork';
 import { RadarProductSelector } from '../components/radar/RadarProductSelector';
 import { RadarTechnicalSpecs } from '../components/radar/RadarTechnicalSpecs';
 import { RadarTimeSpan } from '../components/radar/RadarTimeLapseController';
+import { useFramePlayback } from '../hooks/useFramePlayback';
+import { buildRadarPlaybackFrames } from '../services/map/mapFrameService';
+import type { BasemapStyleId } from '../utils/mapBasemaps';
 import { useProvider } from '../store/providerStore';
 import { formatTimestampIST } from '../services/providers/providerStatus';
 import { formatCoordinatePair } from '../../shared/weatherContract';
 import { formatLocationShort } from '../utils/locationFormatter';
+import { SectionReveal } from '../motion';
 import {
   PageHeader,
   ProvenanceStatus,
@@ -49,7 +53,7 @@ export const RadarPage: React.FC<RadarPageProps> = ({
   const mapWorkspaceRef = useRef<HTMLDivElement>(null);
   const [mapControls, setMapControls] = useState<MausamMapControls | null>(null);
 
-  // Independent RADAR provider state (strictly isolated from Weather/SACHET/AQI/NWP)
+  // Independent RADAR provider state
   const { state: radarProvider, refresh: refreshRadarProvider } = useProvider<RadarApiResponse>('RADAR');
   const radarData = radarProvider.data;
   const isLoadingRadar = radarProvider.status === 'LOADING';
@@ -57,6 +61,8 @@ export const RadarPage: React.FC<RadarPageProps> = ({
   // Mode Selection: 'synoptic' or 'radar'
   const [viewMode, setViewMode] = useState<'synoptic' | 'radar'>('radar');
   const [activeMetric, setActiveMetric] = useState<WeatherMapMetric>('rainfall');
+  const [basemapStyle, setBasemapStyle] = useState<BasemapStyleId>('dark');
+  const [radarOpacity, setRadarOpacity] = useState<number>(0.8);
   const [isMapLocked, setIsMapLocked] = useState<boolean>(false);
   const handleToggleLock = useCallback(() => setIsMapLocked((prev) => !prev), []);
 
@@ -76,12 +82,6 @@ export const RadarPage: React.FC<RadarPageProps> = ({
 
   // Selected State in Synoptic Mode
   const [selectedStateName, setSelectedStateName] = useState<string>('Odisha');
-
-  // Time-lapse playback state
-  const [activeFrameIndex, setActiveFrameIndex] = useState<number>(0);
-  const [isPlayingRadar, setIsPlayingRadar] = useState<boolean>(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [isLooping, setIsLooping] = useState<boolean>(true);
   const [timeSpan, setTimeSpan] = useState<RadarTimeSpan>('6h');
 
   const selectedStateData = useMemo<StateWeatherData>(() => {
@@ -108,25 +108,51 @@ export const RadarPage: React.FC<RadarPageProps> = ({
     return 'India Weather Sector';
   }, [inspectedCoords, viewMode, selectedStation, selectedStateName]);
 
+  // Build chronologically ordered OBSERVED + NOWCAST radar frames
   const activeTimelineFrames = useMemo<RadarFrame[]>(() => {
     if (!radarData) return [];
-    const sourceFrames =
+
+    // Prefer normalized past + nowcast frames filtered by selected lookback window
+    const lookbackHours = timeSpan === '1h' ? 1 : timeSpan === '3h' ? 3 : 6;
+    const normalized = buildRadarPlaybackFrames(radarData, {
+      lookbackHours,
+      includeNowcast: true,
+    });
+
+    if (normalized.length > 0) {
+      return normalized.map((n) => ({
+        ...n.raw,
+        time: n.time,
+        path: n.path,
+        tileUrl: n.tileUrl,
+        formattedTime: n.formattedTime,
+        relativeLabel: n.relativeLabel,
+        ageMinutes: n.ageMinutes ?? (n.dataType === 'NOWCAST' ? -10 : 0),
+      }));
+    }
+
+    // Fallback to sixHourFrames when provided without pre-built tileUrl
+    const fallbackFrames =
       radarData.sixHourFrames && radarData.sixHourFrames.length > 0
         ? radarData.sixHourFrames
-        : radarData.pastFrames;
+        : radarData.pastFrames || [];
 
-    if (!sourceFrames || sourceFrames.length === 0) return [];
-    if (timeSpan === '1h') return sourceFrames.slice(-5);
-    if (timeSpan === '3h') return sourceFrames.slice(-13);
-    return sourceFrames;
+    if (timeSpan === '1h') return fallbackFrames.slice(-5);
+    if (timeSpan === '3h') return fallbackFrames.slice(-13);
+    return fallbackFrames;
   }, [radarData, timeSpan]);
 
-  // Snap to latest radar frame whenever new frames arrive
-  useEffect(() => {
-    if (activeTimelineFrames.length > 0) {
-      setActiveFrameIndex(activeTimelineFrames.length - 1);
-    }
-  }, [activeTimelineFrames.length, radarProvider.fetchedAt]);
+  // Unified, cleanup-safe playback hook for Radar Time-Lapse
+  const radarPlayback = useFramePlayback<RadarFrame>({
+    frames: activeTimelineFrames,
+    baseIntervalMs: 750,
+    initialSpeed: 1,
+    initialLoop: true,
+    initialPosition: 'latest',
+    resetKey: `${timeSpan}:${selectedStation.id}:${viewMode}`,
+    sortByTime: true,
+    pauseWhenHidden: true,
+  });
 
   // Sync selected location with radar station and state
   useEffect(() => {
@@ -155,42 +181,17 @@ export const RadarPage: React.FC<RadarPageProps> = ({
     }
   }, [selectedLocation]);
 
-  // Frame animation timer
-  useEffect(() => {
-    if (!isPlayingRadar || !activeTimelineFrames || activeTimelineFrames.length <= 1) {
-      return;
-    }
-
-    const intervalDuration = Math.max(150, Math.round(750 / playbackSpeed));
-    const interval = setInterval(() => {
-      setActiveFrameIndex((prev) => {
-        const next = prev + 1;
-        if (next >= activeTimelineFrames.length) {
-          return isLooping ? 0 : prev;
-        }
-        return next;
-      });
-    }, intervalDuration);
-
-    return () => clearInterval(interval);
-  }, [isPlayingRadar, activeTimelineFrames, playbackSpeed, isLooping]);
-
-  useEffect(() => {
-    if (!isLooping && isPlayingRadar && activeFrameIndex >= activeTimelineFrames.length - 1) {
-      setIsPlayingRadar(false);
-    }
-  }, [isLooping, isPlayingRadar, activeFrameIndex, activeTimelineFrames.length]);
-
   const currentTileUrl = useMemo<string | null>(() => {
-    if (!radarData || !radarData.available || !activeTimelineFrames.length) {
+    if (!radarData || !radarData.available || !radarPlayback.currentFrame) {
       return null;
     }
-    const frame =
-      activeTimelineFrames[activeFrameIndex] ||
-      activeTimelineFrames[activeTimelineFrames.length - 1];
-    if (!frame || !radarData.host) return null;
+    const frame = radarPlayback.currentFrame;
+    if (frame.tileUrl && frame.tileUrl.trim()) {
+      return frame.tileUrl;
+    }
+    if (!frame.path || !radarData.host) return null;
     return `${radarData.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
-  }, [radarData, activeTimelineFrames, activeFrameIndex]);
+  }, [radarData, radarPlayback.currentFrame]);
 
   const lastFetchTime = useMemo<string>(() => {
     if (radarProvider.lastSuccessfulFetch) {
@@ -202,15 +203,15 @@ export const RadarPage: React.FC<RadarPageProps> = ({
 
   const currentObsTimestamp = useMemo<string>(() => {
     if (viewMode === 'radar') {
-      if (activeTimelineFrames?.[activeFrameIndex]) {
-        return activeTimelineFrames[activeFrameIndex].formattedTime;
+      if (radarPlayback.currentFrame?.formattedTime) {
+        return radarPlayback.currentFrame.formattedTime;
       }
       return lastFetchTime;
     }
     return selectedStateData?.updatedAt
       ? `Reference Baseline (${selectedStateData.updatedAt})`
       : lastFetchTime;
-  }, [viewMode, activeTimelineFrames, activeFrameIndex, lastFetchTime, selectedStateData]);
+  }, [viewMode, radarPlayback.currentFrame, lastFetchTime, selectedStateData]);
 
   const currentDataStatus = useMemo<'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE'>(() => {
     if (viewMode === 'radar') {
@@ -273,11 +274,10 @@ export const RadarPage: React.FC<RadarPageProps> = ({
 
   return (
     <div className="flex flex-col gap-5 w-full text-[var(--m-text-primary)]">
-      {/* Unified Observatory PageHeader */}
       <PageHeader
         eyebrow="Doppler Surveillance & Synoptic Map"
         title="Weather Map & Doppler Radar"
-        description="Switch atmospheric layers, scrub 6-hour composite radar scans, or inspect live point meteorology across India."
+        description="Switch atmospheric layers, basemaps (Dark, Satellite, Terrain, Light), scrub observed + nowcast radar sweeps, or inspect live point meteorology."
         coordinates={coordinateSummary}
         status={headerProvenanceStatus}
         source={
@@ -351,137 +351,144 @@ export const RadarPage: React.FC<RadarPageProps> = ({
         />
       )}
 
-      {/* Map-First Workstation: Dark Spatial Scope for Cartographic / Doppler Contrast */}
-      <section
-        ref={mapWorkspaceRef}
-        data-theme="dark-workspace"
-        className="flex flex-col gap-3 p-3 rounded-2xl bg-[var(--m-canvas)] border border-[var(--m-border)] text-[var(--m-text-primary)]"
-      >
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch">
-          {/* Left Layer Rail (horizontal scroll bar on mobile/tablet, grouped rail on desktop) */}
-          <MapLayerRail
-            viewMode={viewMode}
-            activeMetric={activeMetric}
-            onSelectLayer={handleSelectLayer}
-          />
-
-          {/* Expansive Map Canvas */}
-          <div className="flex-1 min-w-0 flex flex-col">
-            <MapToolbar
+      {/* Map-First Workstation */}
+      <SectionReveal delay={0.04}>
+        <section
+          ref={mapWorkspaceRef}
+          data-theme="dark-workspace"
+          className="flex flex-col gap-3 p-3 rounded-2xl bg-[var(--m-canvas)] border border-[var(--m-border)] text-[var(--m-text-primary)]"
+        >
+          <div className="flex flex-col lg:flex-row gap-3 items-stretch">
+            <MapLayerRail
+              viewMode={viewMode}
               activeMetric={activeMetric}
-              onSelectMetric={(m) => {
-                setViewMode('synoptic');
-                setActiveMetric(m);
-              }}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onResetView={handleResetView}
-              onMyLocation={handleMyLocation}
-              hasUserLocation={hasSelectedCoords}
-              isLocked={isMapLocked}
-              onToggleLock={handleToggleLock}
-              sectorName={currentSectorName}
-              hideMetricSelector={true}
+              onSelectLayer={handleSelectLayer}
             />
 
-            <div className="relative border-x border-[var(--m-border)] bg-[var(--m-surface-inset)] flex-1 min-h-[440px] md:min-h-[540px] lg:min-h-[640px]">
-              <MausamMap
-                viewMode={viewMode}
+            <div className="flex-1 min-w-0 flex flex-col">
+              <MapToolbar
                 activeMetric={activeMetric}
-                selectedState={selectedStateName}
-                onSelectState={(state) => {
-                  setSelectedStateName(state.name);
-                  setInspectedCoords(null);
+                onSelectMetric={(m) => {
+                  setViewMode('synoptic');
+                  setActiveMetric(m);
                 }}
-                selectedStation={selectedStation}
-                onSelectStation={(st) => {
-                  setSelectedStation(st);
-                  setInspectedCoords(null);
-                }}
-                radarTileUrl={currentTileUrl}
-                userCoords={
-                  hasSelectedCoords && selectedLocation
-                    ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
-                    : null
-                }
-                inspectedCoords={inspectedCoords}
-                onMapClick={handleMapClick}
-                onControlsReady={setMapControls}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onResetView={handleResetView}
+                onMyLocation={handleMyLocation}
+                hasUserLocation={hasSelectedCoords}
                 isLocked={isMapLocked}
                 onToggleLock={handleToggleLock}
                 sectorName={currentSectorName}
-                heightClass="h-full min-h-[440px] md:min-h-[540px] lg:min-h-[640px]"
-                showRadarLegend={viewMode === 'radar'}
-                showTimeLapseControl={viewMode === 'radar'}
-                timeLapseFrames={activeTimelineFrames}
-                activeFrameIndex={activeFrameIndex}
-                onChangeFrame={(idx) => {
-                  setIsPlayingRadar(false);
-                  setActiveFrameIndex(idx);
-                }}
-                isPlaying={isPlayingRadar}
-                onTogglePlay={() => setIsPlayingRadar((prev) => !prev)}
-                playbackSpeed={playbackSpeed}
-                onChangeSpeed={setPlaybackSpeed}
-                loop={isLooping}
-                onToggleLoop={() => setIsLooping((prev) => !prev)}
-                timeSpan={timeSpan}
-                onChangeTimeSpan={(span) => {
-                  setTimeSpan(span);
-                  setIsPlayingRadar(false);
-                }}
-                motionVector={radarData?.motionVector}
+                hideMetricSelector={true}
+              />
+
+              <div className="relative border-x border-[var(--m-border)] bg-[var(--m-surface-inset)] flex-1 min-h-[440px] md:min-h-[540px] lg:min-h-[640px]">
+                <MausamMap
+                  viewMode={viewMode}
+                  activeMetric={activeMetric}
+                  basemapStyle={basemapStyle}
+                  onBasemapStyleChange={setBasemapStyle}
+                  radarOpacity={radarOpacity}
+                  onRadarOpacityChange={setRadarOpacity}
+                  selectedState={selectedStateName}
+                  onSelectState={(state) => {
+                    setSelectedStateName(state.name);
+                    setInspectedCoords(null);
+                  }}
+                  selectedStation={selectedStation}
+                  onSelectStation={(st) => {
+                    setSelectedStation(st);
+                    setInspectedCoords(null);
+                  }}
+                  radarTileUrl={currentTileUrl}
+                  userCoords={
+                    hasSelectedCoords && selectedLocation
+                      ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
+                      : null
+                  }
+                  inspectedCoords={inspectedCoords}
+                  onMapClick={handleMapClick}
+                  onControlsReady={setMapControls}
+                  isLocked={isMapLocked}
+                  onToggleLock={handleToggleLock}
+                  sectorName={currentSectorName}
+                  heightClass="h-full min-h-[440px] md:min-h-[540px] lg:min-h-[640px]"
+                  showRadarLegend={viewMode === 'radar'}
+                  showTimeLapseControl={viewMode === 'radar'}
+                  timeLapseFrames={radarPlayback.frames}
+                  activeFrameIndex={radarPlayback.currentIndex}
+                  onChangeFrame={(idx) => {
+                    radarPlayback.pause();
+                    radarPlayback.seek(idx);
+                  }}
+                  onResetPlayback={radarPlayback.reset}
+                  isPlaying={radarPlayback.isPlaying}
+                  onTogglePlay={radarPlayback.togglePlay}
+                  playbackSpeed={radarPlayback.speed}
+                  onChangeSpeed={radarPlayback.changeSpeed}
+                  loop={radarPlayback.loop}
+                  onToggleLoop={radarPlayback.toggleLoop}
+                  timeSpan={timeSpan}
+                  onChangeTimeSpan={(span) => {
+                    radarPlayback.pause();
+                    setTimeSpan(span);
+                  }}
+                  motionVector={radarData?.motionVector}
+                  dataStatus={currentDataStatus}
+                />
+              </div>
+
+              <MapLegendBar
+                viewMode={viewMode}
+                activeMetric={activeMetric}
+                sourceName={
+                  viewMode === 'radar'
+                    ? 'RainViewer Global Radar Composite / IMD DWR Reference'
+                    : 'Regional Reference Baseline + Open-Meteo Point Query'
+                }
+                observationTime={currentObsTimestamp}
                 dataStatus={currentDataStatus}
               />
             </div>
 
-            <MapLegendBar
-              viewMode={viewMode}
-              activeMetric={activeMetric}
-              sourceName={
-                viewMode === 'radar'
-                  ? 'RainViewer Global Radar Composite / IMD DWR Reference'
-                  : 'Regional Reference Baseline + Open-Meteo Point Query'
-              }
-              observationTime={currentObsTimestamp}
-              dataStatus={currentDataStatus}
-            />
+            <div className="w-full lg:w-80 shrink-0">
+              <MapLocationInspector
+                inspectedCoords={inspectedCoords}
+                onClearInspectedCoords={() => setInspectedCoords(null)}
+                viewMode={viewMode}
+                station={selectedStation}
+                stateData={selectedStateData}
+                observationTime={currentObsTimestamp}
+                dataStatus={currentDataStatus}
+              />
+            </div>
           </div>
+        </section>
+      </SectionReveal>
 
-          {/* Right Location & Point Inspector */}
-          <div className="w-full lg:w-80 shrink-0">
-            <MapLocationInspector
-              inspectedCoords={inspectedCoords}
-              onClearInspectedCoords={() => setInspectedCoords(null)}
-              viewMode={viewMode}
-              station={selectedStation}
-              stateData={selectedStateData}
-              observationTime={currentObsTimestamp}
-              dataStatus={currentDataStatus}
-            />
-          </div>
-        </div>
-      </section>
+      <SectionReveal delay={0.08}>
+        <RadarStationNetwork
+          selectedStationId={selectedStation.id}
+          onSelectStation={handleSelectStationFromDirectory}
+        />
+      </SectionReveal>
 
-      {/* Doppler Station Network Directory */}
-      <RadarStationNetwork
-        selectedStationId={selectedStation.id}
-        onSelectStation={handleSelectStationFromDirectory}
-      />
+      <SectionReveal delay={0.1}>
+        <RadarProductSelector
+          selectedProduct={selectedProduct}
+          onSelectProduct={setSelectedProduct}
+          radarSourceLabel="RainViewer precipitation radar"
+          isRadarMode={viewMode === 'radar'}
+        />
+      </SectionReveal>
 
-      {/* Radar Product Information */}
-      <RadarProductSelector
-        selectedProduct={selectedProduct}
-        onSelectProduct={setSelectedProduct}
-        radarSourceLabel="RainViewer precipitation radar"
-        isRadarMode={viewMode === 'radar'}
-      />
-
-      {/* Collapsible Technical Details */}
-      <RadarTechnicalSpecs
-        station={selectedStation}
-        radarSourceLabel="RainViewer precipitation radar / IMD Doppler Network"
-      />
+      <SectionReveal delay={0.12}>
+        <RadarTechnicalSpecs
+          station={selectedStation}
+          radarSourceLabel="RainViewer precipitation radar / IMD Doppler Network"
+        />
+      </SectionReveal>
     </div>
   );
 };

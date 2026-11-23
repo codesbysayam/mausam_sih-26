@@ -50,6 +50,7 @@ interface AtmosphereSceneProps {
   timelineIndex: number;
   qualityTier: QualityTier;
   reducedMotion: boolean;
+  windFlowPaused?: boolean;
   cameraFlyTarget: { lat: number; lng: number; distance?: number; nonce: number } | null;
   onSelectFeature: (feature: InspectedSpatialFeature) => void;
   onRecenterIndia: () => void;
@@ -139,6 +140,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
   timelineIndex,
   qualityTier,
   reducedMotion,
+  windFlowPaused = false,
   cameraFlyTarget,
   onSelectFeature,
   onRecenterIndia,
@@ -156,6 +158,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     timelineIndex,
     qualityTier,
     reducedMotion,
+    windFlowPaused,
     onSelectFeature,
     onRecenterIndia,
     onWebGLUnavailable,
@@ -168,6 +171,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
     timelineIndex,
     qualityTier,
     reducedMotion,
+    windFlowPaused,
     onSelectFeature,
     onRecenterIndia,
     onWebGLUnavailable,
@@ -751,6 +755,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
         selectedLocation: loc,
         timelineIndex: tIdx,
         reducedMotion: rm,
+        windFlowPaused: wfPaused,
         qualityTier: q,
       } = latestRef.current;
 
@@ -763,7 +768,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
         windParticles.updateLiveWindFocus(loc.lat, loc.lng, windSpeed, windDir);
       }
 
-      const useStaticVectors = rm || q === 'low' || isSoftwareGl;
+      const useStaticVectors = rm || wfPaused || q === 'low' || isSoftwareGl;
       if (layer === 'wind') {
         windParticles.setIntensityVisibility('primary', 1.0, useStaticVectors);
       } else if (layer === 'conditions' || layer === 'rain' || layer === 'cyclones') {
@@ -1175,7 +1180,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       timer.update(timestamp);
       const delta = Math.min(timer.getDelta(), 0.05);
       const elapsed = timer.getElapsed();
-      const { qualityTier: q, reducedMotion: rm } = latestRef.current;
+      const { qualityTier: q, reducedMotion: rm, windFlowPaused: wfPaused } = latestRef.current;
 
       // Smooth damped camera & target fly-to
       if (flyCamDest && flyTargetDest) {
@@ -1208,7 +1213,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
       const particleRatio =
         q === 'low' || isSoftwareGl ? 0.25 : q === 'balanced' || q === 'auto' ? 0.65 : 1.0;
 
-      windParticles.step(delta, particleRatio, !rm);
+      windParticles.step(delta, particleRatio, !rm && !wfPaused);
 
       if (!rm) {
         if (cloudPlane.visible) {
@@ -1292,7 +1297,7 @@ export const AtmosphereScene: React.FC<AtmosphereSceneProps> = ({
   // Sync dynamic telemetry, quality tier, reduced motion & active layers with live Three.js objects
   useEffect(() => {
     sceneHooksRef.current.updateLayerVisuals?.();
-  }, [activeLayer, weatherBundle, timelineIndex, selectedLocation, reducedMotion, qualityTier]);
+  }, [activeLayer, weatherBundle, timelineIndex, selectedLocation, reducedMotion, windFlowPaused, qualityTier]);
 
   useEffect(() => {
     sceneHooksRef.current.updatePixelRatio?.();

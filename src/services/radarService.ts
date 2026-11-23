@@ -5,6 +5,7 @@ export type RadarDataStatus = 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE' | 'LOA
 export interface RadarFrame {
   time: number;
   path: string;
+  tileUrl?: string;
   formattedTime: string;
   ageMinutes: number;
   relativeLabel?: string;

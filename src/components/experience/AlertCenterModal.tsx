@@ -11,6 +11,8 @@ import { useProvider } from '../../store/providerStore';
 import { formatTimestampIST, getAlertFeedAvailability } from '../../services/providers/providerStatus';
 import { useExperience } from '../../context/ExperienceContext';
 import { formatLocationTitle } from '../../utils/locationFormatter';
+import { AnimatePresence, motion } from 'motion/react';
+import { MOTION_DURATION, MOTION_EASE } from '../../motion';
 
 interface AlertCenterModalProps {
   selectedLocation: LocationRecord;
@@ -37,25 +39,33 @@ export const AlertCenterModal: React.FC<AlertCenterModalProps> = ({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isAlertDrawerOpen, setIsAlertDrawerOpen]);
 
-  if (!isAlertDrawerOpen) return null;
-
   const lastChecked =
     sachetState.lastSuccessfulFetch || sachetState.fetchedAt
       ? formatTimestampIST(sachetState.lastSuccessfulFetch || sachetState.fetchedAt)
       : 'latest sync';
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Official Meteorological Warnings & SACHET Feed"
-      className="fixed inset-0 z-50 flex items-center justify-center sm:justify-end bg-black/50 p-3 sm:p-4"
-      onClick={() => setIsAlertDrawerOpen(false)}
-    >
-      <div
-        className="w-full max-w-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] shadow-2xl rounded-[11px] p-4 sm:p-5 flex flex-col gap-3.5 max-h-[85dvh] overflow-y-auto scrollbar-thin"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {isAlertDrawerOpen && (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Official Meteorological Warnings & SACHET Feed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: MOTION_DURATION.FAST, ease: MOTION_EASE.FEEDBACK }}
+          className="fixed inset-0 z-50 flex items-center justify-center sm:justify-end bg-black/50 p-3 sm:p-4"
+          onClick={() => setIsAlertDrawerOpen(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: 24, scale: 0.98 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 16, scale: 0.98 }}
+            transition={{ duration: MOTION_DURATION.STANDARD, ease: MOTION_EASE.ENTRANCE }}
+            className="w-full max-w-md bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-primary)] shadow-2xl rounded-[11px] p-4 sm:p-5 flex flex-col gap-3.5 max-h-[85dvh] overflow-y-auto scrollbar-thin"
+            onClick={(e) => e.stopPropagation()}
+          >
         <div className="flex items-start justify-between gap-2 pb-3 border-b border-[var(--m-border)]">
           <div>
             <span className="mausam-eyebrow">
@@ -147,7 +157,9 @@ export const AlertCenterModal: React.FC<AlertCenterModalProps> = ({
           <span>Open Full Warnings Matrix</span>
           <ArrowUpRight className="w-4 h-4" />
         </button>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

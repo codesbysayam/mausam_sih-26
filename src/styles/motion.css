@@ -1,0 +1,146 @@
+/* ====================================================================
+ * MAUSAM - Centralized Motion CSS Tokens & Compositor-Only Keyframes
+ * Uses transform & opacity exclusively (zero layout thrash / CLS).
+ * Strictly honors prefers-reduced-motion AND [data-reduced-motion="true"].
+ * ==================================================================== */
+
+:root {
+  --m-motion-fast: 180ms;
+  --m-motion-standard: 360ms;
+  --m-motion-emphasis: 560ms;
+  --m-motion-cinematic: 900ms;
+  --m-ease-feedback: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --m-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --m-ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smooth subtle surface elevation on fine-pointer hover */
+@media (hover: hover) and (pointer: fine) {
+  .mausam-interactive-card {
+    transition:
+      transform var(--m-motion-fast) var(--m-ease-feedback),
+      border-color var(--m-motion-fast) var(--m-ease-feedback),
+      box-shadow var(--m-motion-standard) var(--m-ease-feedback);
+    will-change: transform;
+  }
+
+  .mausam-interactive-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .mausam-interactive-card:active {
+    transform: translateY(0) scale(0.99);
+  }
+}
+
+/* Ambient atmospheric glow breathing */
+@keyframes mausamAmbientAura {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.38;
+  }
+  50% {
+    transform: translate3d(-12px, 10px, 0) scale(1.08);
+    opacity: 0.56;
+  }
+}
+
+.mausam-ambient-aura {
+  background: radial-gradient(circle, var(--m-accent) 0%, transparent 70%);
+  animation: mausamAmbientAura 11s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Ambient cloud / fog layer drift */
+@keyframes mausamAmbientDrift {
+  0% {
+    transform: translate3d(-4%, 0, 0);
+  }
+  50% {
+    transform: translate3d(4%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-4%, 0, 0);
+  }
+}
+
+.mausam-ambient-drift {
+  background: radial-gradient(
+    ellipse 60% 45% at 50% 45%,
+    rgba(148, 163, 184, 0.16),
+    transparent 70%
+  );
+  animation: mausamAmbientDrift 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Restrained diagonal precipitation streaks */
+@keyframes mausamRainStreak {
+  0% {
+    transform: translate3d(0, -64px, 0) skewX(-12deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate3d(-24px, 260px, 0) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+.mausam-rain-streak {
+  animation: mausamRainStreak 1.6s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* Radar sweep indicator rotation (compositor-only, shown only when radar frames are live) */
+@keyframes mausamRadarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mausam-radar-sweep {
+  animation: mausamRadarSweep 3.2s linear infinite;
+  will-change: transform;
+}
+
+/* Reduced-motion hard guarantee (OS preference OR in-app ExperienceContext toggle) */
+@media (prefers-reduced-motion: reduce) {
+  .mausam-ambient-aura,
+  .mausam-ambient-drift,
+  .mausam-rain-streak,
+  .mausam-radar-sweep {
+    animation: none !important;
+  }
+
+  .mausam-interactive-card {
+    transition: none !important;
+  }
+
+  .mausam-interactive-card:hover,
+  .mausam-interactive-card:active {
+    transform: none !important;
+  }
+}
+
+[data-reduced-motion="true"] .mausam-ambient-aura,
+[data-reduced-motion="true"] .mausam-ambient-drift,
+[data-reduced-motion="true"] .mausam-rain-streak,
+[data-reduced-motion="true"] .mausam-radar-sweep {
+  animation: none !important;
+}
+
+[data-reduced-motion="true"] .mausam-interactive-card,
+[data-reduced-motion="true"] .mausam-interactive-card:hover,
+[data-reduced-motion="true"] .mausam-interactive-card:active {
+  transition: none !important;
+  transform: none !important;
+}

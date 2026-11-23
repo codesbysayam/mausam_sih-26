@@ -6,6 +6,10 @@
 
 import { NormalizedWeather, NormalizedForecast, NormalizedWarningItem, GeoLocation } from '../normalization/types';
 import { WeatherNormalizer } from '../normalization/weatherNormalizer';
+import {
+  officialTelemetryGateway,
+  ProviderAuthError,
+} from '../../src/services/weather/officialProxyGateway';
 
 export class IMDProvider {
   public static readonly providerName = 'India Meteorological Department (IMD)';
@@ -14,7 +18,16 @@ export class IMDProvider {
   private static publicPortalUrl = process.env.IMD_PUBLIC_PORTAL_URL || 'https://city.imd.gov.in';
 
   public static isConfigured(): boolean {
-    return Boolean(process.env.IMD_API_KEY && process.env.IMD_API_KEY.trim() !== '');
+    const enabledFlag = (process.env.IMD_API_ENABLED || '').trim().toLowerCase();
+    if (enabledFlag === 'false') return false;
+    return Boolean(
+      (process.env.IMD_API_KEY && process.env.IMD_API_KEY.trim() !== '') ||
+      (process.env.IMD_API_TOKEN && process.env.IMD_API_TOKEN.trim() !== '')
+    );
+  }
+
+  public static isAuthCooldownActive(): boolean {
+    return officialTelemetryGateway.isAuthCooldownActive('IMD');
   }
 
   public static async checkHealth(): Promise<{
@@ -34,12 +47,14 @@ export class IMDProvider {
 
     const start = Date.now();
     try {
-      const apiKey = process.env.IMD_API_KEY!;
+      const apiKey = process.env.IMD_API_KEY;
+      const apiToken = process.env.IMD_API_TOKEN;
       const headers: Record<string, string> = {
         Accept: 'application/json',
         'User-Agent': 'MAUSAM-Atmospheric-Platform/3.0',
-        'X-API-KEY': apiKey,
       };
+      if (apiKey) headers['X-API-KEY'] = apiKey;
+      if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
       const res = await fetch(`${this.baseUrl}/health`, {
         headers,
         signal: AbortSignal.timeout(4000),
@@ -47,11 +62,12 @@ export class IMDProvider {
 
       const latencyMs = Date.now() - start;
       if (res.status === 401 || res.status === 403) {
+        officialTelemetryGateway.markAuthFailure('IMD', res.status);
         return {
           configured: true,
           operational: false,
           latencyMs,
-          error: `AUTH_ERROR: Invalid or expired IMD_API_KEY (HTTP ${res.status})`,
+          error: `AUTH_ERROR: Invalid or expired IMD credentials (HTTP ${res.status})`,
         };
       }
       if (res.status === 429) {
@@ -82,7 +98,7 @@ export class IMDProvider {
   }
 
   public static async fetchCurrentWeather(loc: GeoLocation, stationId?: string): Promise<NormalizedWeather | null> {
-    if (!this.isConfigured()) {
+    if (!this.isConfigured() || this.isAuthCooldownActive()) {
       return null;
     }
 
@@ -101,6 +117,11 @@ export class IMDProvider {
         headers,
         signal: AbortSignal.timeout(6000),
       });
+
+      if (res.status === 401 || res.status === 403) {
+        officialTelemetryGateway.markAuthFailure('IMD', res.status);
+        throw new ProviderAuthError('IMD', res.status);
+      }
 
       if (!res.ok) {
         return null;
@@ -141,30 +162,43 @@ export class IMDProvider {
         isFallback: false,
         rawSourceAttribution: 'Official data courtesy of India Meteorological Department (IMD), Ministry of Earth Sciences.',
       };
-    } catch {
+    } catch (err) {
+      if (err instanceof ProviderAuthError) {
+        throw err;
+      }
       return null;
     }
   }
 
   public static async fetchCityForecast(loc: GeoLocation): Promise<NormalizedForecast | null> {
-    if (!this.isConfigured()) return null;
+    if (!this.isConfigured() || this.isAuthCooldownActive()) return null;
     try {
       const apiKey = process.env.IMD_API_KEY;
+      const apiToken = process.env.IMD_API_TOKEN;
       const headers: Record<string, string> = {
         Accept: 'application/json',
         'User-Agent': 'MAUSAM-Atmospheric-Platform/3.0',
       };
       if (apiKey) headers['X-API-KEY'] = apiKey;
+      if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
 
       const res = await fetch(`${this.baseUrl}/forecast/city?lat=${loc.latitude}&lon=${loc.longitude}`, {
         headers,
         signal: AbortSignal.timeout(6000),
       });
 
+      if (res.status === 401 || res.status === 403) {
+        officialTelemetryGateway.markAuthFailure('IMD', res.status);
+        throw new ProviderAuthError('IMD', res.status);
+      }
+
       if (!res.ok) return null;
       const json = await res.json();
       return json as NormalizedForecast;
-    } catch {
+    } catch (err) {
+      if (err instanceof ProviderAuthError) {
+        throw err;
+      }
       return null;
     }
   }

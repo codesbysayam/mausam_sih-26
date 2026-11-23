@@ -109,14 +109,14 @@ export const FirstVisitGuide: React.FC = () => {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-[var(--m-accent)]">
-                <span>MAUSAM Atmospheric Observatory</span>
+                <span>MAUSAM Global Atmospheric Observatory</span>
                 <span className="text-[var(--m-text-muted)]">·</span>
                 <span className="text-[var(--m-text-secondary)]">
-                  {rendererMode === '3d' ? '3D Relief' : '2D Map'} ({qualityTier})
+                  {rendererMode === '3d' ? 'Global Map' : '2D Fallback'} ({qualityTier})
                 </span>
               </div>
               <h2 className="text-base font-bold text-[var(--m-text-primary)] mt-0.5">
-                Spatial Navigation &amp; Guided Atmospheric Tours
+                Global Navigation &amp; Guided Atmospheric Tours
               </h2>
             </div>
             <button
@@ -164,18 +164,18 @@ export const FirstVisitGuide: React.FC = () => {
               <div className="bg-[var(--m-surface-inset)] rounded-lg p-2.5 border border-[var(--m-border)] flex items-start gap-2">
                 <Compass className="w-4 h-4 text-[var(--m-accent)] shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-semibold text-[var(--m-text-primary)]">Orbit &amp; Pan</div>
+                  <div className="font-semibold text-[var(--m-text-primary)]">Globe &amp; Flat Map</div>
                   <div className="text-[11px] text-[var(--m-text-muted)]">
-                    Left-drag orbits, right-drag pans across India, scroll zooms.
+                    Drag to pan the world, right-drag to tilt, scroll to zoom any continent or city.
                   </div>
                 </div>
               </div>
               <div className="bg-[var(--m-surface-inset)] rounded-lg p-2.5 border border-[var(--m-border)] flex items-start gap-2">
                 <MousePointerClick className="w-4 h-4 text-[var(--m-ok)] shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-semibold text-[var(--m-text-primary)]">Inspect Beacons</div>
+                  <div className="font-semibold text-[var(--m-text-primary)]">Inspect Anywhere</div>
                   <div className="text-[11px] text-[var(--m-text-muted)]">
-                    Click any state pylon, Doppler dome, or use the Stations list.
+                    Click any country, city hub, or ocean coordinate to load live global weather.
                   </div>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export const FirstVisitGuide: React.FC = () => {
                 <div>
                   <div className="font-semibold text-[var(--m-text-primary)]">Shortcuts</div>
                   <div className="text-[11px] text-[var(--m-text-muted)]">
-                    Arrows/WASD pan · +/- zoom · R resets · ? toggles guide.
+                    Drag/scroll pan · +/- zoom · R resets World view · ? toggles guide.
                   </div>
                 </div>
               </div>
@@ -193,11 +193,11 @@ export const FirstVisitGuide: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2.5 text-xs">
               <div className="bg-[var(--m-surface-inset)] rounded-lg p-2.5 border border-[var(--m-border)]">
                 <div className="font-semibold text-[var(--m-text-primary)]">
-                  One-Finger Orbit &amp; Pinch Zoom
+                  One-Finger Pan &amp; Pinch Zoom
                 </div>
                 <div className="text-[11px] text-[var(--m-text-muted)] mt-0.5">
-                  Drag with one finger to rotate around India; pinch with two fingers to zoom or
-                  drag horizontally.
+                  Drag with one finger to explore continents and oceans; pinch with two fingers to
+                  zoom into any country or city.
                 </div>
               </div>
               <div className="bg-[var(--m-surface-inset)] rounded-lg p-2.5 border border-[var(--m-border)]">

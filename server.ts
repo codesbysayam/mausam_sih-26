@@ -697,6 +697,41 @@ Live assistant narrative is not configured; consult the active IMD / SACHET Warn
 
   // Vite middleware for development (disable HMR automatically in Cloud Run preview / DISABLE_HMR)
   if (process.env.NODE_ENV !== 'production') {
+    // Serve raw untouched MapLibre worker script (avoid Vite injecting /@vite/client into Web Workers)
+    app.get('/node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs', (req, res, next) => {
+      if (Object.prototype.hasOwnProperty.call(req.query, 'url')) {
+        return next();
+      }
+      const workerFile = path.join(
+        process.cwd(),
+        'node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs'
+      );
+      res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      return res.sendFile(workerFile);
+    });
+
+    // Prevent stale browser SW registrations (/registerSW.js, /sw.js, /dev-sw.js) from receiving
+    // Vite's SPA index.html fallback (which triggers "Uncaught SyntaxError: Unexpected token '<'").
+    app.get('/registerSW.js', (_req, res) => {
+      res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.send('// Dev mode: Service Worker registration disabled\n');
+    });
+
+    app.get(['/sw.js', '/dev-sw.js'], (_req, res) => {
+      res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(
+        'self.addEventListener("install",()=>self.skipWaiting());self.addEventListener("activate",(e)=>e.waitUntil(self.registration.unregister()));\n'
+      );
+    });
+
+    // Never return HTML for missing production chunks or workbox bundles in dev mode
+    app.get(/^\/(assets\/|workbox-).*\.(js|mjs|css|map)$/i, (_req, res) => {
+      res.status(404).type('text/plain').send('Not Found');
+    });
+
     const isHmrDisabled =
       process.env.DISABLE_HMR === 'true' ||
       Boolean(process.env.K_SERVICE || process.env.K_REVISION);
@@ -724,6 +759,9 @@ Live assistant narrative is not configured; consult the active IMD / SACHET Warn
       },
     }));
     app.get('*', (req, res) => {
+      if (/\.(js|mjs|css|map|json|png|jpe?g|webp|svg|ico|woff2?|pbf)$/i.test(req.path)) {
+        return res.status(404).type('text/plain').send('Not Found');
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

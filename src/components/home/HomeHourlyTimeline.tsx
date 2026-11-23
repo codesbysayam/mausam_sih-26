@@ -3,6 +3,7 @@ import { HourlyForecastItem } from '../../types';
 import { getWeatherVisualConfig } from '../../utils/weatherIcons';
 import { ArrowRight, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
+import { AnimatedMetricBar, SectionReveal } from '../../motion';
 
 interface HomeHourlyTimelineProps {
   hourly: HourlyForecastItem[];
@@ -29,6 +30,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
   };
 
   return (
+    <SectionReveal>
     <DataPanel id="homepage-hourly-timeline" className="flex flex-col gap-4">
       <SectionHeading
         title="Hourly Atmospheric Timeline"
@@ -145,12 +147,10 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
                       {rain !== null ? `${rain}%` : '—'}
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-[var(--m-surface-2)] rounded overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--m-accent)] rounded"
-                      style={{ width: `${rain !== null ? Math.min(100, Math.max(0, rain)) : 0}%` }}
-                    />
-                  </div>
+                  <AnimatedMetricBar
+                    ratio={rain !== null ? Math.min(1, Math.max(0, rain / 100)) : 0}
+                    heightClass="h-1"
+                  />
                 </div>
 
                 <div className="text-[10px] text-[var(--m-text-muted)] mt-1 font-mono tabular-nums">
@@ -177,6 +177,7 @@ export const HomeHourlyTimeline: React.FC<HomeHourlyTimelineProps> = ({
         )}
       </div>
     </DataPanel>
+    </SectionReveal>
   );
 };
 

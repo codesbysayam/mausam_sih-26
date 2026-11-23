@@ -20,7 +20,9 @@ import { useProviderStore } from '../../store/providerStore';
 import { getProviderStatusVisual } from '../../services/providers/providerStatus';
 import { lazyWithRetry } from '../../utils/lazyWithRetry';
 import { ErrorBoundary } from '../common/ErrorBoundary';
-import { Globe } from 'lucide-react';
+import { Globe, Menu } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { PageTransition, MOTION_SPRING } from '../../motion';
 
 const ForecastPage = lazyWithRetry(() => import('../../pages/Forecast'), 'ForecastPage');
 const RadarPage = lazyWithRetry(() => import('../../pages/Radar'), 'RadarPage');
@@ -66,6 +68,7 @@ interface AnalyzeWorkspaceProps {
   nearestStationInfo: NearestStationResult | null;
   onOpenLocationCenter: () => void;
   onOpenPrivacyModal: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
@@ -86,10 +89,13 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
   nearestStationInfo,
   onOpenLocationCenter,
   onOpenPrivacyModal,
+  onOpenMobileMenu,
 }) => {
   const { setMode } = useExperience();
   const { providers } = useProviderStore();
   const effectiveTab: AnalyzeOrFooterView = activeTab;
+  const activeTabLabel =
+    ANALYZE_TABS.find((t) => t.id === effectiveTab)?.label || 'Overview';
 
   return (
     <div
@@ -98,7 +104,18 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
     >
       {/* Editorial Domain Navigation Strip */}
       <div className="w-full bg-[var(--m-surface-1)] border-b border-[var(--m-border)]">
-        <div className="mausam-page py-2 flex items-center justify-between gap-3">
+        <div className="mausam-page py-2 flex items-center justify-between gap-2 sm:gap-3">
+          {onOpenMobileMenu && (
+            <button
+              type="button"
+              onClick={onOpenMobileMenu}
+              aria-label={`Open sections menu (Current: ${activeTabLabel})`}
+              className="md:hidden shrink-0 min-h-[44px] px-3 rounded-xl border border-[var(--m-border-strong)] bg-[var(--m-surface-2)] text-xs font-semibold text-[var(--m-text-primary)] inline-flex items-center gap-1.5 cursor-pointer m-focus-ring whitespace-nowrap"
+            >
+              <Menu className="w-4 h-4 text-[var(--m-accent)]" />
+              <span>{activeTabLabel}</span>
+            </button>
+          )}
           <nav
             aria-label="Primary Meteorological Sections"
             className="flex items-center gap-1 overflow-x-auto scrollbar-none min-w-0 flex-1"
@@ -111,7 +128,7 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                   type="button"
                   onClick={() => onNavigateTab(t.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative px-3 min-h-[38px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer m-focus-ring ${
+                  className={`relative px-3 min-h-[44px] md:min-h-[38px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0 m-focus-ring ${
                     isActive
                       ? 'bg-[var(--m-surface-2)] text-[var(--m-text-primary)] font-semibold'
                       : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]/60'
@@ -119,7 +136,9 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
                 >
                   {t.label}
                   {isActive && (
-                    <span
+                    <motion.span
+                      layoutId="mausam-analyze-tab-indicator"
+                      transition={MOTION_SPRING.INDICATOR}
                       aria-hidden="true"
                       className="absolute left-3 right-3 -bottom-2 h-[2px] bg-[var(--m-accent)] rounded-full"
                     />
@@ -168,8 +187,10 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
         </div>
       </div>
 
-      {/* Active Route View (Route-Isolated ErrorBoundary preserves top bar & tabs) */}
+      {/* Active Route View (Route-Isolated ErrorBoundary + Seamless PageTransition) */}
       <PageContainer id="mausam-main-page-container" fluid={effectiveTab === 'radar'}>
+        <AnimatePresence mode="wait" initial={false}>
+          <PageTransition key={`analyze-page-${effectiveTab}`} className="w-full">
         <ErrorBoundary
           key={`analyze-route-${effectiveTab}`}
           scope="workspace"
@@ -307,6 +328,8 @@ export const AnalyzeWorkspace: React.FC<AnalyzeWorkspaceProps> = ({
           )}
         </React.Suspense>
         </ErrorBoundary>
+          </PageTransition>
+        </AnimatePresence>
       </PageContainer>
     </div>
   );

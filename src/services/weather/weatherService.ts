@@ -12,8 +12,11 @@ import {
   DataSourceContext,
 } from '../../types/askMausam';
 import { finiteNumber } from '../../../shared/weatherContract';
-import { fetchImdObservation } from './imdAdapter';
-import { fetchOpenMeteoBundle, OpenMeteoBundle } from './openMeteoAdapter';
+import { OpenMeteoBundle } from './openMeteoAdapter';
+import {
+  officialTelemetryGateway,
+  OfficialProxyMetadata,
+} from './officialProxyGateway';
 
 export interface UnifiedWeatherResult {
   current?: CurrentWeatherContext;
@@ -21,6 +24,7 @@ export interface UnifiedWeatherResult {
   agriculture?: AgricultureContext;
   marine?: MarineContext;
   sources: DataSourceContext[];
+  proxyMeta?: OfficialProxyMetadata;
 }
 
 export interface LiveMarineTelemetry {
@@ -155,27 +159,28 @@ export async function getAuthoritativeWeather(
     liveMarine?: LiveMarineTelemetry;
   }
 ): Promise<UnifiedWeatherResult> {
-  const sources: DataSourceContext[] = [];
+  // Routed via service-level OfficialTelemetryGateway:
+  // Attempts IMD only when configured & not in auth cooldown; switches
+  // automatically to public-domain Open-Meteo proxy on unconfigured or 401/403.
+  const gatewayRes = await officialTelemetryGateway.fetchWeatherWithFallback(
+    latitude,
+    longitude,
+    { stationCode: options?.stationCode }
+  );
 
-  // 1. Try Official IMD Observation first
-  const imdRes = await fetchImdObservation(options?.stationCode, latitude, longitude);
-  sources.push(imdRes.source);
-
-  // 2. Fetch Open-Meteo bundle for forecast & complete telemetry
-  const openMeteoRes = await fetchOpenMeteoBundle(latitude, longitude);
-  sources.push(openMeteoRes.source);
-
-  // Determine current weather: prefer IMD if available, otherwise Open-Meteo
-  const current = imdRes.available && imdRes.current ? imdRes.current : openMeteoRes.current;
-
-  const agriculture = deriveAgricultureContext(current, openMeteoRes);
-  const marine = deriveMarineContext(options?.isCoastal, current, options?.liveMarine);
+  const agriculture = deriveAgricultureContext(gatewayRes.current, {
+    soilMoisture: gatewayRes.soilMoisture,
+    soilTemperature: gatewayRes.soilTemperature,
+    evapotranspiration: gatewayRes.evapotranspiration,
+  });
+  const marine = deriveMarineContext(options?.isCoastal, gatewayRes.current, options?.liveMarine);
 
   return {
-    current,
-    forecast: openMeteoRes.forecast,
+    current: gatewayRes.current,
+    forecast: gatewayRes.forecast,
     agriculture,
     marine,
-    sources,
+    sources: gatewayRes.sources,
+    proxyMeta: gatewayRes.meta,
   };
 }

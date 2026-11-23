@@ -36,11 +36,14 @@ export interface PlaybackStepResult {
   shouldStop: boolean;
 }
 
+export type SupportedPlaybackSpeed = 0.5 | 1 | 1.5 | 2;
+
 /**
  * Computes interval duration in milliseconds for a given playback speed.
  */
-export function getPlaybackIntervalMs(speed: 0.5 | 1 | 2): number {
-  const safeSpeed = speed === 0.5 || speed === 2 ? speed : 1;
+export function getPlaybackIntervalMs(speed: SupportedPlaybackSpeed): number {
+  const safeSpeed =
+    speed === 0.5 || speed === 1 || speed === 1.5 || speed === 2 ? speed : 1;
   return Math.round(1100 / safeSpeed);
 }
 

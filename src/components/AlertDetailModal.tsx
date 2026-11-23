@@ -24,7 +24,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[var(--m-surface-2)] card-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(226, 219, 200,0.12)]"
+        className="bg-[var(--m-surface-2)] card-border rounded-2xl max-w-lg w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative flex flex-col gap-5 border border-[rgba(226, 219, 200,0.12)]"
         style={{ borderColor: alert.color || (isSevere ? '#E74C3C' : '#FFB703') }}
         onClick={(e) => e.stopPropagation()}
       >

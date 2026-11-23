@@ -10,6 +10,13 @@ import {
   SourceStatus,
   UnavailableState,
 } from '../ui/ObservatoryPrimitives';
+import {
+  AqiMeterArc,
+  AnimatedMetricBar,
+  SectionReveal,
+  StaggerContainer,
+  StaggerItem,
+} from '../../motion';
 
 interface AQISectionProps {
   weather: CurrentWeather;
@@ -145,6 +152,7 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
   const allPollutantsEmpty = pollutants.every((p) => p.value === null) && aqi === null;
 
   return (
+    <SectionReveal>
     <DataPanel className="flex flex-col gap-4">
       <SectionHeading
         title="Local Air Quality Index (US EPA AQI · Model Estimate)"
@@ -182,11 +190,12 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
                   </span>
                 </div>
 
-                <div className="my-3 flex items-baseline gap-2 tabular-nums">
-                  <span className="text-4xl font-bold text-[var(--m-text-primary)] font-mono">
-                    {aqi !== null ? aqi : '—'}
+                <div className="my-2 flex items-center justify-between gap-3 tabular-nums">
+                  <AqiMeterArc aqi={aqi} />
+                  <span className="text-[11px] text-[var(--m-text-muted)] font-mono text-right">
+                    US EPA AQI
+                    <span className="block text-[10px]">(0–500 Scale)</span>
                   </span>
-                  <span className="text-xs text-[var(--m-text-muted)] font-mono">US EPA AQI (0–500)</span>
                 </div>
               </div>
 
@@ -240,23 +249,42 @@ export const AQISection: React.FC<AQISectionProps> = ({ weather }) => {
           </div>
 
           {/* Pollutant Parameter Breakdown */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-            {pollutants.map((p) => (
-              <div key={p.name} className="m-panel-inset p-3">
-                <MetricValue
-                  label={p.name}
-                  value={p.value}
-                  unit={p.unit}
-                  precision={p.precision}
-                  hint={p.std}
-                  unavailableLabel="—"
-                  valueClassName="text-lg font-bold text-[var(--m-text-primary)]"
-                />
-              </div>
-            ))}
-          </div>
+          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {pollutants.map((p) => {
+              const refMax =
+                p.name === 'PM2.5'
+                  ? 120
+                  : p.name === 'PM10'
+                  ? 200
+                  : p.name === 'CO'
+                  ? 10
+                  : 180;
+              const ratio = p.value !== null ? Math.min(1, p.value / refMax) : 0;
+              return (
+                <StaggerItem key={p.name} interactive className="m-panel-inset mausam-interactive-card p-3 flex flex-col justify-between gap-2">
+                  <MetricValue
+                    label={p.name}
+                    value={p.value}
+                    unit={p.unit}
+                    precision={p.precision}
+                    hint={p.std}
+                    unavailableLabel="—"
+                    valueClassName="text-lg font-bold text-[var(--m-text-primary)]"
+                  />
+                  {p.value !== null && (
+                    <AnimatedMetricBar
+                      ratio={ratio}
+                      colorClass={ratio > 0.75 ? 'bg-[var(--m-danger)]' : ratio > 0.45 ? 'bg-[var(--m-watch)]' : 'bg-[var(--m-ok)]'}
+                      heightClass="h-1"
+                    />
+                  )}
+                </StaggerItem>
+              );
+            })}
+          </StaggerContainer>
         </>
       )}
     </DataPanel>
+    </SectionReveal>
   );
 };

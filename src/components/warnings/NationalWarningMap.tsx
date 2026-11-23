@@ -2,15 +2,28 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Maximize2, MapPin, ShieldAlert, ChevronRight, Globe2, AlertTriangle } from 'lucide-react';
+import {
+  Maximize2,
+  Minimize2,
+  MapPin,
+  ShieldAlert,
+  ChevronRight,
+  Globe2,
+  AlertTriangle,
+  Search,
+  ZoomIn,
+  ZoomOut,
+  Crosshair,
+} from 'lucide-react';
 import { ALL_INDIA_STATES_MET_PROFILES, StateMeteorologicalProfile } from '../../data/allIndiaStatesProfiles';
 import { StateWarningSummary, AlertSeverity, WarningRecord } from '../../types/warningTypes';
 import { warningService } from '../../services/warningService';
 import {
-  PRIMARY_OBSERVATORY_BASEMAP,
-  FALLBACK_OSM_BASEMAP,
   INDIA_GEOGRAPHIC_BOUNDS,
+  resolveBasemapSpec,
+  type BasemapStyleId,
 } from '../../utils/mapBasemaps';
+import { BasemapStyleSwitcher } from '../maps';
 
 interface NationalWarningMapProps {
   selectedState: string | null;
@@ -35,22 +48,39 @@ const UNAVAILABLE_STYLE = {
   label: 'UNVERIFIED',
 };
 
-// Leaflet controller for smooth bounds fit & zoom on selection
+// Leaflet controller for smooth bounds fit, zoom controls & fullscreen resize
 const MapController: React.FC<{
   selectedProfile: StateMeteorologicalProfile | null;
   resetCounter: number;
-}> = ({ selectedProfile, resetCounter }) => {
+  zoomDeltaCounter: { dir: 1 | -1; seq: number };
+  isFullscreen: boolean;
+}> = ({ selectedProfile, resetCounter, zoomDeltaCounter, isFullscreen }) => {
   const map = useMap();
 
   useEffect(() => {
+    const container = map.getContainer();
     const timer = setTimeout(() => {
-      map.invalidateSize({ animate: false });
+      map.invalidateSize({ animate: false, pan: false });
       if (!selectedProfile) {
         map.fitBounds(INDIA_GEOGRAPHIC_BOUNDS, { padding: [22, 22], maxZoom: 5 });
       }
     }, 120);
-    return () => clearTimeout(timer);
-  }, [map]);
+
+    const observer =
+      typeof ResizeObserver !== 'undefined' && container
+        ? new ResizeObserver(() => {
+            map.invalidateSize({ animate: false, pan: false });
+          })
+        : null;
+    if (observer && container) {
+      observer.observe(container);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [map, isFullscreen]);
 
   useEffect(() => {
     if (selectedProfile) {
@@ -64,12 +94,19 @@ const MapController: React.FC<{
     }
   }, [resetCounter, map]);
 
+  useEffect(() => {
+    if (zoomDeltaCounter.seq > 0) {
+      if (zoomDeltaCounter.dir > 0) map.zoomIn();
+      else map.zoomOut();
+    }
+  }, [zoomDeltaCounter, map]);
+
   return null;
 };
 
 /**
  * Geographic marker builder:
- * - Active warning states get a prominent geographic pin + readable state name callout + alert count pill.
+ * - Active warning states get a prominent geographic pin + readable state name callout + alert count badge.
  * - Normal / Unverified states get a clean compact coordinate dot so markers never collide or clip.
  */
 function createGeographicStateIcon(
@@ -120,7 +157,6 @@ function createGeographicStateIcon(
     });
   }
 
-  // Normal or unverified state: compact, clean geographic representative dot (shows full name on hover)
   return L.divIcon({
     className: 'mausam-geo-state-marker-normal',
     html: `
@@ -147,10 +183,15 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
   isUnavailable = false,
 }) => {
   const [resetCounter, setResetCounter] = useState(0);
+  const [zoomDeltaCounter, setZoomDeltaCounter] = useState<{ dir: 1 | -1; seq: number }>({
+    dir: 1,
+    seq: 0,
+  });
+  const [basemapStyle, setBasemapStyle] = useState<BasemapStyleId>('dark');
   const [useOsmFallback, setUseOsmFallback] = useState(false);
-  const [tileErrorCount, setTileErrorCount] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [stateSearch, setStateSearch] = useState('');
 
-  // Single canonical reconciliation shared with StateWatchlistPanel & NationalAlertStatus
   const reconciled = useMemo(
     () => warningService.reconcileNationalWarnings(warnings, { isUnavailable }),
     [warnings, isUnavailable]
@@ -169,6 +210,18 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
       ) || null
     );
   }, [selectedState]);
+
+  const matchingStates = useMemo(() => {
+    const q = stateSearch.trim().toLowerCase();
+    if (!q) return [];
+    return ALL_INDIA_STATES_MET_PROFILES.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.code.toLowerCase().includes(q) ||
+        p.capital.toLowerCase().includes(q) ||
+        p.aliases.some((a) => a.toLowerCase().includes(q))
+    ).slice(0, 6);
+  }, [stateSearch]);
 
   const resolveStateSummary = useCallback(
     (profile: StateMeteorologicalProfile): StateWarningSummary => {
@@ -194,14 +247,12 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
     [reconciled, isUnavailable]
   );
 
+  const tileErrorCountRef = React.useRef(0);
   const handleTileError = useCallback(() => {
-    setTileErrorCount((prev) => {
-      const next = prev + 1;
-      if (next >= 3 && !useOsmFallback) {
-        setUseOsmFallback(true);
-      }
-      return next;
-    });
+    tileErrorCountRef.current += 1;
+    if (tileErrorCountRef.current >= 3 && !useOsmFallback) {
+      setUseOsmFallback(true);
+    }
   }, [useOsmFallback]);
 
   const handleResetView = () => {
@@ -209,69 +260,148 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
     setResetCounter((c) => c + 1);
   };
 
-  const activeBasemap = useOsmFallback ? FALLBACK_OSM_BASEMAP : PRIMARY_OBSERVATORY_BASEMAP;
+  const activeBasemap = resolveBasemapSpec(basemapStyle, useOsmFallback);
 
   return (
     <div
       id="national-weather-alert-map-card"
-      className="m-panel p-4 sm:p-5 flex flex-col justify-between gap-4 h-full min-h-[540px]"
+      className={`m-panel p-3.5 sm:p-5 flex flex-col justify-between gap-3.5 min-w-0 ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 rounded-none h-[100dvh]'
+          : 'h-full min-h-[420px] sm:min-h-[520px] lg:min-h-[560px]'
+      }`}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--m-border)]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
-            <Globe2 className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base sm:text-lg font-bold text-[var(--m-text-primary)] tracking-tight">
-                National Weather Alert Map
-              </h2>
-              {isUnavailable ? (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-watch)] bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 px-2 py-0.5 rounded">
-                  <AlertTriangle className="w-3 h-3" />
-                  FEED UNVERIFIED
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-ok)] bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--m-ok)]" />
-                  SACHET / IMD LIVE
-                </span>
-              )}
+      <div className="flex flex-col gap-3 pb-3 border-b border-[var(--m-border)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
+              <Globe2 className="w-4 h-4" />
             </div>
-            <p className="text-xs text-[var(--m-text-muted)] mt-0.5">
-              Representative geographic points for all {reconciled.totalStatesAndUTs} Indian States &amp; UTs ·{' '}
-              {useOsmFallback ? 'OpenStreetMap Fallback' : 'Esri Dark Gray Basemap'}
-            </p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-[var(--m-text-primary)] tracking-tight">
+                  National Weather Alert Map
+                </h2>
+                {isUnavailable ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-watch)] bg-[var(--m-watch-soft)] border border-[var(--m-watch)]/35 px-2 py-0.5 rounded whitespace-nowrap">
+                    <AlertTriangle className="w-3 h-3" />
+                    FEED UNVERIFIED
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[var(--m-ok)] bg-[var(--m-ok-soft)] border border-[var(--m-ok)]/35 px-2 py-0.5 rounded whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--m-ok)]" />
+                    SACHET / IMD LIVE
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[var(--m-text-muted)] mt-0.5 truncate">
+                All {reconciled.totalStatesAndUTs} Indian States &amp; UTs · {activeBasemap.name}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <BasemapStyleSwitcher
+              value={basemapStyle}
+              onChange={(style) => {
+                tileErrorCountRef.current = 0;
+                setUseOsmFallback(false);
+                setBasemapStyle(style);
+              }}
+              compact
+            />
+
+            <button
+              id="btn-reset-national-map"
+              type="button"
+              onClick={handleResetView}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-xs font-semibold text-[var(--m-text-primary)] border border-[var(--m-border)] transition-colors cursor-pointer whitespace-nowrap m-focus-ring"
+            >
+              <Crosshair className="w-3.5 h-3.5 text-[var(--m-accent)]" />
+              <span>Fit India</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFullscreen((prev) => !prev)}
+              className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
-        <button
-          id="btn-reset-national-map"
-          type="button"
-          onClick={handleResetView}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] text-xs font-semibold text-[var(--m-text-primary)] border border-[var(--m-border)] transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Maximize2 className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-          <span>Reset View</span>
-        </button>
+        {/* Quick State / UT Search Jump Bar */}
+        <div className="relative max-w-sm">
+          <Search className="w-3.5 h-3.5 text-[var(--m-text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={stateSearch}
+            onChange={(e) => setStateSearch(e.target.value)}
+            placeholder="Jump to State or UT (e.g., Odisha, Kerala, Ladakh)…"
+            aria-label="Search state or union territory on warning map"
+            className="w-full h-9 pl-8 pr-3 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] focus:border-[var(--m-accent)] text-xs text-[var(--m-text-primary)] placeholder:text-[var(--m-text-muted)] outline-none"
+          />
+          {matchingStates.length > 0 && (
+            <div className="absolute left-0 right-0 top-10 z-[480] rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border-strong)] shadow-xl overflow-hidden">
+              {matchingStates.map((st) => {
+                const summary = resolveStateSummary(st);
+                const palette = isUnavailable
+                  ? UNAVAILABLE_STYLE
+                  : SEVERITY_COLORS[summary.highestSeverity] || SEVERITY_COLORS.green;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => {
+                      onSelectState(st.name, `in-${st.code.toLowerCase()}`);
+                      setStateSearch('');
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-[var(--m-surface-2)] flex items-center justify-between gap-2 border-b last:border-b-0 border-[var(--m-border)] cursor-pointer"
+                  >
+                    <span className="text-[var(--m-text-primary)] font-medium truncate">
+                      {st.name}{' '}
+                      <span className="text-[var(--m-text-muted)] font-mono text-[10px]">
+                        ({st.capital})
+                      </span>
+                    </span>
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase shrink-0"
+                      style={{ backgroundColor: palette.bg, color: palette.text }}
+                    >
+                      {palette.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Interactive Geographic Leaflet Map */}
-      <div className="relative flex-1 w-full min-h-[430px] rounded-xl overflow-hidden border border-[var(--m-border)] bg-[#0D1012] z-10">
+      <div
+        className={`relative flex-1 w-full rounded-xl overflow-hidden border border-[var(--m-border)] bg-[#0D1012] z-10 ${
+          isFullscreen ? 'min-h-0' : 'h-[clamp(290px,48dvh,560px)] min-h-[290px]'
+        }`}
+      >
         <MapContainer
           center={[22.2, 82.6]}
           zoom={4.5}
-          minZoom={4}
+          minZoom={2}
           maxZoom={11}
+          worldCopyJump={true}
           zoomSnap={0.5}
+          zoomControl={false}
           scrollWheelZoom={true}
-          style={{ width: '100%', height: '100%', minHeight: '430px', background: '#0D1012' }}
+          style={{ width: '100%', height: '100%', background: '#0D1012' }}
           className="z-10"
         >
-          {/* Verified Zero-Key Basemap + Automatic Failover */}
           <TileLayer
-            key={activeBasemap.id}
+            key={`${activeBasemap.id}-${useOsmFallback ? 'fb' : 'pri'}`}
             attribution={activeBasemap.attribution}
             url={activeBasemap.baseUrl}
             maxZoom={activeBasemap.maxZoom}
@@ -280,15 +410,21 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
               tileerror: handleTileError,
             }}
           />
-          {!useOsmFallback && PRIMARY_OBSERVATORY_BASEMAP.referenceUrl && (
+          {activeBasemap.referenceUrl && (
             <TileLayer
-              url={PRIMARY_OBSERVATORY_BASEMAP.referenceUrl}
-              maxZoom={PRIMARY_OBSERVATORY_BASEMAP.maxZoom}
-              opacity={0.75}
+              key={`${activeBasemap.id}-ref`}
+              url={activeBasemap.referenceUrl}
+              maxZoom={activeBasemap.maxZoom}
+              opacity={0.78}
             />
           )}
 
-          <MapController selectedProfile={selectedProfile} resetCounter={resetCounter} />
+          <MapController
+            selectedProfile={selectedProfile}
+            resetCounter={resetCounter}
+            zoomDeltaCounter={zoomDeltaCounter}
+            isFullscreen={isFullscreen}
+          />
 
           {ALL_INDIA_STATES_MET_PROFILES.map((profile) => {
             const summary = resolveStateSummary(profile);
@@ -399,6 +535,37 @@ export const NationalWarningMap: React.FC<NationalWarningMapProps> = ({
             );
           })}
         </MapContainer>
+
+        {/* Custom Zoom & Fit Controls */}
+        <div className="absolute top-3 right-3 z-[400] flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => setZoomDeltaCounter((prev) => ({ dir: 1, seq: prev.seq + 1 }))}
+            aria-label="Zoom in"
+            title="Zoom in"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-text-primary)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setZoomDeltaCounter((prev) => ({ dir: -1, seq: prev.seq + 1 }))}
+            aria-label="Zoom out"
+            title="Zoom out"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-text-primary)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleResetView}
+            aria-label="Fit All India"
+            title="Fit All India"
+            className="w-10 h-10 rounded-lg bg-[var(--m-surface-inset)]/95 border border-[var(--m-border)] text-[var(--m-accent)] hover:border-[var(--m-accent)] flex items-center justify-center transition-colors cursor-pointer m-focus-ring"
+          >
+            <Crosshair className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Subtle Geographic & Coordinate Disclaimer Overlay */}
         <div className="absolute bottom-2 left-2 z-[400] px-2.5 py-1 rounded-md bg-[var(--m-surface-1)]/90 border border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-muted)] pointer-events-none">

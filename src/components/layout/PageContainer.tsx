@@ -19,8 +19,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({
     <Component
       id={id}
       className={`w-full ${
-        fluid ? 'w-full px-4 sm:px-6' : 'mausam-page'
-      } py-6 sm:py-8 flex-1 min-w-0 overflow-x-hidden safe-area-bottom ${className}`}
+        fluid ? 'page-container-wide' : 'mausam-page'
+      } py-5 sm:py-7 lg:py-8 flex-1 min-w-0 overflow-x-clip safe-area-bottom ${className}`}
     >
       {children}
     </Component>

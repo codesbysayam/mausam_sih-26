@@ -18,6 +18,15 @@ import { DataPanel, SourceStatus, ProvenanceStatus } from '../ui/ObservatoryPrim
 import { MetricValue } from '../common/MetricValue';
 import { getMetricStatus } from '../../types/dataProvenance';
 import { formatLocationTitle } from '../../utils/locationFormatter';
+import {
+  AmbientBackground,
+  AnimatedCounter,
+  HumidityRingGauge,
+  MagneticButton,
+  StaggerContainer,
+  StaggerItem,
+  WindCompassNeedle,
+} from '../../motion';
 
 interface HomeAtmosphericHeroProps {
   weather: CurrentWeather;
@@ -204,7 +213,10 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
       : 'Condition not reported by source';
 
   return (
-    <DataPanel id="current-conditions-hero" className="p-4 sm:p-6">
+    <DataPanel id="current-conditions-hero" className="relative overflow-hidden p-4 sm:p-6">
+      <AmbientBackground condition={weather.condition} isDay={weather.isDay !== false} />
+
+      <div className="relative z-10">
       {/* Header bar with authentic provenance */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[var(--m-border)] pb-3 mb-5">
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -235,7 +247,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                 {currentTemp !== null ? (
                   <>
                     <span className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[var(--m-text-primary)] tracking-tight">
-                      {currentTemp}°
+                      <AnimatedCounter value={currentTemp} suffix="°" />
                     </span>
                     <span className="text-2xl sm:text-3xl font-light text-[var(--m-text-secondary)] ml-1">
                       C
@@ -272,7 +284,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
 
           <div className="mt-4 pt-3 border-t border-[var(--m-border)] flex flex-col gap-2.5">
             {onDetectLocation && (
-              <button
+              <MagneticButton
                 type="button"
                 id="hero-primary-location-cta"
                 onClick={handleDetectLocation}
@@ -298,7 +310,7 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                     <span>Check Weather for My Location</span>
                   </>
                 )}
-              </button>
+              </MagneticButton>
             )}
 
             {locationError && (
@@ -346,15 +358,19 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
           </div>
         </div>
 
-        {/* Right 7 Cols: Standardized Parameter Grid */}
-        <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Right 7 Cols: Standardized Parameter Grid with Animated Gauges */}
+        <StaggerContainer
+          immediate
+          className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3"
+        >
           {metrics.map((m) => {
             const Icon = m.icon;
             const state = getMetricStatus(m.raw, { isLoading, isStale });
             return (
-              <div
+              <StaggerItem
                 key={m.label}
-                className="m-panel-inset p-3.5 flex flex-col justify-between"
+                interactive
+                className="m-panel-inset mausam-interactive-card p-3.5 flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between text-[var(--m-text-muted)] mb-1">
                   <span className="text-[10px] font-semibold tracking-wider uppercase">
@@ -363,29 +379,36 @@ export const HomeAtmosphericHero: React.FC<HomeAtmosphericHeroProps> = ({
                   <Icon className="w-3.5 h-3.5" style={{ color: m.colorVar }} />
                 </div>
 
-                <div className="my-1">
-                  <MetricValue
-                    label={m.label}
-                    value={m.raw}
-                    unit={m.unit}
-                    state={state}
-                    source={shortSourceLabel}
-                    observedAt={obsTime}
-                    className="[&_.metric-value__label]:sr-only [&_.metric-value__reading]:text-xl sm:[&_.metric-value__reading]:text-2xl [&_.metric-value__meta]:hidden"
-                  />
-                  <div className="text-[11px] text-[var(--m-text-muted)] truncate mt-0.5">
-                    {m.sub}
+                <div className="my-1 flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <MetricValue
+                      label={m.label}
+                      value={m.raw}
+                      unit={m.unit}
+                      state={state}
+                      source={shortSourceLabel}
+                      observedAt={obsTime}
+                      className="[&_.metric-value__label]:sr-only [&_.metric-value__reading]:text-xl sm:[&_.metric-value__reading]:text-2xl [&_.metric-value__meta]:hidden"
+                    />
+                    <div className="text-[11px] text-[var(--m-text-muted)] truncate mt-0.5">
+                      {m.sub}
+                    </div>
                   </div>
+                  {m.label === 'HUMIDITY' && <HumidityRingGauge humidity={humidity} size={38} />}
+                  {m.label === 'WIND' && (
+                    <WindCompassNeedle direction={windDir} degrees={weather.windDirectionDeg} size={38} />
+                  )}
                 </div>
 
                 <div className="mt-2 pt-1.5 border-t border-[var(--m-border)] flex items-center justify-between text-[10px] text-[var(--m-text-muted)] font-mono">
                   <span className="truncate">{shortSourceLabel}</span>
                   <span className="text-[var(--m-accent)] font-medium">{isOfficialImd ? 'OBS' : 'FEED'}</span>
                 </div>
-              </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
+      </div>
       </div>
     </DataPanel>
   );

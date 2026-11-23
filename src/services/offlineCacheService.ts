@@ -74,6 +74,28 @@ export async function registerOfflineServiceWorker(): Promise<void> {
   }
   initialized = true;
 
+  // In development mode, unregister any previously installed dev Service Workers
+  // and clear stale Workbox precaches so Vite module requests never receive cached HTML.
+  const isDevRuntime = Boolean((import.meta as unknown as { env?: { DEV?: boolean } })?.env?.DEV);
+  if (isDevRuntime) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((reg) => reg.unregister().catch(() => false)));
+      if ('caches' in window) {
+        const cacheNames = await window.caches.keys();
+        await Promise.all(
+          cacheNames
+            .filter((name) => name.includes('workbox-precache'))
+            .map((name) => window.caches.delete(name).catch(() => false))
+        );
+      }
+    } catch {
+      // Ignore cleanup failures in restricted iframe contexts
+    }
+    emit({ registered: false, offlineReady: false });
+    return;
+  }
+
   try {
     const { registerSW } = await import('virtual:pwa-register');
     triggerSwUpdate = registerSW({

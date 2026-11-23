@@ -1,6 +1,6 @@
 import { LocationRecord, WeatherStation } from '../types';
 import { ALL_INDIA_LOCATIONS } from '../data/allIndiaLocations';
-import { PRIMARY_ODISHA_LOCATION } from '../data/odishaLocations';
+import { DEFAULT_GLOBAL_LOCATION, GLOBAL_MAJOR_ANCHORS } from '../config/globalMapConfig';
 import {
   safeStorageGet,
   safeStorageGetJson,
@@ -18,8 +18,8 @@ export interface SmartSearchResult {
 }
 
 class LocationService {
-  private locations: LocationRecord[] = ALL_INDIA_LOCATIONS;
-  private selectedLocationId: string = PRIMARY_ODISHA_LOCATION.id;
+  private locations: LocationRecord[] = [...GLOBAL_MAJOR_ANCHORS, ...ALL_INDIA_LOCATIONS];
+  private selectedLocationId: string = DEFAULT_GLOBAL_LOCATION.id;
   private dynamicLocations: Map<string, LocationRecord> = new Map();
 
   constructor() {
@@ -46,7 +46,7 @@ class LocationService {
   }
 
   getPrimaryLocation(): LocationRecord {
-    return PRIMARY_ODISHA_LOCATION;
+    return DEFAULT_GLOBAL_LOCATION;
   }
 
   registerDynamicLocation(loc: LocationRecord): void {
@@ -144,6 +144,7 @@ class LocationService {
         l.district.toLowerCase().includes(q) ||
         l.displayName.toLowerCase().includes(q) ||
         l.state.toLowerCase().includes(q) ||
+        (l.country && l.country.toLowerCase().includes(q)) ||
         (l.pincode && l.pincode.includes(q)) ||
         (l.aliases && l.aliases.some((a) => a.toLowerCase().includes(q))) ||
         l.id.toLowerCase().includes(q)
@@ -313,7 +314,7 @@ class LocationService {
   }
 
   clearSavedLocation(): void {
-    this.selectedLocationId = PRIMARY_ODISHA_LOCATION.id;
+    this.selectedLocationId = DEFAULT_GLOBAL_LOCATION.id;
     safeStorageRemove('local', 'mausam_selected_location_id');
     safeStorageRemove('local', 'mausam_location_source');
     safeStorageRemove('local', 'mausam_detected_location');

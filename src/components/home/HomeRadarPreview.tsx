@@ -3,55 +3,58 @@ import { LocationRecord } from '../../types';
 import {
   Radio,
   ArrowRight,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
   RefreshCw,
   AlertCircle,
-  Compass,
-  MapPin,
-  Clock,
   Layers,
   ChevronDown,
-  Info,
-  Target,
   Crosshair,
   X,
-  Activity,
   Zap,
-  Navigation,
   Lock,
   Unlock,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
-import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import {
   IMD_DOPPLER_RADAR_NETWORK,
   findNearestRadarStation,
-  RadarStation,
 } from '../../data/radarStations';
-import { buildSixHourRadarTimeline, RadarFrame } from '../../services/radarService';
 import {
   RadarMapLegendPanel,
   PrecipLevelId,
   ALL_PRECIP_LEVEL_IDS,
 } from '../radar/RadarMapLegendPanel';
+import {
+  BasemapStyleSwitcher,
+  MapErrorOverlay,
+  MapLoadingOverlay,
+  MapOpacitySlider,
+  MapPlaybackControls,
+} from '../maps';
+import { useFramePlayback } from '../../hooks/useFramePlayback';
+import {
+  formatEpochIST,
+  type NormalizedRadarPlaybackFrame,
+} from '../../services/map/mapFrameService';
+import {
+  resolveBasemapSpec,
+  type BasemapStyleId,
+} from '../../utils/mapBasemaps';
 import { DataPanel, SectionHeading, SourceStatus } from '../ui/ObservatoryPrimitives';
+import { formatCoordinatePair } from '../../../shared/weatherContract';
 
-interface RainViewerFrame {
+interface RainViewerRawFrame {
   time: number;
   path: string;
-  formattedTime?: string;
-  ageMinutes?: number;
-  relativeLabel?: string;
 }
 
 interface RainViewerData {
   host?: string;
   radar?: {
-    past?: RainViewerFrame[];
-    nowcast?: RainViewerFrame[];
+    past?: RainViewerRawFrame[];
+    nowcast?: RainViewerRawFrame[];
   };
 }
 
@@ -61,8 +64,7 @@ interface HomeRadarPreviewProps {
 }
 
 /**
- * Calculates real geodetic distance (Haversine) and azimuth bearing
- * between two geographic coordinates.
+ * Real geodetic distance (Haversine) and azimuth bearing from DWR station to probed point.
  */
 function calculateDistanceBearing(
   lat1: number,
@@ -70,7 +72,7 @@ function calculateDistanceBearing(
   lat2: number,
   lon2: number
 ) {
-  const R = 6371; // Earth's mean radius in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -82,110 +84,23 @@ function calculateDistanceBearing(
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distanceKm = Math.round(R * c);
 
-  // Azimuth bearing
   const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
   const x =
     Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
     Math.sin((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
       Math.cos(dLon);
-  let bearing = (Math.atan2(y, x) * 180) / Math.PI;
-  bearing = Math.round((bearing + 360) % 360);
+  const bearing = Math.round(((Math.atan2(y, x) * 180) / Math.PI + 360) % 360);
 
   const compassDirections = [
     'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
     'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
   ];
-  const dirIdx = Math.round(bearing / 22.5) % 16;
-  const compass = compassDirections[dirIdx];
+  const compass = compassDirections[Math.round(bearing / 22.5) % 16];
 
   return { distanceKm, bearing, compass };
 }
 
-/**
- * Retrieves convective echo profile & active storm corridor for the current DWR station
- */
-function getStationEchoProfile(station: RadarStation) {
-  let cellOffset = {
-    latOffset: 0.85,
-    lngOffset: -1.35,
-    regionName: 'Jharkhand Border / Dhanbad–Bokaro Sector',
-    reflectivity: '38–44 dBZ',
-    precipitationClass: 'Moderate to Heavy Convective Showers',
-  };
-
-  if (station.city.includes('Delhi')) {
-    cellOffset = {
-      latOffset: 0.45,
-      lngOffset: 0.75,
-      regionName: 'Western Uttar Pradesh / NCR Corridor (Noida–Meerut)',
-      reflectivity: '32–38 dBZ',
-      precipitationClass: 'Scattered Showers',
-    };
-  } else if (station.city.includes('Mumbai')) {
-    cellOffset = {
-      latOffset: 0.35,
-      lngOffset: 0.65,
-      regionName: 'Western Ghats / Pune Foothills Convergence',
-      reflectivity: '40–48 dBZ',
-      precipitationClass: 'Heavy Orographic Rainfall',
-    };
-  } else if (station.city.includes('Chennai')) {
-    cellOffset = {
-      latOffset: -0.55,
-      lngOffset: -0.45,
-      regionName: 'North Coastal Tamil Nadu / Chengalpattu Sector',
-      reflectivity: '30–36 dBZ',
-      precipitationClass: 'Light to Moderate Rain Bands',
-    };
-  } else if (
-    station.city.includes('Bhubaneswar') ||
-    station.city.includes('Paradip') ||
-    station.city.includes('Gopalpur')
-  ) {
-    cellOffset = {
-      latOffset: 0.65,
-      lngOffset: -0.55,
-      regionName: 'Mahanadi Basin / Dhenkanal–Cuttack Sector',
-      reflectivity: '35–42 dBZ',
-      precipitationClass: 'Moderate Convective Clouds',
-    };
-  } else if (station.city.includes('Patna')) {
-    cellOffset = {
-      latOffset: 0.55,
-      lngOffset: 0.45,
-      regionName: 'North Bihar / Terai Convergence Footprint',
-      reflectivity: '36–42 dBZ',
-      precipitationClass: 'Convective Cell Cluster',
-    };
-  } else {
-    cellOffset = {
-      latOffset: 0.55,
-      lngOffset: 0.45,
-      regionName: `${station.city} Sector Volumetric Echo`,
-      reflectivity: '32–40 dBZ',
-      precipitationClass: 'Localized Precipitation Bands',
-    };
-  }
-
-  const echoLat = station.lat + cellOffset.latOffset;
-  const echoLng = station.lng + cellOffset.lngOffset;
-
-  return {
-    echoLat,
-    echoLng,
-    regionName: cellOffset.regionName,
-    reflectivity: cellOffset.reflectivity,
-    precipitationClass: cellOffset.precipitationClass,
-    cloudTopKm: '8.8 km',
-    cellMotion: '075° ENE @ 22 km/h',
-  };
-}
-
-/**
- * Ensures Leaflet recalculates dimensions when container size changes
- * to prevent gray tiles or layout clipping.
- */
 function MapResizeHandler() {
   const map = useMap();
 
@@ -198,15 +113,11 @@ function MapResizeHandler() {
     const container = map.getContainer();
     const observer = new ResizeObserver(() => {
       requestAnimationFrame(() => {
-        map.invalidateSize({
-          animate: false,
-          pan: false,
-        });
+        map.invalidateSize({ animate: false, pan: false });
       });
     });
 
     observer.observe(container);
-
     return () => {
       clearTimeout(timer);
       observer.disconnect();
@@ -216,25 +127,22 @@ function MapResizeHandler() {
   return null;
 }
 
-/**
- * Handles map click interactions to probe distance, azimuth, and reflectivity
- */
 function MapProbeHandler({
+  isLocked,
   onProbe,
 }: {
+  isLocked: boolean;
   onProbe: (coords: { lat: number; lng: number }) => void;
 }) {
   useMapEvents({
     click(e) {
+      if (isLocked) return;
       onProbe({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
   });
   return null;
 }
 
-/**
- * Smoothly navigates the Leaflet view without recreating MapContainer
- */
 function MapViewController({
   center,
   zoom,
@@ -254,16 +162,13 @@ function MapViewController({
     ) {
       prevCenterRef.current = center;
       prevZoomRef.current = zoom;
-      map.flyTo(center, zoom, { animate: true, duration: 0.8 });
+      map.flyTo(center, zoom, { animate: true, duration: 0.7 });
     }
   }, [center, zoom, map]);
 
   return null;
 }
 
-/**
- * Disables panning, scrolling, and dragging when the user locks view to the active sector
- */
 function MapLockHandler({ isLocked }: { isLocked: boolean }) {
   const map = useMap();
 
@@ -286,14 +191,13 @@ function MapLockHandler({ isLocked }: { isLocked: boolean }) {
         map.keyboard?.enable();
       }
     } catch {
-      // Ignore unmounted map event handler errors
+      // Safe fallback
     }
   }, [map, isLocked]);
 
   return null;
 }
 
-// Custom clean SVG markers for map pins
 const getStationDivIcon = () =>
   typeof window !== 'undefined' && L?.divIcon
     ? L.divIcon({
@@ -301,27 +205,11 @@ const getStationDivIcon = () =>
         html: `
           <div style="position: relative; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;">
             <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(197, 164, 109, 0.85); background: rgba(197, 164, 109, 0.25);"></div>
-            <div style="width: 10px; height: 10px; border-radius: 50%; background: #C5A46D; border: 2px solid #FFFFFF; box-shadow: 0 0 8px rgba(197, 164, 109,0.9);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: #C5A46D; border: 2px solid #FFFFFF; box-shadow: 0 0 8px rgba(197, 164, 109, 0.9);"></div>
           </div>
         `,
         iconSize: [26, 26],
         iconAnchor: [13, 13],
-      })
-    : undefined;
-
-const getEchoTargetDivIcon = () =>
-  typeof window !== 'undefined' && L?.divIcon
-    ? L.divIcon({
-        className: 'custom-echo-target-pin',
-        html: `
-          <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
-            <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; border: 2px dashed #FF8C42; animation: spin 5s linear infinite;"></div>
-            <div style="position: absolute; width: 18px; height: 18px; border-radius: 50%; background: rgba(255, 140, 66, 0.3); border: 1.5px solid #FF8C42;"></div>
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #FF8C42; box-shadow: 0 0 10px #FF8C42;"></div>
-          </div>
-        `,
-        iconSize: [34, 34],
-        iconAnchor: [17, 17],
       })
     : undefined;
 
@@ -332,7 +220,7 @@ const getProbeDivIcon = () =>
         html: `
           <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
             <div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #22C7A0; background: rgba(34, 199, 160, 0.25);"></div>
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #22C7A0; border: 1.5px solid #FFFFFF; box-shadow: 0 0 8px rgba(34,199,160,0.85);"></div>
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #22C7A0; border: 1.5px solid #FFFFFF; box-shadow: 0 0 8px rgba(34, 199, 160, 0.85);"></div>
           </div>
         `,
         iconSize: [28, 28],
@@ -345,24 +233,48 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
   onNavigateToRadar,
 }) => {
   const stationDivIcon = useMemo(() => getStationDivIcon(), []);
-  const echoTargetDivIcon = useMemo(() => getEchoTargetDivIcon(), []);
   const probeDivIcon = useMemo(() => getProbeDivIcon(), []);
-  const lat = typeof location.lat === 'number' ? location.lat : 20.2961;
-  const lng = typeof location.lng === 'number' ? location.lng : 85.8245;
+  const mapStageRef = useRef<HTMLDivElement>(null);
 
-  // Radar stations metadata
-  const nearestRadarInfo = useMemo(() => {
-    return findNearestRadarStation(lat, lng);
-  }, [lat, lng]);
+  const lat = typeof location.lat === 'number' ? location.lat : 18.0;
+  const lng = typeof location.lng === 'number' ? location.lng : 12.0;
+
+  const nearestRadarInfo = useMemo(() => findNearestRadarStation(lat, lng), [lat, lng]);
 
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'station' | 'all-india'>('station');
+  const [basemapStyle, setBasemapStyle] = useState<BasemapStyleId>('dark');
+  const [useBasemapFallback, setUseBasemapFallback] = useState<boolean>(false);
+  const [radarOpacity, setRadarOpacity] = useState<number>(0.76);
   const [isMapLocked, setIsMapLocked] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isTileLoading, setIsTileLoading] = useState<boolean>(false);
+  const [tileError, setTileError] = useState<string | null>(null);
+  const basemapErrorsRef = useRef<number>(0);
 
-  // Reset selected station if location prop changes drastically
   useEffect(() => {
     setSelectedStationId(null);
   }, [lat, lng]);
+
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
+  }, []);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    const el = mapStageRef.current;
+    if (!el || typeof document === 'undefined') return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      }
+    } catch {
+      // Ignore fullscreen denial inside sandboxed iframe
+    }
+  }, []);
 
   const currentStation = useMemo(() => {
     if (selectedStationId) {
@@ -372,64 +284,31 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
     return nearestRadarInfo.station;
   }, [selectedStationId, nearestRadarInfo]);
 
-  // Specific target focus state when user inspects an echo cell
-  const [focusTarget, setFocusTarget] = useState<{
-    center: [number, number];
-    zoom: number;
-    label?: string;
-  } | null>(null);
-
-  // Reset focus target when switching stations or views
-  useEffect(() => {
-    setFocusTarget(null);
-  }, [selectedStationId, viewMode]);
-
-  // Base map center and zoom calculations
-  const mapCenter = useMemo<[number, number]>(() => {
-    if (viewMode === 'all-india') {
-      return [22.0, 80.0];
-    }
-    return [currentStation.lat, currentStation.lng];
-  }, [viewMode, currentStation]);
-
+  const mapCenter = useMemo<[number, number]>(
+    () => (viewMode === 'all-india' ? [22.0, 80.0] : [currentStation.lat, currentStation.lng]),
+    [viewMode, currentStation]
+  );
   const mapZoom = viewMode === 'all-india' ? 5 : 7;
 
-  // Effective coordinates taking focus target into account
-  const effectiveCenter = focusTarget ? focusTarget.center : mapCenter;
-  const effectiveZoom = focusTarget ? focusTarget.zoom : mapZoom;
-
-  // RainViewer Real Radar State
+  // Real RainViewer Radar Frames (Strictly Timestamped OBSERVED + NOWCAST)
   const [radarStatus, setRadarStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [radarTimestamp, setRadarTimestamp] = useState<number | null>(null);
-  const [frames, setFrames] = useState<RainViewerFrame[]>([]);
-  const [host, setHost] = useState<string>('https://tilecache.rainviewer.com');
-  const [activeFrameIndex, setActiveFrameIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [playbackFrames, setPlaybackFrames] = useState<NormalizedRadarPlaybackFrame[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-
-  // Latest Echo Inspector State
-  const [showEchoInspector, setShowEchoInspector] = useState<boolean>(false);
+  const [showSweepInspector, setShowSweepInspector] = useState<boolean>(false);
   const [echoFeedback, setEchoFeedback] = useState<string | null>(null);
 
-  // Interactive Map Probed Point State
+  // Strictly real geodetic probe (no fabricated dBZ estimates!)
   const [probedPoint, setProbedPoint] = useState<{
     lat: number;
     lng: number;
     distanceKm: number;
     bearing: number;
     compass: string;
-    reflectivityEst: string;
-    precipitationClass: string;
+    withinCoverage: boolean;
   } | null>(null);
 
-  // Station's primary convective echo profile
-  const echoProfile = useMemo(() => {
-    return getStationEchoProfile(currentStation);
-  }, [currentStation]);
-
-  // Fetch real RainViewer radar metadata with AbortController
   const fetchRadarData = useCallback(async (signal?: AbortSignal, isManual = false) => {
     try {
       if (isManual) setIsRefreshing(true);
@@ -437,12 +316,11 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
       let data: RainViewerData | null = null;
 
-      // 1. Try local same-origin proxy first (avoids browser CORS, rate limits, and network sandbox blocks)
       try {
         const proxyRes = await fetch('/api/radar?mode=metadata', { signal });
         if (proxyRes.ok) {
           const json = await proxyRes.json();
-          if (json?.radar?.past?.length) {
+          if (json?.radar?.past?.length || json?.radar?.nowcast?.length) {
             data = json;
           }
         }
@@ -450,13 +328,11 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
         if (proxyErr?.name === 'AbortError') return;
       }
 
-      // 2. Fallback to direct fetch if proxy was unavailable
       if (!data) {
         try {
-          const response = await fetch(
-            'https://api.rainviewer.com/public/weather-maps.json',
-            { signal }
-          );
+          const response = await fetch('https://api.rainviewer.com/public/weather-maps.json', {
+            signal,
+          });
           if (response.ok) {
             data = await response.json();
           }
@@ -465,74 +341,90 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
         }
       }
 
-      // 3. Truthful unavailable handling when RainViewer returns no frames
-      if (!data || !data.radar?.past || data.radar.past.length === 0) {
-        setFrames([]);
+      const pastRaw = Array.isArray(data?.radar?.past) ? data!.radar!.past! : [];
+      const nowcastRaw = Array.isArray(data?.radar?.nowcast) ? data!.radar!.nowcast! : [];
+
+      if (pastRaw.length === 0 && nowcastRaw.length === 0) {
+        setPlaybackFrames([]);
         setRadarTimestamp(null);
         setRadarStatus('error');
-        setFetchError('Live radar composite temporarily unavailable from upstream');
+        setFetchError('Live radar composite temporarily unavailable from upstream RainViewer.');
         return;
       }
 
-      const hostUrl = data.host || 'https://tilecache.rainviewer.com';
-      setHost(hostUrl);
+      const hostUrl = data?.host || 'https://tilecache.rainviewer.com';
+      const nowSec = Math.floor(Date.now() / 1000);
 
-      const past = data.radar?.past || [];
-      // Generate full 6-hour radar timeline (25 frames, 15m cadence)
-      const mappedPast: RadarFrame[] = past.map((p) => ({
-        time: p.time,
-        path: p.path,
-        formattedTime: '',
-        ageMinutes: Math.max(0, Math.round((Date.now() / 1000 - p.time) / 60)),
-      }));
-      const { frames: sixHourTimeline } = buildSixHourRadarTimeline(mappedPast, 15);
-      const effectiveFrames = sixHourTimeline && sixHourTimeline.length > 0 ? sixHourTimeline : past;
-      setFrames(effectiveFrames);
+      const mapRaw = (
+        f: RainViewerRawFrame,
+        origin: 'past' | 'nowcast',
+        idx: number
+      ): NormalizedRadarPlaybackFrame => {
+        const ageMinutes = Math.round((nowSec - f.time) / 60);
+        const formattedTime = formatEpochIST(f.time);
+        const relativeLabel =
+          origin === 'nowcast'
+            ? `+${Math.max(1, Math.abs(ageMinutes))}m nowcast`
+            : ageMinutes <= 1
+            ? 'Just now'
+            : `${ageMinutes}m ago`;
 
-      // Latest observation timestamp from source
-      const newestFrame = effectiveFrames[effectiveFrames.length - 1];
-      if (newestFrame) {
-        setRadarTimestamp(newestFrame.time);
+        return {
+          id: `${origin}:${f.time}:${idx}`,
+          time: f.time,
+          path: f.path,
+          tileUrl: `${hostUrl}${f.path}/256/{z}/{x}/{y}/2/1_1.png`,
+          formattedTime,
+          relativeLabel,
+          ageMinutes,
+          dataType: origin === 'nowcast' ? 'NOWCAST' : 'OBSERVED',
+          raw: {
+            time: f.time,
+            path: f.path,
+            tileUrl: `${hostUrl}${f.path}/256/{z}/{x}/{y}/2/1_1.png`,
+            formattedTime,
+            relativeLabel,
+            ageMinutes,
+          },
+        };
+      };
+
+      const normalized: NormalizedRadarPlaybackFrame[] = [
+        ...pastRaw.map((f, i) => mapRaw(f, 'past', i)),
+        ...nowcastRaw.map((f, i) => mapRaw(f, 'nowcast', i)),
+      ];
+
+      setPlaybackFrames(normalized);
+
+      const latestPast = pastRaw[pastRaw.length - 1] || nowcastRaw[0];
+      if (latestPast?.time) {
+        setRadarTimestamp(latestPast.time);
       }
-
-      // Default active frame to the latest frame if user wasn't animating
-      setActiveFrameIndex((prev) => {
-        if (prev >= effectiveFrames.length) return Math.max(0, effectiveFrames.length - 1);
-        return isManual ? Math.max(0, effectiveFrames.length - 1) : prev || Math.max(0, effectiveFrames.length - 1);
-      });
 
       setRadarStatus('ready');
       setFetchError(null);
 
-      if (isManual && newestFrame) {
-        const timeStr = new Date(newestFrame.time * 1000).toLocaleTimeString('en-IN', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        });
-        setEchoFeedback(`Synced newest echo sweep: ${timeStr} IST`);
-        setTimeout(() => setEchoFeedback(null), 3500);
+      if (isManual && latestPast) {
+        setEchoFeedback(`Synced latest composite sweep: ${formatEpochIST(latestPast.time)}`);
+        setTimeout(() => setEchoFeedback(null), 3200);
       }
     } catch (err: any) {
       if (err?.name === 'AbortError') return;
-      console.warn('[HomeRadarPreview] Radar metadata notice:', err?.message || err);
-      setRadarStatus('ready');
-      setFetchError(null);
+      setRadarStatus('error');
+      setFetchError('Unable to sync radar metadata from upstream.');
     } finally {
       if (isManual) setIsRefreshing(false);
     }
   }, []);
 
-  // Periodic metadata refresh (every 5 minutes)
   useEffect(() => {
     const controller = new AbortController();
     fetchRadarData(controller.signal);
 
-    const REFRESH_INTERVAL = 5 * 60 * 1000;
     const intervalId = setInterval(() => {
       const refreshController = new AbortController();
       fetchRadarData(refreshController.signal);
-    }, REFRESH_INTERVAL);
+    }, 5 * 60 * 1000);
 
     return () => {
       controller.abort();
@@ -540,29 +432,31 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
     };
   }, [fetchRadarData]);
 
-  // Animation Playback Engine (cycles through the 6-hour time-lapse frames)
-  useEffect(() => {
-    if (!isPlaying || frames.length === 0) return;
+  // Reusable, cleanup-safe playback controller
+  const playback = useFramePlayback<NormalizedRadarPlaybackFrame>({
+    frames: playbackFrames,
+    baseIntervalMs: 800,
+    initialSpeed: 1,
+    initialLoop: true,
+    initialPosition: 'latest',
+    resetKey: `${currentStation.id}:${viewMode}`,
+    sortByTime: true,
+    pauseWhenHidden: true,
+  });
 
-    const intervalDuration = Math.max(150, Math.round(750 / playbackSpeed));
-    const timer = setInterval(() => {
-      setActiveFrameIndex((prev) => (prev + 1) % frames.length);
-    }, intervalDuration);
-
-    return () => clearInterval(timer);
-  }, [isPlaying, frames.length, playbackSpeed]);
-
-  const activeFrame = frames[activeFrameIndex];
+  const activeFrame = playback.currentFrame;
   const displayedTimestamp = activeFrame?.time || radarTimestamp;
-  const isLatestFrame = frames.length > 0 && activeFrameIndex === frames.length - 1;
+  const isLatestFrame =
+    playback.frameCount > 0 && playback.currentIndex === playback.frameCount - 1;
 
-  // Active Radar Tile URL
-  const activeTileUrl =
-    activeFrame && host
-      ? `${host}${activeFrame.path}/256/{z}/{x}/{y}/2/1_1.png`
-      : null;
+  const activeTileUrl = activeFrame?.tileUrl ?? null;
 
-  // Active precipitation intensity level filter state
+  const activeBasemap = useMemo(
+    () => resolveBasemapSpec(basemapStyle, useBasemapFallback),
+    [basemapStyle, useBasemapFallback]
+  );
+
+  // Precipitation intensity level filter
   const [activePrecipLevels, setActivePrecipLevels] = useState<PrecipLevelId[]>(ALL_PRECIP_LEVEL_IDS);
   const isPrecipFiltered = activePrecipLevels.length < ALL_PRECIP_LEVEL_IDS.length;
 
@@ -590,12 +484,11 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
 
   const computedTileOpacity = useMemo(() => {
     if (activePrecipLevels.length === 0) return 0;
-    if (activePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return 0.72;
-    return Math.max(0.3, (activePrecipLevels.length / ALL_PRECIP_LEVEL_IDS.length) * 0.72);
-  }, [activePrecipLevels]);
+    if (activePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return radarOpacity;
+    return Math.max(0.28, (activePrecipLevels.length / ALL_PRECIP_LEVEL_IDS.length) * radarOpacity);
+  }, [activePrecipLevels, radarOpacity]);
 
-  // Actual timestamp formatting in IST
-  const formatTimestamp = (unixSeconds: number | null): string => {
+  const formatFullTimestamp = (unixSeconds: number | null): string => {
     if (!unixSeconds) return 'Unavailable';
     const d = new Date(unixSeconds * 1000);
     return (
@@ -603,53 +496,42 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
+        timeZone: 'Asia/Kolkata',
       }) +
       ' IST, ' +
       d.toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+        timeZone: 'Asia/Kolkata',
       })
     );
   };
 
-  // Freshness calculation (e.g., "3m ago", "Just now")
   const getEchoAgeText = (unixSeconds: number | null): string => {
-    if (!unixSeconds) return '';
-    const diffSec = Math.max(0, Math.floor(Date.now() / 1000 - unixSeconds));
+    if (!unixSeconds) return 'Unavailable';
+    const diffSec = Math.floor(Date.now() / 1000 - unixSeconds);
+    if (diffSec < 0) return `Nowcast +${Math.ceil(Math.abs(diffSec) / 60)}m`;
     const mins = Math.floor(diffSec / 60);
     if (mins < 1) return 'Swept just now';
     if (mins === 1) return 'Swept 1 min ago';
     return `Swept ${mins} mins ago`;
   };
 
-  // Status label: strict adherence (only RECENT or UNAVAILABLE)
   const statusLabel = radarTimestamp ? 'RECENT' : 'UNAVAILABLE';
 
-  /**
-   * Action handler when user triggers "Latest Echo"
-   */
   const handleLatestEchoAction = () => {
-    if (frames.length === 0) return;
-
-    // 1. Jump to latest frame if not already on it
-    if (activeFrameIndex !== frames.length - 1) {
-      setIsPlaying(false);
-      setActiveFrameIndex(frames.length - 1);
-      setShowEchoInspector(true);
-      setEchoFeedback('Switched to Latest Echo frame');
-      setTimeout(() => setEchoFeedback(null), 3000);
+    if (playback.frameCount === 0) return;
+    if (!isLatestFrame) {
+      playback.jumpToLatest();
+      setShowSweepInspector(true);
+      setEchoFeedback('Jumped to latest radar composite frame');
+      setTimeout(() => setEchoFeedback(null), 2800);
       return;
     }
-
-    // 2. If already on latest frame, toggle inspector and check for fresh sweep
-    setShowEchoInspector((prev) => !prev);
-    fetchRadarData(undefined, true);
+    setShowSweepInspector((prev) => !prev);
   };
 
-  /**
-   * Handles map probe clicks
-   */
   const handleMapProbe = (coords: { lat: number; lng: number }) => {
     const { distanceKm, bearing, compass } = calculateDistanceBearing(
       currentStation.lat,
@@ -658,33 +540,13 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
       coords.lng
     );
 
-    // Approximate radar reflectivity estimate based on distance & echo zone
-    const isCloseToConvectiveCell =
-      Math.abs(coords.lat - echoProfile.echoLat) < 0.6 &&
-      Math.abs(coords.lng - echoProfile.echoLng) < 0.6;
-
-    let reflectivityEst = '15–25 dBZ';
-    let precipitationClass = 'Light Rain / Drizzle';
-
-    if (isCloseToConvectiveCell) {
-      reflectivityEst = '38–46 dBZ';
-      precipitationClass = 'Moderate to Heavy Convection';
-    } else if (distanceKm < currentStation.rangeKm) {
-      reflectivityEst = '20–32 dBZ';
-      precipitationClass = 'Scattered Precipitation Echo';
-    } else {
-      reflectivityEst = '< 15 dBZ';
-      precipitationClass = 'Peripheral / Weak Echo';
-    }
-
     setProbedPoint({
       lat: Number(coords.lat.toFixed(4)),
       lng: Number(coords.lng.toFixed(4)),
       distanceKm,
       bearing,
       compass,
-      reflectivityEst,
-      precipitationClass,
+      withinCoverage: distanceKm <= currentStation.rangeKm,
     });
   };
 
@@ -693,7 +555,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
       <SectionHeading
         icon={<Radio className="w-4 h-4" />}
         title="Latest Radar Reflectivity"
-        subtitle="RainViewer composite precipitation reflectivity overlay calibrated over IMD Doppler nodes"
+        subtitle="RainViewer composite precipitation sweeps calibrated over IMD Doppler station nodes"
         badge={
           <SourceStatus
             status={radarTimestamp ? 'RECENT' : 'UNAVAILABLE'}
@@ -706,7 +568,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               id="btn-open-full-radar-scope"
               type="button"
               onClick={onNavigateToRadar}
-              className="text-xs text-[var(--m-accent)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] px-3 py-2 min-h-[38px] rounded-lg border border-[var(--m-border)] hover:border-[var(--m-border-strong)] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors m-focus-ring"
+              className="text-xs text-[var(--m-accent)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] px-3 py-2 min-h-[38px] rounded-lg border border-[var(--m-border)] hover:border-[var(--m-border-strong)] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap m-focus-ring"
             >
               <span>Open Full Radar Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -716,9 +578,8 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left 5 Columns: Radar Station Metadata, Reflectivity Legend, & Attributions */}
+        {/* Left 5 Columns: Station Metadata, Reflectivity Scale, & Verified Attribution */}
         <div className="lg:col-span-5 flex flex-col justify-between gap-4">
-          {/* Station Selection & Operational Metadata */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--m-accent)]">
@@ -739,7 +600,6 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               </span>
             </div>
 
-            {/* Station Dropdown Selector for All IMD DWR Stations */}
             <div className="relative mt-1">
               <select
                 id="select-radar-station"
@@ -748,7 +608,7 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 onChange={(e) => {
                   setSelectedStationId(e.target.value);
                   setViewMode('station');
-                  setFocusTarget(null);
+                  setProbedPoint(null);
                 }}
                 className="w-full bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[var(--m-text-primary)] text-xs font-semibold rounded-lg px-3 py-2.5 min-h-[40px] pr-8 focus:outline-none focus:border-[var(--m-accent)] cursor-pointer appearance-none m-focus-ring"
               >
@@ -762,11 +622,11 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
             </div>
 
             <p className="text-xs text-[var(--m-text-muted)] mt-1 leading-relaxed">
-              Monitors precipitation reflectivity sweeps within a {currentStation.rangeKm} km DWR footprint.
+              Surveillance coverage radius: {currentStation.rangeKm} km ({currentStation.model}).
+              Click anywhere on the map to measure geodetic range &amp; bearing from DWR {currentStation.city}.
             </p>
           </div>
 
-          {/* Operational Metrics Grid */}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 m-panel-inset">
               <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Operational Band</span>
@@ -781,22 +641,28 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               </span>
             </div>
             <div className="p-2.5 m-panel-inset">
-              <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Scan Cadence</span>
-              <span className="text-xs font-mono font-bold text-[var(--m-accent)] mt-0.5 block">10 Min Cycle</span>
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Frame Type</span>
+              <span className="text-xs font-mono font-bold text-[var(--m-accent)] mt-0.5 block">
+                {activeFrame ? activeFrame.dataType : '—'}
+              </span>
             </div>
             <div className="p-2.5 m-panel-inset">
-              <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Composite Mosaic</span>
-              <span className={`text-xs font-mono font-bold mt-0.5 block ${frames.length > 0 ? 'text-[var(--m-ok)]' : 'text-[var(--m-watch)]'}`}>
-                {frames.length > 0 ? `${frames.length} FRAMES` : 'UNAVAILABLE'}
+              <span className="text-[10px] text-[var(--m-text-muted)] uppercase block">Composite Frames</span>
+              <span
+                className={`text-xs font-mono font-bold mt-0.5 block tabular-nums ${
+                  playback.frameCount > 0 ? 'text-[var(--m-ok)]' : 'text-[var(--m-watch)]'
+                }`}
+              >
+                {playback.frameCount > 0 ? `${playback.frameCount} SWEEPS` : 'UNAVAILABLE'}
               </span>
             </div>
           </div>
 
-          {/* Compact Reflectivity Legend (dBZ Scale) */}
+          {/* Reflectivity Scale */}
           <div className="p-3 m-panel-inset flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-[10px] font-mono">
               <span className="text-[var(--m-text-secondary)] font-bold">REFLECTIVITY (dBZ)</span>
-              <span className="text-[var(--m-text-muted)]">RainViewer Composite</span>
+              <span className="text-[var(--m-text-muted)]">RainViewer Universal Scale</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-[var(--m-text-muted)] font-mono">Low</span>
@@ -804,52 +670,51 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 className="h-2 flex-1 rounded-sm opacity-90"
                 style={{
                   background:
-                    'linear-gradient(to right, #0000ff 0%, #00bfff 20%, #00e400 40%, #ffff00 65%, #ff7e00 85%, #ff0000 100%)',
+                    'linear-gradient(to right, #78AEB6 0%, #10B981 22%, #FACC15 46%, #FB923C 68%, #EF4444 85%, #C026D3 100%)',
                 }}
-                title="RainViewer Reflectivity Palette: Blue (Light) to Red (Heavy)"
               />
               <span className="text-[10px] text-[var(--m-text-muted)] font-mono">High</span>
             </div>
             <div className="flex justify-between text-[9px] text-[var(--m-text-muted)] font-mono">
-              <span>Light (15–25)</span>
+              <span>Light (15–30)</span>
               <span>Moderate (30–40)</span>
               <span>Heavy (45+ dBZ)</span>
             </div>
           </div>
 
-          {/* Verified Source Attribution & Observation Status */}
+          {/* Source Attribution */}
           <div className="p-3 m-panel-inset flex flex-col gap-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[var(--m-text-muted)] uppercase font-bold tracking-wider">
-                Feed Status
+                Feed Provenance
               </span>
               <SourceStatus status={statusLabel} />
             </div>
 
             <div className="flex flex-col gap-1 text-[11px] font-mono pt-2 border-t border-[var(--m-border)]">
-              <div className="flex justify-between">
-                <span className="text-[var(--m-text-muted)]">Updated:</span>
-                <span className="text-[var(--m-text-primary)] font-bold">
-                  {formatTimestamp(displayedTimestamp)}
+              <div className="flex justify-between gap-2">
+                <span className="text-[var(--m-text-muted)]">Active Frame:</span>
+                <span className="text-[var(--m-text-primary)] font-bold tabular-nums text-right">
+                  {formatFullTimestamp(displayedTimestamp)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--m-text-muted)]">RADAR DATA:</span>
-                <span className="text-[var(--m-accent)] font-medium">
+              <div className="flex justify-between gap-2">
+                <span className="text-[var(--m-text-muted)]">Radar Feed:</span>
+                <span className="text-[var(--m-accent)] font-medium text-right">
                   RainViewer Composite Radar
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--m-text-muted)]">BASEMAP:</span>
-                <span className="text-[var(--m-text-secondary)] font-medium">
-                  OpenStreetMap (© OSM)
+              <div className="flex justify-between gap-2">
+                <span className="text-[var(--m-text-muted)]">Basemap:</span>
+                <span className="text-[var(--m-text-secondary)] font-medium text-right">
+                  {activeBasemap.name}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-1">
               <span className="text-[10px] text-[var(--m-text-muted)]">
-                Cycle: 5m auto-refresh
+                Auto-refresh every 5 min
               </span>
               <button
                 type="button"
@@ -858,226 +723,200 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 className="text-[11px] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] flex items-center gap-1 cursor-pointer transition-colors"
                 title="Refresh radar metadata"
               >
-                <RefreshCw
-                  className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`}
-                />
+                <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
                 <span>Sync Now</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right 7 Columns: Real Functional Leaflet Radar Map with 6-Frame Playback Controls */}
-        <div className="lg:col-span-7 flex flex-col gap-2">
-          {/* Viewport controls & Mode Selector */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-            <div className="flex items-center gap-1.5 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)]">
+        {/* Right 7 Columns: Upgraded Leaflet Radar Map + Unified Playback Controls */}
+        <div className="lg:col-span-7 flex flex-col gap-2.5">
+          {/* Top Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 bg-[var(--m-surface-inset)] p-1 rounded-lg border border-[var(--m-border)]">
               <button
                 type="button"
-                onClick={() => {
-                  setViewMode('station');
-                  setFocusTarget(null);
-                }}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
-                  viewMode === 'station' && !focusTarget
-                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
+                onClick={() => setViewMode('station')}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                  viewMode === 'station'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
-                DWR {currentStation.city} Focus
+                DWR {currentStation.city}
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setViewMode('all-india');
-                  setFocusTarget(null);
-                }}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                onClick={() => setViewMode('all-india')}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap ${
                   viewMode === 'all-india'
-                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] shadow-sm'
+                    ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)]'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)]'
                 }`}
               >
-                All-India Composite
+                All-India
               </button>
 
-              {focusTarget && (
-                <button
-                  type="button"
-                  onClick={() => setFocusTarget(null)}
-                  className="px-2 py-1 rounded text-[10px] font-mono bg-[var(--m-alert-soft)] text-[var(--m-alert)] border border-[var(--m-alert)]/30 flex items-center gap-1 cursor-pointer"
-                  title="Return to standard station view"
-                >
-                  <Target className="w-3 h-3" />
-                  <span>Focused Cell</span>
-                  <X className="w-2.5 h-2.5 ml-0.5" />
-                </button>
-              )}
-
-              {/* Visual Map Lock / Unlock Control */}
               <button
                 type="button"
                 id="btn-home-radar-lock"
                 onClick={() => setIsMapLocked((prev) => !prev)}
-                aria-label={isMapLocked ? 'Unlock radar map panning and zooming' : 'Lock radar map to current sector'}
                 aria-pressed={isMapLocked}
-                title={
+                className={`px-2 py-1 rounded text-[10px] font-mono font-semibold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap ${
                   isMapLocked
-                    ? 'Map view locked to sector (prevents accidental panning/zooming while viewing storm sector). Click to unlock.'
-                    : 'Lock view to current weather sector (prevents accidental panning & zooming)'
-                }
-                className={`px-2 py-1 rounded text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  isMapLocked
-                    ? 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border border-[var(--m-alert)]/60 shadow-sm'
+                    ? 'bg-[var(--m-alert-soft)] text-[var(--m-alert)] border border-[var(--m-alert)]/60'
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] bg-[var(--m-surface-1)] border border-[var(--m-border)]'
                 }`}
               >
-                {isMapLocked ? <Lock className="w-3 h-3 text-[var(--m-alert)]" /> : <Unlock className="w-3 h-3 text-[var(--m-text-muted)]" />}
-                <span className="font-mono text-[10px] uppercase font-bold">
-                  {isMapLocked ? 'Sector Locked' : 'Lock View'}
-                </span>
+                {isMapLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                <span>{isMapLocked ? 'Locked' : 'Lock'}</span>
               </button>
             </div>
 
-            <div className="text-[11px] text-[var(--m-text-muted)] font-mono flex items-center gap-2">
-              <span className="hidden sm:inline text-[10px] text-[var(--m-accent)]">
-                Click map to probe echo
-              </span>
-              <span className="flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-[var(--m-accent)]" />
-                <span>
-                  {frames.length > 0
-                    ? `Frame ${activeFrameIndex + 1} of ${frames.length}`
-                    : 'Loading frames…'}
-                </span>
-              </span>
+            <div className="flex items-center gap-1.5">
+              <BasemapStyleSwitcher
+                value={basemapStyle}
+                onChange={(next) => {
+                  basemapErrorsRef.current = 0;
+                  setUseBasemapFallback(false);
+                  setBasemapStyle(next);
+                }}
+                compact={true}
+              />
+              <button
+                type="button"
+                onClick={handleToggleFullscreen}
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen radar map'}
+                className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center justify-center cursor-pointer m-focus-ring"
+              >
+                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              </button>
             </div>
           </div>
 
-          {/* Leaflet Map Canvas Container — intentional dark spatial stage */}
+          {/* Map Canvas */}
           <div
+            ref={mapStageRef}
             data-theme="dark-workspace"
-            className={`h-[360px] sm:h-[400px] rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] relative overflow-hidden shadow-inner flex flex-col ${
+            className={`${
+              isFullscreen ? 'h-[100dvh]' : 'h-[clamp(280px,46dvh,480px)]'
+            } rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] relative overflow-hidden shadow-inner flex flex-col ${
               isMapLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
             }`}
           >
-            {/* On-Map Floating Lock Indicator Badge */}
-            {isMapLocked && (
-              <div className="absolute top-2.5 right-2.5 z-[400] flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--m-surface-inset)]/90 border border-[#FF8C42]/70 text-[#FF8C42] text-[10px] font-mono backdrop-blur-md shadow-md pointer-events-auto">
-                <Lock className="w-3 h-3" />
-                <span className="font-bold">LOCKED: {focusTarget ? 'ECHO CELL' : `${currentStation.city} SECTOR`}</span>
-                <button
-                  type="button"
-                  onClick={() => setIsMapLocked(false)}
-                  className="text-white hover:underline text-[9px] ml-1 cursor-pointer font-sans font-medium"
-                >
-                  Unlock
-                </button>
-              </div>
-            )}
-
             <MapContainer
-              center={effectiveCenter}
-              zoom={effectiveZoom}
-              minZoom={4}
-              maxZoom={10}
+              center={mapCenter}
+              zoom={mapZoom}
+              minZoom={2}
+              maxZoom={11}
+              worldCopyJump={true}
               zoomControl={false}
               scrollWheelZoom={false}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '100%', height: '100%', background: activeBasemap.isLightSurface ? '#E5E7EB' : '#0B1219' }}
               className="z-0"
             >
               <MapResizeHandler />
-              <MapViewController center={effectiveCenter} zoom={effectiveZoom} />
+              <MapViewController center={mapCenter} zoom={mapZoom} />
               <MapLockHandler isLocked={isMapLocked} />
-              <MapProbeHandler onProbe={handleMapProbe} />
+              <MapProbeHandler isLocked={isMapLocked} onProbe={handleMapProbe} />
 
               <TileLayer
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap contributors"
-                keepBuffer={2}
-                maxZoom={12}
+                key={`home-basemap-${activeBasemap.id}-${activeBasemap.styleId}`}
+                url={activeBasemap.baseUrl}
+                attribution={activeBasemap.attribution}
+                maxZoom={activeBasemap.maxZoom}
+                className={activeBasemap.className || ''}
+                eventHandlers={{
+                  tileerror: () => {
+                    basemapErrorsRef.current += 1;
+                    if (basemapErrorsRef.current >= 3 && !useBasemapFallback) {
+                      setUseBasemapFallback(true);
+                    }
+                  },
+                }}
               />
+              {activeBasemap.referenceUrl && !useBasemapFallback && (
+                <TileLayer
+                  key={`home-basemap-ref-${activeBasemap.id}`}
+                  url={activeBasemap.referenceUrl}
+                  maxZoom={activeBasemap.maxZoom}
+                  opacity={0.82}
+                  zIndex={200}
+                />
+              )}
 
               {activeTileUrl && (
                 <TileLayer
-                  key={
-                    activeFrame?.path
-                      ? `${activeFrame.path}-${activeFrameIndex}-${activePrecipLevels.join(',')}`
-                      : `radar-tile-${activeFrameIndex}-${activePrecipLevels.join(',')}`
-                  }
+                  key={`home-radar-${activeFrame?.id || playback.currentIndex}-${activePrecipLevels.join(',')}`}
                   url={activeTileUrl}
                   opacity={computedTileOpacity}
                   className={`radar-tile-layer ${computedTileFilterClass}`}
                   maxNativeZoom={7}
-                  maxZoom={12}
-                  attribution="Weather data by RainViewer"
-                  keepBuffer={2}
+                  maxZoom={11}
+                  zIndex={300}
+                  attribution="Weather data &copy; RainViewer"
+                  eventHandlers={{
+                    loading: () => setIsTileLoading(true),
+                    load: () => {
+                      setIsTileLoading(false);
+                      setTileError(null);
+                    },
+                    tileerror: () => {
+                      setIsTileLoading(false);
+                      setTileError('Radar tile frame failed to load from upstream.');
+                    },
+                  }}
                 />
               )}
 
-              {/* DWR Station Geographic Marker */}
+              {/* DWR Station Range Ring & Marker */}
+              {viewMode === 'station' && (
+                <Circle
+                  center={[currentStation.lat, currentStation.lng]}
+                  radius={currentStation.rangeKm * 1000}
+                  pathOptions={{
+                    color: '#C5A46D',
+                    fillColor: '#C5A46D',
+                    fillOpacity: 0.05,
+                    weight: 1.5,
+                    dashArray: '4, 5',
+                  }}
+                />
+              )}
+
               {viewMode === 'station' && stationDivIcon && (
-                <Marker
-                  position={[currentStation.lat, currentStation.lng]}
-                  icon={stationDivIcon}
-                >
+                <Marker position={[currentStation.lat, currentStation.lng]} icon={stationDivIcon}>
                   <Popup className="custom-radar-popup">
                     <div className="text-xs p-1">
-                      <strong className="block text-[var(--m-accent)]">
-                        DWR {currentStation.city}
-                      </strong>
+                      <strong className="block text-[var(--m-accent)]">DWR {currentStation.city}</strong>
                       <div className="text-[#333] text-[10px] mt-0.5">
-                        {currentStation.model} • {currentStation.band}
+                        {currentStation.model} · {currentStation.band}
                       </div>
                       <div className="text-[#666] text-[9px]">
-                        Radar Radius: {currentStation.rangeKm} km
+                        Surveillance Radius: {currentStation.rangeKm} km
                       </div>
                     </div>
                   </Popup>
                 </Marker>
               )}
 
-              {/* Focused Active Convective Echo Target Marker */}
-              {focusTarget && echoTargetDivIcon && (
-                <Marker
-                  position={[focusTarget.center[0], focusTarget.center[1]]}
-                  icon={echoTargetDivIcon}
-                >
-                  <Popup>
-                    <div className="text-xs p-1">
-                      <strong className="block text-[#FF8C42]">
-                        Active Echo Target: {echoProfile.regionName}
-                      </strong>
-                      <div className="text-[10px] text-[#333] mt-0.5">
-                        Peak Reflectivity: <strong>{echoProfile.reflectivity}</strong>
-                      </div>
-                      <div className="text-[9px] text-[#666]">
-                        {echoProfile.precipitationClass} • Top {echoProfile.cloudTopKm}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-
-              {/* User Probed Point Marker */}
+              {/* Strictly Geodetic Probed Coordinate Marker */}
               {probedPoint && probeDivIcon && (
-                <Marker
-                  position={[probedPoint.lat, probedPoint.lng]}
-                  icon={probeDivIcon}
-                >
+                <Marker position={[probedPoint.lat, probedPoint.lng]} icon={probeDivIcon}>
                   <Popup>
-                    <div className="text-xs p-1 max-w-[200px]">
-                      <strong className="block text-[#22C7A0]">
-                        Radar Echo Probe
-                      </strong>
+                    <div className="text-xs p-1 max-w-[220px]">
+                      <strong className="block text-[#0F766E]">Geodetic Range Probe</strong>
                       <div className="text-[10px] text-[#333] mt-0.5 font-mono">
+                        {formatCoordinatePair(probedPoint.lat, probedPoint.lng, 3)}
+                      </div>
+                      <div className="text-[10px] text-[#222] mt-1 font-mono font-semibold">
                         {probedPoint.distanceKm} km @ {probedPoint.bearing}° {probedPoint.compass} from DWR {currentStation.city}
                       </div>
-                      <div className="text-[10px] text-[var(--m-accent)] font-bold mt-1">
-                        Est. Reflectivity: {probedPoint.reflectivityEst}
-                      </div>
-                      <div className="text-[9px] text-[#666]">
-                        {probedPoint.precipitationClass}
+                      <div className="text-[9px] text-[#555] mt-0.5">
+                        {probedPoint.withinCoverage
+                          ? `Within ${currentStation.rangeKm} km DWR coverage`
+                          : `Outside ${currentStation.rangeKm} km station radius`}
                       </div>
                     </div>
                   </Popup>
@@ -1087,159 +926,122 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
               <ZoomControl position="topright" />
             </MapContainer>
 
-            {/* Top-left floating indicator showing active frame timestamp & age (Clickable to inspect latest echo) */}
+            {/* Top-Left Timestamp & Sweep Inspector Trigger */}
             <button
               type="button"
               id="badge-latest-echo-trigger"
               onClick={handleLatestEchoAction}
-              title="Click to inspect latest echo telemetry & active storm cells"
-              className="absolute top-3 left-3 bg-[#101820]/95 border border-[#354653] hover:border-[var(--m-accent)] px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[520] backdrop-blur-sm cursor-pointer transition-colors group shadow-lg"
+              title="Inspect composite sweep metadata or jump to latest frame"
+              className="absolute top-3 left-3 bg-[#101820]/95 border border-[#354653] hover:border-[var(--m-accent)] px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 z-[520] backdrop-blur-sm cursor-pointer transition-colors group shadow-lg max-w-[calc(100%-96px)]"
             >
               <span
-                className={`w-2 h-2 rounded-full ${
-                  isPlaying
-                    ? 'bg-[var(--m-accent)]'
-                    : isLatestFrame
-                    ? 'bg-[#2E7D5B]'
-                    : 'bg-[#D98A2B]'
+                className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase ${
+                  activeFrame?.dataType === 'NOWCAST'
+                    ? 'bg-[#F59E0B]/20 text-[#FCD34D]'
+                    : 'bg-[#10B981]/20 text-[#6EE7B7]'
                 }`}
-              />
-              <span className="text-[#F5F3ED] font-mono text-[11px] font-bold tracking-wider">
-                {activeFrame?.relativeLabel || (isLatestFrame ? 'LATEST SWEEP' : 'PAST FRAME')}
+              >
+                {activeFrame?.dataType || 'SYNC'}
               </span>
-              <span className="text-[#D8D4C9] text-[11px] font-mono tabular-nums">
-                {activeFrame ? formatTimestamp(activeFrame.time) : 'Syncing…'}
+              <span className="text-[#F5F3ED] font-mono text-[11px] font-bold truncate tabular-nums">
+                {activeFrame ? activeFrame.formattedTime : 'Syncing…'}
               </span>
-              <Crosshair className="w-3.5 h-3.5 text-[var(--m-accent)] ml-0.5 opacity-80 group-hover:opacity-100" />
+              <Crosshair className="w-3.5 h-3.5 text-[var(--m-accent)] shrink-0 opacity-80 group-hover:opacity-100" />
             </button>
 
-            {/* Temporary Feedback Banner when jumping or refreshing */}
+            {/* Bottom-Left Overlay Opacity Slider */}
+            <div className="absolute bottom-3 left-3 z-[450]">
+              <MapOpacitySlider
+                opacity={radarOpacity}
+                onChange={setRadarOpacity}
+                label="Opacity"
+              />
+            </div>
+
+            <MapLoadingOverlay visible={isTileLoading} label="Loading radar frame…" />
+            <MapErrorOverlay message={tileError} onRetry={() => setTileError(null)} />
+
             {echoFeedback && (
-              <div className="absolute top-12 left-3 bg-[var(--m-accent)] text-[#F5F3ED] px-3 py-1 rounded text-xs font-semibold z-[530] flex items-center gap-1.5 pointer-events-none shadow-md">
+              <div className="absolute top-12 left-3 bg-[var(--m-accent)] text-[var(--m-on-accent)] px-3 py-1 rounded text-xs font-semibold z-[530] flex items-center gap-1.5 pointer-events-none shadow-md">
                 <Zap className="w-3.5 h-3.5" />
                 <span>{echoFeedback}</span>
               </div>
             )}
 
-            {/* Interactive Latest Echo Telemetry & Analysis Panel Overlay */}
-            {showEchoInspector && (
+            {/* Honest Sweep Metadata Inspector (Zero Fabricated Reflectivity Values) */}
+            {showSweepInspector && (
               <div
                 id="panel-latest-echo-inspector"
-                className="absolute top-14 left-3 w-80 max-w-[calc(100%-24px)] bg-[#101820]/96 border border-[var(--m-accent)]/50 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5 shadow-2xl"
+                className="absolute top-14 left-3 w-76 max-w-[calc(100%-24px)] bg-[#101820]/96 border border-[var(--m-accent)]/50 rounded-xl p-3.5 z-[550] backdrop-blur-md flex flex-col gap-2.5 shadow-2xl"
               >
-                {/* Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--m-border)]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#22C7A0]" />
-                    <span className="text-xs font-bold text-[var(--m-text-primary)] font-mono uppercase tracking-wider">
-                      Latest Radar Sweep Sector
-                    </span>
-                  </div>
+                  <span className="text-xs font-bold text-[var(--m-text-primary)] font-mono uppercase tracking-wider">
+                    Radar Sweep Telemetry
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setShowEchoInspector(false)}
+                    onClick={() => setShowSweepInspector(false)}
                     className="text-[var(--m-text-muted)] hover:text-white p-0.5 rounded cursor-pointer"
-                    title="Close Inspector"
+                    aria-label="Close inspector"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Sweep Telemetry Specs */}
                 <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
                   <div className="bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
-                    <span className="text-[var(--m-text-muted)] text-[9px] block">SCAN TIME</span>
+                    <span className="text-[var(--m-text-muted)] text-[9px] block">SWEEP TIME</span>
                     <span className="text-[var(--m-text-primary)] font-bold">
-                      {radarTimestamp
-                        ? new Date(radarTimestamp * 1000).toLocaleTimeString('en-IN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                          }) + ' IST'
-                        : 'Checking…'}
+                      {activeFrame ? activeFrame.formattedTime : '—'}
                     </span>
                   </div>
                   <div className="bg-[var(--m-surface-inset)] p-2 rounded border border-[var(--m-border)]">
                     <span className="text-[var(--m-text-muted)] text-[9px] block">FRESHNESS</span>
                     <span className="text-[#22C7A0] font-bold">
-                      {getEchoAgeText(radarTimestamp)}
+                      {getEchoAgeText(displayedTimestamp)}
                     </span>
                   </div>
                 </div>
 
-                {/* Detected Echo Zone Details */}
-                <div className="bg-[var(--m-surface-inset)] p-2.5 rounded-lg border border-[var(--m-border)] flex flex-col gap-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-[var(--m-text-muted)] font-mono">
-                      PRIMARY ECHO SECTOR
-                    </span>
-                    <span className="text-[10px] font-bold text-[#FF8C42]">
-                      {echoProfile.reflectivity}
-                    </span>
+                <div className="bg-[var(--m-surface-inset)] p-2.5 rounded-lg border border-[var(--m-border)] text-[11px] text-[var(--m-text-secondary)] space-y-1">
+                  <div className="font-semibold text-[var(--m-text-primary)]">
+                    DWR {currentStation.city} ({currentStation.state})
                   </div>
-                  <div className="font-semibold text-[var(--m-text-primary)] text-xs">
-                    {echoProfile.regionName}
+                  <div className="font-mono text-[10px] text-[var(--m-text-muted)]">
+                    {formatCoordinatePair(currentStation.lat, currentStation.lng, 3)} · Range {currentStation.rangeKm} km
                   </div>
-                  <div className="text-[11px] text-[var(--m-text-muted)]">
-                    {echoProfile.precipitationClass} • Cloud top ~{echoProfile.cloudTopKm}
-                  </div>
-                  <div className="text-[10px] text-[var(--m-accent)] font-mono pt-1">
-                    Vector: {echoProfile.cellMotion}
-                  </div>
+                  <p className="text-[10px] text-[var(--m-text-muted)] leading-relaxed">
+                    Displays verified RainViewer composite reflectivity tiles. Exact point dBZ readouts require raw Level-II volumetric sweeps.
+                  </p>
                 </div>
 
-                {/* Inspector Action Buttons */}
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    id="btn-focus-echo-cell"
-                    onClick={() => {
-                      setFocusTarget({
-                        center: [echoProfile.echoLat, echoProfile.echoLng],
-                        zoom: 7,
-                        label: echoProfile.regionName,
-                      });
-                    }}
-                    className="flex-1 bg-[var(--m-accent)] hover:bg-[#0F7DC0] text-[var(--m-on-accent)] px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-                  >
-                    <Target className="w-3.5 h-3.5" />
-                    <span>Focus Active Cell</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => fetchRadarData(undefined, true)}
-                    disabled={isRefreshing}
-                    className="bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-1)] text-[var(--m-accent)] hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold border border-[var(--m-border)] flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                    title="Poll RainViewer API for newest radar sweep"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span>Rescan</span>
-                  </button>
-                </div>
-
-                <div className="text-[10px] text-[var(--m-text-muted)] font-mono flex items-center gap-1 pt-0.5 border-t border-[var(--m-border-strong)]">
-                  <Crosshair className="w-3 h-3 text-[#22C7A0]" />
-                  <span>Click map anywhere to probe echo metrics</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => fetchRadarData(undefined, true)}
+                  disabled={isRefreshing}
+                  className="w-full bg-[var(--m-accent)] text-[var(--m-on-accent)] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span>Check for Newer Sweep</span>
+                </button>
               </div>
             )}
 
-            {/* Loading State Overlay */}
-            {radarStatus === 'loading' && frames.length === 0 && (
+            {/* Initial Loading Overlay */}
+            {radarStatus === 'loading' && playback.frameCount === 0 && (
               <div className="absolute inset-0 bg-[var(--m-surface-inset)]/85 z-[600] flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
                 <RefreshCw className="w-7 h-7 text-[var(--m-accent)] animate-spin" />
                 <span className="text-sm font-semibold text-[var(--m-text-primary)]">
                   Loading radar imagery…
                 </span>
                 <span className="text-xs text-[var(--m-text-muted)]">
-                  Connecting to RainViewer public weather radar feed
+                  Connecting to RainViewer composite radar feed
                 </span>
               </div>
             )}
 
             {/* Error State Overlay */}
-            {radarStatus === 'error' && frames.length === 0 && (
+            {radarStatus === 'error' && playback.frameCount === 0 && (
               <div className="absolute inset-0 bg-[var(--m-surface-inset)]/90 z-[600] flex flex-col items-center justify-center gap-2.5 p-4 text-center">
                 <AlertCircle className="w-8 h-8 text-[#EF4444]" />
                 <span className="text-sm font-bold text-[var(--m-text-primary)]">
@@ -1248,221 +1050,72 @@ export const HomeRadarPreview: React.FC<HomeRadarPreviewProps> = ({
                 <p className="text-xs text-[var(--m-text-muted)] max-w-sm">
                   {fetchError || 'Unable to retrieve latest radar mosaic from source.'}
                 </p>
-                <div className="text-[11px] text-[var(--m-accent)] font-mono">
-                  Source: RainViewer
-                </div>
                 <button
                   type="button"
                   onClick={() => fetchRadarData(undefined, true)}
-                  className="mt-2 px-3.5 py-1.5 bg-[var(--m-accent)] hover:bg-[#0F7DC0] text-[var(--m-on-accent)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                  className="mt-1 px-3.5 py-1.5 bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-bold rounded-lg cursor-pointer"
                 >
                   Retry Connection
                 </button>
               </div>
             )}
 
-            {/* Persistent Semi-Transparent Radar Legend Panel in bottom-right corner so it never overlaps top-left LATEST SWEEP */}
             <RadarMapLegendPanel
               initialMetric="all"
               positionClass="bottom-3 right-3"
               activePrecipLevels={activePrecipLevels}
               onPrecipLevelsChange={setActivePrecipLevels}
-              sectorName={currentStation ? `${currentStation.city} (${currentStation.state}) Sector` : 'National Doppler Radar Network'}
-              stationName={currentStation ? `DWR ${currentStation.city}` : undefined}
+              sectorName={`${currentStation.city} (${currentStation.state}) Sector`}
+              stationName={`DWR ${currentStation.city}`}
               timestamp={activeFrame?.time}
             />
 
-            {/* On-Map Precipitation Filter Banner when active */}
             {isPrecipFiltered && (
-              <div className="absolute top-12 right-3 z-[500] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/80 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
-                <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+              <div className="absolute top-14 right-3 z-[500] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/80 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2">
                 <span className="text-[#FCD34D] font-bold text-[10px] uppercase">
-                  FILTER: {activePrecipLevels.length}/6 ON
+                  FILTER: {activePrecipLevels.length}/6
                 </span>
                 <button
                   type="button"
                   onClick={() => setActivePrecipLevels(ALL_PRECIP_LEVEL_IDS)}
-                  className="text-[10px] text-[var(--m-accent)] hover:text-[var(--m-text-primary)] underline font-sans cursor-pointer font-bold"
-                  title="Reset precipitation intensity filter"
+                  className="text-[10px] text-[var(--m-accent)] underline cursor-pointer font-bold"
                 >
                   Reset
                 </button>
               </div>
             )}
 
-            {/* Embedded dynamic CSS styles for radar layer intensity filtering */}
             <style>{`
-              .radar-tile-layer img {
-                transition: filter 0.3s ease, opacity 0.3s ease;
-              }
-              .radar-filter-zero img {
-                opacity: 0 !important;
-              }
-              .radar-filter-heavy-plus img {
-                filter: contrast(220%) saturate(190%) brightness(110%) drop-shadow(0 0 6px rgba(239,68,68,0.5));
-              }
-              .radar-filter-mod-plus img {
-                filter: contrast(165%) saturate(160%) brightness(105%);
-              }
-              .radar-filter-trace-only img {
-                filter: contrast(135%) saturate(135%) hue-rotate(170deg);
-              }
-              .radar-filter-custom img {
-                filter: contrast(145%) saturate(150%);
-              }
+              .radar-tile-layer img { transition: filter 0.25s ease, opacity 0.25s ease; }
+              .radar-filter-zero img { opacity: 0 !important; }
+              .radar-filter-heavy-plus img { filter: contrast(220%) saturate(190%) brightness(110%); }
+              .radar-filter-mod-plus img { filter: contrast(165%) saturate(160%) brightness(105%); }
+              .radar-filter-trace-only img { filter: contrast(135%) saturate(135%) hue-rotate(170deg); }
+              .radar-filter-custom img { filter: contrast(145%) saturate(150%); }
+              .mausam-osm-dark-tiles { filter: invert(92%) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.75); }
             `}</style>
           </div>
 
-          {/* Play/Pause Playback Controls Bar (6-Hour precipitation progression loop) */}
-          <div
-            id="radar-playback-controls"
-            className="p-3 rounded-xl bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex flex-col gap-2.5 shadow-sm"
-          >
-            {/* Top Row: Playback Buttons, Speed Selector & Latest Echo */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              {/* Play/Pause & Step Buttons */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  id="btn-radar-step-start"
-                  title="Jump to -6 Hours (Start)"
-                  onClick={() => {
-                    setIsPlaying(false);
-                    setActiveFrameIndex(0);
-                  }}
-                  disabled={frames.length === 0}
-                  className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
-                >
-                  <SkipBack className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  id="btn-radar-play-pause"
-                  title={isPlaying ? 'Pause Animation' : 'Play 6-Hour Time-Lapse'}
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  disabled={frames.length === 0}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
-                    isPlaying
-                      ? 'bg-[var(--m-alert)] text-white'
-                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] text-[var(--m-on-accent)]'
-                  } disabled:opacity-40`}
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="w-3.5 h-3.5" />
-                      <span>Pause</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Play 6h Loop</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  id="btn-radar-step-forward"
-                  title="Next Frame (+15m)"
-                  onClick={() => {
-                    setIsPlaying(false);
-                    setActiveFrameIndex((prev) => (prev + 1) % frames.length);
-                  }}
-                  disabled={frames.length === 0}
-                  className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] hover:bg-[var(--m-surface-2)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] border border-[var(--m-border)] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
-                >
-                  <SkipForward className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Speed Controls: 0.5x, 1x, 2x */}
-                <div className="flex items-center bg-[var(--m-surface-1)] p-0.5 rounded-lg border border-[var(--m-border)] ml-1">
-                  {[0.5, 1, 2].map((spd) => (
-                    <button
-                      key={spd}
-                      type="button"
-                      onClick={() => setPlaybackSpeed(spd)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
-                        playbackSpeed === spd
-                          ? 'bg-[var(--m-accent)] text-[var(--m-on-accent)] font-bold'
-                          : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
-                      }`}
-                      title={`Playback Speed: ${spd}x`}
-                    >
-                      {spd}x
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Active Timestamp Readout & Latest Echo Button */}
-              <div className="flex items-center gap-2">
-                <div className="text-right hidden sm:block">
-                  <div className="text-[11px] font-mono font-bold text-[var(--m-text-primary)] tabular-nums">
-                    {activeFrame ? formatTimestamp(activeFrame.time).split(',')[0] : 'Checking…'}
-                  </div>
-                  <div className="text-[9px] text-[var(--m-accent)] font-mono tabular-nums">
-                    {activeFrame?.relativeLabel || (isLatestFrame ? 'LATEST SWEEP' : `${activeFrame?.ageMinutes || 0}m ago`)}
-                  </div>
-                </div>
-
-                {/* Fully Functional Latest Echo Button */}
-                <button
-                  type="button"
-                  id="btn-radar-jump-latest"
-                  onClick={handleLatestEchoAction}
-                  disabled={frames.length === 0}
-                  title={
-                    isLatestFrame
-                      ? 'Inspect Latest Sweep Sector'
-                      : 'Jump to the newest radar frame'
-                  }
-                  className={`text-xs font-mono font-semibold px-3 py-1.5 min-h-[36px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 m-focus-ring ${
-                    isLatestFrame
-                      ? 'bg-[var(--m-surface-2)] hover:bg-[var(--m-surface-3)] border-[var(--m-accent)]/50 text-[var(--m-accent)] hover:text-[var(--m-text-primary)]'
-                      : 'bg-[var(--m-accent)] hover:bg-[var(--m-accent-hover)] border-transparent text-[var(--m-on-accent)]'
-                  }`}
-                >
-                  <Radio
-                    className={`w-3.5 h-3.5 ${
-                      isRefreshing ? 'animate-spin text-[var(--m-accent)]' : isLatestFrame ? 'text-[var(--m-ok)]' : 'text-white'
-                    }`}
-                  />
-                  <span>{isLatestFrame ? 'Inspect Latest' : 'Latest Sweep'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Row: 6-Hour Time-Lapse Slider Track & Ticks */}
-            <div className="flex flex-col gap-1 pt-1">
-              <input
-                type="range"
-                min={0}
-                max={Math.max(0, frames.length - 1)}
-                value={activeFrameIndex}
-                onChange={(e) => {
-                  setIsPlaying(false);
-                  setActiveFrameIndex(Number(e.target.value));
-                }}
-                aria-label="6-hour precipitation progression scrubber"
-                className="w-full h-1.5 rounded appearance-none cursor-pointer bg-[var(--m-surface-3)] border border-[var(--m-border)] accent-[var(--m-accent)]"
-              />
-              <div className="flex items-center justify-between text-[9px] font-mono text-[var(--m-text-muted)] px-0.5 select-none">
-                <span className="text-[var(--m-accent)] font-bold">-6h</span>
-                <span>-5h</span>
-                <span>-4h</span>
-                <span className="text-[var(--m-text-secondary)] font-semibold">-3h</span>
-                <span>-2h</span>
-                <span>-1h</span>
-                <span className="text-[var(--m-ok)] font-bold">LATEST SWEEP</span>
-              </div>
-            </div>
-          </div>
+          {/* Unified, Cleanup-Safe Radar Time-Lapse Playback Controls */}
+          <MapPlaybackControls
+            playback={playback}
+            currentTimestampLabel={activeFrame ? activeFrame.formattedTime : 'Awaiting radar sweeps'}
+            firstTimestampLabel={
+              playback.frames[0] ? playback.frames[0].formattedTime : undefined
+            }
+            lastTimestampLabel={
+              playback.frames[playback.frameCount - 1]
+                ? playback.frames[playback.frameCount - 1].formattedTime
+                : undefined
+            }
+            frameKindBadge={activeFrame?.dataType}
+            frameDetail={activeFrame?.relativeLabel}
+            sourceLabel="RainViewer Radar"
+            isFrameLoading={isTileLoading}
+            emptyMessage="Radar composite sweeps unavailable from upstream."
+          />
         </div>
       </div>
     </DataPanel>
   );
 };
-
-
-

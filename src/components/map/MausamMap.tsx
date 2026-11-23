@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Circle, Tooltip, useMap, useMapEvents } from 'react-leaflet';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Maximize2, Minimize2, Compass } from 'lucide-react';
 import L from 'leaflet';
-import {
-  WeatherMapMetric,
-} from './MapLayerControl';
+import { WeatherMapMetric } from './MapLayerControl';
 import { StateWeatherData } from './IndiaWeatherMap';
 import { INDIA_WEATHER_DATA } from '../../data/indiaWeatherData';
 import { RadarStation } from '../../types/radar';
@@ -18,18 +16,30 @@ import {
   RadarMapLegendPanel,
   PrecipLevelId,
   ALL_PRECIP_LEVEL_IDS,
-  PRECIP_INTERVALS,
 } from '../radar/RadarMapLegendPanel';
 import {
   RadarTimeLapseController,
   RadarTimeSpan,
 } from '../radar/RadarTimeLapseController';
+import {
+  BasemapStyleSwitcher,
+  MapErrorOverlay,
+  MapLoadingOverlay,
+  MapOpacitySlider,
+} from '../maps';
+import {
+  INDIA_GEOGRAPHIC_BOUNDS,
+  resolveBasemapSpec,
+  type BasemapStyleId,
+} from '../../utils/mapBasemaps';
+import type { PlaybackSpeed } from '../../hooks/useFramePlayback';
 import { formatCoordinatePair } from '../../../shared/weatherContract';
 
 export interface MausamMapControls {
   zoomIn: () => void;
   zoomOut: () => void;
   resetView: () => void;
+  fitIndia: () => void;
   flyTo: (lat: number, lng: number, zoom?: number) => void;
   toggleLock?: () => void;
   isLocked?: boolean;
@@ -44,6 +54,9 @@ export interface MausamMapProps {
   onSelectStation?: (station: RadarStation) => void;
   radarTileUrl?: string | null;
   radarOpacity?: number;
+  onRadarOpacityChange?: (opacity: number) => void;
+  basemapStyle?: BasemapStyleId;
+  onBasemapStyleChange?: (style: BasemapStyleId) => void;
   userCoords?: { lat: number; lng: number } | null;
   onControlsReady?: (controls: MausamMapControls) => void;
   className?: string;
@@ -52,17 +65,19 @@ export interface MausamMapProps {
   onToggleLock?: () => void;
   sectorName?: string;
   showRadarLegend?: boolean;
+  showBasemapSwitcher?: boolean;
   activePrecipLevels?: PrecipLevelId[];
   onPrecipLevelsChange?: (levels: PrecipLevelId[]) => void;
-  // Automatic 6-Hour Time-Lapse Playback Controls on Radar Map
+  // Time-Lapse Playback Controls on Radar Map
   showTimeLapseControl?: boolean;
   timeLapseFrames?: RadarFrame[];
   activeFrameIndex?: number;
   onChangeFrame?: (index: number) => void;
+  onResetPlayback?: () => void;
   isPlaying?: boolean;
   onTogglePlay?: () => void;
   playbackSpeed?: number;
-  onChangeSpeed?: (speed: number) => void;
+  onChangeSpeed?: (speed: PlaybackSpeed) => void;
   loop?: boolean;
   onToggleLoop?: () => void;
   timeSpan?: RadarTimeSpan;
@@ -115,9 +130,35 @@ const STATE_COORDINATES: Record<string, { lat: number; lng: number; code: string
   'dadra and nagar haveli and daman and diu': { lat: 20.4283, lng: 72.8397, code: 'DD' },
 };
 
-/**
- * Leaflet resize problem fix using ResizeObserver as requested
- */
+const COMPASS_TO_DEG: Record<string, number> = {
+  N: 0,
+  NNE: 22.5,
+  NE: 45,
+  ENE: 67.5,
+  E: 90,
+  ESE: 112.5,
+  SE: 135,
+  SSE: 157.5,
+  S: 180,
+  SSW: 202.5,
+  SW: 225,
+  WSW: 247.5,
+  W: 270,
+  WNW: 292.5,
+  NW: 315,
+  NNW: 337.5,
+};
+
+function getAqiCategoryLabel(aqi: number | null | undefined): string {
+  if (aqi === null || aqi === undefined || Number.isNaN(aqi)) return 'Unavailable';
+  if (aqi <= 50) return 'Good';
+  if (aqi <= 100) return 'Satisfactory';
+  if (aqi <= 200) return 'Moderate';
+  if (aqi <= 300) return 'Poor';
+  if (aqi <= 400) return 'Very Poor';
+  return 'Severe';
+}
+
 function MapResizeFix() {
   const map = useMap();
 
@@ -125,19 +166,13 @@ function MapResizeFix() {
     const element = map.getContainer();
 
     const observer = new ResizeObserver(() => {
-      map.invalidateSize({
-        pan: false,
-        animate: false,
-      });
+      map.invalidateSize({ pan: false, animate: false });
     });
 
     observer.observe(element);
 
     const timer = setTimeout(() => {
-      map.invalidateSize({
-        pan: false,
-        animate: false,
-      });
+      map.invalidateSize({ pan: false, animate: false });
     }, 200);
 
     return () => {
@@ -149,9 +184,6 @@ function MapResizeFix() {
   return null;
 }
 
-/**
- * Controller to expose programmatic map controls & handle view changes
- */
 function MapController({
   center,
   zoom,
@@ -198,7 +230,12 @@ function MapController({
           if (!isLockedRef.current) map.zoomOut();
         },
         resetView: () => {
-          if (!isLockedRef.current) map.setView([22.8, 80.5], 4.8, { animate: true });
+          if (!isLockedRef.current) map.setView([18, 12], 2, { animate: true });
+        },
+        fitIndia: () => {
+          if (!isLockedRef.current) {
+            map.fitBounds(INDIA_GEOGRAPHIC_BOUNDS, { padding: [20, 20], animate: true });
+          }
         },
         flyTo: (lat: number, lng: number, z = 7) => map.flyTo([lat, lng], z, { animate: true }),
         toggleLock: () => onToggleLockRef.current?.(),
@@ -212,10 +249,6 @@ function MapController({
   return null;
 }
 
-/**
- * Controller to enable/disable Leaflet panning, zooming, and scrolling
- * when the map view is locked to prevent accidental movement.
- */
 function MapInteractionLockController({ isLocked }: { isLocked: boolean }) {
   const map = useMap();
 
@@ -248,23 +281,34 @@ function MapInteractionLockController({ isLocked }: { isLocked: boolean }) {
 function MapClickHandler({
   isLocked,
   onMapClick,
+  onHoverCoords,
 }: {
   isLocked: boolean;
   onMapClick?: (lat: number, lng: number) => void;
+  onHoverCoords?: (coords: { lat: number; lng: number } | null) => void;
 }) {
   useMapEvents({
     click(e) {
       if (isLocked || !onMapClick) return;
       onMapClick(Number(e.latlng.lat.toFixed(4)), Number(e.latlng.lng.toFixed(4)));
     },
+    mousemove(e) {
+      onHoverCoords?.({
+        lat: Number(e.latlng.lat.toFixed(2)),
+        lng: Number(e.latlng.lng.toFixed(2)),
+      });
+    },
+    mouseout() {
+      onHoverCoords?.(null);
+    },
   });
   return null;
 }
 
-/**
- * Helper to compute metric color and format
- */
-function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { value: string; bg: string; text: string } {
+function getMetricBadge(
+  state: StateWeatherData,
+  metric: WeatherMapMetric
+): { value: string; bg: string; text: string; arrowDeg?: number } {
   const isNum = (v: number | undefined | null): v is number =>
     v !== undefined && v !== null && !Number.isNaN(v);
 
@@ -272,63 +316,67 @@ function getMetricBadge(state: StateWeatherData, metric: WeatherMapMetric): { va
     case 'temperature': {
       if (!isNum(state.temperature)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.temperature;
-      let bg = '#C5A46D';
+      let bg = '#38BDF8';
       if (val >= 38) bg = '#EF4444';
       else if (val >= 32) bg = '#F97316';
-      else if (val >= 25) bg = '#F59E0B';
-      else if (val >= 18) bg = '#00C897';
+      else if (val >= 25) bg = '#D97706';
+      else if (val >= 18) bg = '#059669';
       return { value: `${val}°C`, bg, text: '#FFFFFF' };
     }
     case 'rainfall': {
       if (!isNum(state.rainfall)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.rainfall;
-      let bg = '#2F3534';
-      if (val >= 50) bg = '#8B5CF6';
-      else if (val >= 20) bg = '#C5A46D';
-      else if (val >= 5) bg = '#78AEB6';
-      else if (val > 0) bg = '#065F46';
+      let bg = '#334155';
+      if (val >= 65) bg = '#7C3AED';
+      else if (val >= 20) bg = '#2563EB';
+      else if (val >= 5) bg = '#0284C7';
+      else if (val > 0) bg = '#0D9488';
       return { value: `${val} mm`, bg, text: '#FFFFFF' };
     }
     case 'aqi': {
       if (!isNum(state.aqi)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.aqi;
-      let bg = '#00C897';
-      if (val > 250) bg = '#EF4444';
-      else if (val > 150) bg = '#F97316';
-      else if (val > 100) bg = '#F59E0B';
-      else if (val > 50) bg = '#10B981';
+      let bg = '#16A34A';
+      if (val > 400) bg = '#991B1B';
+      else if (val > 300) bg = '#DC2626';
+      else if (val > 200) bg = '#EA580C';
+      else if (val > 100) bg = '#CA8A04';
+      else if (val > 50) bg = '#65A30D';
       return { value: `AQI ${val}`, bg, text: '#FFFFFF' };
     }
     case 'humidity': {
       if (!isNum(state.humidity)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.humidity;
-      let bg = '#78AEB6';
+      let bg = '#D97706';
       if (val >= 80) bg = '#1D4ED8';
-      else if (val >= 60) bg = '#0EA5E9';
-      else if (val >= 40) bg = '#14B8A6';
+      else if (val >= 60) bg = '#0284C7';
+      else if (val >= 35) bg = '#0D9488';
       return { value: `${val}%`, bg, text: '#FFFFFF' };
     }
     case 'wind': {
       if (!isNum(state.windSpeed)) return { value: '—', bg: '#191C1D', text: '#898B83' };
       const val = state.windSpeed;
-      let bg = '#0EA5E9';
-      if (val >= 35) bg = '#EF4444';
-      else if (val >= 20) bg = '#F59E0B';
-      return { value: `${val} km/h`, bg, text: '#FFFFFF' };
+      let bg = '#0284C7';
+      if (val >= 60) bg = '#DC2626';
+      else if (val >= 40) bg = '#EA580C';
+      else if (val >= 20) bg = '#059669';
+      const dirKey = (state.windDir || 'SW').toUpperCase().trim();
+      const arrowDeg = COMPASS_TO_DEG[dirKey] ?? 225;
+      return { value: `${val} km/h`, bg, text: '#FFFFFF', arrowDeg };
     }
     case 'warnings': {
       const level = state.warningLevel || 'normal';
-      let bg = '#00C897';
+      let bg = '#059669';
       let label = 'Normal';
       if (level === 'severe') {
-        bg = '#EF4444';
-        label = 'Severe';
+        bg = '#DC2626';
+        label = 'Red';
       } else if (level === 'alert') {
-        bg = '#F97316';
-        label = 'Alert';
+        bg = '#EA580C';
+        label = 'Orange';
       } else if (level === 'watch') {
-        bg = '#F59E0B';
-        label = 'Watch';
+        bg = '#CA8A04';
+        label = 'Yellow';
       }
       return { value: label, bg, text: '#FFFFFF' };
     }
@@ -349,22 +397,26 @@ export const MausamMap: React.FC<MausamMapProps> = ({
   selectedStation = null,
   onSelectStation,
   radarTileUrl,
-  radarOpacity = 0.85,
+  radarOpacity: controlledRadarOpacity,
+  onRadarOpacityChange,
+  basemapStyle: controlledBasemapStyle,
+  onBasemapStyleChange,
   userCoords,
   onControlsReady,
   className = '',
-  heightClass = 'h-[440px] md:h-[520px] lg:h-[620px]',
+  heightClass = 'h-[clamp(300px,54dvh,680px)]',
   isLocked = false,
   onToggleLock,
   sectorName,
   showRadarLegend = true,
+  showBasemapSwitcher = true,
   activePrecipLevels,
   onPrecipLevelsChange,
-  // Automatic 6-Hour Time-Lapse Playback Controls on Radar Map
   showTimeLapseControl,
   timeLapseFrames,
   activeFrameIndex,
   onChangeFrame,
+  onResetPlayback,
   isPlaying,
   onTogglePlay,
   playbackSpeed,
@@ -380,7 +432,68 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 }) => {
   const INDIA_CENTER: [number, number] = [22.8, 80.5];
   const DEFAULT_ZOOM = 4.8;
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const [showLockNotice, setShowLockNotice] = useState<boolean>(false);
+  const [internalBasemapStyle, setInternalBasemapStyle] = useState<BasemapStyleId>('dark');
+  const [useBasemapFallback, setUseBasemapFallback] = useState<boolean>(false);
+  const [internalRadarOpacity, setInternalRadarOpacity] = useState<number>(0.8);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [hoverCoords, setHoverCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isRadarTileLoading, setIsRadarTileLoading] = useState<boolean>(false);
+  const [radarTileError, setRadarTileError] = useState<string | null>(null);
+  const basemapErrorsRef = useRef<number>(0);
+
+  const basemapStyle = controlledBasemapStyle ?? internalBasemapStyle;
+  const handleBasemapChange = useCallback(
+    (next: BasemapStyleId) => {
+      basemapErrorsRef.current = 0;
+      setUseBasemapFallback(false);
+      if (controlledBasemapStyle === undefined) {
+        setInternalBasemapStyle(next);
+      }
+      onBasemapStyleChange?.(next);
+    },
+    [controlledBasemapStyle, onBasemapStyleChange]
+  );
+
+  const radarOpacity = controlledRadarOpacity ?? internalRadarOpacity;
+  const handleOpacityChange = useCallback(
+    (next: number) => {
+      if (controlledRadarOpacity === undefined) {
+        setInternalRadarOpacity(next);
+      }
+      onRadarOpacityChange?.(next);
+    },
+    [controlledRadarOpacity, onRadarOpacityChange]
+  );
+
+  const activeBasemap = useMemo(
+    () => resolveBasemapSpec(basemapStyle, useBasemapFallback),
+    [basemapStyle, useBasemapFallback]
+  );
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    const el = containerRef.current;
+    if (!el || typeof document === 'undefined') return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      }
+    } catch {
+      // Fullscreen may be blocked inside restricted iframes; silently keep normal view
+    }
+  }, []);
 
   const effectiveShowTimeLapse =
     showTimeLapseControl !== undefined
@@ -390,16 +503,18 @@ export const MausamMap: React.FC<MausamMapProps> = ({
   // Precipitation intensity layer filter state
   const [internalPrecipLevels, setInternalPrecipLevels] = useState<PrecipLevelId[]>(ALL_PRECIP_LEVEL_IDS);
   const effectivePrecipLevels = activePrecipLevels !== undefined ? activePrecipLevels : internalPrecipLevels;
-  const handlePrecipLevelsChange = useCallback((levels: PrecipLevelId[]) => {
-    if (activePrecipLevels === undefined) {
-      setInternalPrecipLevels(levels);
-    }
-    onPrecipLevelsChange?.(levels);
-  }, [activePrecipLevels, onPrecipLevelsChange]);
+  const handlePrecipLevelsChange = useCallback(
+    (levels: PrecipLevelId[]) => {
+      if (activePrecipLevels === undefined) {
+        setInternalPrecipLevels(levels);
+      }
+      onPrecipLevelsChange?.(levels);
+    },
+    [activePrecipLevels, onPrecipLevelsChange]
+  );
 
   const isPrecipFiltered = effectivePrecipLevels.length < ALL_PRECIP_LEVEL_IDS.length;
 
-  // Compute CSS filter class for Doppler radar tile layer based on active levels
   const computedTileFilterClass = useMemo(() => {
     if (effectivePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return '';
     if (effectivePrecipLevels.length === 0) return 'radar-filter-zero';
@@ -410,15 +525,12 @@ export const MausamMap: React.FC<MausamMapProps> = ({
     const hasIntense = effectivePrecipLevels.includes('intense');
     const hasExtreme = effectivePrecipLevels.includes('extreme');
 
-    // Only convective downpours & storms (≥ 40 dBZ)
     if (!hasTrace && !hasLight && !hasMod && (hasHeavy || hasIntense || hasExtreme)) {
       return 'radar-filter-heavy-plus';
     }
-    // Moderate and above (≥ 30 dBZ)
     if (!hasTrace && !hasLight && (hasMod || hasHeavy || hasIntense || hasExtreme)) {
       return 'radar-filter-mod-plus';
     }
-    // Light rain only (< 30 dBZ)
     if (!hasHeavy && !hasIntense && !hasExtreme && (hasTrace || hasLight)) {
       return 'radar-filter-trace-only';
     }
@@ -428,21 +540,22 @@ export const MausamMap: React.FC<MausamMapProps> = ({
   const computedTileOpacity = useMemo(() => {
     if (effectivePrecipLevels.length === 0) return 0;
     if (effectivePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return radarOpacity;
-    return Math.max(0.35, (effectivePrecipLevels.length / ALL_PRECIP_LEVEL_IDS.length) * radarOpacity);
+    return Math.max(0.3, (effectivePrecipLevels.length / ALL_PRECIP_LEVEL_IDS.length) * radarOpacity);
   }, [effectivePrecipLevels, radarOpacity]);
 
-  // Check if a state's rainfall falls within the active filter intervals
-  const isStateRainfallInFilter = useCallback((rainfallMm: number = 0) => {
-    if (effectivePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return true;
-    if (rainfallMm < 0.5) return effectivePrecipLevels.includes('trace');
-    if (rainfallMm < 4) return effectivePrecipLevels.includes('light');
-    if (rainfallMm < 15) return effectivePrecipLevels.includes('moderate');
-    if (rainfallMm < 50) return effectivePrecipLevels.includes('heavy');
-    if (rainfallMm < 100) return effectivePrecipLevels.includes('intense');
-    return effectivePrecipLevels.includes('extreme');
-  }, [effectivePrecipLevels]);
+  const isStateRainfallInFilter = useCallback(
+    (rainfallMm: number = 0) => {
+      if (effectivePrecipLevels.length === ALL_PRECIP_LEVEL_IDS.length) return true;
+      if (rainfallMm < 0.5) return effectivePrecipLevels.includes('trace');
+      if (rainfallMm < 4) return effectivePrecipLevels.includes('light');
+      if (rainfallMm < 15) return effectivePrecipLevels.includes('moderate');
+      if (rainfallMm < 50) return effectivePrecipLevels.includes('heavy');
+      if (rainfallMm < 100) return effectivePrecipLevels.includes('intense');
+      return effectivePrecipLevels.includes('extreme');
+    },
+    [effectivePrecipLevels]
+  );
 
-  // Determine active sector display label
   const activeSectorLabel = useMemo<string>(() => {
     if (sectorName) return sectorName;
     if (viewMode === 'radar' && selectedStation) {
@@ -454,7 +567,6 @@ export const MausamMap: React.FC<MausamMapProps> = ({
     return 'India Meteorological Sector';
   }, [sectorName, viewMode, selectedStation, selectedState]);
 
-  // Determine center based on selection
   const center = useMemo<[number, number]>(() => {
     if (viewMode === 'radar' && selectedStation) {
       return [selectedStation.latitude, selectedStation.longitude];
@@ -478,7 +590,13 @@ export const MausamMap: React.FC<MausamMapProps> = ({
     return DEFAULT_ZOOM;
   }, [viewMode, selectedStation, selectedState]);
 
-  // Create custom DivIcon for state markers in synoptic mode
+  // Reset tile error banner when radar URL changes
+  useEffect(() => {
+    if (radarTileUrl) {
+      setRadarTileError(null);
+    }
+  }, [radarTileUrl]);
+
   const createStateMarkerIcon = useCallback(
     (state: StateWeatherData, isSelected: boolean) => {
       const metricInfo = getMetricBadge(state, activeMetric);
@@ -489,46 +607,51 @@ export const MausamMap: React.FC<MausamMapProps> = ({
       const isMatchingPrecipFilter = isRainfallMetric ? isStateRainfallInFilter(state.rainfall) : true;
       const filterStyle = !isMatchingPrecipFilter ? 'opacity: 0.22; filter: grayscale(85%);' : '';
 
+      const windArrowHtml =
+        activeMetric === 'wind' && typeof metricInfo.arrowDeg === 'number'
+          ? `<span style="display:inline-flex;align-items:center;justify-content:center;transform:rotate(${metricInfo.arrowDeg}deg);font-size:10px;line-height:1;">↑</span>`
+          : '';
+
       const html = `
         <div class="cursor-pointer group flex flex-col items-center select-none" style="transform: translate(-50%, -50%); ${filterStyle}">
           <div class="flex items-center gap-1 px-1.5 py-0.5 rounded shadow-lg text-[10px] font-bold font-mono transition-transform duration-150 ${
             isSelected
-              ? 'ring-2 ring-white scale-110 shadow-[0_0_12px_rgba(197, 164, 109,0.8)]'
+              ? 'ring-2 ring-white scale-110 shadow-[0_0_12px_rgba(197,164,109,0.85)]'
               : 'group-hover:scale-105'
-          }" style="background-color: ${metricInfo.bg}; color: ${metricInfo.text}; border: 1px solid rgba(255,255,255,0.3);">
+          }" style="background-color: ${metricInfo.bg}; color: ${metricInfo.text}; border: 1px solid rgba(255,255,255,0.35);">
             <span class="opacity-90">${code}</span>
             <span class="opacity-40">|</span>
+            ${windArrowHtml}
             <span>${metricInfo.value}</span>
           </div>
-          <div class="w-1 h-1 rounded-full bg-white/70 mt-0.5 shadow-sm"></div>
+          <div class="w-1 h-1 rounded-full bg-white/80 mt-0.5 shadow-sm"></div>
         </div>
       `;
 
       return L.divIcon({
         className: 'custom-state-marker',
         html,
-        iconSize: [60, 24],
-        iconAnchor: [30, 12],
+        iconSize: [72, 24],
+        iconAnchor: [36, 12],
       });
     },
     [activeMetric, isStateRainfallInFilter]
   );
 
-  // Create custom DivIcon for Doppler radar stations
   const createRadarStationIcon = useCallback(
     (station: RadarStation, isSelected: boolean) => {
       const isS = station.band.includes('S-Band');
       const isC = station.band.includes('C-Band');
       const bandTag = isS ? 'S' : isC ? 'C' : 'X';
       const badgeBg = isSelected ? '#C5A46D' : '#111314';
-      const borderCol = isSelected ? '#C5A46D' : '#2F3534';
+      const borderCol = isSelected ? '#FFFFFF' : '#3B4246';
 
       const html = `
         <div class="cursor-pointer group flex flex-col items-center select-none" style="transform: translate(-50%, -50%);">
           <div class="relative flex items-center justify-center">
             ${
               isSelected
-                ? '<div class="absolute -inset-1.5 rounded-full border border-[var(--m-accent)]/80 pointer-events-none"></div>'
+                ? '<div class="absolute -inset-1.5 rounded-full border border-[var(--m-accent)]/85 pointer-events-none"></div>'
                 : ''
             }
             <div class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-[10px] text-white transition-transform ${
@@ -545,8 +668,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               </svg>
             </div>
           </div>
-          <div class="bg-[#061A2B]/90 text-[9px] font-mono px-1 py-0.2 rounded border border-[var(--m-border)] text-[var(--m-text-primary)] font-semibold mt-0.5 whitespace-nowrap shadow-sm">
-            ${station.id.replace('DWR-', '')} <span class="text-[var(--m-accent)]">${bandTag}</span>
+          <div class="bg-[#0B1117]/92 text-[9px] font-mono px-1.5 py-0.5 rounded border border-white/15 text-[#F5F3ED] font-semibold mt-0.5 whitespace-nowrap shadow-sm">
+            ${station.id.replace('DWR-', '')} <span style="color:#C5A46D">${bandTag}</span>
           </div>
         </div>
       `;
@@ -554,8 +677,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
       return L.divIcon({
         className: 'custom-radar-marker',
         html,
-        iconSize: [40, 44],
-        iconAnchor: [20, 22],
+        iconSize: [44, 46],
+        iconAnchor: [22, 23],
       });
     },
     []
@@ -563,7 +686,8 @@ export const MausamMap: React.FC<MausamMapProps> = ({
 
   return (
     <div
-      className={`relative w-full ${heightClass} bg-[var(--m-surface-inset)] rounded-none overflow-hidden select-none ${
+      ref={containerRef}
+      className={`relative w-full ${isFullscreen ? 'h-screen' : heightClass} bg-[var(--m-surface-inset)] rounded-none overflow-hidden select-none ${
         isLocked ? '[&_.leaflet-grab]:!cursor-default [&_.leaflet-container]:!cursor-default' : ''
       } ${className}`}
       style={{ zIndex: 0 }}
@@ -574,8 +698,24 @@ export const MausamMap: React.FC<MausamMapProps> = ({
         }
       }}
     >
-      {/* Floating Visual Lock/Unlock Toggle Button (Top-Right) */}
-      <div className="absolute top-3 right-3 z-[400] flex items-center gap-2 pointer-events-auto">
+      {/* Top-Right Control Cluster: Basemap Style, Radar Opacity, Lock View, Fullscreen */}
+      <div className="absolute top-3 right-3 z-[420] flex flex-wrap items-center justify-end gap-1.5 pointer-events-auto max-w-[calc(100%-24px)]">
+        {showBasemapSwitcher && (
+          <BasemapStyleSwitcher
+            value={basemapStyle}
+            onChange={handleBasemapChange}
+            compact={true}
+          />
+        )}
+
+        {viewMode === 'radar' && radarTileUrl && (
+          <MapOpacitySlider
+            opacity={radarOpacity}
+            onChange={handleOpacityChange}
+            label="Radar"
+          />
+        )}
+
         <button
           type="button"
           id="btn-map-floating-lock"
@@ -583,14 +723,14 @@ export const MausamMap: React.FC<MausamMapProps> = ({
             e.stopPropagation();
             onToggleLock?.();
           }}
-          aria-label={isLocked ? 'Unlock radar map panning and zooming' : 'Lock radar map to current sector'}
+          aria-label={isLocked ? 'Unlock map panning and zooming' : 'Lock map to current sector'}
           aria-pressed={isLocked}
           title={
             isLocked
-              ? `Map view locked to ${activeSectorLabel}. Click to unlock panning & zooming.`
-              : 'Lock view to current weather sector (prevents accidental panning & zooming)'
+              ? `Map view locked to ${activeSectorLabel}. Click to unlock.`
+              : 'Lock view to current weather sector'
           }
-          className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md transition-colors cursor-pointer m-focus-ring ${
+          className={`h-9 flex items-center gap-1.5 px-2.5 rounded-lg text-xs font-bold backdrop-blur-md transition-colors cursor-pointer whitespace-nowrap m-focus-ring ${
             isLocked
               ? 'bg-[var(--m-surface-inset)]/95 text-[#FCD34D] border border-[#F59E0B]/70'
               : 'bg-[var(--m-surface-inset)]/90 text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-1)] border border-[var(--m-border)]'
@@ -601,18 +741,31 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           ) : (
             <Unlock className="w-3.5 h-3.5 shrink-0" />
           )}
-          <span className="font-mono uppercase tracking-wider text-[11px]">
-            {isLocked ? 'SECTOR LOCKED' : 'LOCK VIEW'}
+          <span className="font-mono uppercase tracking-wider text-[10px] hidden sm:inline">
+            {isLocked ? 'Locked' : 'Lock'}
           </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleFullscreen();
+          }}
+          aria-label={isFullscreen ? 'Exit fullscreen map' : 'Open fullscreen map'}
+          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen map'}
+          className="w-9 h-9 rounded-lg bg-[var(--m-surface-inset)]/90 hover:bg-[var(--m-surface-1)] border border-[var(--m-border)] text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer m-focus-ring"
+        >
+          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </button>
       </div>
 
       {/* On-Map Sector Lock Notification Strip (Top-Left) */}
       {isLocked && (
-        <div className="absolute top-3 left-3 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
+        <div className="absolute top-3 left-3 z-[420] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
           <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
-          <span className="text-[#FCD34D] font-bold text-[10px] uppercase tracking-wider">LOCKED SECTOR:</span>
-          <span className="text-[11px] font-semibold text-white truncate max-w-[150px] sm:max-w-[280px]">
+          <span className="text-[#FCD34D] font-bold text-[10px] uppercase tracking-wider">LOCKED:</span>
+          <span className="text-[11px] font-semibold text-white truncate max-w-[140px] sm:max-w-[240px]">
             {activeSectorLabel}
           </span>
           <button
@@ -622,24 +775,33 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               onToggleLock?.();
             }}
             className="ml-1 text-[10px] text-[var(--m-accent)] hover:text-white underline font-sans cursor-pointer shrink-0 font-semibold"
-            title="Unlock map to pan and zoom freely"
           >
             Unlock
           </button>
         </div>
       )}
 
-      {/* Notice tooltip when interacting with locked map */}
       {showLockNotice && isLocked && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none backdrop-blur-md">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[430] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B] text-white text-xs px-3.5 py-1.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none backdrop-blur-md">
           <Lock className="w-3.5 h-3.5 text-[#FCD34D] shrink-0" />
           <span className="text-[11px] font-medium text-[var(--m-text-primary)]">
-            Sector View is Locked — Accidental pan/zoom prevented. Click &quot;Unlock&quot; to adjust.
+            Sector View is Locked — Click &quot;Unlock&quot; to pan or zoom.
           </span>
         </div>
       )}
 
-      {/* Persistent Semi-Transparent Radar Legend Panel directly on the map surface */}
+      {/* Subtle loading & error overlays for radar tile requests */}
+      <MapLoadingOverlay
+        visible={viewMode === 'radar' && isRadarTileLoading}
+        label="Loading Doppler sweep tiles…"
+      />
+      <MapErrorOverlay
+        message={radarTileError}
+        onRetry={() => setRadarTileError(null)}
+        severity="warning"
+      />
+
+      {/* Persistent Semi-Transparent Radar Legend Panel */}
       {showRadarLegend && (
         <RadarMapLegendPanel
           initialMetric="all"
@@ -651,7 +813,15 @@ export const MausamMap: React.FC<MausamMapProps> = ({
         />
       )}
 
-      {/* Automatic 6-Hour Radar Time-Lapse Playback Control directly on the map surface */}
+      {/* Coordinate Cursor Readout (Desktop) */}
+      {hoverCoords && (
+        <div className="hidden md:flex items-center gap-1.5 absolute bottom-2 left-2 z-[405] px-2 py-1 rounded-md bg-[var(--m-surface-inset)]/90 border border-[var(--m-border)] text-[10px] font-mono tabular-nums text-[var(--m-text-secondary)] pointer-events-none">
+          <Compass className="w-3 h-3 text-[var(--m-accent)]" />
+          <span>{formatCoordinatePair(hoverCoords.lat, hoverCoords.lng, 2)}</span>
+        </div>
+      )}
+
+      {/* Radar Time-Lapse Playback Control directly on the map surface */}
       {effectiveShowTimeLapse && timeLapseFrames && timeLapseFrames.length > 0 && (
         <div
           id="mausam-map-time-lapse-overlay"
@@ -664,6 +834,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
             frames={timeLapseFrames}
             activeFrameIndex={activeFrameIndex ?? timeLapseFrames.length - 1}
             onChangeFrame={onChangeFrame ?? (() => {})}
+            onReset={onResetPlayback}
             isPlaying={isPlaying ?? false}
             onTogglePlay={onTogglePlay ?? (() => {})}
             playbackSpeed={playbackSpeed ?? 1}
@@ -674,14 +845,14 @@ export const MausamMap: React.FC<MausamMapProps> = ({
             onChangeTimeSpan={onChangeTimeSpan}
             motionVector={motionVector}
             dataStatus={dataStatus}
+            isFrameLoading={isRadarTileLoading}
             isCollapsible={true}
           />
         </div>
       )}
 
-      {/* On-Map Precipitation Filter Banner when active */}
       {isPrecipFiltered && (
-        <div className="absolute top-3 right-36 z-[400] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
+        <div className="absolute top-14 right-3 z-[415] bg-[var(--m-surface-inset)]/95 border border-[#F59E0B]/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-xs font-mono text-[var(--m-text-primary)] flex items-center gap-2 pointer-events-auto">
           <span className="text-[#FCD34D] font-bold text-[10px] uppercase">
             FILTER: {effectivePrecipLevels.length}/6 ON
           </span>
@@ -689,47 +860,43 @@ export const MausamMap: React.FC<MausamMapProps> = ({
             type="button"
             onClick={() => handlePrecipLevelsChange(ALL_PRECIP_LEVEL_IDS)}
             className="text-[10px] text-[var(--m-accent)] hover:text-white underline font-sans cursor-pointer font-bold"
-            title="Show all precipitation intensity layers"
           >
             Reset
           </button>
         </div>
       )}
 
-      {/* Embedded dynamic CSS styles for radar layer intensity filtering */}
       <style>{`
         .radar-tile-layer img {
-          transition: filter 0.3s ease, opacity 0.3s ease;
+          transition: filter 0.25s ease, opacity 0.25s ease;
         }
-        .radar-filter-zero img {
-          opacity: 0 !important;
-        }
+        .radar-filter-zero img { opacity: 0 !important; }
         .radar-filter-heavy-plus img {
           filter: contrast(220%) saturate(190%) brightness(110%) drop-shadow(0 0 6px rgba(239,68,68,0.5));
         }
-        .radar-filter-mod-plus img {
-          filter: contrast(165%) saturate(160%) brightness(105%);
-        }
-        .radar-filter-trace-only img {
-          filter: contrast(135%) saturate(135%) hue-rotate(170deg);
-        }
-        .radar-filter-custom img {
-          filter: contrast(145%) saturate(150%);
-        }
+        .radar-filter-mod-plus img { filter: contrast(165%) saturate(160%) brightness(105%); }
+        .radar-filter-trace-only img { filter: contrast(135%) saturate(135%) hue-rotate(170deg); }
+        .radar-filter-custom img { filter: contrast(145%) saturate(150%); }
+        .mausam-osm-dark-tiles { filter: invert(92%) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.75); }
       `}</style>
 
       <MapContainer
         center={center}
         zoom={zoom}
-        minZoom={3}
+        minZoom={1}
         maxZoom={18}
+        worldCopyJump={true}
         zoomControl={false}
         scrollWheelZoom={!isLocked}
         className="w-full h-full"
-        style={{ background: '#0B1219' }}
+        style={{ background: activeBasemap.isLightSurface ? '#E5E7EB' : '#0B1219' }}
       >
         <MapResizeFix />
-        <MapClickHandler isLocked={isLocked} onMapClick={onMapClick} />
+        <MapClickHandler
+          isLocked={isLocked}
+          onMapClick={onMapClick}
+          onHoverCoords={setHoverCoords}
+        />
         <MapController
           center={center}
           zoom={zoom}
@@ -739,30 +906,60 @@ export const MausamMap: React.FC<MausamMapProps> = ({
         />
         <MapInteractionLockController isLocked={isLocked} />
 
-        {/* Base Cartographic Tile Layer */}
+        {/* Verified Zero-Key Cartographic Basemap with Automatic OSM Failover */}
         <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
-          maxZoom={18}
-          opacity={0.88}
+          key={`basemap-${activeBasemap.id}-${activeBasemap.styleId}`}
+          url={activeBasemap.baseUrl}
+          attribution={activeBasemap.attribution}
+          maxZoom={activeBasemap.maxZoom}
+          className={activeBasemap.className || ''}
+          eventHandlers={{
+            tileerror: () => {
+              basemapErrorsRef.current += 1;
+              if (basemapErrorsRef.current >= 3 && !useBasemapFallback) {
+                setUseBasemapFallback(true);
+              }
+            },
+          }}
         />
+        {activeBasemap.referenceUrl && !useBasemapFallback && (
+          <TileLayer
+            key={`basemap-ref-${activeBasemap.id}`}
+            url={activeBasemap.referenceUrl}
+            maxZoom={activeBasemap.maxZoom}
+            opacity={0.85}
+            zIndex={200}
+          />
+        )}
 
         {/* Real RainViewer Doppler Radar Tile Overlay in Radar Mode */}
         {viewMode === 'radar' && radarTileUrl && (
           <TileLayer
-            key={`radar-tile-layer-${effectivePrecipLevels.join(',')}`}
+            key={`radar-tile-${radarTileUrl}-${effectivePrecipLevels.join(',')}`}
             url={radarTileUrl}
             opacity={computedTileOpacity}
             zIndex={300}
+            maxNativeZoom={7}
+            maxZoom={18}
             className={`radar-tile-layer ${computedTileFilterClass}`}
-            attribution='Weather radar data by RainViewer'
+            attribution="Weather radar data &copy; RainViewer"
+            eventHandlers={{
+              loading: () => setIsRadarTileLoading(true),
+              load: () => {
+                setIsRadarTileLoading(false);
+                setRadarTileError(null);
+              },
+              tileerror: () => {
+                setIsRadarTileLoading(false);
+                setRadarTileError('Some radar tiles failed to load from upstream RainViewer.');
+              },
+            }}
           />
         )}
 
         {/* Radar Station Range Perimeter & Station Markers */}
         {viewMode === 'radar' && (
           <>
-            {/* Surveillance circle for selected station */}
             {selectedStation && (
               <Circle
                 center={[selectedStation.latitude, selectedStation.longitude]}
@@ -785,7 +982,6 @@ export const MausamMap: React.FC<MausamMapProps> = ({
               </Circle>
             )}
 
-            {/* Radar station markers */}
             {OFFICIAL_RADAR_STATIONS.map((station) => {
               const isSelected = selectedStation?.id === station.id;
               return (
@@ -802,7 +998,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                       <span>{station.name}</span>
                       <span className="text-[var(--m-accent)] ml-1">({station.id})</span>
                       <div className="text-[10px] text-[var(--m-text-secondary)] font-normal">
-                        {station.band} • Max Range: {station.maxRangeKm} km
+                        {station.band} · Max Range: {station.maxRangeKm} km
                       </div>
                     </div>
                   </Tooltip>
@@ -812,7 +1008,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           </>
         )}
 
-        {/* Synoptic State Observations in Synoptic Mode */}
+        {/* Synoptic State Observations */}
         {viewMode === 'synoptic' && (
           <>
             {INDIA_WEATHER_DATA.map((state) => {
@@ -831,16 +1027,23 @@ export const MausamMap: React.FC<MausamMapProps> = ({
                     click: () => onSelectState?.(state),
                   }}
                 >
-                  <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
-                    <div className="text-xs font-sans text-white p-1">
-                      <div className="font-bold border-b border-[var(--m-border)] pb-0.5 mb-1 text-[var(--m-text-primary)]">
-                        {state.name} ({coords.code})
+                  <Tooltip direction="top" offset={[0, -10]} opacity={0.96}>
+                    <div className="text-xs font-sans text-white p-1 min-w-[170px]">
+                      <div className="font-bold border-b border-[var(--m-border)] pb-0.5 mb-1 text-[var(--m-text-primary)] flex items-center justify-between gap-2">
+                        <span>{state.name}</span>
+                        <span className="text-[10px] font-mono text-[var(--m-accent)]">{coords.code}</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-[var(--m-text-secondary)]">
+                      <div className="grid grid-cols-2 gap-x-2.5 gap-y-0.5 text-[11px] text-[var(--m-text-secondary)] font-mono tabular-nums">
                         <span>Temp: <strong className="text-white">{state.temperature ?? '—'}°C</strong></span>
                         <span>Rain: <strong className="text-white">{state.rainfall ?? '—'} mm</strong></span>
-                        <span>AQI: <strong className="text-white">{state.aqi ?? '—'}</strong></span>
-                        <span>Humidity: <strong className="text-white">{state.humidity ?? '—'}%</strong></span>
+                        <span>Wind: <strong className="text-white">{state.windSpeed ?? '—'} km/h</strong></span>
+                        <span>RH: <strong className="text-white">{state.humidity ?? '—'}%</strong></span>
+                      </div>
+                      <div className="mt-1 pt-1 border-t border-white/10 text-[10px] font-mono flex items-center justify-between">
+                        <span className="text-[var(--m-text-muted)]">NAQI:</span>
+                        <strong className="text-white">
+                          {state.aqi ?? '—'} ({getAqiCategoryLabel(state.aqi)})
+                        </strong>
                       </div>
                     </div>
                   </Tooltip>
@@ -850,7 +1053,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           </>
         )}
 
-        {/* User GPS location marker if provided */}
+        {/* User GPS location marker */}
         {userCoords && (
           <Marker
             position={[userCoords.lat, userCoords.lng]}
@@ -872,7 +1075,7 @@ export const MausamMap: React.FC<MausamMapProps> = ({
           </Marker>
         )}
 
-        {/* Custom inspected coordinate pin when user clicks anywhere on map */}
+        {/* Custom inspected coordinate pin */}
         {inspectedCoords && (
           <Marker
             position={[inspectedCoords.lat, inspectedCoords.lng]}

@@ -5,9 +5,11 @@
 // ====================================================================
 
 import React from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { CurrentWeather, WeatherStation, LocationRecord } from '../types';
 import { WeatherDataBundle } from '../services/weatherService';
 import { AskMausamPanel } from './AskMausam/AskMausamPanel';
+import { MOTION_DURATION, MOTION_EASE } from '../motion';
 
 interface AskMausamDrawerProps {
   isOpen: boolean;
@@ -27,8 +29,6 @@ export const AskMausamDrawer: React.FC<AskMausamDrawerProps> = ({
   currentStation,
   onSelectLocation,
 }) => {
-  if (!isOpen) return null;
-
   const locName =
     selectedLocation?.name ||
     selectedLocation?.city ||
@@ -44,49 +44,63 @@ export const AskMausamDrawer: React.FC<AskMausamDrawerProps> = ({
   const locLng = selectedLocation?.lng ?? currentStation?.lng ?? 85.8245;
 
   return (
-    <div
-      id="ask-mausam-drawer"
-      className="fixed inset-0 z-50 overflow-hidden flex justify-end"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ask-mausam-title"
-    >
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
-        aria-hidden="true"
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          id="ask-mausam-drawer"
+          className="fixed inset-0 z-50 overflow-hidden flex justify-end"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ask-mausam-title"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.FAST, ease: MOTION_EASE.FEEDBACK }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+            aria-hidden="true"
+          />
 
-      <div className="relative w-full max-w-2xl bg-[var(--m-surface-inset)] h-full shadow-2xl flex flex-col z-10 border-l border-[var(--m-border)]">
-        <AskMausamPanel
-          currentLocation={{
-            name: locName,
-            city: locCity,
-            state: locState,
-            district: selectedLocation?.district || locCity,
-            lat: locLat,
-            lng: locLng,
-          }}
-          onClose={onClose}
-          onSelectLocation={(locStr) => {
-            if (onSelectLocation) {
-              onSelectLocation({
-                id: `loc-${Date.now()}`,
-                name: locStr,
-                displayName: locStr,
-                city: locStr,
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: MOTION_DURATION.STANDARD, ease: MOTION_EASE.CINEMATIC }}
+            className="relative w-full max-w-2xl bg-[var(--m-surface-inset)] h-full shadow-2xl flex flex-col z-10 border-l border-[var(--m-border)]"
+          >
+            <AskMausamPanel
+              currentLocation={{
+                name: locName,
+                city: locCity,
                 state: locState,
-                district: locStr,
+                district: selectedLocation?.district || locCity,
                 lat: locLat,
                 lng: locLng,
-                timezone: 'Asia/Kolkata',
-                weatherStation: `${locStr} Observatory`,
-                radarCoverage: 'Bhubaneswar DWR',
-              });
-            }
-          }}
-        />
-      </div>
-    </div>
+              }}
+              onClose={onClose}
+              onSelectLocation={(locStr) => {
+                if (onSelectLocation) {
+                  onSelectLocation({
+                    id: `loc-${Date.now()}`,
+                    name: locStr,
+                    displayName: locStr,
+                    city: locStr,
+                    state: locState,
+                    district: locStr,
+                    lat: locLat,
+                    lng: locLng,
+                    timezone: 'Asia/Kolkata',
+                    weatherStation: `${locStr} Observatory`,
+                    radarCoverage: 'Bhubaneswar DWR',
+                  });
+                }
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };

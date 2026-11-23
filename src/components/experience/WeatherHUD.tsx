@@ -24,6 +24,8 @@ import { locationService } from '../../services/locationService';
 import { formatCoordinatePair } from '../../../shared/weatherContract';
 import { calculateSolarAstronomicalData } from '../../utils/astronomyCalculator';
 import { formatLocationShort, formatLocationTitle } from '../../utils/locationFormatter';
+import { AnimatePresence, motion } from 'motion/react';
+import { AnimatedCounter, MOTION_DURATION, MOTION_EASE } from '../../motion';
 
 interface WeatherHUDProps {
   selectedLocation: LocationRecord;
@@ -46,6 +48,7 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
     inspectedFeature,
     setInspectedFeature,
     flyCameraTo,
+    recenterWorld,
   } = useExperience();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -162,15 +165,36 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
       ? 'agromet'
       : 'weather';
 
-  const handleAnchorInspectedState = () => {
-    if (!inspectedFeature?.stateName) return;
-    const matched =
-      locationService.findLocationByName(inspectedFeature.title) ||
-      locationService.findLocationsByState(inspectedFeature.stateName)[0];
-    if (matched) {
-      onSelectLocation(matched);
-      flyCameraTo(matched.lat, matched.lng, 2.95);
+  const handleAnchorInspectedFeature = () => {
+    if (!inspectedFeature) return;
+    if (inspectedFeature.kind === 'state' && inspectedFeature.stateName) {
+      const matched =
+        locationService.findLocationByName(inspectedFeature.title) ||
+        locationService.findLocationsByState(inspectedFeature.stateName)[0];
+      if (matched) {
+        onSelectLocation(matched);
+        flyCameraTo(matched.lat, matched.lng, 2.95, 6.2);
+        return;
+      }
     }
+
+    const countryOrRegion = inspectedFeature.stateName || inspectedFeature.subtitle || 'Global';
+    const customLoc: LocationRecord = {
+      id: inspectedFeature.id || `global-${inspectedFeature.lat.toFixed(3)}-${inspectedFeature.lng.toFixed(3)}`,
+      name: inspectedFeature.title,
+      city: inspectedFeature.title,
+      district: inspectedFeature.title,
+      state: countryOrRegion,
+      country: countryOrRegion,
+      displayName: `${inspectedFeature.title}, ${countryOrRegion}`,
+      lat: inspectedFeature.lat,
+      lng: inspectedFeature.lng,
+      timezone: 'UTC',
+      coastalStatus: 'inland',
+      weatherStation: `${inspectedFeature.title} (${countryOrRegion})`,
+    };
+    onSelectLocation(customLoc);
+    flyCameraTo(customLoc.lat, customLoc.lng, 2.95, 5.8);
   };
 
   return (
@@ -201,7 +225,13 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 text-[11px] text-[var(--m-accent)] font-medium">
                   <MapPin className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{selectedLocation.state}</span>
+                  <span className="truncate">
+                    {selectedLocation.country &&
+                    selectedLocation.state &&
+                    selectedLocation.country.toLowerCase() !== selectedLocation.state.toLowerCase()
+                      ? `${selectedLocation.state}, ${selectedLocation.country}`
+                      : selectedLocation.country || selectedLocation.state || 'Global Observatory'}
+                  </span>
                 </div>
                 <h2
                   className="explore-weather-hud-title text-[15px] font-bold text-[var(--m-text-primary)] leading-snug mt-0.5"
@@ -247,7 +277,11 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                 className="text-3xl font-bold text-[var(--m-text-primary)] tabular-nums tracking-tight"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                {hasValidTemp ? `${Math.round(displayTemp as number)}°C` : 'Unavailable'}
+                {hasValidTemp ? (
+                  <AnimatedCounter value={Math.round(displayTemp as number)} suffix="°C" />
+                ) : (
+                  'Unavailable'
+                )}
               </div>
               <div className="text-right min-w-0">
                 <div className="text-xs font-medium text-[var(--m-text-secondary)] truncate">
@@ -266,11 +300,14 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                   Wind (10m)
                 </div>
                 <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {displayWind !== null
-                    ? `${Math.round(displayWind)} km/h ${
-                        displayWindDir && displayWindDir !== '—' ? displayWindDir : ''
-                      }`.trim()
-                    : 'Not reported'}
+                  {displayWind !== null ? (
+                    <>
+                      <AnimatedCounter value={Math.round(displayWind)} suffix=" km/h" />
+                      {displayWindDir && displayWindDir !== '—' ? ` ${displayWindDir}` : ''}
+                    </>
+                  ) : (
+                    'Not reported'
+                  )}
                 </div>
               </div>
               <div>
@@ -278,7 +315,11 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                   Rain Prob
                 </div>
                 <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {displayRainProb !== null ? `${Math.round(displayRainProb)}%` : 'Not reported'}
+                  {displayRainProb !== null ? (
+                    <AnimatedCounter value={Math.round(displayRainProb)} suffix="%" />
+                  ) : (
+                    'Not reported'
+                  )}
                 </div>
               </div>
               <div>
@@ -286,7 +327,11 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                   Humidity
                 </div>
                 <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {displayHumidity !== null ? `${Math.round(displayHumidity)}%` : 'Not reported'}
+                  {displayHumidity !== null ? (
+                    <AnimatedCounter value={Math.round(displayHumidity)} suffix="%" />
+                  ) : (
+                    'Not reported'
+                  )}
                 </div>
               </div>
               <div>
@@ -294,11 +339,13 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
                   AQI (US EPA)
                 </div>
                 <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex)
-                    ? current.aqiIndex
-                    : typeof current.aqi === 'number' && Number.isFinite(current.aqi)
-                    ? current.aqi
-                    : 'Not reported'}
+                  {typeof current.aqiIndex === 'number' && Number.isFinite(current.aqiIndex) ? (
+                    <AnimatedCounter value={Math.round(current.aqiIndex)} />
+                  ) : typeof current.aqi === 'number' && Number.isFinite(current.aqi) ? (
+                    <AnimatedCounter value={Math.round(current.aqi)} />
+                  ) : (
+                    'Not reported'
+                  )}
                 </div>
               </div>
             </div>
@@ -369,81 +416,95 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
             </div>
           </div>
         )}
+      </aside>
 
-        {/* Contextual Spatial Feature Inspector Card (Appears when user clicks any State or DWR marker) */}
+      {/* Non-Overlapping Contextual Location Bar (centered above bottom playback dock, never collides with right HUD or zoom controls) */}
+      <AnimatePresence>
         {inspectedFeature && (
-          <div className="explore-weather-hud-card pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3.5 flex flex-col gap-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--m-accent)]">
-                  {inspectedFeature.kind === 'radar' ? 'Doppler Radar Station' : 'Regional Beacon'}
-                </span>
-                <h3 className="text-sm font-bold text-[var(--m-text-primary)] truncate">
+          <motion.div
+            key={`feature-${inspectedFeature.id || inspectedFeature.title}`}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            transition={{ duration: MOTION_DURATION.FAST, ease: MOTION_EASE.ENTRANCE }}
+            role="region"
+            aria-label="Selected map location details"
+            className="explore-inspected-toast fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto spatial-hud-surface-elevated rounded-[11px] px-3.5 py-2.5 flex flex-col gap-2"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--m-accent)] shrink-0">
+                    {inspectedFeature.kind === 'radar'
+                      ? 'Doppler Radar'
+                      : inspectedFeature.kind === 'location'
+                      ? 'Global Location'
+                      : 'Regional Beacon'}
+                  </span>
+                  <span className="text-[10px] text-[var(--m-text-muted)] truncate">
+                    {inspectedFeature.subtitle}
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--m-text-primary)] truncate leading-snug">
                   {inspectedFeature.title}
                 </h3>
-                <div className="text-[11px] text-[var(--m-text-secondary)] truncate">
-                  {inspectedFeature.subtitle}
-                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setInspectedFeature(null)}
-                aria-label="Close spatial feature inspector"
-                className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer shrink-0 m-focus-ring"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
 
-            <div className="grid grid-cols-2 gap-1.5 text-xs">
-              {inspectedFeature.metrics.slice(0, 4).map((m) => (
-                <div
-                  key={m.label}
-                  className="bg-[var(--m-surface-inset)] rounded-lg px-2 py-1.5 border border-[var(--m-border)]"
-                >
-                  <div className="text-[10px] text-[var(--m-text-muted)]">{m.label}</div>
-                  <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums truncate">
-                    {m.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {inspectedFeature.warningMessage && (
-              <p className="text-[11px] text-[var(--m-text-secondary)] leading-snug">
-                {inspectedFeature.warningMessage}
-              </p>
-            )}
-
-            {inspectedFeature.source && (
-              <div className="text-[10px] font-mono text-[var(--m-text-muted)]">
-                Source: {inspectedFeature.source}
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 pt-1">
-              {inspectedFeature.kind === 'state' && inspectedFeature.stateName && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {(inspectedFeature.kind === 'state' || inspectedFeature.kind === 'location') && (
+                  <button
+                    type="button"
+                    onClick={handleAnchorInspectedFeature}
+                    className="min-h-[30px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-[11px] font-semibold hover:opacity-95 cursor-pointer m-focus-ring whitespace-nowrap"
+                  >
+                    Anchor
+                  </button>
+                )}
+                {inspectedFeature.kind === 'radar' && (
+                  <button
+                    type="button"
+                    onClick={() => onInspectInAnalyze('radar')}
+                    className="min-h-[30px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-[11px] font-semibold hover:opacity-95 cursor-pointer m-focus-ring whitespace-nowrap"
+                  >
+                    Radar →
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={handleAnchorInspectedState}
-                  className="flex-1 min-h-[36px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
+                  onClick={() => {
+                    setInspectedFeature(null);
+                    recenterWorld();
+                  }}
+                  className="min-h-[30px] px-2 rounded-[7px] bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[11px] font-medium text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] cursor-pointer m-focus-ring whitespace-nowrap"
                 >
-                  Anchor Location
+                  World
                 </button>
-              )}
-              {inspectedFeature.kind === 'radar' && (
                 <button
                   type="button"
-                  onClick={() => onInspectInAnalyze('radar')}
-                  className="flex-1 min-h-[36px] px-2.5 rounded-[7px] bg-[var(--m-accent)] text-[var(--m-on-accent)] text-xs font-semibold hover:opacity-95 cursor-pointer m-focus-ring"
+                  onClick={() => setInspectedFeature(null)}
+                  aria-label="Close location bar"
+                  className="min-w-[30px] min-h-[30px] flex items-center justify-center rounded-md text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer m-focus-ring"
                 >
-                  Radar Scope →
+                  <X className="w-3.5 h-3.5" />
                 </button>
-              )}
+              </div>
             </div>
-          </div>
+
+            {inspectedFeature.metrics.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-[var(--m-text-secondary)] border-t border-[var(--m-border)] pt-1.5">
+                {inspectedFeature.metrics.slice(0, 3).map((m) => (
+                  <span key={m.label} className="inline-flex items-center gap-1 min-w-0">
+                    <span className="text-[var(--m-text-muted)]">{m.label}:</span>
+                    <strong className="text-[var(--m-text-primary)] font-semibold truncate max-w-[140px]">
+                      {m.value}
+                    </strong>
+                  </span>
+                ))}
+              </div>
+            )}
+          </motion.div>
         )}
-      </aside>
+      </AnimatePresence>
 
       {/* Tablet & Mobile Viewport: Compact Floating Summary + Expandable Bottom Sheet */}
       <div className="explore-weather-mobile lg:hidden fixed left-2.5 right-2.5 bottom-[96px] z-30 pointer-events-none flex flex-col gap-2">
@@ -488,38 +549,46 @@ export const WeatherHUD: React.FC<WeatherHUDProps> = ({
           </div>
         </div>
 
-        {isMobileSheetOpen && (
-          <div className="explore-weather-mobile-sheet pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3 flex flex-col gap-2 text-xs">
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <div className="text-[10px] text-[var(--m-text-muted)]">Humidity</div>
-                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {displayHumidity !== null ? `${Math.round(displayHumidity)}%` : '—'}
+        <AnimatePresence>
+          {isMobileSheetOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: MOTION_DURATION.FAST, ease: MOTION_EASE.ENTRANCE }}
+              className="explore-weather-mobile-sheet pointer-events-auto spatial-hud-surface-elevated rounded-[11px] p-3 flex flex-col gap-2 text-xs"
+            >
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Humidity</div>
+                  <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                    {displayHumidity !== null ? `${Math.round(displayHumidity)}%` : '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-[var(--m-text-muted)]">Rain Prob</div>
+                  <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                    {displayRainProb !== null ? `${Math.round(displayRainProb)}%` : '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-[var(--m-text-muted)]">AQI</div>
+                  <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                    {typeof current.aqiIndex === 'number'
+                      ? current.aqiIndex
+                      : typeof current.aqi === 'number'
+                      ? current.aqi
+                      : '—'}
+                  </div>
                 </div>
               </div>
-              <div>
-                <div className="text-[10px] text-[var(--m-text-muted)]">Rain Prob</div>
-                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {displayRainProb !== null ? `${Math.round(displayRainProb)}%` : '—'}
-                </div>
+              <div className="text-[10px] font-mono text-[var(--m-text-muted)] pt-1.5 border-t border-[var(--m-border)] flex items-center justify-between gap-2">
+                <span className="truncate">{timestampLine}</span>
+                <span className={statusColorClass}>{obsStatus}</span>
               </div>
-              <div>
-                <div className="text-[10px] text-[var(--m-text-muted)]">AQI</div>
-                <div className="font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                  {typeof current.aqiIndex === 'number'
-                    ? current.aqiIndex
-                    : typeof current.aqi === 'number'
-                    ? current.aqi
-                    : '—'}
-                </div>
-              </div>
-            </div>
-            <div className="text-[10px] font-mono text-[var(--m-text-muted)] pt-1.5 border-t border-[var(--m-border)] flex items-center justify-between gap-2">
-              <span className="truncate">{timestampLine}</span>
-              <span className={statusColorClass}>{obsStatus}</span>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

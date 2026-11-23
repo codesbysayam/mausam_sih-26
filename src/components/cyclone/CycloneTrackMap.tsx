@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -17,9 +17,12 @@ import {
 import { WeatherSystemEvent } from '../../types/cyclone';
 import { formatCoordinatePair } from '../../../shared/weatherContract';
 import {
-  PRIMARY_OBSERVATORY_BASEMAP,
-  FALLBACK_OSM_BASEMAP,
+  resolveBasemapSpec,
+  type BasemapStyleId,
 } from '../../utils/mapBasemaps';
+import { useFramePlayback } from '../../hooks/useFramePlayback';
+import { buildCyclonePlaybackFrames } from '../../services/map/mapFrameService';
+import { BasemapStyleSwitcher, MapPlaybackControls } from '../maps';
 
 interface CycloneTrackMapProps {
   activeSystem: WeatherSystemEvent | null;
@@ -55,14 +58,39 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layersGroupRef = useRef<L.LayerGroup | null>(null);
+  const playbackGroupRef = useRef<L.LayerGroup | null>(null);
   const basemapGroupRef = useRef<L.LayerGroup | null>(null);
 
   const [showRadarRings, setShowRadarRings] = useState(true);
   const [showForecast, setShowForecast] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [basemapStyle, setBasemapStyle] = useState<BasemapStyleId>('dark');
   const [usingOsmFallback, setUsingOsmFallback] = useState(false);
+  const [hoverCoords, setHoverCoords] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Build real chronological track playback frames (historical -> current -> forecast)
+  const trackFrames = useMemo(
+    () => buildCyclonePlaybackFrames(activeSystem),
+    [activeSystem]
+  );
+
+  const currentFixIdx = useMemo(() => {
+    const idx = trackFrames.findIndex((f) => f.dataType === 'CURRENT');
+    return idx >= 0 ? idx : 0;
+  }, [trackFrames]);
+
+  const playback = useFramePlayback({
+    frames: trackFrames,
+    baseIntervalMs: 1100,
+    initialSpeed: 1,
+    initialLoop: true,
+    initialPosition: currentFixIdx,
+    resetKey: activeSystem?.id ?? 'calm-basin',
+    sortByTime: false, // already strictly sorted by buildCyclonePlaybackFrames
+  });
+
+  // Mount Leaflet map once
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
@@ -74,8 +102,9 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
     const map = L.map(mapContainerRef.current, {
       center: defaultCenter,
       zoom: defaultZoom,
-      minZoom: 4,
+      minZoom: 2,
       maxZoom: 12,
+      worldCopyJump: true,
       zoomControl: false,
       attributionControl: true,
     });
@@ -83,45 +112,17 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
     const basemapGroup = L.layerGroup().addTo(map);
     basemapGroupRef.current = basemapGroup;
 
-    let errorCount = 0;
-    let switchedToFallback = false;
-
-    const mountOsmFallback = () => {
-      if (switchedToFallback) return;
-      switchedToFallback = true;
-      setUsingOsmFallback(true);
-      basemapGroup.clearLayers();
-      L.tileLayer(FALLBACK_OSM_BASEMAP.baseUrl, {
-        maxZoom: FALLBACK_OSM_BASEMAP.maxZoom,
-        attribution: FALLBACK_OSM_BASEMAP.attribution,
-        className: FALLBACK_OSM_BASEMAP.className,
-      }).addTo(basemapGroup);
-    };
-
-    const primaryLayer = L.tileLayer(PRIMARY_OBSERVATORY_BASEMAP.baseUrl, {
-      maxZoom: PRIMARY_OBSERVATORY_BASEMAP.maxZoom,
-      attribution: PRIMARY_OBSERVATORY_BASEMAP.attribution,
-      className: PRIMARY_OBSERVATORY_BASEMAP.className,
-    });
-
-    primaryLayer.on('tileerror', () => {
-      errorCount += 1;
-      if (errorCount >= 3) {
-        mountOsmFallback();
-      }
-    });
-
-    primaryLayer.addTo(basemapGroup);
-
-    if (PRIMARY_OBSERVATORY_BASEMAP.referenceUrl) {
-      L.tileLayer(PRIMARY_OBSERVATORY_BASEMAP.referenceUrl, {
-        maxZoom: PRIMARY_OBSERVATORY_BASEMAP.maxZoom,
-        opacity: 0.72,
-      }).addTo(basemapGroup);
-    }
-
     const layersGroup = L.layerGroup().addTo(map);
     layersGroupRef.current = layersGroup;
+
+    const playbackGroup = L.layerGroup().addTo(map);
+    playbackGroupRef.current = playbackGroup;
+
+    map.on('mousemove', (ev: L.LeafletMouseEvent) => {
+      setHoverCoords({ lat: ev.latlng.lat, lng: ev.latlng.lng });
+    });
+    map.on('mouseout', () => setHoverCoords(null));
+
     mapInstanceRef.current = map;
 
     const container = mapContainerRef.current;
@@ -140,10 +141,44 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       map.remove();
       mapInstanceRef.current = null;
       layersGroupRef.current = null;
+      playbackGroupRef.current = null;
       basemapGroupRef.current = null;
     };
   }, []);
 
+  // Re-sync basemap tiles whenever user switches style or OSM failover activates
+  useEffect(() => {
+    const basemapGroup = basemapGroupRef.current;
+    if (!basemapGroup) return;
+
+    basemapGroup.clearLayers();
+    const spec = resolveBasemapSpec(basemapStyle, usingOsmFallback);
+    let errorCount = 0;
+
+    const tileLayer = L.tileLayer(spec.baseUrl, {
+      maxZoom: spec.maxZoom,
+      attribution: spec.attribution,
+      className: spec.className,
+    });
+
+    tileLayer.on('tileerror', () => {
+      errorCount += 1;
+      if (errorCount >= 3 && !usingOsmFallback) {
+        setUsingOsmFallback(true);
+      }
+    });
+
+    tileLayer.addTo(basemapGroup);
+
+    if (spec.referenceUrl) {
+      L.tileLayer(spec.referenceUrl, {
+        maxZoom: spec.maxZoom,
+        opacity: 0.78,
+      }).addTo(basemapGroup);
+    }
+  }, [basemapStyle, usingOsmFallback]);
+
+  // Render DWR network + static system track geometry
   useEffect(() => {
     const map = mapInstanceRef.current;
     const layers = layersGroupRef.current;
@@ -316,6 +351,68 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
     }
   }, [activeSystem, showRadarRings, showForecast, showHistory]);
 
+  // Render animated/scrubbed track position marker & traversed path progression
+  useEffect(() => {
+    const playbackGroup = playbackGroupRef.current;
+    if (!playbackGroup) return;
+    playbackGroup.clearLayers();
+
+    if (trackFrames.length < 2 || !playback.currentFrame) return;
+
+    const traversedCoords: [number, number][] = trackFrames
+      .slice(0, playback.currentIndex + 1)
+      .map((f) => [f.lat, f.lng]);
+
+    if (traversedCoords.length >= 2) {
+      L.polyline(traversedCoords, {
+        color: '#F59E0B',
+        weight: 4,
+        opacity: 0.92,
+      }).addTo(playbackGroup);
+    }
+
+    const activeFrame = playback.currentFrame;
+    const badgeColor =
+      activeFrame.dataType === 'CURRENT'
+        ? '#10B981'
+        : activeFrame.dataType === 'FORECAST'
+        ? '#38BDF8'
+        : '#F59E0B';
+
+    const playheadIcon = L.divIcon({
+      className: 'cyclone-playhead-marker',
+      html: `
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+          <div style="width:22px;height:22px;border-radius:9999px;background:rgba(11,12,13,0.92);border:3px solid ${badgeColor};box-shadow:0 0 0 4px rgba(245,158,11,0.28);display:flex;align-items:center;justify-content:center;">
+            <div style="width:7px;height:7px;border-radius:9999px;background:${badgeColor};"></div>
+          </div>
+          <div style="position:absolute;top:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:2px 7px;border-radius:5px;background:rgba(11,12,13,0.94);border:1px solid ${badgeColor};color:#F0EEE7;font-family:monospace;font-size:10px;font-weight:700;pointer-events:none;">
+            ${activeFrame.dataType} · ${activeFrame.displayTime}
+          </div>
+        </div>
+      `,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    });
+
+    const playheadMarker = L.marker([activeFrame.lat, activeFrame.lng], {
+      icon: playheadIcon,
+      zIndexOffset: 900,
+    });
+
+    playheadMarker.bindPopup(`
+      <div style="font-family:monospace;font-size:12px;color:#111314;min-width:210px;">
+        <strong style="color:#B45309;">${activeFrame.dataType} TRACK FIX</strong><br/>
+        <span>${activeFrame.displayTime}</span><br/>
+        <hr style="margin:4px 0;border:0;border-top:1px solid #CBD5E1;"/>
+        <span>Class: <strong>${activeFrame.category}</strong></span><br/>
+        <span>Coords: <strong>${formatCoordinatePair(activeFrame.lat, activeFrame.lng, 2)}</strong></span><br/>
+        <span>Wind: <strong>${activeFrame.maxSustainedWindLabel}</strong> · Pressure: <strong>${activeFrame.pressureLabel}</strong></span>
+      </div>
+    `);
+    playheadMarker.addTo(playbackGroup);
+  }, [trackFrames, playback.currentIndex, playback.currentFrame]);
+
   const handleZoomIn = () => mapInstanceRef.current?.zoomIn();
   const handleZoomOut = () => mapInstanceRef.current?.zoomOut();
   const handleResetView = () => {
@@ -326,67 +423,79 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
     }
   };
 
+  const activeBasemap = resolveBasemapSpec(basemapStyle, usingOsmFallback);
+
   return (
     <div
-      className={`w-full m-panel overflow-hidden flex flex-col relative ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[500px] sm:h-[580px]'
+      className={`w-full m-panel overflow-hidden flex flex-col relative min-w-0 ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 rounded-none h-[100dvh]'
+          : 'min-h-[420px] sm:min-h-[540px] lg:min-h-[620px]'
       }`}
     >
       {/* Top Map Control Bar */}
       <div className="bg-[var(--m-surface-inset)] border-b border-[var(--m-border)] px-4 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex items-center justify-center text-[var(--m-accent)] shrink-0">
             <Compass className="w-4 h-4" />
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--m-text-primary)] tracking-tight">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-[var(--m-text-primary)] tracking-tight truncate">
               Synoptic Basin &amp; Doppler Surveillance Map
             </h2>
-            <p className="text-[11px] font-mono text-[var(--m-text-muted)]">
-              10 Coastal Marine DWRs + 1 Inland Eastern Perimeter (Agartala) ·{' '}
-              {usingOsmFallback ? 'OSM Dark Fallback' : 'Esri Dark Gray Basemap'}
+            <p className="text-[11px] font-mono text-[var(--m-text-muted)] truncate">
+              10 Coastal Marine DWRs + 1 Inland Eastern Perimeter · {activeBasemap.name}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap text-xs font-mono">
+          <BasemapStyleSwitcher
+            value={basemapStyle}
+            onChange={(style) => {
+              setUsingOsmFallback(false);
+              setBasemapStyle(style);
+            }}
+            compact
+          />
+
           <button
             type="button"
             onClick={() => setShowRadarRings((prev) => !prev)}
-            className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
+            className={`px-2.5 py-1.5 min-h-[36px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring whitespace-nowrap ${
               showRadarRings
                 ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
                 : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <Radio className="w-3.5 h-3.5" />
-            <span>DWR Coverage Rings</span>
+            <span>DWR Rings</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowForecast((prev) => !prev)}
-            className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
+            className={`px-2.5 py-1.5 min-h-[36px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring whitespace-nowrap ${
               showForecast
                 ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
                 : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Forecast Path</span>
+            <span>Forecast</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowHistory((prev) => !prev)}
-            className={`px-3 py-1.5 min-h-[38px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring ${
+            className={`px-2.5 py-1.5 min-h-[36px] rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer m-focus-ring whitespace-nowrap ${
               showHistory
                 ? 'bg-[var(--m-accent-soft)] border-[var(--m-accent)]/45 text-[var(--m-accent)]'
                 : 'bg-[var(--m-surface-inset)] border-[var(--m-border)] text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
             }`}
           >
             <History className="w-3.5 h-3.5" />
-            <span>Track History</span>
+            <span>History</span>
           </button>
 
           <button
@@ -402,11 +511,22 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
       </div>
 
       {/* Leaflet Map Canvas */}
-      <div className="relative flex-1 w-full bg-[#0D1012]">
+      <div
+        className={`relative flex-1 w-full bg-[#0D1012] ${
+          isFullscreen ? 'min-h-0' : 'h-[clamp(290px,48dvh,540px)] min-h-[290px]'
+        }`}
+      >
         <div ref={mapContainerRef} className="w-full h-full" />
 
+        {/* Cursor Geodetic Coordinate Readout */}
+        {hoverCoords && (
+          <div className="hidden sm:flex absolute top-3 left-3 z-[400] px-2.5 py-1 rounded-md bg-[var(--m-surface-inset)]/90 backdrop-blur-md border border-[var(--m-border)] text-[10px] font-mono tabular-nums text-[var(--m-text-secondary)] pointer-events-none">
+            {formatCoordinatePair(hoverCoords.lat, hoverCoords.lng, 2)}
+          </div>
+        )}
+
         {/* Floating Zoom / Reset Controls */}
-        <div className="absolute top-4 right-4 z-[400] flex flex-col gap-1.5">
+        <div className="absolute top-3 right-3 z-[400] flex flex-col gap-1.5">
           <button
             type="button"
             onClick={handleZoomIn}
@@ -437,7 +557,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
         </div>
 
         {/* Bottom Left Basin Status & Coverage vs Reflectivity Legend */}
-        <div className="absolute bottom-7 left-3 z-[400] bg-[var(--m-surface-1)]/95 border border-[var(--m-border)] rounded-xl px-3.5 py-2.5 flex flex-col gap-2 max-w-[360px] shadow-lg">
+        <div className="absolute bottom-4 left-3 z-[400] bg-[var(--m-surface-1)]/95 backdrop-blur-md border border-[var(--m-border)] rounded-xl px-3.5 py-2.5 flex flex-col gap-2 max-w-[340px] shadow-lg">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[var(--m-ok)] shrink-0" />
             <div className="flex flex-col min-w-0">
@@ -448,7 +568,7 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
               </span>
               <span className="text-[10px] text-[var(--m-text-muted)] font-mono truncate">
                 {activeSystem
-                  ? `Official IMD / SACHET Fix · ${activeSystem.forecastTrack.length > 0 ? `${activeSystem.forecastTrack.length} forecast points` : 'No forecast track published in feed'}`
+                  ? `Official IMD / SACHET Fix · ${trackFrames.length} chronological track fix${trackFrames.length === 1 ? '' : 'es'}`
                   : 'Verified IMD DWR Station Network Reference'}
               </span>
             </div>
@@ -457,9 +577,9 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
           <div className="pt-1.5 border-t border-[var(--m-border)] flex flex-col gap-1 text-[10px] font-mono text-[var(--m-text-secondary)]">
             <div className="flex items-center gap-2">
               <span className="w-3.5 h-3.5 rounded-full border border-dashed border-[#A7C5C5] inline-block shrink-0" />
-              <span>250 km DWR Coverage Geometry (Reference only — NOT live radar reflectivity)</span>
+              <span>250 km DWR Coverage Geometry (Reference only — NOT live echoes)</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-[#A7C5C5]" />
                 Coastal Marine DWR (10)
@@ -471,6 +591,37 @@ export const CycloneTrackMap: React.FC<CycloneTrackMapProps> = ({ activeSystem }
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Track Time-Lapse Loop Controller (strictly real RSMC/IMD fixes; never fabricated) */}
+      <div className="bg-[var(--m-surface-1)] border-t border-[var(--m-border)] px-3 py-2.5">
+        <MapPlaybackControls
+          playback={playback}
+          currentTimestampLabel={
+            playback.currentFrame
+              ? playback.currentFrame.displayTime
+              : 'No active track fixes'
+          }
+          firstTimestampLabel={trackFrames[0]?.displayTime}
+          lastTimestampLabel={trackFrames[trackFrames.length - 1]?.displayTime}
+          frameKindBadge={playback.currentFrame?.dataType}
+          frameDetail={
+            playback.currentFrame
+              ? `${playback.currentFrame.category} · ${formatCoordinatePair(
+                  playback.currentFrame.lat,
+                  playback.currentFrame.lng,
+                  1
+                )} · Wind ${playback.currentFrame.maxSustainedWindLabel}`
+              : undefined
+          }
+          sourceLabel="RSMC New Delhi / IMD"
+          emptyMessage={
+            activeSystem
+              ? 'Selected bulletin contains fewer than 2 geolocated track fixes — track playback unavailable.'
+              : 'Basin calm: no active tropical cyclone track fixes published in current IMD / SACHET feed.'
+          }
+          compact
+        />
       </div>
 
       {/* Footer Notice */}

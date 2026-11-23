@@ -1,11 +1,13 @@
 // ====================================================================
-// MAUSAM Interactive Atmospheric Layer Dock & Accessible Station Directory
+// MAUSAM Interactive Atmospheric Layer Dock & Global Station Directory
 // Collapsible desktop rail (and <1024px drawer) with domain-grouped layers,
-// active scientific scale legend, source status badges, and an accessible
-// 36-station keyboard selector mirroring every 3D marker on the relief map.
+// truthful GLOBAL vs INDIA coverage indicators, active scientific scale
+// legend, quick continent jumps, and accessible Global Hubs (42) +
+// India State Stations (36) selector.
 // ====================================================================
 
 import React, { useMemo, useState } from 'react';
+import type { LocationRecord } from '../../types';
 import {
   InspectedSpatialFeature,
   LayerCategory,
@@ -13,6 +15,11 @@ import {
   SpatialLayerId,
   useExperience,
 } from '../../context/ExperienceContext';
+import {
+  GLOBAL_MAJOR_ANCHORS,
+  type GlobalAnchorCity,
+  type WorldRegionKey,
+} from '../../config/globalMapConfig';
 import { getMergedStatePoints } from '../scene/geoMath';
 import {
   AlertTriangle,
@@ -23,9 +30,12 @@ import {
   Cloud,
   CloudRain,
   Gauge,
+  Globe2,
   Layers,
   MapPin,
   Orbit,
+  Pause,
+  Play,
   Radio,
   Sprout,
   Thermometer,
@@ -51,6 +61,17 @@ const LAYER_DATA_MODE: Record<SpatialLayerId, 'MODEL' | 'OBS' | 'OFFICIAL'> = {
   cyclones: 'OFFICIAL',
   agromet: 'MODEL',
 };
+
+const QUICK_WORLD_REGIONS: Array<{ key: WorldRegionKey; label: string }> = [
+  { key: 'global', label: 'World' },
+  { key: 'northAmerica', label: 'N. America' },
+  { key: 'southAmerica', label: 'S. America' },
+  { key: 'europe', label: 'Europe' },
+  { key: 'africa', label: 'Africa' },
+  { key: 'asia', label: 'Asia' },
+  { key: 'southAsia', label: 'India' },
+  { key: 'australia', label: 'Oceania' },
+];
 
 function LayerIcon({
   layerId,
@@ -84,21 +105,42 @@ function LayerIcon({
   }
 }
 
-export const LayerDock: React.FC = () => {
+interface LayerDockProps {
+  onSelectLocation?: (loc: LocationRecord) => void;
+}
+
+export const LayerDock: React.FC<LayerDockProps> = ({ onSelectLocation }) => {
   const {
     activeLayer,
     setActiveLayer,
     activeLayerDef,
     setInspectedFeature,
     flyCameraTo,
+    flyToWorldRegion,
+    isWindFlowPaused,
+    setIsWindFlowPaused,
   } = useExperience();
 
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const [activeRailTab, setActiveRailTab] = useState<'layers' | 'stations'>('layers');
+  const [stationScope, setStationScope] = useState<'global' | 'india'>('global');
   const [stationFilter, setStationFilter] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const stationPoints = useMemo(() => getMergedStatePoints(), []);
+
+  const filteredGlobalHubs = useMemo(() => {
+    const q = stationFilter.trim().toLowerCase();
+    if (!q) return GLOBAL_MAJOR_ANCHORS;
+    return GLOBAL_MAJOR_ANCHORS.filter(
+      (hub) =>
+        hub.city.toLowerCase().includes(q) ||
+        hub.country.toLowerCase().includes(q) ||
+        hub.continent.toLowerCase().includes(q) ||
+        hub.iso2.toLowerCase().includes(q)
+    );
+  }, [stationFilter]);
+
   const filteredStations = useMemo(() => {
     const q = stationFilter.trim().toLowerCase();
     if (!q) return stationPoints;
@@ -109,6 +151,33 @@ export const LayerDock: React.FC = () => {
         pt.code.toLowerCase().includes(q)
     );
   }, [stationPoints, stationFilter]);
+
+  const handleSelectGlobalHub = (hub: GlobalAnchorCity) => {
+    if (onSelectLocation) {
+      onSelectLocation(hub);
+    }
+    setInspectedFeature({
+      kind: 'location',
+      id: hub.id,
+      title: hub.city,
+      subtitle: `${hub.country} · ${hub.continent}`,
+      lat: hub.lat,
+      lng: hub.lng,
+      stateName: hub.country,
+      source: 'Open-Meteo Global Model Grid',
+      metrics: [
+        { label: 'Region', value: hub.continent },
+        { label: 'Country', value: hub.country },
+        {
+          label: 'Coordinates',
+          value: `${Math.abs(hub.lat).toFixed(2)}°${hub.lat >= 0 ? 'N' : 'S'}, ${Math.abs(hub.lng).toFixed(2)}°${hub.lng >= 0 ? 'E' : 'W'}`,
+        },
+        { label: 'ISO', value: hub.iso2 },
+      ],
+    });
+    flyCameraTo(hub.lat, hub.lng, 2.95, 5.8);
+    setIsDrawerOpen(false);
+  };
 
   const handleInspectStation = (pt: (typeof stationPoints)[number]) => {
     const feature: InspectedSpatialFeature = {
@@ -131,7 +200,7 @@ export const LayerDock: React.FC = () => {
       ],
     };
     setInspectedFeature(feature);
-    flyCameraTo(pt.lat, pt.lng, 2.95);
+    flyCameraTo(pt.lat, pt.lng, 2.95, 6.2);
     setIsDrawerOpen(false);
   };
 
@@ -139,7 +208,7 @@ export const LayerDock: React.FC = () => {
     <>
       {/* Desktop (>=1024px): Collapsible Left Observatory Rail (clears dynamic header height) */}
       <aside
-        aria-label="Atmospheric Layers and Stations"
+        aria-label="Atmospheric Layers and Global Stations"
         className="explore-layer-rail hidden lg:flex fixed left-3 top-[68px] z-30 flex-col gap-2 pointer-events-none"
       >
         {isDesktopCollapsed ? (
@@ -154,8 +223,8 @@ export const LayerDock: React.FC = () => {
             <ChevronRight className="w-3.5 h-3.5 text-[var(--m-text-muted)]" />
           </button>
         ) : (
-          <div className="pointer-events-auto flex flex-col gap-2 w-[252px]">
-            {/* Rail Header: Layers / Stations Tabs + Collapse */}
+          <div className="pointer-events-auto flex flex-col gap-2 w-[clamp(228px,18.5vw,252px)] max-w-[calc(100vw-24px)]">
+            {/* Rail Header: Layers / Global Hubs Tabs + Collapse */}
             <div className="spatial-hud-surface rounded-[11px] p-1.5 flex items-center gap-1">
               <button
                 type="button"
@@ -180,8 +249,8 @@ export const LayerDock: React.FC = () => {
                     : 'text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)]'
                 }`}
               >
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Stations ({stationPoints.length})</span>
+                <Globe2 className="w-3.5 h-3.5" />
+                <span>World ({GLOBAL_MAJOR_ANCHORS.length})</span>
               </button>
               <button
                 type="button"
@@ -206,6 +275,7 @@ export const LayerDock: React.FC = () => {
                         {items.map((layer) => {
                           const isActive = layer.id === activeLayer;
                           const dataTag = LAYER_DATA_MODE[layer.id];
+                          const isRegional = layer.coverage === 'regional-india';
                           return (
                             <button
                               key={layer.id}
@@ -223,7 +293,15 @@ export const LayerDock: React.FC = () => {
                                 color={isActive ? layer.accentHex : 'var(--m-text-muted)'}
                               />
                               <span className="truncate">{layer.shortLabel}</span>
-                              <span className="ml-auto flex items-center gap-1.5 shrink-0">
+                              <span className="ml-auto flex items-center gap-1 shrink-0">
+                                {isRegional && (
+                                  <span
+                                    title="Official India / North Indian Ocean Regional Network"
+                                    className="text-[8px] font-mono uppercase tracking-wider px-1 py-0.5 rounded bg-[var(--m-accent-soft)] text-[var(--m-accent)] border border-[var(--m-accent)]/35"
+                                  >
+                                    IN
+                                  </span>
+                                )}
                                 <span className="text-[9px] font-mono uppercase tracking-wider px-1 py-0.5 rounded bg-[var(--m-surface-inset)] text-[var(--m-text-muted)] border border-[var(--m-border)]">
                                   {dataTag}
                                 </span>
@@ -258,74 +336,174 @@ export const LayerDock: React.FC = () => {
                     <span>{activeLayerDef.legendMid}</span>
                     <span>{activeLayerDef.legendMax}</span>
                   </div>
-                  <div className="text-[10px] text-[var(--m-text-muted)] leading-snug pt-1 border-t border-[var(--m-border)]">
-                    Source: {activeLayerDef.source}
+                  <div className="flex items-center justify-between gap-1.5 text-[10px] text-[var(--m-text-muted)] leading-snug pt-1 border-t border-[var(--m-border)]">
+                    <span className="truncate">Source: {activeLayerDef.source}</span>
+                    <span className="font-mono text-[9px] uppercase px-1 py-0.5 rounded bg-[var(--m-surface-inset)] border border-[var(--m-border)] shrink-0">
+                      {activeLayerDef.coverage === 'global' ? 'GLOBAL' : 'INDIA'}
+                    </span>
                   </div>
+                  {activeLayer === 'wind' && (
+                    <button
+                      type="button"
+                      onClick={() => setIsWindFlowPaused((p) => !p)}
+                      aria-pressed={isWindFlowPaused}
+                      className="mt-1 w-full min-h-[32px] px-2.5 py-1 rounded-lg bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] text-[11px] font-mono font-semibold text-[var(--m-text-primary)] flex items-center justify-center gap-1.5 cursor-pointer m-focus-ring"
+                    >
+                      {isWindFlowPaused ? (
+                        <>
+                          <Play className="w-3 h-3 text-[var(--m-accent)]" />
+                          <span>Resume Wind Flow</span>
+                        </>
+                      ) : (
+                        <>
+                          <Pause className="w-3 h-3 text-[var(--m-accent)]" />
+                          <span>Pause Wind Flow</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
-              /* Accessible 36-Station List Equivalent for All 3D Observatory Beacons */
+              /* Accessible Global Observatory Hubs & Region Directory */
               <div className="spatial-hud-surface rounded-[11px] p-2 flex flex-col gap-2">
+                {/* Quick World Continent / Region Jump Buttons */}
+                <div className="grid grid-cols-4 gap-1">
+                  {QUICK_WORLD_REGIONS.map((reg) => (
+                    <button
+                      key={reg.key}
+                      type="button"
+                      onClick={() => flyToWorldRegion(reg.key)}
+                      className="px-1.5 min-h-[26px] rounded-md bg-[var(--m-surface-inset)] hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-accent)]/50 text-[10px] font-mono text-[var(--m-text-secondary)] hover:text-[var(--m-text-primary)] truncate cursor-pointer m-focus-ring"
+                    >
+                      {reg.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scope Toggle: Global Hubs (42) vs India Stations (36) */}
+                <div className="grid grid-cols-2 gap-1 bg-[var(--m-surface-inset)] p-0.5 rounded-lg border border-[var(--m-border)]">
+                  <button
+                    type="button"
+                    onClick={() => setStationScope('global')}
+                    aria-pressed={stationScope === 'global'}
+                    className={`min-h-[28px] rounded-md text-[10px] font-mono font-semibold cursor-pointer ${
+                      stationScope === 'global'
+                        ? 'bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40'
+                        : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
+                    }`}
+                  >
+                    Global ({GLOBAL_MAJOR_ANCHORS.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStationScope('india')}
+                    aria-pressed={stationScope === 'india'}
+                    className={`min-h-[28px] rounded-md text-[10px] font-mono font-semibold cursor-pointer ${
+                      stationScope === 'india'
+                        ? 'bg-[var(--m-accent-soft)] text-[var(--m-text-primary)] border border-[var(--m-accent)]/40'
+                        : 'text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)]'
+                    }`}
+                  >
+                    India ({stationPoints.length})
+                  </button>
+                </div>
+
                 <input
                   type="text"
                   value={stationFilter}
                   onChange={(e) => setStationFilter(e.target.value)}
-                  placeholder="Filter state or station…"
+                  placeholder={
+                    stationScope === 'global'
+                      ? 'Filter city, country, continent…'
+                      : 'Filter Indian state or station…'
+                  }
                   aria-label="Filter observatory stations"
                   className="w-full bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg px-2.5 min-h-[34px] text-xs text-[var(--m-text-primary)] placeholder:text-[var(--m-text-muted)] focus:outline-none focus:border-[var(--m-accent)]"
                 />
-                <div
-                  role="list"
-                  aria-label="Indian State and UT Weather Beacons"
-                  className="explore-layer-stations-scroll scrollbar-thin flex flex-col gap-1"
-                >
-                  {filteredStations.map((pt) => {
-                    const hasWarn = pt.state.warningLevel && pt.state.warningLevel !== 'normal';
-                    return (
+
+                {stationScope === 'global' ? (
+                  <div
+                    role="list"
+                    aria-label="Global Weather Observatory Hubs"
+                    className="explore-layer-stations-scroll scrollbar-thin flex flex-col gap-1"
+                  >
+                    {filteredGlobalHubs.map((hub) => (
                       <button
-                        key={pt.state.id}
+                        key={hub.id}
                         type="button"
                         role="listitem"
-                        onClick={() => handleInspectStation(pt)}
+                        onClick={() => handleSelectGlobalHub(hub)}
                         className="w-full text-left px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-inset)]/60 hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] flex items-center justify-between gap-2 transition-colors cursor-pointer m-focus-ring"
                       >
                         <div className="min-w-0">
                           <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
-                            {pt.state.name}
+                            {hub.city}
                           </div>
                           <div className="text-[10px] text-[var(--m-text-muted)] truncate">
-                            {pt.state.city || pt.code} · {pt.state.windSpeed} km/h {pt.state.windDir}
+                            {hub.country} · {hub.continent}
                           </div>
                         </div>
-                        <div className="text-right shrink-0 flex flex-col items-end">
-                          <span className="text-xs font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
-                            {pt.state.temperature}°C
-                          </span>
-                          {hasWarn && (
-                            <span
-                              className={`text-[9px] font-mono uppercase ${
-                                pt.state.warningLevel === 'severe'
-                                  ? 'text-[var(--m-danger)]'
-                                  : pt.state.warningLevel === 'alert'
-                                  ? 'text-[var(--m-alert)]'
-                                  : 'text-[var(--m-watch)]'
-                              }`}
-                            >
-                              {pt.state.warningLevel}
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-[10px] font-mono text-[var(--m-accent)] shrink-0">
+                          {hub.iso2}
+                        </span>
                       </button>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    role="list"
+                    aria-label="Indian State and UT Weather Beacons"
+                    className="explore-layer-stations-scroll scrollbar-thin flex flex-col gap-1"
+                  >
+                    {filteredStations.map((pt) => {
+                      const hasWarn = pt.state.warningLevel && pt.state.warningLevel !== 'normal';
+                      return (
+                        <button
+                          key={pt.state.id}
+                          type="button"
+                          role="listitem"
+                          onClick={() => handleInspectStation(pt)}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg bg-[var(--m-surface-inset)]/60 hover:bg-[var(--m-surface-2)] border border-[var(--m-border)] hover:border-[var(--m-border-strong)] flex items-center justify-between gap-2 transition-colors cursor-pointer m-focus-ring"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-[var(--m-text-primary)] truncate">
+                              {pt.state.name}
+                            </div>
+                            <div className="text-[10px] text-[var(--m-text-muted)] truncate">
+                              {pt.state.city || pt.code} · {pt.state.windSpeed} km/h {pt.state.windDir}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 flex flex-col items-end">
+                            <span className="text-xs font-mono font-semibold text-[var(--m-text-primary)] tabular-nums">
+                              {pt.state.temperature}°C
+                            </span>
+                            {hasWarn && (
+                              <span
+                                className={`text-[9px] font-mono uppercase ${
+                                  pt.state.warningLevel === 'severe'
+                                    ? 'text-[var(--m-danger)]'
+                                    : pt.state.warningLevel === 'alert'
+                                    ? 'text-[var(--m-alert)]'
+                                    : 'text-[var(--m-watch)]'
+                                }`}
+                              >
+                                {pt.state.warningLevel}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
       </aside>
 
-      {/* Tablet & Mobile (<1024px): Compact Layer & Station Drawer (anchored below dynamic header) */}
+      {/* Tablet & Mobile (<1024px): Compact Layer & Global Hub Drawer (anchored below dynamic header) */}
       <div className="explore-layer-mobile lg:hidden fixed left-2.5 right-2.5 z-30 pointer-events-none flex flex-col items-start gap-1.5 max-w-[360px]">
         <button
           type="button"
@@ -368,7 +546,7 @@ export const LayerDock: React.FC = () => {
                     : 'text-[var(--m-text-secondary)]'
                 }`}
               >
-                Stations ({stationPoints.length})
+                World ({GLOBAL_MAJOR_ANCHORS.length})
               </button>
             </div>
 
@@ -400,19 +578,34 @@ export const LayerDock: React.FC = () => {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col gap-1 max-h-[42dvh] overflow-y-auto scrollbar-thin">
-                {stationPoints.map((pt) => (
+              <div className="flex flex-col gap-1.5 max-h-[42dvh] overflow-y-auto scrollbar-thin">
+                <div className="grid grid-cols-4 gap-1 pb-1">
+                  {QUICK_WORLD_REGIONS.map((reg) => (
+                    <button
+                      key={reg.key}
+                      type="button"
+                      onClick={() => {
+                        flyToWorldRegion(reg.key);
+                        setIsDrawerOpen(false);
+                      }}
+                      className="px-1.5 min-h-[30px] rounded-md bg-[var(--m-surface-inset)] border border-[var(--m-border)] text-[10px] font-mono text-[var(--m-text-secondary)] truncate cursor-pointer"
+                    >
+                      {reg.label}
+                    </button>
+                  ))}
+                </div>
+                {GLOBAL_MAJOR_ANCHORS.map((hub) => (
                   <button
-                    key={pt.state.id}
+                    key={hub.id}
                     type="button"
-                    onClick={() => handleInspectStation(pt)}
+                    onClick={() => handleSelectGlobalHub(hub)}
                     className="w-full text-left px-2.5 py-2 rounded-lg bg-[var(--m-surface-inset)] border border-[var(--m-border)] flex items-center justify-between gap-2 text-xs cursor-pointer"
                   >
                     <span className="font-semibold text-[var(--m-text-primary)] truncate">
-                      {pt.state.name}
+                      {hub.city}, {hub.country}
                     </span>
-                    <span className="font-mono text-[var(--m-accent)] tabular-nums shrink-0">
-                      {pt.state.temperature}°C
+                    <span className="font-mono text-[var(--m-accent)] text-[10px] shrink-0">
+                      {hub.iso2}
                     </span>
                   </button>
                 ))}

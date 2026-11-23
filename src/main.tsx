@@ -5,6 +5,7 @@ import { LanguageProvider } from './i18n/LanguageContext';
 import { LocationProvider } from './context/LocationContext';
 import { ProviderStoreProvider } from './store/providerStore';
 import { ExperienceMode, ExperienceProvider } from './context/ExperienceContext';
+import { MotionProvider } from './motion';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import './index.css';
 
@@ -114,7 +115,9 @@ if (!rootElement) {
             <LocationProvider>
               <ProviderStoreProvider>
                 <ExperienceProvider initialMode={initialMode}>
-                  <App />
+                  <MotionProvider>
+                    <App />
+                  </MotionProvider>
                 </ExperienceProvider>
               </ProviderStoreProvider>
             </LocationProvider>

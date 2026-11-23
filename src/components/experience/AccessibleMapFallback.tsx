@@ -53,6 +53,8 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
   onSelectFeature,
   onSwitchBackTo3D,
 }) => {
+  const [basemapStyle, setBasemapStyle] = React.useState<'dark' | 'light' | 'satellite' | 'terrain'>('dark');
+  const [radarOpacity, setRadarOpacity] = React.useState<number>(0.78);
   const viewMode = activeLayer === 'radar' || activeLayer === 'rain' ? 'radar' : 'synoptic';
   const activeMetric = mapLayerTo2DMetric(activeLayer);
 
@@ -127,6 +129,11 @@ export const AccessibleMapFallback: React.FC<AccessibleMapFallbackProps> = ({
       <MausamMap
         viewMode={viewMode}
         activeMetric={activeMetric}
+        basemapStyle={basemapStyle}
+        onBasemapStyleChange={setBasemapStyle}
+        radarOpacity={radarOpacity}
+        onRadarOpacityChange={setRadarOpacity}
+        showBasemapSwitcher={true}
         selectedState={selectedLocation.state}
         onSelectState={handleSelectState}
         onSelectStation={(station) => {

@@ -329,7 +329,7 @@ function RadarLayerController({
           opacity: radarOpacity,
           zIndex: 350,
           maxNativeZoom: 7,
-          minZoom: 4,
+          minZoom: 2,
           maxZoom: 12,
           keepBuffer: 4,
           updateWhenZooming: false,
@@ -1195,8 +1195,9 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           ref={mapRef}
           center={[station.lat, station.lng]}
           zoom={selectedRangeKm > 250 ? 7 : 8}
-          minZoom={4}
+          minZoom={2}
           maxZoom={12}
+          worldCopyJump={true}
           scrollWheelZoom={true}
           wheelPxPerZoomLevel={120}
           wheelDebounceTime={40}
@@ -1207,11 +1208,6 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
           zoomAnimationThreshold={4}
           fadeAnimation={true}
           markerZoomAnimation={true}
-          maxBounds={[
-            [0.0, 60.0],
-            [40.0, 105.0],
-          ]}
-          maxBoundsViscosity={0.8}
           style={{ width: '100%', height: '100%' }}
           whenReady={() => {
             setBasemapReady(true);
@@ -1234,7 +1230,7 @@ export const DopplerRadarViewer: React.FC<DopplerRadarViewerProps> = ({
             keepBuffer={4}
             updateWhenZooming={false}
             updateInterval={100}
-            minZoom={4}
+            minZoom={2}
             maxZoom={12}
             eventHandlers={{
               load: () => {

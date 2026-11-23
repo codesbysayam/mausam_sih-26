@@ -1,0 +1,409 @@
+/* ====================================================================
+   MAUSAM — COMPLETE MULTI-DEVICE RESPONSIVE, PROJECTOR & SMART TV SYSTEM
+   Single responsive codebase serving:
+   - XS Small Phones (320px–374px)
+   - SM Standard Phones (375px–479px)
+   - MD Large Phones / Phablets (480px–767px)
+   - TABLET Portrait & Landscape (768px–1023px)
+   - LAPTOP (1024px–1279px)
+   - DESKTOP 1080p (1280px–1535px)
+   - LARGE / 1440p (1536px–1919px)
+   - 4K / Ultrawide / Projector / Smart TV (>= 1920px & >= 2560px)
+   ==================================================================== */
+
+:root {
+  /* Fluid container & rhythm tokens */
+  --page-gutter: clamp(12px, 2.4vw, 48px);
+  --content-max: 1680px;
+  --content-wide-max: 2160px;
+  --section-gap: clamp(16px, 2.2vw, 36px);
+  --card-padding: clamp(12px, 1.5vw, 24px);
+  --touch-target: 44px;
+  --map-height: clamp(290px, 50dvh, 660px);
+  --map-height-compact: clamp(260px, 42dvh, 480px);
+
+  /* Fluid typography scale (never tiny on 4K, never clipped on 320px) */
+  --text-xs: clamp(0.75rem, 0.72rem + 0.16vw, 0.875rem);
+  --text-sm: clamp(0.84rem, 0.8rem + 0.2vw, 0.98rem);
+  --text-base: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+  --text-lg: clamp(1.1rem, 1rem + 0.45vw, 1.45rem);
+  --text-xl: clamp(1.32rem, 1.12rem + 0.9vw, 2.05rem);
+  --text-hero: clamp(1.85rem, 1.45rem + 2.1vw, 3.6rem);
+  --text-metric-hero: clamp(2.15rem, 1.7rem + 2.4vw, 4.25rem);
+}
+
+/* ── Global Defensive Containment (sticky-safe overflow-x: clip) ─────── */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+svg,
+canvas,
+video,
+iframe {
+  max-width: 100%;
+}
+
+/* Prevent flex/grid children from forcing horizontal page overflow */
+.mausam-app main,
+.mausam-app section,
+.mausam-app article {
+  min-width: 0;
+}
+
+/* ── Reusable Multi-Device Layout Primitives ─────────────────────────── */
+.page-container {
+  width: min(calc(100% - (var(--page-gutter) * 2)), var(--content-max));
+  margin-inline: auto;
+}
+
+.page-container-wide {
+  width: min(calc(100% - (var(--page-gutter) * 2)), var(--content-wide-max));
+  margin-inline: auto;
+}
+
+.mausam-page {
+  width: min(calc(100% - (var(--page-gutter) * 2)), var(--content-max));
+  margin-inline: auto;
+}
+
+.responsive-grid {
+  display: grid;
+  gap: var(--section-gap);
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+
+.responsive-card {
+  min-width: 0;
+  padding: var(--card-padding);
+  border-radius: 16px;
+}
+
+.mausam-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  min-width: 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: var(--section-gap);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  }
+}
+
+.dashboard-main,
+.dashboard-sidebar {
+  min-width: 0;
+}
+
+/* ── Map Responsive Containers ───────────────────────────────────────── */
+.map-section {
+  min-width: 0;
+  width: 100%;
+}
+
+.map-layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .map-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  }
+}
+
+@media (min-width: 1920px) {
+  .map-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  }
+}
+
+.map-canvas {
+  width: 100%;
+  min-height: 280px;
+  height: var(--map-height);
+  position: relative;
+  overflow: hidden;
+}
+
+.map-canvas-compact {
+  width: 100%;
+  min-height: 250px;
+  height: var(--map-height-compact);
+  position: relative;
+  overflow: hidden;
+}
+
+.map-panel {
+  min-width: 0;
+}
+
+.map-control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}
+
+/* ── Responsive Table & Horizontal Scroll Wrappers ───────────────────── */
+.responsive-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* ── Breakpoint-Specific Ergonomics ──────────────────────────────────── */
+
+/* XS Small Mobile (320px – 374px) */
+@media (max-width: 374px) {
+  :root {
+    --page-gutter: 10px;
+    --section-gap: 12px;
+    --card-padding: 12px;
+    --map-height: clamp(260px, 46dvh, 360px);
+    --map-height-compact: clamp(240px, 40dvh, 320px);
+  }
+
+  .mausam-page {
+    width: calc(100% - 20px);
+  }
+
+  .editorial-page-header__title {
+    font-size: clamp(1.35rem, 6.2vw, 1.75rem);
+  }
+}
+
+/* Standard & Large Phones (375px – 767px) */
+@media (max-width: 767px) {
+  /* Ensure interactive controls stay touch-comfortable on phones */
+  .touch-target,
+  .mobile-nav-item {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Keep Leaflet zoom controls touch-sized on mobile */
+  .leaflet-touch .leaflet-bar a,
+  .leaflet-bar a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+  }
+}
+
+/* Short-height landscape phones (e.g., 667x375, 844x390) */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --map-height: clamp(220px, 64dvh, 340px);
+    --map-height-compact: clamp(200px, 58dvh, 300px);
+  }
+}
+
+/* Tablet Portrait & Landscape (768px – 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --page-gutter: 20px;
+    --map-height: clamp(360px, 48dvh, 520px);
+  }
+}
+
+/* Laptop (1024px – 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  :root {
+    --page-gutter: 24px;
+    --content-max: 1400px;
+    --map-height: clamp(420px, 56dvh, 580px);
+  }
+}
+
+/* Desktop & 1440p (1440px – 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  :root {
+    --page-gutter: 32px;
+    --content-max: 1620px;
+    --map-height: clamp(480px, 58dvh, 660px);
+  }
+}
+
+/* Full HD / Large / 2K / Ultrawide (1920px – 2559px) */
+@media (min-width: 1920px) {
+  :root {
+    --page-gutter: 44px;
+    --content-max: 1760px;
+    --content-wide-max: 2240px;
+    --map-height: clamp(540px, 62dvh, 760px);
+  }
+}
+
+/* Ultrawide 21:9 & 4K Displays (>= 2560px) */
+@media (min-width: 2560px) {
+  :root {
+    --page-gutter: 56px;
+    --content-max: 1880px;
+    --content-wide-max: 2440px;
+    --map-height: clamp(600px, 64dvh, 880px);
+  }
+
+  /* Prevent prose and dense text columns from stretching across 3440px */
+  .mausam-prose,
+  .editorial-page-header__summary {
+    max-width: 72ch;
+  }
+}
+
+/* ====================================================================
+   PROJECTOR / PRESENTATION MODE (.presentation-mode)
+   High contrast, large readable typography, simplified chrome,
+   distance legibility across 720p, 1080p, 1440p & 4K projectors.
+   Works independently of Browser Fullscreen API.
+   ==================================================================== */
+html.presentation-mode {
+  --page-gutter: clamp(20px, 3vw, 56px);
+  --content-max: 1920px;
+  --content-wide-max: 2400px;
+  --section-gap: clamp(20px, 2.4vw, 40px);
+  --card-padding: clamp(18px, 2vw, 32px);
+  --map-height: clamp(460px, 68dvh, 920px);
+  --touch-target: 52px;
+
+  font-size: clamp(17px, 1.08vw, 22px);
+}
+
+html.presentation-mode body {
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+}
+
+/* Increase border & text contrast for washed-out projector lamps */
+html.presentation-mode[data-theme="dark"],
+html.presentation-mode[data-theme="dark-workspace"] {
+  --m-text-primary: #ffffff;
+  --m-text-secondary: #e2e0d6;
+  --m-text-muted: #b8bab2;
+  --m-border: rgba(240, 238, 231, 0.26);
+  --m-border-strong: rgba(240, 238, 231, 0.44);
+}
+
+html.presentation-mode[data-theme="paper"],
+html.presentation-mode[data-theme="light"] {
+  --m-text-primary: #0b0e0d;
+  --m-text-secondary: #1f2623;
+  --m-text-muted: #3b4440;
+  --m-border: rgba(15, 20, 18, 0.28);
+  --m-border-strong: rgba(15, 20, 18, 0.48);
+}
+
+html.presentation-mode .nonessential-controls,
+html.presentation-mode .secondary-footer-links {
+  display: none !important;
+}
+
+html.presentation-mode .recharts-cartesian-axis-tick-value,
+html.presentation-mode .recharts-legend-item-text {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html.presentation-mode .metric-value__reading--lg {
+  font-size: clamp(2.4rem, 4.2vw, 4.4rem);
+}
+
+html.presentation-mode .metric-value__reading--md {
+  font-size: clamp(1.65rem, 2.6vw, 2.4rem);
+}
+
+/* ====================================================================
+   SMART TV & LARGE-FORMAT REMOTE MODE (.tv-mode)
+   Distance-readable typography, >=56px controls, unmistakable focus
+   rings, zero hover dependency, smooth scroll-margin framing.
+   ==================================================================== */
+html.tv-mode {
+  --page-gutter: clamp(28px, 4vw, 72px);
+  --content-max: 1960px;
+  --content-wide-max: 2440px;
+  --section-gap: clamp(24px, 2.6vw, 44px);
+  --card-padding: clamp(20px, 2.1vw, 32px);
+  --touch-target: 56px;
+  --map-height: clamp(460px, 64dvh, 880px);
+
+  font-size: clamp(18px, 1.15vw, 24px);
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 2560px) {
+  html.tv-mode {
+    --touch-target: 64px;
+    font-size: clamp(20px, 1.15vw, 26px);
+  }
+}
+
+html.tv-mode[data-theme="dark"],
+html.tv-mode[data-theme="dark-workspace"] {
+  --m-text-primary: #ffffff;
+  --m-text-secondary: #e6e4db;
+  --m-text-muted: #bfc2ba;
+  --m-border: rgba(240, 238, 231, 0.28);
+  --m-border-strong: rgba(240, 238, 231, 0.5);
+}
+
+html.tv-mode button,
+html.tv-mode a[href],
+html.tv-mode [role="button"],
+html.tv-mode [role="tab"],
+html.tv-mode .tv-focusable {
+  min-height: 48px;
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 96px;
+}
+
+/* Unmistakable living-room / conference-room D-pad focus highlight */
+html.tv-mode button:focus,
+html.tv-mode button:focus-visible,
+html.tv-mode a:focus,
+html.tv-mode a:focus-visible,
+html.tv-mode input:focus,
+html.tv-mode select:focus,
+html.tv-mode [tabindex]:focus,
+html.tv-mode .tv-focusable:focus,
+html.tv-mode .tv-focusable:focus-visible {
+  outline: 3px solid var(--m-accent, #E6B96B) !important;
+  outline-offset: 3px !important;
+  box-shadow:
+    0 0 0 6px rgba(230, 185, 107, 0.24),
+    0 12px 28px rgba(0, 0, 0, 0.35) !important;
+  position: relative;
+  z-index: 25;
+}
+
+/* TV safe overscan padding for older living-room TV panels */
+html.tv-mode .tv-safe-frame {
+  padding-inline: clamp(16px, 2.5vw, 48px);
+}
+
+/* Reduced motion & coarse pointer safeguards */
+@media (prefers-reduced-motion: reduce) {
+  html.tv-mode {
+    scroll-behavior: auto;
+  }
+}

@@ -142,7 +142,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
     userLocation.selectedLocation.district ||
     userLocation.selectedLocation.name;
   const state = userLocation.selectedLocation.state || '';
-  const country = userLocation.selectedLocation.country || 'India';
+  const country = userLocation.selectedLocation.country || userLocation.selectedLocation.state || 'Global';
   const nearestObservationStation = formatNearestObservation(
     userLocation.selectedLocation,
     userLocation.nearestStationInfo

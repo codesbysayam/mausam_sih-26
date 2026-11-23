@@ -13,6 +13,7 @@ import { Thermometer, TrendingUp, TrendingDown } from 'lucide-react';
 import type { HourlyForecastItem, LocationRecord } from '../../types';
 import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
 import { formatLocationShort } from '../../utils/locationFormatter';
+import { SectionReveal, useMausamMotion } from '../../motion';
 
 interface HourlyTemperatureTrendChartProps {
   hourly: HourlyForecastItem[];
@@ -105,6 +106,7 @@ export const HourlyTemperatureTrendChart: React.FC<HourlyTemperatureTrendChartPr
   source,
   lastUpdated,
 }) => {
+  const { reducedMotion } = useMausamMotion();
   const series = useMemo<ChartPoint[]>(() => {
     return (hourly || []).slice(0, 24).map((item) => {
       const rainProb = isFiniteNumber(item.precipitationProbability)
@@ -172,6 +174,7 @@ export const HourlyTemperatureTrendChart: React.FC<HourlyTemperatureTrendChartPr
   }
 
   return (
+    <SectionReveal>
     <DataPanel id="forecast-hourly-temperature-chart" className="flex flex-col gap-4">
       <SectionHeading
         title="24-Hour Temperature Trend"
@@ -278,7 +281,9 @@ export const HourlyTemperatureTrendChart: React.FC<HourlyTemperatureTrendChartPr
                 dot={{ r: 2.5, fill: 'var(--m-surface-1)', stroke: 'var(--m-accent)', strokeWidth: 1.5 }}
                 activeDot={{ r: 5, fill: 'var(--m-accent)', stroke: 'var(--m-surface-1)', strokeWidth: 2 }}
                 connectNulls
-                isAnimationActive={false}
+                isAnimationActive={!reducedMotion}
+                animationDuration={620}
+                animationEasing="ease-out"
               />
               {stats.hasFeelsLike && (
                 <Line
@@ -291,7 +296,9 @@ export const HourlyTemperatureTrendChart: React.FC<HourlyTemperatureTrendChartPr
                   dot={false}
                   activeDot={{ r: 4, fill: '#78AEB6', stroke: 'var(--m-surface-1)', strokeWidth: 1.5 }}
                   connectNulls
-                  isAnimationActive={false}
+                  isAnimationActive={!reducedMotion}
+                  animationDuration={720}
+                  animationEasing="ease-out"
                 />
               )}
             </LineChart>
@@ -299,6 +306,7 @@ export const HourlyTemperatureTrendChart: React.FC<HourlyTemperatureTrendChartPr
         </div>
       </div>
     </DataPanel>
+    </SectionReveal>
   );
 };
 

@@ -6,6 +6,10 @@
 import { NormalizedAQI, GeoLocation } from '../normalization/types';
 import { AqiNormalizer } from '../normalization/aqiNormalizer';
 import { WeatherNormalizer } from '../normalization/weatherNormalizer';
+import {
+  officialTelemetryGateway,
+  redactSecrets,
+} from '../../src/services/weather/officialProxyGateway';
 
 export class CPCBProvider {
   public static readonly providerName = 'Central Pollution Control Board (CPCB / NAQI)';
@@ -15,6 +19,10 @@ export class CPCBProvider {
 
   public static isConfigured(): boolean {
     return Boolean(process.env.CPCB_API_KEY && process.env.CPCB_API_KEY.trim() !== '');
+  }
+
+  public static isAuthCooldownActive(): boolean {
+    return officialTelemetryGateway.isAuthCooldownActive('CPCB');
   }
 
   public static async checkHealth(): Promise<{
@@ -35,13 +43,14 @@ export class CPCBProvider {
     const start = Date.now();
     try {
       const apiKey = process.env.CPCB_API_KEY!;
-      const res = await fetch(`${this.cpcbBaseUrl}/health?token=${apiKey}`, {
+      const res = await fetch(`${this.cpcbBaseUrl}/health?token=${encodeURIComponent(apiKey)}`, {
         headers: { 'User-Agent': 'MAUSAM-CPCB/3.0' },
         signal: AbortSignal.timeout(4000),
       });
       const latencyMs = Date.now() - start;
 
       if (res.status === 401 || res.status === 403) {
+        officialTelemetryGateway.markAuthFailure('CPCB', res.status);
         return {
           configured: true,
           operational: false,
@@ -71,26 +80,31 @@ export class CPCBProvider {
         configured: true,
         operational: false,
         latencyMs: isTimeout ? latencyMs : null,
-        error: isTimeout ? 'TIMEOUT: CPCB gateway timed out after 4000ms' : err.message,
+        error: isTimeout
+          ? 'TIMEOUT: CPCB gateway timed out after 4000ms'
+          : redactSecrets(err.message || 'Connection failed', [process.env.CPCB_API_KEY]),
       };
     }
   }
 
   /**
    * Fetch air quality.
-   * If CPCB_API_KEY is present, attempts direct CPCB CAAQMS endpoint.
-   * If not configured, uses open atmospheric chemistry data from Open-Meteo CAMS,
-   * accurately labelled with source attribution 'Open-Meteo CAMS Air Quality'.
+   * If CPCB_API_KEY is present and not in auth-error cooldown, attempts direct CPCB CAAQMS endpoint.
+   * On unconfigured, HTTP 401/403 authentication error, or upstream error, automatically switches to
+   * public-domain Open-Meteo CAMS Air Quality proxy with truthful source attribution.
    */
   public static async fetchAQI(loc: GeoLocation): Promise<NormalizedAQI | null> {
-    const apiKey = process.env.CPCB_API_KEY;
+    const apiKey = process.env.CPCB_API_KEY?.trim();
 
-    // 1. Direct CPCB CAAQMS if authorized
-    if (apiKey) {
+    // 1. Direct CPCB CAAQMS if authorized and not in auth-error cooldown
+    if (apiKey && !this.isAuthCooldownActive()) {
       try {
-        const cpcbUrl = `${this.cpcbBaseUrl}/aqi_all_India?token=${apiKey}&lat=${loc.latitude}&lon=${loc.longitude}`;
+        const cpcbUrl = `${this.cpcbBaseUrl}/aqi_all_India?token=${encodeURIComponent(apiKey)}&lat=${loc.latitude}&lon=${loc.longitude}`;
         const res = await fetch(cpcbUrl, { signal: AbortSignal.timeout(5000) });
-        if (res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          officialTelemetryGateway.markAuthFailure('CPCB', res.status);
+          console.warn(`[CPCB] Auth rejected (HTTP ${res.status}); switching to Open-Meteo CAMS proxy with cooldown.`);
+        } else if (res.ok) {
           const json = await res.json();
           if (json && typeof json.aqi === 'number') {
             const cat = AqiNormalizer.calculateIndianCategory(json.aqi);
@@ -122,11 +136,11 @@ export class CPCBProvider {
           }
         }
       } catch (err: any) {
-        console.warn('[CPCB] Direct fetch failed:', err.message);
+        console.warn('[CPCB] Direct fetch failed:', redactSecrets(err?.message || 'Error', [apiKey]));
       }
     }
 
-    // 2. Open Atmospheric Chemistry (Open-Meteo CAMS Model)
+    // 2. Public-Domain Open Atmospheric Chemistry (Open-Meteo CAMS Model Proxy)
     try {
       const url = `${this.openMeteoAqUrl}/air-quality?latitude=${loc.latitude}&longitude=${loc.longitude}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust&timezone=auto`;
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });

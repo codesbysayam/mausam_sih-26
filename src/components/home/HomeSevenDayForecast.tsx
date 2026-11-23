@@ -3,6 +3,8 @@ import { DailyForecastItem } from '../../types';
 import { getWeatherVisualConfig } from '../../utils/weatherIcons';
 import { Calendar, ChevronDown, ChevronUp, Droplets, Wind, Sun, ShieldCheck, ArrowRight } from 'lucide-react';
 import { DataPanel, SectionHeading, UnavailableState } from '../ui/ObservatoryPrimitives';
+import { AnimatePresence, motion } from 'motion/react';
+import { SectionReveal, MOTION_DURATION, MOTION_EASE } from '../../motion';
 
 interface HomeSevenDayForecastProps {
   daily: DailyForecastItem[];
@@ -30,6 +32,7 @@ export const HomeSevenDayForecast: React.FC<HomeSevenDayForecastProps> = ({
   };
 
   return (
+    <SectionReveal>
     <DataPanel id="homepage-seven-day-forecast" className="flex flex-col gap-4">
       <SectionHeading
         title="7-Day Synoptic Outlook"
@@ -152,65 +155,76 @@ export const HomeSevenDayForecast: React.FC<HomeSevenDayForecastProps> = ({
                   </div>
                 </button>
 
-                {isExpanded && (
-                  <div className="px-4 pb-4 pt-3 border-t border-[var(--m-border)] bg-[var(--m-surface-inset)]/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs rounded-b-xl">
-                    <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
-                        <Droplets className="w-3 h-3 text-[var(--m-accent)]" />
-                        <span>Precipitation</span>
-                      </div>
-                      <span className="text-sm font-mono font-bold text-[var(--m-accent)] mt-1 tabular-nums">
-                        {rain !== null ? `${rain}%` : '—'}
-                      </span>
-                      <span className="text-[11px] text-[var(--m-text-muted)]">
-                        {precipVol !== null ? `Est. ${precipVol.toFixed(1)} mm` : 'Volume unavailable'}
-                      </span>
-                    </div>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: MOTION_DURATION.FAST, ease: MOTION_EASE.ENTRANCE }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 pt-3 border-t border-[var(--m-border)] bg-[var(--m-surface-inset)]/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs rounded-b-xl">
+                        <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
+                            <Droplets className="w-3 h-3 text-[var(--m-accent)]" />
+                            <span>Precipitation</span>
+                          </div>
+                          <span className="text-sm font-mono font-bold text-[var(--m-accent)] mt-1 tabular-nums">
+                            {rain !== null ? `${rain}%` : '—'}
+                          </span>
+                          <span className="text-[11px] text-[var(--m-text-muted)]">
+                            {precipVol !== null ? `Est. ${precipVol.toFixed(1)} mm` : 'Volume unavailable'}
+                          </span>
+                        </div>
 
-                    <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
-                        <Wind className="w-3 h-3 text-[var(--m-ok)]" />
-                        <span>Wind Profile</span>
-                      </div>
-                      <span className="text-sm font-mono font-bold text-[var(--m-text-primary)] mt-1">
-                        {day.wind || '—'}
-                      </span>
-                      <span className="text-[11px] text-[var(--m-text-muted)]">Surface flow</span>
-                    </div>
+                        <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
+                            <Wind className="w-3 h-3 text-[var(--m-ok)]" />
+                            <span>Wind Profile</span>
+                          </div>
+                          <span className="text-sm font-mono font-bold text-[var(--m-text-primary)] mt-1">
+                            {day.wind || '—'}
+                          </span>
+                          <span className="text-[11px] text-[var(--m-text-muted)]">Surface flow</span>
+                        </div>
 
-                    <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
-                        <Sun className="w-3 h-3 text-[var(--m-watch)]" />
-                        <span>UV &amp; Moisture</span>
-                      </div>
-                      <span className="text-sm font-mono font-bold text-[var(--m-watch)] mt-1 tabular-nums">
-                        {typeof day.uv === 'number' && Number.isFinite(day.uv) ? `UV ${day.uv.toFixed(0)}` : '—'}
-                      </span>
-                      <span className="text-[11px] text-[var(--m-text-muted)] tabular-nums">
-                        {typeof day.humidity === 'number' && Number.isFinite(day.humidity)
-                          ? `RH Avg: ${Math.round(day.humidity)}%`
-                          : 'RH unavailable'}
-                      </span>
-                    </div>
+                        <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
+                            <Sun className="w-3 h-3 text-[var(--m-watch)]" />
+                            <span>UV &amp; Moisture</span>
+                          </div>
+                          <span className="text-sm font-mono font-bold text-[var(--m-watch)] mt-1 tabular-nums">
+                            {typeof day.uv === 'number' && Number.isFinite(day.uv) ? `UV ${day.uv.toFixed(0)}` : '—'}
+                          </span>
+                          <span className="text-[11px] text-[var(--m-text-muted)] tabular-nums">
+                            {typeof day.humidity === 'number' && Number.isFinite(day.humidity)
+                              ? `RH Avg: ${Math.round(day.humidity)}%`
+                              : 'RH unavailable'}
+                          </span>
+                        </div>
 
-                    <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
-                        <ShieldCheck className="w-3 h-3 text-[var(--m-ok)]" />
-                        <span>Horizon</span>
+                        <div className="p-2.5 rounded-lg bg-[var(--m-surface-1)] border border-[var(--m-border)] flex flex-col">
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--m-text-muted)] uppercase">
+                            <ShieldCheck className="w-3 h-3 text-[var(--m-ok)]" />
+                            <span>Horizon</span>
+                          </div>
+                          <span className="text-sm font-bold text-[var(--m-ok)] mt-1">
+                            {idx <= 2 ? 'Short-Range' : 'Medium-Range'}
+                          </span>
+                          <span className="text-[11px] text-[var(--m-text-muted)]">Ensemble Guidance</span>
+                        </div>
                       </div>
-                      <span className="text-sm font-bold text-[var(--m-ok)] mt-1">
-                        {idx <= 2 ? 'Short-Range' : 'Medium-Range'}
-                      </span>
-                      <span className="text-[11px] text-[var(--m-text-muted)]">Ensemble Guidance</span>
-                    </div>
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
         </div>
       )}
     </DataPanel>
+    </SectionReveal>
   );
 };
 

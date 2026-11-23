@@ -21,10 +21,15 @@ import { ExploreWorkspace } from './components/experience/ExploreWorkspace';
 import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
 import { ClassicWorkspace } from './components/experience/ClassicWorkspace';
 import { AlertCenterModal } from './components/experience/AlertCenterModal';
+import { PresentationModeOverlay } from './components/experience/PresentationModeOverlay';
+import { MobileNavigationDrawer } from './components/layout/MobileNavigationDrawer';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { useAlertAudio } from './hooks/useAlertAudio';
+import { useTvSpatialNavigation } from './hooks/useTvSpatialNavigation';
 import { registerOfflineServiceWorker, refreshCachedMeteorologyCount } from './services/offlineCacheService';
+import { AnimatePresence, motion } from 'motion/react';
+import { PageTransition, ScrollProgress, MOTION_DURATION, MOTION_EASE } from './motion';
 import { Volume2, AlertTriangle, X } from 'lucide-react';
 import './styles/mausam.css';
 
@@ -88,8 +93,26 @@ function getPathForView(view: AppView): string {
 
 export default function App() {
   const { t } = useLanguage();
-  const { mode, setMode, surfaceTheme, flyCameraTo } = useExperience();
+  const {
+    mode,
+    setMode,
+    surfaceTheme,
+    flyCameraTo,
+    setDisplayProfile,
+    isPresentationMode,
+    isTvMode,
+  } = useExperience();
   const weatherRequestIdRef = useRef(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Enable Smart TV & Projector spatial D-pad arrow navigation when active
+  useTvSpatialNavigation(isTvMode || isPresentationMode, () => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    } else if (isPresentationMode) {
+      setDisplayProfile('standard');
+    }
+  });
 
   const [activeTab, setActiveTab] = useState<AppView>(() =>
     getTabFromPathname(window.location.pathname)
@@ -311,7 +334,7 @@ export default function App() {
 
       if (matched) {
         handleSelectLocation(matched);
-        flyCameraTo(matched.lat, matched.lng, 2.95);
+        flyCameraTo(matched.lat, matched.lng, 2.95, 5.8);
         if (mode !== 'explore') {
           navigateToTab('weather');
         }
@@ -340,7 +363,7 @@ export default function App() {
   return (
     <div
       data-theme={activeTheme}
-      className="mausam-app min-h-screen bg-[var(--m-canvas)] text-[var(--m-text-primary)] flex flex-col font-sans w-full overflow-x-hidden transition-colors duration-200"
+      className="mausam-app min-h-[100dvh] bg-[var(--m-canvas)] text-[var(--m-text-primary)] flex flex-col font-sans w-full overflow-x-clip transition-colors duration-200"
     >
       {/* Network Offline / Degraded Banner */}
       <NetworkStatusBanner
@@ -358,15 +381,19 @@ export default function App() {
         selectedLocation={selectedLocation}
         onSelectLocation={(loc) => {
           handleSelectLocation(loc);
-          flyCameraTo(loc.lat, loc.lng, 2.95);
+          flyCameraTo(loc.lat, loc.lng, 2.95, 5.8);
         }}
         onDetectLocation={detectLocation}
         isLocating={isLocating}
         onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
         onOpenAskMausam={() => setIsAskMausamOpen(true)}
+        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         alerts={weatherBundle.alerts || []}
         onSwitchMode={handleSwitchMode}
       />
+
+      {/* Precision Hairline Scroll Progress Bar (Analyze & Classic modes) */}
+      {mode !== 'explore' && <ScrollProgress />}
 
       {/* Active Experience Workspace */}
       <main id="main-content" className="relative flex-1 w-full min-w-0">
@@ -382,79 +409,88 @@ export default function App() {
           </div>
         )}
 
-        {mode === 'explore' && (
-          <ErrorBoundary
-            key="workspace-explore"
-            scope="workspace"
-            fallbackTitle="3D Atmospheric Observatory"
-            onNavigateHome={() => handleSwitchMode('classic')}
-          >
-            <ExploreWorkspace
-              selectedLocation={selectedLocation}
-              weatherBundle={weatherBundle}
-              cyclonePayload={cyclonePayload}
-              onSelectLocation={handleSelectLocation}
-              onOpenAnalyzeTab={(tab) => navigateToTab(tab)}
-              onOpenAskMausam={() => setIsAskMausamOpen(true)}
-            />
-          </ErrorBoundary>
-        )}
+        <AnimatePresence mode="wait" initial={false}>
+          {mode === 'explore' && (
+            <PageTransition key="mode-explore" className="w-full h-full">
+              <ErrorBoundary
+                key="workspace-explore"
+                scope="workspace"
+                fallbackTitle="3D Atmospheric Observatory"
+                onNavigateHome={() => handleSwitchMode('classic')}
+              >
+                <ExploreWorkspace
+                  selectedLocation={selectedLocation}
+                  weatherBundle={weatherBundle}
+                  cyclonePayload={cyclonePayload}
+                  onSelectLocation={handleSelectLocation}
+                  onOpenAnalyzeTab={(tab) => navigateToTab(tab)}
+                  onOpenAskMausam={() => setIsAskMausamOpen(true)}
+                />
+              </ErrorBoundary>
+            </PageTransition>
+          )}
 
-        {mode === 'analyze' && (
-          <ErrorBoundary
-            key="workspace-analyze"
-            scope="workspace"
-            fallbackTitle="Analyze Workstation"
-            onNavigateHome={() => navigateToTab('home')}
-          >
-            <AnalyzeWorkspace
-              activeTab={activeTab}
-              onNavigateTab={(tab) => navigateToTab(tab)}
-              weatherBundle={weatherBundle}
-              selectedLocation={selectedLocation}
-              isLoadingWeather={isLoadingWeather}
-              onRefreshWeather={() => loadWeatherData(selectedLocation, true)}
-              onSelectLocation={handleSelectLocation}
-              onStateSelect={handleStateSelect}
-              onDetectLocation={detectLocation}
-              isLocating={isLocating}
-              locatePhase={locatePhase}
-              locateError={locateError}
-              locationSource={locationSource}
-              accuracyMeters={accuracyMeters}
-              nearestStationInfo={nearestStationInfo}
-              onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
-              onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
-            />
-          </ErrorBoundary>
-        )}
+          {mode === 'analyze' && (
+            <PageTransition key="mode-analyze" className="w-full">
+              <ErrorBoundary
+                key="workspace-analyze"
+                scope="workspace"
+                fallbackTitle="Analyze Workstation"
+                onNavigateHome={() => navigateToTab('home')}
+              >
+                <AnalyzeWorkspace
+                  activeTab={activeTab}
+                  onNavigateTab={(tab) => navigateToTab(tab)}
+                  weatherBundle={weatherBundle}
+                  selectedLocation={selectedLocation}
+                  isLoadingWeather={isLoadingWeather}
+                  onRefreshWeather={() => loadWeatherData(selectedLocation, true)}
+                  onSelectLocation={handleSelectLocation}
+                  onStateSelect={handleStateSelect}
+                  onDetectLocation={detectLocation}
+                  isLocating={isLocating}
+                  locatePhase={locatePhase}
+                  locateError={locateError}
+                  locationSource={locationSource}
+                  accuracyMeters={accuracyMeters}
+                  nearestStationInfo={nearestStationInfo}
+                  onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
+                  onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
+                  onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+                />
+              </ErrorBoundary>
+            </PageTransition>
+          )}
 
-        {mode === 'classic' && (
-          <ErrorBoundary
-            key="workspace-classic"
-            scope="workspace"
-            fallbackTitle="Classic Weather View"
-            onNavigateHome={() => handleSwitchMode('analyze')}
-          >
-            <ClassicWorkspace
-              weatherBundle={weatherBundle}
-              selectedLocation={selectedLocation}
-              onNavigateToAnalyze={(tab) => navigateToTab(tab)}
-              onSelectLocation={handleSelectLocation}
-              onStateSelect={handleStateSelect}
-              onDetectLocation={detectLocation}
-              isLocating={isLocating}
-              locatePhase={locatePhase}
-              locationSource={locationSource}
-              onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
-            />
-          </ErrorBoundary>
-        )}
+          {mode === 'classic' && (
+            <PageTransition key="mode-classic" className="w-full">
+              <ErrorBoundary
+                key="workspace-classic"
+                scope="workspace"
+                fallbackTitle="Classic Weather View"
+                onNavigateHome={() => handleSwitchMode('analyze')}
+              >
+                <ClassicWorkspace
+                  weatherBundle={weatherBundle}
+                  selectedLocation={selectedLocation}
+                  onNavigateToAnalyze={(tab) => navigateToTab(tab)}
+                  onSelectLocation={handleSelectLocation}
+                  onStateSelect={handleStateSelect}
+                  onDetectLocation={detectLocation}
+                  isLocating={isLocating}
+                  locatePhase={locatePhase}
+                  locationSource={locationSource}
+                  onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
+                />
+              </ErrorBoundary>
+            </PageTransition>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Official Institutional Footer (Rendered in Analyze & Classic modes so 3D Explore stage remains uncropped) */}
       {mode !== 'explore' && (
-        <footer className="site-footer w-full text-xs text-[var(--m-text-muted)]">
+        <footer className="site-footer secondary-footer-links w-full text-xs text-[var(--m-text-muted)]">
           <div className="site-footer__inner">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-8 border-b border-[var(--m-border)]">
               <div>
@@ -609,7 +645,7 @@ export default function App() {
         selectedLocation={selectedLocation}
         onSelectLocation={(loc) => {
           handleSelectLocation(loc);
-          flyCameraTo(loc.lat, loc.lng, 2.95);
+          flyCameraTo(loc.lat, loc.lng, 2.95, 5.8);
         }}
         onDetectLocation={detectLocation}
         isLocating={isLocating}
@@ -634,54 +670,60 @@ export default function App() {
       />
 
       {/* Severe Weather Alert Surge Floating Toast */}
-      {globalAlertSurge && (
-        <div
-          id="global-severe-alert-surge-toast"
-          role="alert"
-          aria-live="assertive"
-          className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[var(--m-surface-1)] border border-[var(--m-danger)]/50 text-[var(--m-text-primary)] p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[var(--m-danger)]">
-              <AlertTriangle className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Severe Warning Surge
-              </span>
+      <AnimatePresence>
+        {globalAlertSurge && (
+          <motion.div
+            id="global-severe-alert-surge-toast"
+            role="alert"
+            aria-live="assertive"
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: MOTION_DURATION.STANDARD, ease: MOTION_EASE.ENTRANCE }}
+            className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-50 sm:w-full max-w-sm bg-[var(--m-surface-1)] border border-[var(--m-danger)]/50 text-[var(--m-text-primary)] p-4 rounded-xl shadow-2xl flex flex-col gap-2.5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[var(--m-danger)]">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-xs font-semibold uppercase tracking-wider">
+                  Severe Warning Surge
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGlobalAlertSurge(null)}
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer"
+                aria-label="Dismiss alert toast"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setGlobalAlertSurge(null)}
-              className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-[var(--m-text-muted)] hover:text-[var(--m-text-primary)] hover:bg-[var(--m-surface-2)] cursor-pointer"
-              aria-label="Dismiss alert toast"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
 
-          <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
-            Active severe weather alerts increased from{' '}
-            <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">{globalAlertSurge.oldCount}</span> to{' '}
-            <span className="font-mono font-bold text-[var(--m-danger)] tabular-nums">{globalAlertSurge.newCount}</span> for your sector.
-          </p>
+            <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
+              Active severe weather alerts increased from{' '}
+              <span className="font-mono font-bold text-[var(--m-text-primary)] tabular-nums">{globalAlertSurge.oldCount}</span> to{' '}
+              <span className="font-mono font-bold text-[var(--m-danger)] tabular-nums">{globalAlertSurge.newCount}</span> for your sector.
+            </p>
 
-          <div className="flex items-center justify-between pt-1.5 border-t border-[var(--m-border)]">
-            <div className="flex items-center gap-1.5 text-[11px] text-[var(--m-text-muted)]">
-              <Volume2 className="w-3.5 h-3.5 text-[var(--m-danger)]" />
-              <span>{isAudioAlertEnabled ? 'Emergency alert audio played' : 'Audio alert muted'}</span>
+            <div className="flex items-center justify-between pt-1.5 border-t border-[var(--m-border)]">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--m-text-muted)]">
+                <Volume2 className="w-3.5 h-3.5 text-[var(--m-danger)]" />
+                <span>{isAudioAlertEnabled ? 'Emergency alert audio played' : 'Audio alert muted'}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setGlobalAlertSurge(null);
+                  navigateToTab('warnings');
+                }}
+                className="text-xs font-semibold text-[var(--m-accent)] hover:underline cursor-pointer min-h-[36px] px-1"
+              >
+                View Warnings →
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setGlobalAlertSurge(null);
-                navigateToTab('warnings');
-              }}
-              className="text-xs font-semibold text-[var(--m-accent)] hover:underline cursor-pointer min-h-[36px] px-1"
-            >
-              View Warnings →
-            </button>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Global SACHET / IMD Hazard Alert Center Drawer (works in Analyze, Explore & Classic) */}
       <AlertCenterModal
@@ -700,9 +742,30 @@ export default function App() {
         currentStation={currentStationForAi}
         onSelectLocation={(loc) => {
           handleSelectLocation(loc);
-          flyCameraTo(loc.lat, loc.lng, 2.95);
+          flyCameraTo(loc.lat, loc.lng, 2.95, 5.8);
         }}
         onNavigateTab={(tab) => navigateToTab(tab as AppView)}
+      />
+
+      {/* Accessible Mobile & Tablet Navigation Drawer */}
+      <MobileNavigationDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        activeTab={activeTab}
+        onSelectTab={(tab) => navigateToTab(tab)}
+        activeAlertCount={weatherBundle.alerts?.length || 0}
+        locationLabel={selectedLocation.displayName || selectedLocation.name || 'Global'}
+        onOpenLocationCenter={() => setIsLocationCenterOpen(true)}
+        onOpenAskMausam={() => setIsAskMausamOpen(true)}
+      />
+
+      {/* Dedicated Projector Presentation Board & Smart TV Remote Mode Bar */}
+      <PresentationModeOverlay
+        weatherBundle={weatherBundle}
+        selectedLocation={selectedLocation}
+        activeAlerts={weatherBundle.alerts || []}
+        onRefresh={() => loadWeatherData(selectedLocation, true)}
+        onOpenMapView={() => navigateToTab('radar')}
       />
     </div>
   );
