@@ -32,7 +32,7 @@ export default defineConfig(() => {
           ]
         : []),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         injectRegister: 'auto',
         devOptions: {
           enabled: false,
@@ -45,6 +45,7 @@ export default defineConfig(() => {
           'pwa-maskable-512x512.png',
         ],
         manifest: {
+          id: '/',
           name: 'MAUSAM — Atmospheric Observatory',
           short_name: 'MAUSAM',
           description:
@@ -79,12 +80,18 @@ export default defineConfig(() => {
         },
         workbox: {
           cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ['**/*.{js,mjs,css,html,ico,png,svg,woff2}'],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//, /^\/node_modules\//, /\.mjs$/i],
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/node_modules\//,
+            /^\/assets\//,
+            /^\/js\//,
+            /^\/css\//,
+            /^\/sounds\//,
+            /\.(js|mjs|css|map|json|png|jpe?g|webp|svg|ico|woff2?|pbf|webmanifest)$/i,
+          ],
           runtimeCaching: [
             // CRITICAL: Never cache live telemetry diagnostics, health, or interactive AI/TTS routes
             {

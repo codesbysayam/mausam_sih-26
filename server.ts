@@ -727,8 +727,8 @@ Live assistant narrative is not configured; consult the active IMD / SACHET Warn
       );
     });
 
-    // Never return HTML for missing production chunks or workbox bundles in dev mode
-    app.get(/^\/(assets\/|workbox-).*\.(js|mjs|css|map)$/i, (_req, res) => {
+    // Never return HTML for missing production chunks, workbox bundles, or static scripts in dev mode
+    app.get(/^\/(assets\/|workbox-|js\/).*\.(js|mjs|css|map)$/i, (_req, res) => {
       res.status(404).type('text/plain').send('Not Found');
     });
 
@@ -750,6 +750,7 @@ Live assistant narrative is not configured; consult the active IMD / SACHET Warn
     app.use(express.static(distPath, {
       setHeaders: (res, filePath) => {
         if (
+          filePath.endsWith('index.html') ||
           filePath.endsWith('sw.js') ||
           filePath.endsWith('registerSW.js') ||
           filePath.endsWith('manifest.webmanifest')
@@ -759,9 +760,10 @@ Live assistant narrative is not configured; consult the active IMD / SACHET Warn
       },
     }));
     app.get('*', (req, res) => {
-      if (/\.(js|mjs|css|map|json|png|jpe?g|webp|svg|ico|woff2?|pbf)$/i.test(req.path)) {
+      if (/\.(js|mjs|css|map|json|png|jpe?g|webp|svg|ico|woff2?|pbf|webmanifest)$/i.test(req.path)) {
         return res.status(404).type('text/plain').send('Not Found');
       }
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

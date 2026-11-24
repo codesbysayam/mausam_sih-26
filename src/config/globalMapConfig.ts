@@ -7,6 +7,7 @@
 
 import type { MapOptions, StyleSpecification } from 'maplibre-gl';
 import type { LocationRecord } from '../types';
+import { OPENFREEMAP_GLYPHS_URL } from '../utils/map/fixGlyphFonts';
 
 export type GlobalMapProjection = 'globe' | 'mercator';
 
@@ -21,6 +22,7 @@ export const GLOBAL_MAP_FALLBACK_STYLE = 'https://tiles.openfreemap.org/styles/f
 export const GLOBAL_RASTER_FALLBACK_STYLE: StyleSpecification = {
   version: 8,
   name: 'MAUSAM Global Dark Fallback',
+  glyphs: OPENFREEMAP_GLYPHS_URL,
   sources: {
     'carto-dark-global': {
       type: 'raster',

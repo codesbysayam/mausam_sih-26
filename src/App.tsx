@@ -16,6 +16,7 @@ import { ExperienceMode, useExperience } from './context/ExperienceContext';
 import { LocationCenterModal } from './components/location/LocationCenterModal';
 import { LocationPrivacyModal } from './components/location/LocationPrivacyModal';
 import { NetworkStatusBanner } from './components/common/NetworkStatusBanner';
+import { PWAUpdatePrompt } from './components/common/PWAUpdatePrompt';
 import { FloatingBrandBar } from './components/experience/FloatingBrandBar';
 import { ExploreWorkspace } from './components/experience/ExploreWorkspace';
 import { AnalyzeWorkspace } from './components/experience/AnalyzeWorkspace';
@@ -767,6 +768,9 @@ export default function App() {
         onRefresh={() => loadWeatherData(selectedLocation, true)}
         onOpenMapView={() => navigateToTab('radar')}
       />
+
+      {/* Production PWA Update Prompt (waits for user confirmation before reloading) */}
+      <PWAUpdatePrompt />
     </div>
   );
 }

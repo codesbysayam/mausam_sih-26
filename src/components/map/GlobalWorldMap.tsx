@@ -15,6 +15,7 @@ import {
   setWorkerUrl,
   type MapMouseEvent,
   type GeoJSONSource,
+  type LayerSpecification,
 } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 
@@ -39,6 +40,7 @@ import {
   resetGlobalView,
 } from '../../utils/globalMapCamera';
 import { fixMapGlyphFonts, MAUSAM_MAP_FONT } from '../../utils/map/fixGlyphFonts';
+import { registerMissingStyleImageResolver } from '../../utils/map/missingStyleImageResolver';
 import {
   classifyMapError,
   formatMapErrorMessage,
@@ -403,37 +405,45 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
       });
     }
 
+    // Helper to register any custom MAUSAM layer and immediately normalize text glyphs
+    const addMausamMapLayer = (layer: LayerSpecification) => {
+      if (!map.getLayer(layer.id)) {
+        map.addLayer(layer);
+      }
+      if (layer.type === 'symbol') {
+        fixMapGlyphFonts(map);
+      }
+    };
+
     // Progressive city beacon labels (hidden on full-globe overview, revealed on zoom >= 3.4)
     // Explicitly specifies OpenFreeMap's verified Noto Sans Regular glyph font stack
-    if (!map.getLayer('mausam-anchor-labels')) {
-      map.addLayer({
-        id: 'mausam-anchor-labels',
-        type: 'symbol',
-        source: 'mausam-global-anchors',
-        minzoom: 3.4,
-        layout: {
-          'text-field': ['get', 'city'],
-          'text-font': [...MAUSAM_MAP_FONT],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 3.4, 10, 6, 12],
-          'text-offset': [0, 1.15],
-          'text-anchor': 'top',
-          'text-padding': 8,
-          'text-allow-overlap': false,
-          'text-ignore-placement': false,
-          'text-optional': true,
-        },
-        paint: {
-          'text-color': [
-            'case',
-            ['boolean', ['get', 'isSelected'], false],
-            '#F5D89E',
-            '#D4CFC0',
-          ],
-          'text-halo-color': 'rgba(15, 18, 18, 0.92)',
-          'text-halo-width': 1.3,
-        },
-      });
-    }
+    addMausamMapLayer({
+      id: 'mausam-anchor-labels',
+      type: 'symbol',
+      source: 'mausam-global-anchors',
+      minzoom: 3.4,
+      layout: {
+        'text-field': ['get', 'city'],
+        'text-font': [...MAUSAM_MAP_FONT],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 3.4, 10, 6, 12],
+        'text-offset': [0, 1.15],
+        'text-anchor': 'top',
+        'text-padding': 8,
+        'text-allow-overlap': false,
+        'text-ignore-placement': false,
+        'text-optional': true,
+      },
+      paint: {
+        'text-color': [
+          'case',
+          ['boolean', ['get', 'isSelected'], false],
+          '#F5D89E',
+          '#D4CFC0',
+        ],
+        'text-halo-color': 'rgba(15, 18, 18, 0.92)',
+        'text-halo-width': 1.3,
+      },
+    });
 
     // Guarantee every text-bearing layer uses Noto Sans Regular (eliminates 404 glyph requests)
     fixMapGlyphFonts(map);
@@ -470,6 +480,9 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
     mapRef.current = map;
     styleLoadedOnceRef.current = false;
 
+    // Immediately register local gold-halo fallback sprite resolver for missing 'circle-11' icons
+    const unregisterMissingImageResolver = registerMissingStyleImageResolver(map);
+
     map.addControl(
       new NavigationControl({ visualizePitch: true, showCompass: true }),
       'bottom-right'
@@ -479,8 +492,20 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
       'bottom-left'
     );
 
+    let isNormalizingGlyphs = false;
+    const ensureNormalizedGlyphFonts = () => {
+      if (isNormalizingGlyphs) return;
+      isNormalizingGlyphs = true;
+      try {
+        fixMapGlyphFonts(map);
+      } finally {
+        isNormalizingGlyphs = false;
+      }
+    };
+
     const handleStyleLoad = () => {
       styleLoadedOnceRef.current = true;
+      ensureNormalizedGlyphFonts();
       try {
         if (typeof map.setProjection === 'function') {
           map.setProjection({ type: projectionRef.current });
@@ -489,9 +514,15 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
         // Fallback smoothly if projection switch is unsupported
       }
       attachMausamOverlayLayers(map);
+      ensureNormalizedGlyphFonts();
       setIsStyleLoading(false);
       setMapError(null);
       setStyleRevision((r) => r + 1);
+    };
+
+    const handleStyleData = () => {
+      if (!styleLoadedOnceRef.current) return;
+      ensureNormalizedGlyphFonts();
     };
 
     const handleError = (ev: {
@@ -662,6 +693,7 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
     };
 
     map.on('style.load', handleStyleLoad);
+    map.on('styledata', handleStyleData);
     map.on('error', handleError as unknown as () => void);
     map.on('click', handleClick);
     map.on('mouseenter', 'mausam-anchor-dots', handleMouseEnterAnchor);
@@ -674,8 +706,10 @@ export const GlobalWorldMap: React.FC<GlobalWorldMapProps> = ({
 
     return () => {
       detachViewportSync();
+      unregisterMissingImageResolver();
       resizeObserver.disconnect();
       map.off('style.load', handleStyleLoad);
+      map.off('styledata', handleStyleData);
       map.off('error', handleError as unknown as () => void);
       map.off('click', handleClick);
       map.off('mouseenter', 'mausam-anchor-dots', handleMouseEnterAnchor);
