@@ -435,67 +435,27 @@ The unified API router is mounted under `/api/*`. All atmospheric endpoints prio
 
 ## Environment Configuration
 
-Create a `.env` file in the project root based on `.env.example`. **No API keys are required for basic local operation**—the platform will run using the free baseline providers, grounded local assistant fallback, and in-memory caching.
+**Zero secrets or API keys are required to run MAUSAM.** By default, the platform operates in zero-secret keyless mode via `MAUSAM_RUNTIME_CONFIG`:
 
-### Grounded Local Assistant (default) & Optional Remote Gemini Mode
-
-MAUSAM runs **keyless by default** (`MAUSAM_ASSISTANT_MODE=local`), serving grounded meteorological summaries directly from verified surface, AQI, and warning telemetry without requiring any API key.
-
-To explicitly opt into Google's OpenAI-compatible Gemini chat-completions endpoint, configure these values in the server-side environment:
-
-- `MAUSAM_ASSISTANT_MODE=remote`
-- `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`
-- `MAUSAM_ASSISTANT_API_KEY=YOUR_GEMINI_API_KEY`
-- `MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash`
-
-The exact chat endpoint is:
-
-`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
-
-Authentication is handled through:
-
-`Authorization: Bearer YOUR_GEMINI_API_KEY`
-
-The server requires `MAUSAM_ASSISTANT_MODE=remote` plus both the endpoint and API key before making remote requests. If either credential is missing, the assistant automatically falls back to grounded local mode.
-
-The API key must never be exposed to frontend code.
-
-A configured remote endpoint is not considered operational until an actual assistant request succeeds.
+- **Weather**: Public Open-Meteo Forecast API
+- **Air Quality**: Public Open-Meteo Air Quality API (CAMS / Indian NAQI mapping)
+- **Marine**: Public Open-Meteo Marine API
+- **Radar**: Public RainViewer precipitation mosaic
+- **Warnings**: Public NDMA SACHET and IMD CAP RSS feeds
+- **Assistant**: Grounded local meteorological assistant (no remote AI gateway)
+- **Cache**: In-memory LRU + stale-while-revalidate cache
+- **Database**: Disabled by default with in-memory fallback
+- **Optional Integrations**: Direct IMD, direct CPCB, direct INCOIS, AccuWeather, and Google Weather are disabled by default and reported honestly as optional disabled integrations in diagnostics.
 
 ```env
 # ==========================================================
-# MAUSAM — DEFAULT KEYLESS CONFIGURATION
+# MAUSAM — ZERO-SECRET / KEYLESS DEFAULT CONFIGURATION
 # ==========================================================
-
-# 1. Assistant Mode (defaults to keyless grounded-local mode)
-MAUSAM_ASSISTANT_MODE=local
-# Optional remote Gemini integration (set MAUSAM_ASSISTANT_MODE=remote to opt in)
-MAUSAM_ASSISTANT_API_URL=
-MAUSAM_ASSISTANT_API_KEY=
-MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash
-
-# 2. Shared Cache & Database (Optional)
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-DATABASE_URL=
-
-# 3. Official IMD Gateway (Optional — leave IMD_API_ENABLED=false unless authorized)
-IMD_API_BASE_URL=
-IMD_API_KEY=
-IMD_API_TOKEN=
-IMD_API_ENABLED=false
-
-# 4. Other Optional Providers
-CPCB_API_KEY=
-INCOIS_API_KEY=
-ACCUWEATHER_API_KEY=
-GOOGLE_WEATHER_API_KEY=
-
-# 5. Environment
+# No API keys, tokens, Redis credentials, or database URLs required.
 NODE_ENV=development
 ```
 
-> **Security Notice**: Never commit `.env` files containing live secrets to version control. The repository `.gitignore` automatically excludes all local environment files.
+> **Security Notice**: Never place secrets in client-side `VITE_` environment variables or commit local `.env` files to version control.
 
 ---
 
@@ -516,11 +476,8 @@ cd mausam-platform
 npm install
 ```
 
-### 3. Configure Environment Variables
-```bash
-cp .env.example .env
-```
-*(Optional: Set `MAUSAM_ASSISTANT_API_KEY` for remote Gemini assistant completions or `DATABASE_URL` for persistent logging. Leave empty for free baseline operation with grounded local telemetry).*
+### 3. Environment Setup (Keyless by Default)
+No `.env` credentials are required for local or production operation. Core meteorology, radar, air quality, warnings, and the grounded local assistant run directly out of the box.
 
 ### 4. Run the Development Server
 ```bash
@@ -638,22 +595,15 @@ This executes `node dist/server.cjs`, serving the optimized static assets from `
 ### Deploying to Vercel
 1. Link your repository to Vercel (Node.js 22.x runtime).
 2. Vercel automatically detects Vite and the output directory `dist`.
-3. Configure server-side environment variables in Vercel → Project Settings → Environment Variables (Preview and Production):
-   - `MAUSAM_ASSISTANT_MODE=auto`
-   - `MAUSAM_ASSISTANT_API_URL=https://generativelanguage.googleapis.com/v1beta/openai/`
-   - `MAUSAM_ASSISTANT_API_KEY=<YOUR_GEMINI_API_KEY>` (raw key without `Bearer`)
-   - `MAUSAM_ASSISTANT_MODEL=gemini-3.8-flash`
-   - `DATABASE_URL` (optional, e.g., Neon or Supabase)
-   - `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN` (optional, from Upstash)
-4. Deploy. Do not place real API keys in GitHub or frontend files.
+3. Deploy directly with zero required API keys or database secrets.
 
 ---
 
 ## Security Practices
 
-- **Zero Client-Side Secrets**: All third-party credentials (`MAUSAM_ASSISTANT_API_KEY`, `IMD_API_KEY`, `IMD_API_TOKEN`, database passwords) are strictly confined to the server-side environment. No secrets are prefixed with `VITE_`.
+- **Zero-Secret Keyless Runtime**: Core MAUSAM features run without external API keys, Redis credentials, or database URLs. No secrets are ever placed in client-side `VITE_` variables.
 - **Coordinates Sanitization**: All incoming query coordinates are validated and bounded to valid geographical ranges ($-90 \le \text{lat} \le 90$, $-180 \le \text{lon} \le 180$) to prevent injection.
-- **Fail-Safe Lazy Initialization**: Integrations that require credentials (e.g., remote assistant endpoint, IMD gateway, PostgreSQL Pool) initialize lazily. If a key is missing, only that specific feature degrades gracefully without crashing the server.
+- **Fail-Safe Defaults**: Optional commercial and institutional integrations remain disabled by default and never block startup or degrade core system health.
 - **Content Security & Safe Links**: All external portal links use `rel="noreferrer"` and `target="_blank"`. Images load with safe referrer policies.
 
 ---
