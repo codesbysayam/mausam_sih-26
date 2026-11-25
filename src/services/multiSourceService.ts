@@ -10,6 +10,7 @@ export type ProviderStatusCode =
   | 'DEGRADED'
   | 'OFFLINE'
   | 'NOT_CONFIGURED'
+  | 'DISABLED'
   | 'UNAVAILABLE'
   | 'NOT_REPORTED'
   | 'STALE';
@@ -22,6 +23,8 @@ export interface ProviderHealthDetail {
   status: ProviderStatusCode;
   role: string;
   core: boolean;
+  optional?: boolean;
+  message?: string | null;
   fallback?: string | null;
   currentDataSource?: string | null;
   reason: string | null;
@@ -139,6 +142,7 @@ const VALID_PROVIDER_STATUSES = new Set<ProviderStatusCode>([
   'DEGRADED',
   'OFFLINE',
   'NOT_CONFIGURED',
+  'DISABLED',
   'UNAVAILABLE',
   'NOT_REPORTED',
   'STALE',
@@ -199,50 +203,50 @@ const KNOWN_PROVIDER_META: Record<
   assistant: {
     name: 'MAUSAM Meteorological Assistant',
     code: 'MAUSAM_ASSISTANT',
-    category: 'COMMERCIAL',
-    role: 'Optional Server-Side Conversational Assistant',
+    category: 'OPEN_DATA',
+    role: 'Grounded Local Meteorological Assistant (Keyless)',
     core: false,
-    requiredKey: 'MAUSAM_ASSISTANT_API_KEY',
+    requiredKey: null,
   },
   imd: {
     name: 'India Meteorological Department Direct API',
     code: 'IMD',
     category: 'GOVERNMENT',
-    role: 'Optional Authenticated IMD Surface Feed',
+    role: 'Optional Direct IMD Surface Feed (Disabled)',
     core: false,
-    requiredKey: 'IMD_API_KEY',
+    requiredKey: null,
   },
   cpcb: {
     name: 'Central Pollution Control Board (CAAQMS)',
     code: 'CPCB',
     category: 'GOVERNMENT',
-    role: 'Optional Direct CPCB Station NAQI Feed',
+    role: 'Optional Direct CPCB Station NAQI Feed (Disabled)',
     core: false,
-    requiredKey: 'CPCB_API_KEY',
+    requiredKey: null,
   },
   incois: {
     name: 'INCOIS Coastal Oceanography',
     code: 'INCOIS',
     category: 'GOVERNMENT',
-    role: 'Optional Direct INCOIS Marine Telemetry',
+    role: 'Optional Direct INCOIS Marine Telemetry (Disabled)',
     core: false,
-    requiredKey: 'INCOIS_API_KEY',
+    requiredKey: null,
   },
   accuweather: {
     name: 'AccuWeather Commercial API',
     code: 'ACCUWEATHER',
     category: 'COMMERCIAL',
-    role: 'Optional Secondary Commercial Verification',
+    role: 'Optional Secondary Commercial Verification (Disabled)',
     core: false,
-    requiredKey: 'ACCUWEATHER_API_KEY',
+    requiredKey: null,
   },
   googleWeather: {
     name: 'Google Weather Commercial API',
     code: 'GOOGLE_WEATHER',
     category: 'COMMERCIAL',
-    role: 'Optional Secondary Commercial Verification',
+    role: 'Optional Secondary Commercial Verification (Disabled)',
     core: false,
-    requiredKey: 'GOOGLE_WEATHER_API_KEY',
+    requiredKey: null,
   },
 };
 
@@ -303,13 +307,15 @@ function normalizeProviderRecord(id: string, raw: any, fallbackCheckedAt: string
       ? raw.configured
       : typeof raw.isConfigured === 'boolean'
       ? raw.isConfigured
-      : status !== 'NOT_CONFIGURED' && status !== 'NOT_REPORTED';
+      : status !== 'NOT_CONFIGURED' && status !== 'DISABLED' && status !== 'NOT_REPORTED';
 
   const operational =
     typeof raw.operational === 'boolean' ? raw.operational : status === 'OPERATIONAL';
 
   const reachable =
     typeof raw.reachable === 'boolean' ? raw.reachable : operational || status === 'DEGRADED';
+
+  const isDisabledOptional = status === 'DISABLED' || status === 'NOT_CONFIGURED';
 
   return {
     id,
@@ -319,20 +325,22 @@ function normalizeProviderRecord(id: string, raw: any, fallbackCheckedAt: string
     status,
     role: typeof raw.role === 'string' && raw.role ? raw.role : meta?.role || 'Upstream provider',
     core: typeof raw.core === 'boolean' ? raw.core : meta?.core ?? false,
+    optional: typeof raw.optional === 'boolean' ? raw.optional : isDisabledOptional || !(meta?.core ?? false),
+    message: typeof raw.message === 'string' ? raw.message : null,
     fallback: typeof raw.fallback === 'string' ? raw.fallback : null,
     currentDataSource: typeof raw.currentDataSource === 'string' ? raw.currentDataSource : null,
-    reason: typeof raw.reason === 'string' ? raw.reason : null,
+    reason: typeof raw.reason === 'string' ? raw.reason : typeof raw.message === 'string' ? raw.message : null,
     nextAction: typeof raw.nextAction === 'string' ? raw.nextAction : null,
     isConfigured,
     operational,
     reachable,
-    requiredKey: raw.requiredKey !== undefined ? raw.requiredKey : meta?.requiredKey ?? null,
+    requiredKey: isDisabledOptional ? null : raw.requiredKey !== undefined ? raw.requiredKey : meta?.requiredKey ?? null,
     latency,
     httpStatus: typeof raw.httpStatus === 'number' ? raw.httpStatus : null,
     last_success: typeof (raw.lastSuccess ?? raw.last_success) === 'string' ? (raw.lastSuccess ?? raw.last_success) : null,
     last_failure: typeof (raw.lastFailure ?? raw.last_failure) === 'string' ? (raw.lastFailure ?? raw.last_failure) : null,
     last_checked: typeof (raw.lastChecked ?? raw.last_checked) === 'string' ? (raw.lastChecked ?? raw.last_checked) : fallbackCheckedAt,
-    error: typeof raw.error === 'string' && raw.error ? raw.error : null,
+    error: isDisabledOptional ? null : typeof raw.error === 'string' && raw.error ? raw.error : null,
     endpoint: typeof raw.endpoint === 'string' && raw.endpoint ? raw.endpoint : 'Not reported',
     attribution: typeof raw.attribution === 'string' && raw.attribution ? raw.attribution : 'MAUSAM Telemetry Registry',
   };
@@ -409,6 +417,7 @@ export function normalizeGatewayHealthPayload(
         unavailable++;
         break;
       case 'NOT_CONFIGURED':
+      case 'DISABLED':
         notConfigured++;
         break;
       case 'NOT_REPORTED':

@@ -10,10 +10,10 @@ import { WarningNormalizer, RawCapAlert } from '../normalization/warningNormaliz
 export class SachetProvider {
   public static readonly providerName = 'NDMA / SACHET Disaster Management';
   public readonly name = 'NDMA / SACHET Disaster Management';
-  private static feedUrl = process.env.SACHET_FEED_URL || 'https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails';
+  private static feedUrl = 'https://sachet.ndma.gov.in/cap_public_website/FetchAllAlertDetails';
 
   public static isConfigured(): boolean {
-    return process.env.SACHET_ENABLED !== 'false';
+    return true;
   }
   private static alertCache: { data: RawCapAlert[]; timestamp: number } | null = null;
   private static cachedEtag: string | null = null;

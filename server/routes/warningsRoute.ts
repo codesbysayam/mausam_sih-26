@@ -1,6 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { getIMDWarningColor, getIMDHazardCode } from '../imd/imdWarningCodes';
 import { sachetService, WeatherWarning } from '../services/sachetService';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
 
 export const warningsRouter = Router();
 
@@ -355,103 +359,24 @@ async function fetchFromNDMASachet(
   }
 }
 
-async function fetchFromOfficialIMD(districtName: string): Promise<{
+async function fetchFromOfficialIMD(_districtName: string): Promise<{
   success: boolean;
   status: 'LIVE' | 'UNAVAILABLE';
   warningItem?: IMDDistrictRawItem | null;
   error?: string;
 }> {
-  const baseUrl = process.env.IMD_API_BASE_URL || 'https://api.imd.gov.in/api/v1';
-  const apiKey = process.env.IMD_API_KEY;
-  const apiToken = process.env.IMD_API_TOKEN;
-
-  // If credentials are not present, do not attempt failing call
-  if (!apiKey && !apiToken) {
+  if (!MAUSAM_RUNTIME_CONFIG.officialImdEnabled) {
     return {
       success: false,
       status: 'UNAVAILABLE',
-      error: 'IMD API credentials not configured',
+      error: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
     };
   }
-
-  const url = `${baseUrl.replace(/\/$/, '')}/districtwarning`;
-
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    'User-Agent': 'Mausam-Government-Connector/1.0',
+  return {
+    success: false,
+    status: 'UNAVAILABLE',
+    error: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
   };
-
-  if (apiKey) {
-    headers['X-API-Key'] = apiKey;
-  }
-  if (apiToken) {
-    headers['Authorization'] = `Bearer ${apiToken}`;
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      headers,
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      return {
-        success: false,
-        status: 'UNAVAILABLE',
-        error: `IMD API returned HTTP ${res.status}`,
-      };
-    }
-
-    const data = await res.json();
-
-    // Check if the response is an error object
-    if (data && typeof data === 'object' && !Array.isArray(data) && data.error) {
-      return {
-        success: false,
-        status: 'UNAVAILABLE',
-        error: String(data.error),
-      };
-    }
-
-    const list: IMDDistrictRawItem[] = Array.isArray(data)
-      ? data
-      : Array.isArray(data?.data)
-      ? data.data
-      : [data];
-
-    const target = districtName.toLowerCase().trim();
-
-    // Match district in response
-    const matched = list.find((item) => {
-      const dName = String(
-        item.district || item.District || item.District_Name || ''
-      ).toLowerCase().trim();
-      return (
-        dName === target ||
-        dName.includes(target) ||
-        target.includes(dName)
-      );
-    });
-
-    return {
-      success: true,
-      status: 'LIVE',
-      warningItem: matched || null,
-    };
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    return {
-      success: false,
-      status: 'UNAVAILABLE',
-      error: err?.message || 'Network error connecting to IMD API',
-    };
-  }
 }
 
 // ==========================================

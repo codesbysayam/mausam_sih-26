@@ -276,7 +276,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (mode === 'imd') {
-      const route = (query.route || '').toString().replace(/^\//, '');
+      const route = (query.route || '').toString().trim();
       if (!route) {
         return sendJson(res, 400, {
           source: 'IMD',
@@ -284,33 +284,24 @@ export default async function handler(req: any, res: any) {
           fetchedAt: new Date().toISOString(),
           stale: false,
           data: null,
-          error: { code: 'MISSING_ROUTE', message: 'Missing IMD route parameter.' },
-        });
-      }
-      const allowedBase = process.env.IMD_API_BASE_URL || 'https://mausam.imd.gov.in/api/v1';
-      const imdUrl = `${allowedBase}/${route}`;
-      try {
-        const imdJson = await fetchJsonWithTimeout(imdUrl, 5000);
-        return sendJson(res, 200, {
-          source: 'IMD',
-          status: 'live',
-          fetchedAt: new Date().toISOString(),
-          stale: false,
-          data: imdJson,
-        });
-      } catch (imdErr: any) {
-        return sendJson(res, 200, {
-          source: 'IMD',
-          status: 'error',
-          fetchedAt: new Date().toISOString(),
-          stale: false,
-          data: null,
           error: {
-            code: 'IMD_UNAVAILABLE',
-            message: imdErr?.message || 'IMD upstream endpoint did not respond.',
+            code: 'MISSING_ROUTE',
+            message: 'Missing required route query parameter.',
           },
         });
       }
+      return sendJson(res, 200, {
+        source: 'IMD',
+        status: 'disabled',
+        optional: true,
+        fetchedAt: new Date().toISOString(),
+        stale: false,
+        data: null,
+        error: {
+          code: 'OPTIONAL_DISABLED',
+          message: 'Optional integration disabled. Core MAUSAM services are operating using public data sources.',
+        },
+      });
     }
 
     if (mode === 'search' || mode === 'locations') {

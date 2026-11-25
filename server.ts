@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
-import { MausamAssistantService } from './lib/providers/ai';
+import { MAUSAM_RUNTIME_CONFIG, MausamAssistantService } from './lib/providers/ai';
 import { imdRouter } from './server/routes/imdRoutes';
 import { authoritativeRouter } from './server/routes/authoritativeRoutes';
 import { realMausamRouter } from './server/routes/realMausamRoutes';
@@ -195,7 +195,7 @@ async function startServer() {
         metadata: {
           observedAt: metadata?.observedAt || new Date().toISOString(),
           updatedAt: metadata?.updatedAt || new Date().toISOString(),
-          source: metadata?.source || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo'),
+          source: metadata?.source || 'Open-Meteo',
           status: metadata?.status || 'Recent',
         },
         forecast: forecast || [],
@@ -205,9 +205,8 @@ async function startServer() {
         preferredLanguage: preferredLanguage || 'English',
       };
 
-      const resolvedSource = telemetryContext.metadata?.source || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
-      const imdConfigured = Boolean(process.env.IMD_API_KEY);
-      const imdStatusStr = imdConfigured ? 'Operational' : 'Not Configured';
+      const resolvedSource = telemetryContext.metadata?.source || 'Open-Meteo';
+      const imdStatusStr = MAUSAM_RUNTIME_CONFIG.officialImdEnabled ? 'Operational' : 'Optional (Disabled)';
 
       const cleanPrompt = (prompt || '').trim().toLowerCase();
       const isDeveloperQuery =
@@ -301,7 +300,7 @@ Source: ${resolvedSource}`,
     } catch (error: any) {
       console.error('Error in /api/ask-mausam:', error);
       const body = req.body && typeof req.body === 'object' ? req.body : {};
-      const errSource = (body.metadata?.source) || (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
+      const errSource = body.metadata?.source || 'Open-Meteo';
       const fallbackText = `MAUSAM Atmospheric Intelligence
 
 Location: ${body.station?.district || body.station?.name || 'India'} (${body.station?.state || 'National'})

@@ -1,12 +1,12 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
 // IMD (India Meteorological Department) Official Adapter
-// Reads IMD_API_BASE_URL, IMD_API_KEY, IMD_API_TOKEN, and IMD_API_ENABLED.
-// Provides authentic direct IMD station observation only when explicitly
-// enabled and authorized; truthfully reports UNAVAILABLE otherwise.
+// Disabled by default in zero-secret keyless mode via MAUSAM_RUNTIME_CONFIG.
+// Truthfully reports UNAVAILABLE without reading optional environment secrets.
 // ====================================================================
 
 import { CurrentWeatherContext, DataSourceContext } from '../../types/askMausam';
+import { MAUSAM_RUNTIME_CONFIG, OPTIONAL_INTEGRATION_DISABLED_MESSAGE } from '../../../lib/providers/ai';
 
 export interface ImdObservationBundle {
   available: boolean;
@@ -24,80 +24,19 @@ export interface ImdRuntimeConfig {
   reason?: string;
 }
 
-const PRIVATE_IMD_HOST_PATTERNS: RegExp[] = [
-  /^localhost$/i,
-  /^127\./,
-  /^0\.0\.0\.0$/,
-  /^::1$/,
-  /^\[::1\]$/,
-  /^10\./,
-  /^192\.168\./,
-  /^169\.254\./,
-  /^172\.(1[6-9]|2\d|3[01])\./,
-  /\.local$/i,
-  /\.internal$/i,
-];
-
-function validateImdBaseUrl(rawUrl: string): string | undefined {
-  const trimmed = rawUrl.trim();
-  if (!trimmed) return undefined;
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.protocol !== 'https:') return undefined;
-    if (parsed.username || parsed.password || parsed.search || parsed.hash) return undefined;
-    if (PRIVATE_IMD_HOST_PATTERNS.some((re) => re.test(parsed.hostname.toLowerCase()))) {
-      return undefined;
-    }
-    return parsed.toString().replace(/\/+$/, '');
-  } catch {
-    return undefined;
-  }
-}
-
 export function resolveImdConfig(
-  env: Record<string, string | undefined> | undefined =
-    typeof process !== 'undefined' ? process.env : undefined
+  _env?: Record<string, string | undefined>
 ): ImdRuntimeConfig {
-  if (!env) {
+  if (!MAUSAM_RUNTIME_CONFIG.officialImdEnabled) {
     return {
       enabled: false,
-      reason: 'IMD credentials are server-side only and unavailable in this runtime.',
-    };
-  }
-
-  const enabledFlag = (env.IMD_API_ENABLED || 'false').trim().toLowerCase() === 'true';
-  const rawBaseUrl = (env.IMD_API_BASE_URL || '').trim();
-  const apiKey = (env.IMD_API_KEY || '').trim() || undefined;
-  const apiToken = (env.IMD_API_TOKEN || '').trim() || undefined;
-
-  if (!enabledFlag) {
-    return {
-      enabled: false,
-      reason: 'Official IMD Direct API is disabled (IMD_API_ENABLED is not true). Using calibrated Open-Meteo telemetry.',
-    };
-  }
-
-  const baseUrl = validateImdBaseUrl(rawBaseUrl);
-  if (!baseUrl) {
-    return {
-      enabled: false,
-      reason: 'IMD_API_BASE_URL is missing or must be a valid public HTTPS endpoint.',
-    };
-  }
-
-  if (!apiKey && !apiToken) {
-    return {
-      enabled: false,
-      baseUrl,
-      reason: 'IMD_API_KEY or IMD_API_TOKEN must be configured when IMD_API_ENABLED=true.',
+      reason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
     };
   }
 
   return {
-    enabled: true,
-    baseUrl,
-    apiKey,
-    apiToken,
+    enabled: false,
+    reason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
   };
 }
 
@@ -128,9 +67,7 @@ export async function fetchImdObservation(
         status: 'UNAVAILABLE',
         retrievedAt,
         isOfficialIMD: true,
-        details:
-          config.reason ||
-          'Official IMD Direct API credentials not configured in environment. Using calibrated Open-Meteo telemetry.',
+        details: config.reason || OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       },
     };
   }

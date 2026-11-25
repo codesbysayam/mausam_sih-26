@@ -3,18 +3,13 @@
  */
 
 import { classifyIMDError, IMDErrorPayload } from './imdErrors';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
 
-const DEFAULT_TIMEOUT = Number(process.env.IMD_REQUEST_TIMEOUT_MS || 10000);
-const MAX_RETRIES = Number(process.env.IMD_MAX_RETRIES || 3);
-const BASE_URL = process.env.IMD_API_BASE_URL || 'https://api.imd.gov.in/api/v1';
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRetryableStatus(status: number) {
-  return [408, 429, 500, 502, 503, 504].includes(status);
-}
+const DEFAULT_TIMEOUT = 10000;
+const BASE_URL = 'https://api.imd.gov.in/api/v1';
 
 export interface IMDClientResponse<T = any> {
   ok: boolean;
@@ -29,97 +24,27 @@ export interface IMDClientResponse<T = any> {
 
 export class IMDClient {
   private baseUrl: string;
-  private apiKey?: string;
-  private apiToken?: string;
   private timeoutMs: number;
 
   constructor() {
     this.baseUrl = BASE_URL.replace(/\/$/, '');
-    this.apiKey = process.env.IMD_API_KEY || undefined;
-    this.apiToken = process.env.IMD_API_TOKEN || undefined;
     this.timeoutMs = DEFAULT_TIMEOUT;
   }
 
-  async request<T = any>(path: string, params: Record<string, any> = {}): Promise<IMDClientResponse<T>> {
-    const startTime = Date.now();
+  async request<T = any>(path: string, _params: Record<string, any> = {}): Promise<IMDClientResponse<T>> {
     const cleanPath = path.replace(/^\//, '');
-    const url = new URL(`${this.baseUrl}/${cleanPath}`);
 
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        url.searchParams.set(key, String(value));
-      }
-    });
-
-    let lastError: any = null;
-    let lastStatus: number | undefined;
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-
-      try {
-        const headers: Record<string, string> = {
-          Accept: 'application/json',
-          'User-Agent': 'Mausam-IMD-Client/1.0',
-        };
-
-        if (this.apiKey) {
-          headers['X-API-Key'] = this.apiKey;
-        }
-
-        if (this.apiToken) {
-          headers['Authorization'] = `Bearer ${this.apiToken}`;
-        }
-
-        const response = await fetch(url.toString(), {
-          method: 'GET',
-          headers,
-          signal: controller.signal,
-        });
-
-        lastStatus = response.status;
-
-        if (!response.ok) {
-          if (!isRetryableStatus(response.status) || attempt === MAX_RETRIES) {
-            throw new Error(`IMD HTTP ${response.status}`);
-          }
-
-          // Exponential backoff with jitter
-          await sleep(500 * Math.pow(2, attempt) + Math.random() * 250);
-          continue;
-        }
-
-        const json = await response.json();
-        const executionMs = Date.now() - startTime;
-
-        return {
-          ok: true,
-          source: 'IMD',
-          fetchedAt: new Date().toISOString(),
-          stale: false,
-          data: json as T,
-          raw: json,
-          executionMs,
-        };
-      } catch (error: any) {
-        lastError = error;
-        const retryable =
-          error?.name === 'AbortError' ||
-          /network|fetch|timeout/i.test(error?.message || '');
-
-        if (!retryable || attempt === MAX_RETRIES) {
-          break;
-        }
-
-        await sleep(500 * Math.pow(2, attempt) + Math.random() * 250);
-      } finally {
-        clearTimeout(timeout);
-      }
+    if (!MAUSAM_RUNTIME_CONFIG.officialImdEnabled) {
+      return {
+        ok: false,
+        source: 'IMD',
+        fetchedAt: new Date().toISOString(),
+        stale: false,
+        data: null,
+        error: classifyIMDError(undefined, new Error(OPTIONAL_INTEGRATION_DISABLED_MESSAGE), cleanPath),
+        executionMs: 0,
+      };
     }
-
-    const executionMs = Date.now() - startTime;
-    const classified = classifyIMDError(lastStatus, lastError, cleanPath);
 
     return {
       ok: false,
@@ -127,8 +52,8 @@ export class IMDClient {
       fetchedAt: new Date().toISOString(),
       stale: false,
       data: null,
-      error: classified,
-      executionMs,
+      error: classifyIMDError(undefined, new Error(OPTIONAL_INTEGRATION_DISABLED_MESSAGE), cleanPath),
+      executionMs: 0,
     };
   }
 

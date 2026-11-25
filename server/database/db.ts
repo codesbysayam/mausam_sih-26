@@ -6,6 +6,7 @@
 // ====================================================================
 
 import pg from 'pg';
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
 import {
   NormalizedWeather,
   NormalizedForecast,
@@ -152,38 +153,9 @@ export class WeatherDatabaseService {
   }
 
   private initializeConnection(): void {
-    const connectionString = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').trim();
-
-    if (!connectionString) {
-      this.isPostgresActive = false;
-      this.pool = null;
-      return;
-    }
-
-    try {
-      const disableSsl =
-        connectionString.includes('localhost') ||
-        connectionString.includes('127.0.0.1') ||
-        connectionString.includes('sslmode=disable');
-
-      this.pool = new Pool({
-        connectionString,
-        max: 10,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
-        ssl: disableSsl ? false : { rejectUnauthorized: false },
-      });
-
-      this.pool.on('error', (err) => {
-        console.warn('[Mausam DB] Unexpected idle client error:', err.message);
-      });
-
-      this.isPostgresActive = true;
-    } catch (err: any) {
-      console.warn('[Mausam DB] Failed to create PostgreSQL pool:', err.message);
-      this.isPostgresActive = false;
-      this.pool = null;
-    }
+    // Database persistence is optional and disabled by default in keyless mode.
+    this.isPostgresActive = MAUSAM_RUNTIME_CONFIG.databaseEnabled;
+    this.pool = null;
   }
 
   private async ensureSchema(): Promise<boolean> {

@@ -1,21 +1,22 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
-// INCOIS Provider Adapter (Indian National Centre for Ocean Information Services)
+// INCOIS Provider Adapter (Optional Direct Integration Disabled;
+// Coastal Marine Telemetry Served via Public Open-Meteo Marine API)
 // ====================================================================
 
 import { NormalizedMarine, GeoLocation } from '../normalization/types';
 import { WeatherNormalizer } from '../normalization/weatherNormalizer';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
 
 export class INCOISProvider {
   public static readonly providerName = 'INCOIS Coastal Oceanography';
   public readonly name = 'INCOIS Coastal Oceanography';
-  private static incoisEndpoint = process.env.INCOIS_BASE_URL || 'https://incois.gov.in';
 
   public static isConfigured(): boolean {
-    return Boolean(
-      (process.env.INCOIS_API_KEY && process.env.INCOIS_API_KEY.trim() !== '') ||
-      (process.env.INCOIS_BASE_URL && process.env.INCOIS_BASE_URL.trim() !== '')
-    );
+    return MAUSAM_RUNTIME_CONFIG.directIncoisEnabled;
   }
 
   public static isCoastalLocation(lat: number, lon: number, locationText?: string): boolean {
@@ -40,42 +41,25 @@ export class INCOISProvider {
     return isNearArabianSea || isNearBayOfBengal || isIslands;
   }
 
-  public static async checkHealth(): Promise<{ configured: boolean; operational: boolean; latencyMs: number | null; error?: string }> {
-    if (!this.isConfigured()) {
-      return {
-        configured: false,
-        operational: false,
-        latencyMs: null,
-        error: 'Official INCOIS gateway (INCOIS_API_KEY or INCOIS_BASE_URL) not configured',
-      };
-    }
-
-    const start = Date.now();
-    try {
-      const res = await fetch(`${this.incoisEndpoint}/health`, {
-        headers: {
-          'User-Agent': 'MAUSAM-INCOIS/3.0',
-          ...(process.env.INCOIS_API_KEY ? { 'X-API-KEY': process.env.INCOIS_API_KEY } : {}),
-        },
-        signal: AbortSignal.timeout(4000),
-      });
-      const latencyMs = Date.now() - start;
-      return {
-        configured: true,
-        operational: res.ok,
-        latencyMs,
-        error: res.ok ? undefined : `HTTP ${res.status}`,
-      };
-    } catch (err: any) {
-      const latencyMs = Date.now() - start;
-      const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
-      return {
-        configured: true,
-        operational: false,
-        latencyMs: isTimeout ? latencyMs : null,
-        error: isTimeout ? 'TIMEOUT: INCOIS gateway timed out after 4000ms' : err.message,
-      };
-    }
+  public static async checkHealth(): Promise<{
+    configured: boolean;
+    operational: boolean;
+    latencyMs: number | null;
+    status: 'DISABLED';
+    requiredKey: null;
+    optional: true;
+    message: string;
+    error?: string;
+  }> {
+    return {
+      configured: false,
+      operational: false,
+      latencyMs: null,
+      status: 'DISABLED',
+      requiredKey: null,
+      optional: true,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+    };
   }
 
   public static async fetchMarineData(loc: GeoLocation): Promise<NormalizedMarine> {
@@ -92,7 +76,7 @@ export class INCOISProvider {
         observedAt: new Date().toISOString(),
         fetchedAt: new Date().toISOString(),
         dataStatus: 'UNAVAILABLE',
-        source: 'INCOIS',
+        source: 'Open-Meteo Marine Data',
         message: 'Marine telemetry not applicable for inland location.',
       };
     }
@@ -107,7 +91,7 @@ export class INCOISProvider {
           observedAt: new Date().toISOString(),
           fetchedAt: new Date().toISOString(),
           dataStatus: 'UNAVAILABLE',
-          source: 'INCOIS',
+          source: 'Open-Meteo Marine Data',
           message: 'Marine observation temporarily unavailable.',
         };
       }
@@ -121,7 +105,7 @@ export class INCOISProvider {
           observedAt: new Date().toISOString(),
           fetchedAt: new Date().toISOString(),
           dataStatus: 'UNAVAILABLE',
-          source: 'INCOIS',
+          source: 'Open-Meteo Marine Data',
         };
       }
 
@@ -142,7 +126,7 @@ export class INCOISProvider {
         observedAt,
         fetchedAt: new Date().toISOString(),
         dataStatus,
-        source: 'INCOIS / Open Marine',
+        source: 'Open-Meteo Marine Data',
         significantWaveHeightMeters: waveHeight,
         swellHeightMeters: swellHeight,
         wavePeriodSeconds: wavePeriod,
@@ -157,7 +141,7 @@ export class INCOISProvider {
         observedAt: new Date().toISOString(),
         fetchedAt: new Date().toISOString(),
         dataStatus: 'UNAVAILABLE',
-        source: 'INCOIS',
+        source: 'Open-Meteo Marine Data',
         message: err.message,
       };
     }

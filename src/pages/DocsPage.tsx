@@ -383,9 +383,9 @@ const ArchitectureSection: React.FC = () => (
           <tbody className="divide-y divide-[var(--m-border)] text-[11px]">
             <tr>
               <td className="p-2.5 font-bold text-[var(--m-text-primary)]">India Met Department (IMD)</td>
-              <td className="p-2.5 font-mono text-[var(--m-accent)]">/current_wx, /cityforecast</td>
-              <td className="p-2.5 font-mono text-[var(--m-watch)]">IMD_API_KEY</td>
-              <td className="p-2.5 text-[var(--m-text-secondary)]">Primary Source. Falls back to Open-Meteo.</td>
+              <td className="p-2.5 font-mono text-[var(--m-accent)]">Public CAP RSS / RSMC</td>
+              <td className="p-2.5 font-mono text-[var(--m-text-muted)]">Optional Direct Feed (Disabled)</td>
+              <td className="p-2.5 text-[var(--m-text-secondary)]">Public CAP advisories active; Open-Meteo powers keyless baseline telemetry.</td>
             </tr>
             <tr>
               <td className="p-2.5 font-bold text-[var(--m-text-primary)]">NDMA SACHET</td>
@@ -452,10 +452,10 @@ const RulesSection: React.FC = () => (
         <div className="p-3.5 bg-[var(--m-surface-inset)] border border-[var(--m-border)] rounded-lg">
           <h3 className="text-xs font-bold text-[var(--m-accent)] mb-1 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Zero Client-Side Secrets
+            Zero-Secret Keyless Runtime
           </h3>
           <p className="text-[11px] text-[var(--m-text-secondary)] leading-relaxed">
-            All private credentials (<code className="text-[var(--m-text-primary)] font-mono">MAUSAM_ASSISTANT_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">IMD_API_KEY</code>, <code className="text-[var(--m-text-primary)] font-mono">DATABASE_URL</code>) remain strictly on the backend. Never prefix secrets with <code className="text-[var(--m-text-primary)] font-mono">VITE_</code>.
+            Core MAUSAM telemetry operates completely keyless on public meteorological feeds, in-memory caching, and local grounded assistant responses. Never place credentials in client-side <code className="text-[var(--m-text-primary)] font-mono">VITE_</code> variables.
           </p>
         </div>
 

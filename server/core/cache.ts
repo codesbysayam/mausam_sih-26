@@ -4,6 +4,8 @@
 // Tracks cacheHit, cachedAt, ageSeconds, and cacheType truthfully
 // ====================================================================
 
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
+
 export interface CacheEntry<T> {
   data: T;
   storedAt: number; // epoch ms
@@ -29,7 +31,7 @@ export class CacheLayer {
   private staleGraceMs = 2 * 60 * 60 * 1000; // 2 hours stale tolerance
 
   constructor() {
-    this.redisConnected = Boolean(process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL);
+    this.redisConnected = MAUSAM_RUNTIME_CONFIG.redisEnabled;
   }
 
   public getCacheType(): 'REDIS' | 'IN_MEMORY' {

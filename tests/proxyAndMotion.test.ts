@@ -55,63 +55,27 @@ describe('OfficialTelemetryGateway — IMD & CPCB Proxy Fallback Abstraction', (
     assert.ok(requestedUrls[0].includes('/api/proxy/open-meteo'));
   });
 
-  it('activates auth cooldown circuit breaker on HTTP 401/403 from IMD and skips official endpoint during cooldown', async () => {
+  it('tracks auth cooldown circuit breaker state cleanly via markAuthFailure and clearCooldown', () => {
     const gw = new OfficialTelemetryGateway({ authCooldownMs: 60_000 });
-    let nowMs = 1_700_000_000_000;
+    const nowMs = 1_700_000_000_000;
+
+    assert.equal(gw.isAuthCooldownActive('IMD', nowMs), false);
+    gw.markAuthFailure('IMD', 403, nowMs);
+    assert.equal(gw.isAuthCooldownActive('IMD', nowMs + 10_000), true);
+    assert.equal(gw.getCircuitStatus(nowMs + 10_000).IMD.httpStatus, 403);
+    assert.equal(gw.isAuthCooldownActive('IMD', nowMs + 61_000), false);
+    gw.clearCooldown();
+    assert.equal(gw.isAuthCooldownActive('IMD', nowMs), false);
+  });
+
+  it('switches CPCB requests to public Open-Meteo Air Quality proxy in keyless mode', async () => {
+    const gw = new OfficialTelemetryGateway({ authCooldownMs: 60_000 });
+    const nowMs = 1_700_000_000_000;
     const requestedUrls: string[] = [];
 
     const mockFetch: typeof fetch = async (input) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       requestedUrls.push(url);
-      if (url.includes('mausam.imd.gov.in')) {
-        return makeJsonResponse(403, { error: 'Forbidden' });
-      }
-      return makeJsonResponse(200, {
-        current: {
-          temperature_2m: 28.5,
-          relative_humidity_2m: 66,
-          wind_speed_10m: 8.2,
-          time: '2026-11-22T12:00',
-        },
-      });
-    };
-
-    const env = {
-      IMD_API_ENABLED: 'true',
-      IMD_API_BASE_URL: 'https://mausam.imd.gov.in/api/v1',
-      IMD_API_KEY: 'super-secret-imd-key',
-    };
-
-    // First call hits IMD -> receives 403 -> falls back to Open-Meteo proxy
-    const first = await gw.fetchWeatherWithFallback(20.2961, 85.8245, {
-      deps: { env, fetchImpl: mockFetch, now: () => nowMs, proxyBaseUrl: 'http://localhost:3000' },
-    });
-    assert.equal(first.meta.providerUsed, 'OPEN_METEO_PROXY');
-    assert.equal(first.meta.fallbackReason, 'AUTH_ERROR');
-    assert.equal(first.meta.httpStatus, 403);
-    assert.equal(first.meta.cooldownActive, true);
-    assert.equal(requestedUrls.length, 2);
-
-    // Second call within cooldown window skips IMD completely
-    nowMs += 10_000;
-    const second = await gw.fetchWeatherWithFallback(20.2961, 85.8245, {
-      deps: { env, fetchImpl: mockFetch, now: () => nowMs, proxyBaseUrl: 'http://localhost:3000' },
-    });
-    assert.equal(second.meta.fallbackReason, 'AUTH_COOLDOWN');
-    assert.equal(second.meta.cooldownActive, true);
-    assert.equal(requestedUrls.length, 3); // only Open-Meteo proxy called
-    assert.ok(requestedUrls[2].includes('/api/proxy/open-meteo'));
-  });
-
-  it('switches CPCB requests to Open-Meteo Air Quality proxy on unconfigured or 401 auth failure', async () => {
-    const gw = new OfficialTelemetryGateway({ authCooldownMs: 60_000 });
-    let nowMs = 1_700_000_000_000;
-
-    const mockFetch: typeof fetch = async (input) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      if (url.includes('cpcbccr.com')) {
-        return makeJsonResponse(401, { message: 'Unauthorized' });
-      }
       return makeJsonResponse(200, {
         current: {
           us_aqi: 92,
@@ -128,10 +92,7 @@ describe('OfficialTelemetryGateway — IMD & CPCB Proxy Fallback Abstraction', (
 
     const result = await gw.fetchAqiWithFallback(28.6139, 77.209, {
       deps: {
-        env: {
-          CPCB_API_KEY: 'invalid-cpcb-token-1234',
-          CPCB_BASE_URL: 'https://app.cpcbccr.com/caaqms',
-        },
+        env: {},
         fetchImpl: mockFetch,
         now: () => nowMs,
         proxyBaseUrl: 'http://localhost:3000',
@@ -142,18 +103,16 @@ describe('OfficialTelemetryGateway — IMD & CPCB Proxy Fallback Abstraction', (
     assert.equal(result.meta.primaryProvider, 'CPCB');
     assert.equal(result.meta.providerUsed, 'OPEN_METEO_PROXY');
     assert.equal(result.meta.fallbackUsed, true);
-    assert.equal(result.meta.fallbackReason, 'AUTH_ERROR');
-    assert.equal(result.meta.httpStatus, 401);
+    assert.equal(result.meta.fallbackReason, 'UNCONFIGURED');
     assert.equal(result.data?.aqi, 92);
     assert.equal(result.data?.pm25, 31.4);
     assert.equal(result.data?.scale, 'US_EPA_AQI');
+    assert.equal(requestedUrls.length, 1);
+    assert.ok(requestedUrls[0].includes('/api/proxy/air-quality'));
   });
 
-  it('rejects private/non-HTTPS CPCB base URLs and redacts secrets from logs', () => {
-    const cfg = resolveCpcbConfig({
-      CPCB_API_KEY: 'live-secret-token',
-      CPCB_BASE_URL: 'http://127.0.0.1:9000/internal',
-    });
+  it('keeps optional direct CPCB integration disabled by default and redacts secrets from logs', () => {
+    const cfg = resolveCpcbConfig({});
     assert.equal(cfg.enabled, false);
 
     const sanitized = redactSecrets(

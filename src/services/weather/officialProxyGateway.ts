@@ -12,6 +12,7 @@ import {
   ForecastContext,
 } from '../../types/askMausam';
 import { finiteNumber } from '../../../shared/weatherContract';
+import { MAUSAM_RUNTIME_CONFIG, OPTIONAL_INTEGRATION_DISABLED_MESSAGE } from '../../../lib/providers/ai';
 import { resolveImdConfig } from './imdAdapter';
 import { fetchOpenMeteoBundle, OpenMeteoBundle } from './openMeteoAdapter';
 
@@ -92,36 +93,6 @@ export class ProviderAuthError extends Error {
   }
 }
 
-const PRIVATE_HOST_PATTERNS: RegExp[] = [
-  /^localhost$/i,
-  /^127\./,
-  /^0\.0\.0\.0$/,
-  /^::1$/,
-  /^\[::1\]$/,
-  /^10\./,
-  /^192\.168\./,
-  /^169\.254\./,
-  /^172\.(1[6-9]|2\d|3[01])\./,
-  /\.local$/i,
-  /\.internal$/i,
-];
-
-function validatePublicHttpsUrl(rawUrl: string): string | undefined {
-  const trimmed = rawUrl.trim();
-  if (!trimmed) return undefined;
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.protocol !== 'https:') return undefined;
-    if (parsed.username || parsed.password || parsed.search || parsed.hash) return undefined;
-    if (PRIVATE_HOST_PATTERNS.some((re) => re.test(parsed.hostname.toLowerCase()))) {
-      return undefined;
-    }
-    return parsed.toString().replace(/\/+$/, '');
-  } catch {
-    return undefined;
-  }
-}
-
 export function redactSecrets(
   message: string,
   secrets: Array<string | undefined | null>
@@ -136,37 +107,18 @@ export function redactSecrets(
 }
 
 export function resolveCpcbConfig(
-  env: Record<string, string | undefined> | undefined =
-    typeof process !== 'undefined' ? process.env : undefined
+  _env?: Record<string, string | undefined>
 ): CpcbRuntimeConfig {
-  if (!env) {
+  if (!MAUSAM_RUNTIME_CONFIG.directCpcbEnabled) {
     return {
       enabled: false,
-      reason: 'CPCB credentials are server-side only; using public-domain Open-Meteo Air Quality proxy.',
-    };
-  }
-
-  const apiKey = (env.CPCB_API_KEY || '').trim() || undefined;
-  if (!apiKey) {
-    return {
-      enabled: false,
-      reason: 'CPCB_API_KEY is not configured; using public-domain Open-Meteo Air Quality proxy.',
-    };
-  }
-
-  const rawBaseUrl = (env.CPCB_BASE_URL || 'https://app.cpcbccr.com/caaqms').trim();
-  const baseUrl = validatePublicHttpsUrl(rawBaseUrl);
-  if (!baseUrl) {
-    return {
-      enabled: false,
-      reason: 'CPCB_BASE_URL must be a valid public HTTPS endpoint; switching to Open-Meteo Air Quality proxy.',
+      reason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
     };
   }
 
   return {
-    enabled: true,
-    baseUrl,
-    apiKey,
+    enabled: false,
+    reason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
   };
 }
 
@@ -270,7 +222,7 @@ export class OfficialTelemetryGateway {
     const nowMs = nowFn();
     const retrievedAt = new Date(nowMs).toISOString();
     const fetchFn = options?.deps?.fetchImpl ?? fetch;
-    const env = options?.deps?.env ?? (typeof process !== 'undefined' ? process.env : undefined);
+    const env = options?.deps?.env;
 
     const sources: DataSourceContext[] = [];
     const imdConfig = resolveImdConfig(env);
@@ -282,9 +234,7 @@ export class OfficialTelemetryGateway {
 
     if (!imdConfig.enabled || !imdConfig.baseUrl) {
       fallbackReason = 'UNCONFIGURED';
-      primaryDetails =
-        imdConfig.reason ||
-        'Official IMD endpoint is not configured; automatically using public-domain Open-Meteo proxy.';
+      primaryDetails = imdConfig.reason || OPTIONAL_INTEGRATION_DISABLED_MESSAGE;
       sources.push({
         provider: 'India Meteorological Department (IMD)',
         status: 'UNAVAILABLE',
@@ -456,7 +406,7 @@ export class OfficialTelemetryGateway {
     const nowMs = nowFn();
     const retrievedAt = new Date(nowMs).toISOString();
     const fetchFn = options?.deps?.fetchImpl ?? fetch;
-    const env = options?.deps?.env ?? (typeof process !== 'undefined' ? process.env : undefined);
+    const env = options?.deps?.env;
 
     const sources: DataSourceContext[] = [];
     const cpcbConfig = resolveCpcbConfig(env);
@@ -467,9 +417,7 @@ export class OfficialTelemetryGateway {
 
     if (!cpcbConfig.enabled || !cpcbConfig.baseUrl || !cpcbConfig.apiKey) {
       fallbackReason = 'UNCONFIGURED';
-      primaryDetails =
-        cpcbConfig.reason ||
-        'CPCB_API_KEY is not configured; using public-domain Open-Meteo Air Quality proxy.';
+      primaryDetails = cpcbConfig.reason || OPTIONAL_INTEGRATION_DISABLED_MESSAGE;
       sources.push({
         provider: 'Central Pollution Control Board (CPCB / CAAQMS)',
         status: 'UNAVAILABLE',

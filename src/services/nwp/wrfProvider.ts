@@ -3,15 +3,15 @@
 // WRF Provider - Mesoscale Numerical Weather Prediction Adapter
 //
 // Rules enforced:
-// 1. Treats WRF strictly as a high-resolution regional NWP system.
-// 2. Requires verified IMD WRF endpoint/credentials to claim live operational data.
-// 3. If unconfigured or unavailable, clearly returns 'UNAVAILABLE' with exact reason.
+// 1. Treats WRF strictly as an optional high-resolution regional NWP system.
+// 2. Disabled by default via MAUSAM_RUNTIME_CONFIG.wrfDirectEnabled (keyless mode).
+// 3. Clearly returns 'UNAVAILABLE' with honest disabled message when disabled.
 // 4. NEVER substitutes GFS/Open-Meteo as fake WRF.
-// 5. NEVER claims 'IMD WRF 3 km' without verified configuration.
+// 5. NEVER reads optional environment secrets or browser-stored API tokens.
 // ====================================================================
 
 import { NWPModelRun } from '../../types/nwp';
-import { safeStorageGet } from '../../utils/safeStorage';
+import { MAUSAM_RUNTIME_CONFIG, OPTIONAL_INTEGRATION_DISABLED_MESSAGE } from '../../../lib/providers/ai';
 
 export interface NWPProvider {
   getLatestRun(latitude: number, longitude: number, signal?: AbortSignal): Promise<NWPModelRun>;
@@ -20,29 +20,10 @@ export interface NWPProvider {
 export class WRFProvider implements NWPProvider {
   public readonly name = 'IMD WRF Mesoscale NWP Provider';
 
-  private getWrfConfig(): { url: string; token: string } | null {
-    const storedUrl = safeStorageGet('local', 'mausam_imd_wrf_url');
-    const storedToken = safeStorageGet('local', 'mausam_imd_wrf_token');
-    if (storedUrl && storedUrl.trim().length > 0) {
-      return { url: storedUrl.trim(), token: storedToken?.trim() || '' };
-    }
-
-    if (typeof process !== 'undefined' && process.env) {
-      const envUrl = process.env.IMD_WRF_API_URL;
-      const envToken = process.env.IMD_API_TOKEN;
-      if (envUrl && envUrl.trim().length > 0) {
-        return { url: envUrl.trim(), token: envToken?.trim() || '' };
-      }
-    }
-
-    return null;
-  }
-
-  public async getLatestRun(latitude: number, longitude: number, signal?: AbortSignal): Promise<NWPModelRun> {
+  public async getLatestRun(_latitude: number, _longitude: number, _signal?: AbortSignal): Promise<NWPModelRun> {
     const nowIso = new Date().toISOString();
-    const config = this.getWrfConfig();
 
-    if (!config) {
+    if (!MAUSAM_RUNTIME_CONFIG.wrfDirectEnabled) {
       return {
         model: 'WRF',
         provider: 'India Meteorological Department (IMD) / NCMRWF',
@@ -55,50 +36,26 @@ export class WRFProvider implements NWPProvider {
         source: 'IMD Numerical Weather Prediction Division (ARW Core)',
         fetchedAt: nowIso,
         points: [],
-        unavailableReason:
-          'Live IMD WRF operational output requires an authorized IMD data-access configuration. MAUSAM does not fabricate WRF values when the source is unavailable.',
+        unavailableReason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       };
     }
 
-    try {
-      const endpoint = `${config.url}/forecast?lat=${latitude}&lon=${longitude}`;
-      const headers: Record<string, string> = {
-        Accept: 'application/json',
-        'User-Agent': 'Mausam-Atmospheric-Platform/3.0',
-      };
-      if (config.token) {
-        headers['Authorization'] = `Bearer ${config.token}`;
-      }
-
-      const res = await fetch(endpoint, {
-        method: 'GET',
-        headers,
-        signal,
-      });
-
-      if (!res.ok) {
-        throw new Error(`IMD WRF gateway returned HTTP ${res.status}`);
-      }
-
-      const raw = await res.json();
-      return raw as NWPModelRun;
-    } catch (err: any) {
-      if (err.name === 'AbortError') throw err;
-      return {
-        model: 'WRF',
-        provider: 'India Meteorological Department (IMD) / NCMRWF',
-        runTime: '',
-        validFrom: '',
-        validUntil: '',
-        resolution: 'Configured up to 3 km (Regional Mesoscale Grid)',
-        status: 'UNAVAILABLE',
-        source: 'IMD HPC Gateway',
-        fetchedAt: nowIso,
-        points: [],
-        unavailableReason: `WRF source unavailable: ${err.message || 'Connection failure'}`,
-      };
-    }
+    return {
+      model: 'WRF',
+      provider: 'India Meteorological Department (IMD) / NCMRWF',
+      runTime: '',
+      validFrom: '',
+      validUntil: '',
+      resolution: 'Configured up to 3 km (Regional Mesoscale Grid)',
+      forecastHours: 72,
+      status: 'UNAVAILABLE',
+      source: 'IMD HPC Gateway',
+      fetchedAt: nowIso,
+      points: [],
+      unavailableReason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+    };
   }
 }
 
 export const wrfProvider = new WRFProvider();
+

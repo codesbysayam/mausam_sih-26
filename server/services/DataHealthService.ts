@@ -3,7 +3,12 @@
 // Data Health & Source Transparency Service
 // ====================================================================
 
-export type HealthStatus = 'OPERATIONAL' | 'DEGRADED' | 'UNAVAILABLE' | 'NOT_CONFIGURED';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
+
+export type HealthStatus = 'OPERATIONAL' | 'DEGRADED' | 'UNAVAILABLE' | 'NOT_CONFIGURED' | 'DISABLED';
 
 export interface SourceHealthRecord {
   code: string;
@@ -11,7 +16,9 @@ export interface SourceHealthRecord {
   category: 'GOVERNMENT' | 'COMMERCIAL' | 'OPEN_DATA';
   status: HealthStatus;
   isConfigured: boolean;
+  optional?: boolean;
   requiredKey: string | null;
+  message?: string | null;
   lastSuccess: string | null;
   lastFailure: string | null;
   lastLatencyMs: number | null;
@@ -39,19 +46,15 @@ export class DataHealthService {
   }
 
   private initializeSources(): void {
-    const imdKey = process.env.IMD_API_KEY || process.env.IMD_API_TOKEN;
-    const accuKey = process.env.ACCUWEATHER_API_KEY;
-    const googleKey = process.env.GOOGLE_WEATHER_API_KEY;
-    const cpcbKey = process.env.CPCB_API_KEY;
-    const incoisKey = process.env.INCOIS_API_KEY;
-
     this.registerSource({
       code: 'IMD',
       name: 'India Meteorological Department',
       category: 'GOVERNMENT',
-      requiredKey: 'IMD_API_KEY',
-      isConfigured: !!imdKey,
-      status: imdKey ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      requiredKey: null,
+      optional: true,
+      isConfigured: MAUSAM_RUNTIME_CONFIG.officialImdEnabled,
+      status: 'DISABLED',
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attributionText: 'Official data courtesy of India Meteorological Department (IMD), Ministry of Earth Sciences.',
     });
 
@@ -60,8 +63,9 @@ export class DataHealthService {
       name: 'Open-Meteo Weather API',
       category: 'OPEN_DATA',
       requiredKey: null,
+      optional: false,
       isConfigured: true,
-      status: 'OPERATIONAL', // Verified free baseline
+      status: 'OPERATIONAL',
       attributionText: 'Weather data by Open-Meteo.com under Attribution 4.0 International (CC BY 4.0).',
     });
 
@@ -70,6 +74,7 @@ export class DataHealthService {
       name: 'NDMA / SACHET Disaster Alert Feed',
       category: 'GOVERNMENT',
       requiredKey: null,
+      optional: false,
       isConfigured: true,
       status: 'OPERATIONAL',
       attributionText: 'CAP alert feeds courtesy of National Disaster Management Authority (NDMA) & State SDMAs.',
@@ -79,9 +84,11 @@ export class DataHealthService {
       code: 'CPCB',
       name: 'Central Pollution Control Board',
       category: 'GOVERNMENT',
-      requiredKey: 'CPCB_API_KEY',
-      isConfigured: !!cpcbKey,
-      status: cpcbKey ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      requiredKey: null,
+      optional: true,
+      isConfigured: MAUSAM_RUNTIME_CONFIG.directCpcbEnabled,
+      status: 'DISABLED',
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attributionText: 'CPCB National Air Quality Index (NAQI) Real-Time Telemetry.',
     });
 
@@ -89,9 +96,11 @@ export class DataHealthService {
       code: 'INCOIS',
       name: 'Indian National Centre for Ocean Information Services',
       category: 'GOVERNMENT',
-      requiredKey: 'INCOIS_API_KEY',
-      isConfigured: !!incoisKey,
-      status: incoisKey ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      requiredKey: null,
+      optional: true,
+      isConfigured: MAUSAM_RUNTIME_CONFIG.directIncoisEnabled,
+      status: 'DISABLED',
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attributionText: 'Ocean state forecast and high wave alerts courtesy of INCOIS, MoES.',
     });
 
@@ -99,9 +108,11 @@ export class DataHealthService {
       code: 'ACCUWEATHER',
       name: 'AccuWeather Core Weather API',
       category: 'COMMERCIAL',
-      requiredKey: 'ACCUWEATHER_API_KEY',
-      isConfigured: !!accuKey,
-      status: accuKey ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      requiredKey: null,
+      optional: true,
+      isConfigured: MAUSAM_RUNTIME_CONFIG.accuweatherEnabled,
+      status: 'DISABLED',
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attributionText: 'Weather data provided by AccuWeather, Inc. Subject to trial/subscription terms.',
     });
 
@@ -109,9 +120,11 @@ export class DataHealthService {
       code: 'GOOGLE_WEATHER',
       name: 'Google Weather API',
       category: 'COMMERCIAL',
-      requiredKey: 'GOOGLE_WEATHER_API_KEY',
-      isConfigured: !!googleKey,
-      status: googleKey ? 'OPERATIONAL' : 'NOT_CONFIGURED',
+      requiredKey: null,
+      optional: true,
+      isConfigured: MAUSAM_RUNTIME_CONFIG.googleWeatherEnabled,
+      status: 'DISABLED',
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attributionText: 'Weather data provided by Google Maps Platform Weather SKU.',
     });
   }
@@ -121,9 +134,11 @@ export class DataHealthService {
       code: def.code,
       name: def.name,
       category: def.category,
-      status: def.status || (def.isConfigured ? 'OPERATIONAL' : 'NOT_CONFIGURED'),
+      status: def.status || (def.isConfigured ? 'OPERATIONAL' : 'DISABLED'),
       isConfigured: !!def.isConfigured,
-      requiredKey: def.requiredKey || null,
+      optional: def.optional ?? !def.isConfigured,
+      requiredKey: null,
+      message: def.message ?? null,
       lastSuccess: null,
       lastFailure: null,
       lastLatencyMs: null,
@@ -154,15 +169,19 @@ export class DataHealthService {
     const s = this.sources.get(sourceCode);
     if (!s) return;
 
+    // Intentionally disabled optional providers are never marked as failed
+    if (s.optional && !s.isConfigured) {
+      s.status = 'DISABLED';
+      s.lastErrorMessage = null;
+      return;
+    }
+
     s.lastFailure = new Date().toISOString();
     s.lastHttpStatus = httpStatus;
     s.consecutiveFailures += 1;
     s.lastErrorMessage = errorMessage;
 
-    // If never configured, remain NOT_CONFIGURED
-    if (s.requiredKey && !s.isConfigured) {
-      s.status = 'NOT_CONFIGURED';
-    } else if (s.consecutiveFailures >= 3) {
+    if (s.consecutiveFailures >= 3) {
       s.status = 'UNAVAILABLE';
     } else {
       s.status = 'DEGRADED';
@@ -187,7 +206,7 @@ export class DataHealthService {
     const all = this.getAllSources();
     const operational = all.filter((s) => s.status === 'OPERATIONAL').length;
     const degraded = all.filter((s) => s.status === 'DEGRADED').length;
-    const notConfigured = all.filter((s) => s.status === 'NOT_CONFIGURED').length;
+    const notConfigured = all.filter((s) => s.status === 'NOT_CONFIGURED' || s.status === 'DISABLED').length;
     const unavailable = all.filter((s) => s.status === 'UNAVAILABLE').length;
 
     return {

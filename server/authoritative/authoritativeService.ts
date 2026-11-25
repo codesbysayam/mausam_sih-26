@@ -9,6 +9,8 @@
  * Zero fabricated weather numbers: missing upstream fields remain null.
  */
 
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
+
 export interface AuthoritativeAQI {
   source: string;
   stationName: string;
@@ -232,37 +234,8 @@ export class AuthoritativeService {
     lat: number,
     lng: number,
     stationName: string,
-    city: string
+    _city: string
   ): Promise<AuthoritativeAQI> {
-    const cpcbKey = process.env.CPCB_API_KEY;
-
-    if (cpcbKey) {
-      try {
-        const cpcbUrl = `https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69?api-key=${cpcbKey}&format=json&filters[city]=${encodeURIComponent(city)}&limit=1`;
-        const res = await fetch(cpcbUrl, {
-          signal: AbortSignal.timeout(6000),
-          headers: { 'User-Agent': 'aistudio-build' },
-        });
-        if (res.ok) {
-          const json = await res.json();
-          const record = json.records?.[0];
-          const rawAqi = record?.pollutant_avg ? Number(record.pollutant_avg) : NaN;
-          if (Number.isFinite(rawAqi)) {
-            return this.buildAQIObject(
-              Math.round(rawAqi),
-              record.pollutant_id || 'PM2.5',
-              record.station || stationName,
-              'CPCB (Central Pollution Control Board)',
-              true,
-              { pm25: null, pm10: null, no2: null, so2: null, co: null, o3: null }
-            );
-          }
-        }
-      } catch (err) {
-        console.warn('[AuthoritativeService] CPCB API query failed:', err);
-      }
-    }
-
     try {
       const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi,us_aqi,dust&timezone=auto`;
       const res = await fetch(airUrl, {
@@ -524,116 +497,28 @@ export class AuthoritativeService {
   }
 
   /**
-   * Fetch Tide data strictly via WorldTides when configured (no fabricated IMD tidal forecasts)
+   * Optional commercial tide integration is disabled in keyless mode.
    */
-  static async fetchTideData(lat: number, lng: number, stationName: string, isCoastal: boolean): Promise<AuthoritativeTide | null> {
-    if (!isCoastal) return null;
-
-    const worldTidesKey = process.env.WORLDTIDES_KEY;
-    if (!worldTidesKey) return null;
-
-    const today = new Date().toISOString().slice(0, 10);
-    try {
-      const tideUrl = `https://www.worldtides.info/api/v3?heights&extremes&date=${today}&days=2&lat=${lat}&lon=${lng}&key=${worldTidesKey}`;
-      const res = await fetch(tideUrl, {
-        signal: AbortSignal.timeout(6000),
-        headers: { 'User-Agent': 'aistudio-build' },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const extremes = json.extremes || [];
-        const highTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('high'));
-        const lowTides = extremes.filter((e: any) => (e.type || '').toLowerCase().includes('low'));
-        const nextHigh = highTides[0];
-        const nextLow = lowTides[0];
-        if (!nextHigh || !nextLow) return null;
-
-        const formatTideTime = (epochSeconds: number) =>
-          new Intl.DateTimeFormat('en-IN', {
-            timeZone: 'Asia/Kolkata',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-          }).format(new Date(epochSeconds * 1000));
-
-        const curHeight = numOrNull(json.heights?.[0]?.height) ?? Number(nextHigh.height) ?? 0;
-
-        return {
-          source: 'WorldTides Global Tidal Ephemeris',
-          isCoastal: true,
-          stationName,
-          nextHighTide: {
-            time: formatTideTime(nextHigh.dt),
-            heightMeters: Math.round(Number(nextHigh.height) * 10) / 10,
-          },
-          nextLowTide: {
-            time: formatTideTime(nextLow.dt),
-            heightMeters: Math.round(Number(nextLow.height) * 10) / 10,
-          },
-          upcomingExtremes: extremes.slice(0, 4).map((e: any) => ({
-            time: formatTideTime(e.dt),
-            type: (e.type || '').toLowerCase().includes('high') ? 'High' : 'Low',
-            heightMeters: Math.round(Number(e.height) * 10) / 10,
-          })),
-          currentWaterLevelMeters: Math.round(curHeight * 10) / 10,
-          lastUpdated: new Date().toISOString(),
-        };
-      }
-    } catch (err) {
-      console.warn('[AuthoritativeService] WorldTides API query failed:', err);
+  static async fetchTideData(_lat: number, _lng: number, _stationName: string, _isCoastal: boolean): Promise<AuthoritativeTide | null> {
+    if (!MAUSAM_RUNTIME_CONFIG.worldTidesEnabled) {
+      return null;
     }
-
     return null;
   }
 
   /**
-   * Fetch Severe Weather Alerts via Azure Maps when configured (never emit fake IMD warnings)
+   * Optional commercial severe alerts integration is disabled in keyless mode.
    */
   static async fetchSevereAlerts(
-    lat: number,
-    lng: number,
-    district: string,
-    state: string
+    _lat: number,
+    _lng: number,
+    _district: string,
+    _state: string
   ): Promise<AuthoritativeAlert[]> {
-    const azureKey = process.env.AZURE_MAPS_KEY;
-    const alerts: AuthoritativeAlert[] = [];
-
-    if (azureKey) {
-      try {
-        const azureUrl = `https://atlas.microsoft.com/weather/severe/alerts/json?api-version=1.1&query=${lat},${lng}&subscription-key=${azureKey}`;
-        const res = await fetch(azureUrl, {
-          signal: AbortSignal.timeout(6000),
-          headers: { 'User-Agent': 'aistudio-build' },
-        });
-        if (res.ok) {
-          const json = await res.json();
-          const results = json.results || [];
-          for (const item of results) {
-            alerts.push({
-              id: item.id || `az-${Date.now()}`,
-              source: 'Azure Maps Severe Weather Service',
-              title: item.alertText || 'Severe Weather Warning',
-              severity: (item.severity || '').toLowerCase().includes('severe') ? 'Severe' : 'Warning',
-              category: (item.category || '').toLowerCase().includes('heat')
-                ? 'Heatwave'
-                : (item.category || '').toLowerCase().includes('rain')
-                ? 'Heavy Rain'
-                : 'General',
-              description: item.description?.text || item.summary || 'Official meteorological advisory in effect.',
-              affectedArea: item.areaDescription || `${district}, ${state}`,
-              effectiveFrom: item.startTime || new Date().toISOString(),
-              expiresAt: item.endTime || new Date(Date.now() + 86400000).toISOString(),
-              actionItem: item.instruction || 'Monitor local official bulletins.',
-              color: '#EF4444',
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('[AuthoritativeService] Azure Maps alerts fetch failed:', err);
-      }
+    if (!MAUSAM_RUNTIME_CONFIG.azureMapsEnabled) {
+      return [];
     }
-
-    return alerts;
+    return [];
   }
 
   /**

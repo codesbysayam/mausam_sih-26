@@ -13,27 +13,8 @@ import { parseCoordinates } from '../shared/weatherContract';
 export const imdProxyRouter = Router();
 
 // Logging helper (Rule 24: log only specified tags, never credentials)
-function logIMD(event: 'started' | 'success' | 'failed' | 'hit' | 'expired', detail?: string) {
-  if (process.env.IMD_ENABLE_LOGGING === 'true') {
-    const timestamp = new Date().toISOString();
-    switch (event) {
-      case 'started':
-        console.log(`[IMD] Request started: ${detail || ''} (${timestamp})`);
-        break;
-      case 'success':
-        console.log(`[IMD] Request successful: ${detail || ''} (${timestamp})`);
-        break;
-      case 'failed':
-        console.log(`[IMD] Request failed: ${detail || ''} (${timestamp})`);
-        break;
-      case 'hit':
-        console.log(`[IMD] Cache hit: ${detail || ''} (${timestamp})`);
-        break;
-      case 'expired':
-        console.log(`[IMD] Cache expired: ${detail || ''} (${timestamp})`);
-        break;
-    }
-  }
+function logIMD(_event: 'started' | 'success' | 'failed' | 'hit' | 'expired', _detail?: string) {
+  // Optional direct IMD proxy is disabled in keyless mode.
 }
 
 // 1. Direct pass-through proxy with caching & error classification

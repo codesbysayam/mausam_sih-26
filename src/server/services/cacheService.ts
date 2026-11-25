@@ -6,6 +6,8 @@
 // single-flight deduplication and stale-on-error preservation.
 // ====================================================================
 
+import { MAUSAM_RUNTIME_CONFIG } from '../../../lib/providers/ai';
+
 export type CacheBackendMode = 'REDIS_REST' | 'IN_MEMORY_DEGRADED';
 export type CacheReadStatus = 'HIT' | 'STALE' | 'MISS';
 
@@ -74,17 +76,11 @@ interface RedisRestConfig {
   token: string;
 }
 
-function resolveRedisRestConfig(env: NodeJS.ProcessEnv = process.env): RedisRestConfig | null {
-  const url = (env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || '').trim().replace(/\/+$/, '');
-  const token = (env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || '').trim();
-  if (!url || !token) return null;
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
-    return { url, token };
-  } catch {
+function resolveRedisRestConfig(_env?: NodeJS.ProcessEnv): RedisRestConfig | null {
+  if (!MAUSAM_RUNTIME_CONFIG.redisEnabled) {
     return null;
   }
+  return null;
 }
 
 export class CacheService {
@@ -104,7 +100,7 @@ export class CacheService {
     fetchImpl?: typeof fetch;
   }) {
     this.maxEntries = options?.maxEntries ?? 300;
-    this.redisConfig = resolveRedisRestConfig(options?.env ?? process.env);
+    this.redisConfig = resolveRedisRestConfig(options?.env);
     this.fetchImpl = options?.fetchImpl ?? fetch;
   }
 

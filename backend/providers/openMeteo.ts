@@ -15,7 +15,7 @@ import { WeatherNormalizer } from '../normalization/weatherNormalizer';
 export class OpenMeteoProvider {
   public static readonly providerName = 'Open-Meteo Weather API';
   public readonly name = 'Open-Meteo Weather API';
-  private static endpoint = process.env.OPEN_METEO_ENDPOINT || 'https://api.open-meteo.com/v1';
+  private static endpoint = 'https://api.open-meteo.com/v1';
 
   public static isConfigured(): boolean {
     return true; // Free open meteorological API, always configured

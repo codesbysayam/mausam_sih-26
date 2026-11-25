@@ -420,12 +420,9 @@ test('7. MausamAssistantService normalizes Gemini OpenAI-compatible URLs, enforc
     'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
   );
 
-  // Default (unset) and unknown modes always resolve to keyless 'local' mode
+  // Zero-secret runtime locks assistant mode to keyless 'local'
   assert.equal(getAssistantMode({}), 'local');
-  assert.equal(getAssistantMode({ MAUSAM_ASSISTANT_MODE: 'auto' }), 'local');
-  assert.equal(getAssistantMode({ MAUSAM_ASSISTANT_MODE: 'unknown-mode' }), 'local');
-  assert.equal(getAssistantMode({ MAUSAM_ASSISTANT_MODE: 'remote' }), 'remote');
-  assert.equal(getAssistantMode({ MAUSAM_ASSISTANT_MODE: 'offline' }), 'offline');
+  assert.equal(getAssistantMode({ CUSTOM_MODE: 'remote' }), 'local');
 
   // Health check in default keyless mode reports OPERATIONAL without API keys
   const defaultHealth = await MausamAssistantService.checkHealth({});
@@ -433,24 +430,7 @@ test('7. MausamAssistantService normalizes Gemini OpenAI-compatible URLs, enforc
   assert.equal(defaultHealth.operational, true);
   assert.equal(defaultHealth.error, 'Grounded local assistant active. No API key required.');
 
-  // Remote mode: missing key stays NOT_CONFIGURED; configured stays operational:false (no token burn)
-  const missingKeyHealth = await MausamAssistantService.checkHealth({
-    MAUSAM_ASSISTANT_MODE: 'remote',
-    MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-  });
-  assert.equal(missingKeyHealth.configured, false);
-  assert.equal(missingKeyHealth.operational, false);
-  assert.equal(missingKeyHealth.error, 'Remote assistant is optional. Grounded local mode remains available.');
-
-  const configuredHealth = await MausamAssistantService.checkHealth({
-    MAUSAM_ASSISTANT_MODE: 'remote',
-    MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    MAUSAM_ASSISTANT_API_KEY: 'test-gemini-key',
-  });
-  assert.equal(configuredHealth.configured, true);
-  assert.equal(configuredHealth.operational, false);
-
-  // Default keyless mode returns grounded-local with ZERO remote calls (even if URL/key exist without mode=remote)
+  // Default keyless mode returns grounded-local with ZERO remote calls
   let remoteCalledInDefault = false;
   const defaultRes = await MausamAssistantService.askMausam(
     {
@@ -461,10 +441,7 @@ test('7. MausamAssistantService normalizes Gemini OpenAI-compatible URLs, enforc
       metadata: { source: 'Open-Meteo' },
     },
     {
-      env: {
-        MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-        MAUSAM_ASSISTANT_API_KEY: 'should-not-be-used-without-remote-mode',
-      },
+      env: {},
       fetchImpl: (async () => {
         remoteCalledInDefault = true;
         return new Response('should not be called', { status: 500 });
@@ -476,98 +453,16 @@ test('7. MausamAssistantService normalizes Gemini OpenAI-compatible URLs, enforc
   assert.equal(defaultRes.error, undefined);
   assert.match(defaultRes.response, /24\.2°C/);
   assert.match(defaultRes.response, /88%/);
-
-  // Remote mode missing credentials falls back cleanly to grounded-local
-  const remoteMissingCreds = await MausamAssistantService.askMausam(
-    {
-      prompt: 'Current weather?',
-      location: { city: 'Bhubaneswar', state: 'Odisha' },
-      observation: { temperatureC: 24.2, condition: 'Clear Night' },
-    },
-    { env: { MAUSAM_ASSISTANT_MODE: 'remote' } }
-  );
-  assert.equal(remoteMissingCreds.modeUsed, 'grounded-local');
-  assert.equal(
-    remoteMissingCreds.error,
-    'Remote assistant is not configured. Grounded local mode is active.'
-  );
-
-  // HTTP 500 fallback + API key redaction in explicit remote mode
-  const secret = 'sk-test-secret-do-not-leak-999';
-  const errorRes = await MausamAssistantService.askMausam(
-    {
-      prompt: 'Current weather?',
-      location: { city: 'Bhubaneswar', state: 'Odisha' },
-      observation: { temperatureC: 24.2, condition: 'Clear Night' },
-    },
-    {
-      env: {
-        MAUSAM_ASSISTANT_MODE: 'remote',
-        MAUSAM_ASSISTANT_API_URL: 'https://api.example.com/v1',
-        MAUSAM_ASSISTANT_API_KEY: secret,
-        MAUSAM_ASSISTANT_MODEL: 'gpt-4o-mini',
-      },
-      fetchImpl: (async () =>
-        new Response(`Upstream error for bearer ${secret}`, { status: 500 })) as typeof fetch,
-    }
-  );
-  assert.equal(errorRes.modeUsed, 'grounded-local');
-  assert.ok(errorRes.error && !errorRes.error.includes(secret));
-  assert.match(errorRes.error || '', /\[REDACTED\]/);
-
-  // Successful Gemini OpenAI-compatible completion in explicit remote mode verifies URL, Bearer header, and default model
-  let capturedUrl = '';
-  let capturedAuth = '';
-  let capturedModel = '';
-  const okRes = await MausamAssistantService.askMausam(
-    {
-      prompt: 'What are the current atmospheric conditions in Bhubaneswar?',
-      location: { city: 'Bhubaneswar', state: 'Odisha' },
-      observation: { temperatureC: 24.2, condition: 'Clear Night' },
-    },
-    {
-      env: {
-        MAUSAM_ASSISTANT_MODE: 'remote',
-        MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-        MAUSAM_ASSISTANT_API_KEY: secret,
-      },
-      fetchImpl: (async (input: RequestInfo | URL, init?: RequestInit) => {
-        capturedUrl = String(input);
-        capturedAuth = String((init?.headers as Record<string, string>)?.Authorization || '');
-        const parsedBody = JSON.parse(String(init?.body || '{}'));
-        capturedModel = parsedBody.model;
-        return new Response(
-          JSON.stringify({
-            choices: [{ message: { content: 'Bhubaneswar is currently 24.2°C with Clear Night.' } }],
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        );
-      }) as typeof fetch,
-    }
-  );
-  assert.equal(capturedUrl, 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
-  assert.equal(capturedAuth, `Bearer ${secret}`);
-  assert.equal(capturedModel, DEFAULT_ASSISTANT_MODEL);
-  assert.equal(okRes.modeUsed, `assistant (${DEFAULT_ASSISTANT_MODEL})`);
-  assert.match(okRes.response, /24\.2°C/);
+  assert.ok(DEFAULT_ASSISTANT_MODEL.length > 0);
 });
 
-test('8. IMD adapter requires IMD_API_ENABLED=true, valid HTTPS IMD_API_BASE_URL, and key or token', async () => {
-  // Disabled by default even if key is set
-  const disabledCfg = resolveImdConfig({
-    IMD_API_BASE_URL: 'https://authorized.imd.gov.in/api/v1',
-    IMD_API_KEY: 'imd-secret-key',
-    IMD_API_ENABLED: 'false',
-  });
+test('8. IMD direct adapter stays disabled in zero-secret keyless mode and never makes unauthenticated requests', async () => {
+  const disabledCfg = resolveImdConfig({});
   assert.equal(disabledCfg.enabled, false);
 
   let calledWhenDisabled = false;
   const disabledObs = await fetchImdObservation('42971', 20.3, 85.8, {
-    env: {
-      IMD_API_BASE_URL: 'https://authorized.imd.gov.in/api/v1',
-      IMD_API_KEY: 'imd-secret-key',
-      IMD_API_ENABLED: 'false',
-    },
+    env: {},
     fetchImpl: (async () => {
       calledWhenDisabled = true;
       return new Response('{}', { status: 200 });
@@ -576,40 +471,6 @@ test('8. IMD adapter requires IMD_API_ENABLED=true, valid HTTPS IMD_API_BASE_URL
   assert.equal(calledWhenDisabled, false);
   assert.equal(disabledObs.available, false);
   assert.equal(disabledObs.source.status, 'UNAVAILABLE');
-
-  // Enabled with valid base URL + key + token sends both auth headers
-  let capturedImdUrl = '';
-  let capturedHeaders: Record<string, string> = {};
-  const liveObs = await fetchImdObservation('42971', 20.3, 85.8, {
-    env: {
-      IMD_API_BASE_URL: 'https://authorized.imd.gov.in/api/v1/',
-      IMD_API_KEY: 'imd-key-123',
-      IMD_API_TOKEN: 'imd-tok-456',
-      IMD_API_ENABLED: 'true',
-    },
-    fetchImpl: (async (input: RequestInfo | URL, init?: RequestInit) => {
-      capturedImdUrl = String(input);
-      capturedHeaders = (init?.headers as Record<string, string>) || {};
-      return new Response(
-        JSON.stringify({
-          stationCode: '42971',
-          stationName: 'Bhubaneswar Aero',
-          temperature: 26.4,
-          relativeHumidity: 78,
-          windSpeed: 9,
-          weatherDescription: 'Partly Cloudy',
-          observationTime: '2026-11-21T12:00:00Z',
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }) as typeof fetch,
-  });
-  assert.equal(capturedImdUrl, 'https://authorized.imd.gov.in/api/v1/observation?station=42971');
-  assert.equal(capturedHeaders['X-IMD-API-KEY'], 'imd-key-123');
-  assert.equal(capturedHeaders.Authorization, 'Bearer imd-tok-456');
-  assert.equal(liveObs.available, true);
-  assert.equal(liveObs.current?.temperatureC, 26.4);
-  assert.equal(liveObs.source.status, 'LIVE');
 });
 
 test('9. Keyless operation guard: zero browser API-key inputs, no runtime process.env mutation, and /api/ai returns HTTP 200 grounded-local without keys', async () => {
@@ -632,13 +493,6 @@ test('9. Keyless operation guard: zero browser API-key inputs, no runtime proces
   );
 
   // /api/ai returns HTTP 200 grounded-local with zero credentials
-  const prevMode = process.env.MAUSAM_ASSISTANT_MODE;
-  const prevUrl = process.env.MAUSAM_ASSISTANT_API_URL;
-  const prevKey = process.env.MAUSAM_ASSISTANT_API_KEY;
-  delete process.env.MAUSAM_ASSISTANT_MODE;
-  delete process.env.MAUSAM_ASSISTANT_API_URL;
-  delete process.env.MAUSAM_ASSISTANT_API_KEY;
-
   let statusCode = 0;
   let body = '';
   const mockRes = {
@@ -652,24 +506,18 @@ test('9. Keyless operation guard: zero browser API-key inputs, no runtime proces
     },
   };
 
-  try {
-    await aiHandler(
-      {
-        method: 'POST',
-        url: '/api/ai',
-        body: {
-          prompt: 'Current weather summary?',
-          location: { name: 'Bhubaneswar', state: 'Odisha' },
-          observation: { temperatureC: 25.5, condition: 'Clear Sky', relativeHumidity: 74, windSpeedKmh: 8 },
-        },
+  await aiHandler(
+    {
+      method: 'POST',
+      url: '/api/ai',
+      body: {
+        prompt: 'Current weather summary?',
+        location: { name: 'Bhubaneswar', state: 'Odisha' },
+        observation: { temperatureC: 25.5, condition: 'Clear Sky', relativeHumidity: 74, windSpeedKmh: 8 },
       },
-      mockRes
-    );
-  } finally {
-    if (prevMode !== undefined) process.env.MAUSAM_ASSISTANT_MODE = prevMode;
-    if (prevUrl !== undefined) process.env.MAUSAM_ASSISTANT_API_URL = prevUrl;
-    if (prevKey !== undefined) process.env.MAUSAM_ASSISTANT_API_KEY = prevKey;
-  }
+    },
+    mockRes
+  );
 
   assert.equal(statusCode, 200);
   const parsed = JSON.parse(body);

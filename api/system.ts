@@ -18,7 +18,10 @@
 // 6. Live diagnostics ALWAYS emit Cache-Control: no-store headers.
 // ====================================================================
 
-import { getAssistantEndpoint } from '../lib/providers/ai';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../lib/providers/ai';
 
 export const APP_BUILD_ID = process.env.APP_BUILD_ID || 'MAUSAM-V1.5.0-20261121';
 export const GIT_COMMIT_SHA =
@@ -32,6 +35,7 @@ export type GatewayProviderStatus =
   | 'DEGRADED'
   | 'OFFLINE'
   | 'NOT_CONFIGURED'
+  | 'DISABLED'
   | 'UNAVAILABLE'
   | 'NOT_REPORTED';
 
@@ -42,6 +46,7 @@ export interface ProviderDiagnostic {
   category: 'OPEN_DATA' | 'GOVERNMENT' | 'COMMERCIAL' | 'ASSISTANT' | 'AI_ASSISTANT';
   role: string;
   core: boolean;
+  optional?: boolean;
   requiredKey: string | null;
   configured: boolean;
   operational: boolean;
@@ -55,6 +60,7 @@ export interface ProviderDiagnostic {
   endpoint: string;
   error: string | null;
   reason: string | null;
+  message?: string | null;
   attribution: string;
 }
 
@@ -73,7 +79,7 @@ export interface GatewayCacheTelemetry {
   reported: boolean;
   configured: boolean;
   connected: boolean;
-  provider: 'UPSTASH_REDIS' | 'VERCEL_KV' | 'NOT_REPORTED';
+  provider: 'UPSTASH_REDIS' | 'VERCEL_KV' | 'IN_MEMORY' | 'NOT_REPORTED';
   latencyMs: number | null;
   hits: number | null;
   misses: number | null;
@@ -416,37 +422,15 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     category: 'GOVERNMENT',
     role: 'Optional Authenticated IMD Surface Feed',
     core: false,
-    requiredKey: 'IMD_API_KEY',
-    publicEndpoint: 'Configured via IMD_API_BASE_URL',
+    requiredKey: null,
+    publicEndpoint: 'Optional direct integration (disabled)',
     attribution: 'India Meteorological Department (IMD), MoES',
     timeoutMs: 4200,
-    buildRequest: (env) => {
-      const enabled = (env.IMD_API_ENABLED || 'false').trim().toLowerCase() === 'true';
-      const key = (env.IMD_API_KEY || '').trim();
-      const token = (env.IMD_API_TOKEN || '').trim();
-      const base = (env.IMD_API_BASE_URL || '').trim().replace(/\/+$/, '');
-      let validBase = false;
-      if (base) {
-        try {
-          const parsed = new URL(base);
-          const isPrivate =
-            /^(localhost|127\.|0\.0\.0\.0|::1|\[::1\]|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(
-              parsed.hostname.toLowerCase()
-            );
-          validBase = parsed.protocol === 'https:' && !isPrivate && !parsed.username && !parsed.password;
-        } catch {
-          validBase = false;
-        }
-      }
-      const headers: Record<string, string> = { Accept: 'application/json, text/html, */*' };
-      if (key) headers['X-IMD-API-KEY'] = key;
-      if (token) headers.Authorization = `Bearer ${token}`;
-      return {
-        configured: enabled && validBase && Boolean(key || token),
-        url: base || 'https://api.imd.gov.in',
-        headers,
-      };
-    },
+    buildRequest: () => ({
+      configured: MAUSAM_RUNTIME_CONFIG.officialImdEnabled,
+      url: 'https://api.imd.gov.in',
+      headers: { Accept: 'application/json' },
+    }),
     validateResponse: async (res) => {
       const body = await readTextBounded(res, 16384);
       if (body.trim().length > 20) {
@@ -466,22 +450,15 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     category: 'GOVERNMENT',
     role: 'Optional Direct CPCB Station NAQI Feed',
     core: false,
-    requiredKey: 'CPCB_API_KEY',
-    publicEndpoint: 'https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69',
+    requiredKey: null,
+    publicEndpoint: 'Optional direct integration (disabled; Open-Meteo Air Quality active)',
     attribution: 'Central Pollution Control Board (CPCB), MoEFCC',
     timeoutMs: 4200,
-    buildRequest: (env) => {
-      const key = (env.CPCB_API_KEY || '').trim();
-      const customUrl = (env.CPCB_API_URL || '').trim();
-      const targetUrl = customUrl
-        ? customUrl
-        : `https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69?api-key=${encodeURIComponent(key)}&format=json&limit=1`;
-      return {
-        configured: key.length > 0,
-        url: targetUrl,
-        headers: { Accept: 'application/json' },
-      };
-    },
+    buildRequest: () => ({
+      configured: MAUSAM_RUNTIME_CONFIG.directCpcbEnabled,
+      url: 'https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69',
+      headers: { Accept: 'application/json' },
+    }),
     validateResponse: async (res) => {
       try {
         const json = await res.json();
@@ -509,19 +486,15 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     category: 'GOVERNMENT',
     role: 'Optional Direct INCOIS Marine Telemetry',
     core: false,
-    requiredKey: 'INCOIS_API_KEY',
-    publicEndpoint: 'https://incois.gov.in',
+    requiredKey: null,
+    publicEndpoint: 'Optional direct integration (disabled; Open-Meteo Marine active)',
     attribution: 'INCOIS, Ministry of Earth Sciences',
     timeoutMs: 4200,
-    buildRequest: (env) => {
-      const key = (env.INCOIS_API_KEY || '').trim();
-      const base = (env.INCOIS_BASE_URL || 'https://incois.gov.in').trim();
-      return {
-        configured: key.length > 0,
-        url: base,
-        headers: key ? { Authorization: `Bearer ${key}`, Accept: 'application/json, text/html, */*' } : undefined,
-      };
-    },
+    buildRequest: () => ({
+      configured: MAUSAM_RUNTIME_CONFIG.directIncoisEnabled,
+      url: 'https://incois.gov.in',
+      headers: { Accept: 'application/json, text/html, */*' },
+    }),
     validateResponse: async (res) => {
       const body = await readTextBounded(res, 16384);
       if (body.trim().length > 20) {
@@ -541,18 +514,15 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     category: 'COMMERCIAL',
     role: 'Optional Secondary Commercial Verification',
     core: false,
-    requiredKey: 'ACCUWEATHER_API_KEY',
-    publicEndpoint: 'https://dataservice.accuweather.com/locations/v1/topcities/50',
+    requiredKey: null,
+    publicEndpoint: 'Optional commercial integration (disabled)',
     attribution: 'AccuWeather, Inc.',
     timeoutMs: 3800,
-    buildRequest: (env) => {
-      const key = (env.ACCUWEATHER_API_KEY || '').trim();
-      return {
-        configured: key.length > 0,
-        url: `https://dataservice.accuweather.com/locations/v1/topcities/50?apikey=${encodeURIComponent(key)}`,
-        headers: { Accept: 'application/json' },
-      };
-    },
+    buildRequest: () => ({
+      configured: MAUSAM_RUNTIME_CONFIG.accuweatherEnabled,
+      url: 'https://dataservice.accuweather.com/locations/v1/topcities/50',
+      headers: { Accept: 'application/json' },
+    }),
     validateResponse: async (res) => {
       try {
         const json = await res.json();
@@ -580,18 +550,15 @@ const PROVIDER_DEFINITIONS: ProviderProbeDefinition[] = [
     category: 'COMMERCIAL',
     role: 'Optional Secondary Commercial Verification',
     core: false,
-    requiredKey: 'GOOGLE_WEATHER_API_KEY',
-    publicEndpoint: 'https://weather.googleapis.com/v1/currentConditions:lookup',
+    requiredKey: null,
+    publicEndpoint: 'Optional commercial integration (disabled)',
     attribution: 'Google Maps Platform Weather API',
     timeoutMs: 3800,
-    buildRequest: (env) => {
-      const key = (env.GOOGLE_WEATHER_API_KEY || '').trim();
-      return {
-        configured: key.length > 0,
-        url: 'https://weather.googleapis.com/v1/currentConditions:lookup?location.latitude=20.2961&location.longitude=85.8245',
-        headers: key ? { 'X-Goog-Api-Key': key, Accept: 'application/json' } : undefined,
-      };
-    },
+    buildRequest: () => ({
+      configured: MAUSAM_RUNTIME_CONFIG.googleWeatherEnabled,
+      url: 'https://weather.googleapis.com/v1/currentConditions:lookup',
+      headers: { Accept: 'application/json' },
+    }),
     validateResponse: async (res) => {
       try {
         const json = await res.json();
@@ -632,11 +599,12 @@ export async function probeProvider(
       category: def.category,
       role: def.role,
       core: def.core,
-      requiredKey: def.requiredKey,
+      optional: true,
+      requiredKey: null,
       configured: false,
       operational: false,
       reachable: false,
-      status: 'NOT_CONFIGURED',
+      status: 'DISABLED',
       latencyMs: null,
       httpStatus: null,
       lastChecked: checkedAt,
@@ -644,22 +612,13 @@ export async function probeProvider(
       lastFailure: prev.lastFailure,
       endpoint: def.publicEndpoint,
       error: null,
-      reason: def.requiredKey
-        ? `${def.requiredKey} is not configured in the server environment.`
-        : 'Optional provider not configured.',
+      reason: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       attribution: def.attribution,
     };
   }
 
-  const secretsToRedact = [
-    env.MAUSAM_ASSISTANT_API_KEY,
-    env.IMD_API_KEY,
-    env.IMD_API_TOKEN,
-    env.CPCB_API_KEY,
-    env.INCOIS_API_KEY,
-    env.ACCUWEATHER_API_KEY,
-    env.GOOGLE_WEATHER_API_KEY,
-  ];
+  const secretsToRedact: Array<string | undefined> = [];
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), def.timeoutMs);
@@ -790,232 +749,71 @@ export async function probeProvider(
   }
 }
 
-async function probeSharedCache(deps: ProbeRuntimeDeps = {}): Promise<GatewayCacheTelemetry> {
-  const env = deps.env || process.env;
-  const fetchImpl = deps.fetchFn || fetch;
+async function probeSharedCache(_deps: ProbeRuntimeDeps = {}): Promise<GatewayCacheTelemetry> {
   const checkedAt = new Date().toISOString();
-
-  const redisUrl = (env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || '').trim().replace(/\/+$/, '');
-  const redisToken = (env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || '').trim();
-  const provider: 'UPSTASH_REDIS' | 'VERCEL_KV' =
-    env.KV_REST_API_URL && !env.UPSTASH_REDIS_REST_URL ? 'VERCEL_KV' : 'UPSTASH_REDIS';
-
-  if (!redisUrl || !redisToken) {
-    return {
-      reported: false,
-      configured: false,
-      connected: false,
-      provider: 'NOT_REPORTED',
-      latencyMs: null,
-      hits: null,
-      misses: null,
-      dedupes: null,
-      staleServes: null,
-      totalEntries: null,
-      totalRequests: null,
-      hitRatio: null,
-      hitRatioNumeric: null,
-      lastChecked: checkedAt,
-      error: null,
-      reason: 'No shared Redis/KV telemetry store is configured; serverless instances do not share process-local cache counters.',
-    };
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
-  const startMs = Date.now();
-  try {
-    const res = await fetchImpl(`${redisUrl}/ping`, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: { Authorization: `Bearer ${redisToken}` },
-      signal: controller.signal,
-    });
-    const latencyMs = Math.max(0, Math.round(Date.now() - startMs));
-    let pingOk = false;
-    if (res.ok) {
-      try {
-        const json = await res.json();
-        pingOk = json?.result === 'PONG' || Boolean(json?.result);
-      } catch {
-        pingOk = false;
-      }
-    }
-    return {
-      reported: true,
-      configured: true,
-      connected: pingOk,
-      provider,
-      latencyMs,
-      hits: null,
-      misses: null,
-      dedupes: null,
-      staleServes: null,
-      totalEntries: null,
-      totalRequests: null,
-      hitRatio: null,
-      hitRatioNumeric: null,
-      lastChecked: checkedAt,
-      error: pingOk ? null : `Redis PING returned HTTP ${res.status}`,
-      reason: pingOk
-        ? 'Shared Redis connectivity verified; aggregate hit/miss counters are not exported by REST PING.'
-        : 'Shared Redis configured but PING probe failed.',
-    };
-  } catch (err: any) {
-    const latencyMs = Math.max(0, Math.round(Date.now() - startMs));
-    return {
-      reported: true,
-      configured: true,
-      connected: false,
-      provider,
-      latencyMs,
-      hits: null,
-      misses: null,
-      dedupes: null,
-      staleServes: null,
-      totalEntries: null,
-      totalRequests: null,
-      hitRatio: null,
-      hitRatioNumeric: null,
-      lastChecked: checkedAt,
-      error: sanitizeErrorMessage(err, [redisToken]),
-      reason: 'Shared Redis PING probe failed.',
-    };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return {
+    reported: false,
+    configured: MAUSAM_RUNTIME_CONFIG.redisEnabled,
+    connected: false,
+    provider: 'IN_MEMORY',
+    latencyMs: null,
+    hits: null,
+    misses: null,
+    dedupes: null,
+    staleServes: null,
+    totalEntries: null,
+    totalRequests: null,
+    hitRatio: null,
+    hitRatioNumeric: null,
+    lastChecked: checkedAt,
+    error: null,
+    reason: 'Optional shared Redis cache disabled. Core MAUSAM services operate using in-memory caching.',
+  };
 }
 
-async function defaultProbePostgres(
-  connectionString: string,
-  timeoutMs: number
-): Promise<{ connected: boolean; latencyMs: number | null; error: string | null }> {
-  const startMs = Date.now();
-  let pool: any = null;
-  let client: any = null;
-  try {
-    const pgMod = await import('pg');
-    const PoolCtor = pgMod.default?.Pool || pgMod.Pool;
-    const disableSsl =
-      connectionString.includes('localhost') ||
-      connectionString.includes('127.0.0.1') ||
-      connectionString.includes('sslmode=disable');
-
-    pool = new PoolCtor({
-      connectionString,
-      max: 1,
-      connectionTimeoutMillis: timeoutMs,
-      query_timeout: timeoutMs,
-      ssl: disableSsl ? false : { rejectUnauthorized: false },
-    });
-    client = await pool.connect();
-    await client.query('SELECT 1');
-    return {
-      connected: true,
-      latencyMs: Math.max(0, Math.round(Date.now() - startMs)),
-      error: null,
-    };
-  } catch (err: any) {
-    return {
-      connected: false,
-      latencyMs: null,
-      error: sanitizeErrorMessage(err, [connectionString]),
-    };
-  } finally {
-    if (client && typeof client.release === 'function') {
-      try {
-        client.release();
-      } catch {
-        // ignore release error
-      }
-    }
-    if (pool && typeof pool.end === 'function') {
-      try {
-        await pool.end();
-      } catch {
-        // ignore pool end error
-      }
-    }
-  }
-}
-
-async function probeDatabase(deps: ProbeRuntimeDeps = {}): Promise<GatewayDatabaseTelemetry> {
-  const env = deps.env || process.env;
+async function probeDatabase(_deps: ProbeRuntimeDeps = {}): Promise<GatewayDatabaseTelemetry> {
   const checkedAt = new Date().toISOString();
-  const connectionString = (env.DATABASE_URL || env.POSTGRES_URL || '').trim();
-
-  if (!connectionString) {
-    return {
-      reported: true,
-      configured: false,
-      connected: false,
-      provider: 'NOT_CONFIGURED',
-      latencyMs: null,
-      lastChecked: checkedAt,
-      error: null,
-      reason: 'DATABASE_URL / POSTGRES_URL is not configured in this environment.',
-    };
-  }
-
-  const probeFn = deps.probeDatabaseFn || defaultProbePostgres;
-  const result = await probeFn(connectionString, 3000);
   return {
     reported: true,
-    configured: true,
-    connected: result.connected,
-    provider: 'POSTGRESQL',
-    latencyMs: result.latencyMs,
+    configured: MAUSAM_RUNTIME_CONFIG.databaseEnabled,
+    connected: false,
+    provider: 'NOT_CONFIGURED',
+    latencyMs: null,
     lastChecked: checkedAt,
-    error: result.error,
-    reason: result.connected ? null : result.error || 'PostgreSQL SELECT 1 probe failed.',
+    error: null,
+    reason: 'Optional database disabled. Core MAUSAM services operate using in-memory fallback.',
   };
 }
 
 function buildAssistantDiagnostic(
-  env: Record<string, string | undefined>,
+  _env: Record<string, string | undefined>,
   checkedAt: string
 ): ProviderDiagnostic {
-  const assistantMode = (env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
-  const assistantLocalMode = assistantMode !== 'remote';
-  const assistantApiKey = env.MAUSAM_ASSISTANT_API_KEY?.trim();
-  const normalizedEndpoint = getAssistantEndpoint(env as NodeJS.ProcessEnv);
-  const assistantConfigured = assistantLocalMode || Boolean(normalizedEndpoint && assistantApiKey);
-
-  const message = assistantLocalMode
-    ? 'Grounded local assistant active. No API key required.'
-    : assistantConfigured
-      ? 'Remote assistant configured. Live availability is verified during an actual request.'
-      : 'Remote assistant is optional. Grounded local mode remains available.';
+  const message = 'Grounded local assistant active. No API key required.';
 
   return {
     id: 'assistant',
     code: 'MAUSAM_ASSISTANT',
     name: 'MAUSAM Assistant',
     category: 'AI_ASSISTANT',
-    role: assistantLocalMode
-      ? 'Grounded Local Meteorological Assistant (Keyless)'
-      : 'Optional Server-Side Conversational Assistant (OpenAI-Compatible)',
+    role: 'Grounded Local Meteorological Assistant (Keyless)',
     core: false,
-    requiredKey: assistantLocalMode ? null : 'MAUSAM_ASSISTANT_API_KEY',
-    configured: assistantConfigured,
-    operational: assistantLocalMode,
-    reachable: assistantLocalMode,
-    status: assistantLocalMode
-      ? 'OPERATIONAL'
-      : assistantConfigured
-        ? 'DEGRADED'
-        : 'NOT_CONFIGURED',
+    optional: false,
+    requiredKey: null,
+    configured: true,
+    operational: true,
+    reachable: true,
+    status: 'OPERATIONAL',
     latencyMs: null,
     httpStatus: null,
     lastChecked: checkedAt,
-    lastSuccess: assistantLocalMode ? checkedAt : null,
+    lastSuccess: checkedAt,
     lastFailure: null,
-    endpoint: assistantLocalMode
-      ? 'Grounded Local Telemetry (Keyless)'
-      : normalizedEndpoint || 'Optional via MAUSAM_ASSISTANT_API_URL',
-    error: message,
+    endpoint: 'Grounded Local Telemetry (Keyless)',
+    error: null,
     reason: message,
-    attribution: 'Grounded Local Telemetry / Optional Remote OpenAI-Compatible Endpoint (Server-Side Only)',
+    message,
+    attribution: 'Grounded Local Telemetry (Keyless)',
   };
 }
 
@@ -1099,6 +897,7 @@ export async function runHealthReport(deps: ProbeRuntimeDeps = {}): Promise<Gate
       case 'UNAVAILABLE':
         unavailable++;
         break;
+      case 'DISABLED':
       case 'NOT_CONFIGURED':
         notConfigured++;
         break;
@@ -1112,7 +911,7 @@ export async function runHealthReport(deps: ProbeRuntimeDeps = {}): Promise<Gate
   const coreProviders = providersList.filter((p) => p.core);
   const coreOperationalCount = coreProviders.filter((p) => p.status === 'OPERATIONAL').length;
   const anyConfiguredFailed = providersList.some(
-    (p) => p.configured && p.status !== 'OPERATIONAL'
+    (p) => p.configured && p.status !== 'OPERATIONAL' && p.status !== 'DISABLED' && p.status !== 'NOT_CONFIGURED'
   );
 
   let overallStatus: 'HEALTHY' | 'DEGRADED' | 'CRITICAL';

@@ -8,7 +8,7 @@ import { WeatherValidator } from '../validation/weatherValidator';
 import { dataHealthService } from '../services/DataHealthService';
 
 export class OpenMeteoAdapter {
-  private static weatherEndpoint = process.env.OPEN_METEO_ENDPOINT || 'https://api.open-meteo.com/v1';
+  private static weatherEndpoint = 'https://api.open-meteo.com/v1';
 
   private static numOrNull(val: unknown): number | null {
     return typeof val === 'number' && Number.isFinite(val) ? val : null;

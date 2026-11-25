@@ -1,18 +1,17 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
-// CPCB Adapter (Central Pollution Control Board / Air Quality Index)
+// CPCB Adapter (Public Open-Meteo Air Quality Fallback on Indian NAQI Scale)
 // ====================================================================
 
 import { NormalizedAQI, GeoLocation } from '../normalization/types';
 import { WeatherValidator } from '../validation/weatherValidator';
-import { dataHealthService } from '../services/DataHealthService';
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
 
 export class CPCBAdapter {
-  private static cpcbBaseUrl = 'https://app.cpcbccr.com/caaqms';
-  private static fallbackEndpoint = process.env.OPEN_METEO_AIR_QUALITY_ENDPOINT || 'https://air-quality-api.open-meteo.com/v1';
+  private static fallbackEndpoint = 'https://air-quality-api.open-meteo.com/v1';
 
   public static isConfigured(): boolean {
-    return !!process.env.CPCB_API_KEY;
+    return MAUSAM_RUNTIME_CONFIG.directCpcbEnabled;
   }
 
   public static calculateIndianCategory(aqi: number): 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe' {
@@ -44,65 +43,18 @@ export class CPCBAdapter {
   }
 
   public static async fetchAQI(loc: GeoLocation): Promise<NormalizedAQI | null> {
-    const startTime = Date.now();
-    const apiKey = process.env.CPCB_API_KEY;
-
-    // 1. If CPCB authorized key configured, try direct CPCB API
-    if (apiKey) {
-      try {
-        const cpcbUrl = `${this.cpcbBaseUrl}/aqi_all_India?token=${apiKey}&lat=${loc.latitude}&lon=${loc.longitude}`;
-        const res = await fetch(cpcbUrl, { signal: AbortSignal.timeout(6000) });
-        if (res.ok) {
-          const json = await res.json();
-          if (json && typeof json.aqi === 'number') {
-            const cat = this.calculateIndianCategory(json.aqi);
-            const aqiData: NormalizedAQI = {
-              location: loc,
-              stationId: json.station_id || 'CPCB-CAAQMS',
-              stationName: json.station_name || `${loc.name} Monitoring Station`,
-              observedAt: json.last_update || new Date().toISOString(),
-              fetchedAt: new Date().toISOString(),
-              dataStatus: 'LIVE',
-              source: 'CPCB',
-              aqi: json.aqi,
-              category: cat,
-              dominantPollutant: json.dominant_pollutant || 'PM2.5',
-              pollutants: {
-                pm25: { code: 'pm25', label: 'PM2.5', concentration: json.pm25 ?? 0, unit: 'µg/m³' },
-                pm10: { code: 'pm10', label: 'PM10', concentration: json.pm10 ?? 0, unit: 'µg/m³' },
-                no2: { code: 'no2', label: 'NO₂', concentration: json.no2 ?? 0, unit: 'µg/m³' },
-                so2: { code: 'so2', label: 'SO₂', concentration: json.so2 ?? 0, unit: 'µg/m³' },
-                co: { code: 'co', label: 'CO', concentration: json.co ?? 0, unit: 'mg/m³' },
-                o3: { code: 'o3', label: 'Ozone', concentration: json.o3 ?? 0, unit: 'µg/m³' },
-              },
-              healthAdvisory: this.getIndianHealthAdvisory(cat),
-              isIndianStandard: true,
-            };
-
-            dataHealthService.recordSuccess('CPCB', Date.now() - startTime, 1, res.status);
-            return aqiData;
-          }
-        }
-      } catch (err: any) {
-        dataHealthService.recordFailure('CPCB', `Direct CPCB error: ${err.message}`, 500);
-      }
-    }
-
-    // 2. Open-Meteo High-Resolution Air Quality verified fallback
+    // Public Open-Meteo High-Resolution Air Quality feed mapped to Indian NAQI scale
     try {
       const url = `${this.fallbackEndpoint}/air-quality?latitude=${loc.latitude}&longitude=${loc.longitude}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust&timezone=Asia%2FKolkata`;
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-      const latency = Date.now() - startTime;
 
       if (!res.ok) {
-        dataHealthService.recordFailure('CPCB', `Fallback HTTP ${res.status}`, res.status);
         return null;
       }
 
       const json = await res.json();
       const cur = json.current;
       if (!cur) {
-        dataHealthService.recordRejection('CPCB', 1);
         return null;
       }
 
@@ -127,12 +79,12 @@ export class CPCBAdapter {
 
       const aqiData: NormalizedAQI = {
         location: loc,
-        stationId: 'GOV-CAAQMS-VIRTUAL',
+        stationId: 'OPEN-METEO-AQ-GRID',
         stationName: `${loc.city || loc.name} Telemetry Grid`,
         observedAt: cur.time ? new Date(cur.time).toISOString() : new Date().toISOString(),
         fetchedAt: new Date().toISOString(),
         dataStatus: 'LIVE',
-        source: apiKey ? 'CPCB' : 'CPCB-NAQI (Satellite/Synoptic Grid)',
+        source: 'Open-Meteo Air Quality (Indian NAQI Scale)',
         aqi: calculatedAqi,
         category,
         dominantPollutant: 'PM2.5',
@@ -150,14 +102,11 @@ export class CPCBAdapter {
 
       const val = WeatherValidator.validateAQI(aqiData);
       if (!val.isValid) {
-        dataHealthService.recordRejection('CPCB', 1);
         return null;
       }
 
-      dataHealthService.recordSuccess('CPCB', latency, 1, res.status);
       return aqiData;
-    } catch (err: any) {
-      dataHealthService.recordFailure('CPCB', err.message, 500);
+    } catch {
       return null;
     }
   }

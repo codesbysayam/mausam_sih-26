@@ -134,8 +134,7 @@ export default async function handler(req: any, res: any) {
   const aqi = canonicalContext?.aqi || params.airQuality;
   const warnings = canonicalContext?.warnings || params.warnings || [];
   const primarySource =
-    canonicalContext?.sources?.[0]?.provider ||
-    (process.env.IMD_API_KEY ? 'India Meteorological Department (IMD)' : 'Open-Meteo');
+    canonicalContext?.sources?.[0]?.provider || 'Open-Meteo';
 
   // Build factual summary for strict grounding
   const factsList: Array<{ label: string; value: string; source?: string }> = [];

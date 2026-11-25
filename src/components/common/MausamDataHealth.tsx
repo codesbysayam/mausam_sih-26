@@ -291,7 +291,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
       p.id !== 'openMeteo' &&
       p.id !== 'sachet' &&
       p.id !== 'radar' &&
-      (!p.detail || !p.detail.isConfigured || p.detail.status === 'NOT_CONFIGURED' || p.detail.status === 'NOT_REPORTED')
+      (!p.detail ||
+        !p.detail.isConfigured ||
+        p.detail.status === 'DISABLED' ||
+        p.detail.status === 'NOT_CONFIGURED' ||
+        p.detail.status === 'NOT_REPORTED')
   );
 
   const getStatusConfig = (status?: ProviderStatusCode | string | null) => {
@@ -306,6 +310,8 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
         return { label: 'Offline', text: 'text-[var(--m-danger)]' };
       case 'UNAVAILABLE':
         return { label: 'Unavailable', text: 'text-[var(--m-danger)]' };
+      case 'DISABLED':
+        return { label: 'Disabled (Optional)', text: 'text-[var(--m-text-muted)]' };
       case 'NOT_CONFIGURED':
         return { label: 'Not Configured', text: 'text-[var(--m-accent)]' };
       case 'NOT_REPORTED':
@@ -533,11 +539,11 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
               <div className="flex items-center gap-2 text-xs font-semibold text-[var(--m-text-primary)] flex-wrap">
                 <span>OPTIONAL INSTITUTIONAL &amp; COMMERCIAL FEEDS</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--m-surface-1)] text-[var(--m-accent)] border border-[var(--m-border)]">
-                  Server-Side Credentials Only
+                  Keyless Core Active
                 </span>
               </div>
               <p className="text-[11px] text-[var(--m-text-muted)] mt-0.5">
-                Core meteorology runs without API keys. Optional credentials are configured strictly via server environment variables.
+                Optional integrations are disabled by default. Core MAUSAM services are operating using public data sources.
               </p>
             </div>
             <button
@@ -853,12 +859,13 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
             {(() => {
               const modalStatus: ProviderStatusCode = selectedProvider.detail?.status || 'NOT_REPORTED';
               const modalWhyReason =
+                selectedProvider.detail?.message ||
                 selectedProvider.detail?.reason ||
                 selectedProvider.detail?.error ||
                 (modalStatus === 'NOT_REPORTED'
                   ? 'The telemetry gateway did not return a status record for this provider.'
-                  : modalStatus === 'NOT_CONFIGURED'
-                  ? 'Official credentials are not configured in the server environment.'
+                  : modalStatus === 'DISABLED' || modalStatus === 'NOT_CONFIGURED'
+                  ? 'Optional integration disabled. Core MAUSAM services are operating using public data sources.'
                   : 'Provider gateway checked.');
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
@@ -895,7 +902,7 @@ export const MausamDataHealth: React.FC<MausamDataHealthProps> = ({
                 Optional Integration
               </span>
               <p className="text-xs text-[var(--m-text-secondary)] leading-relaxed">
-                This provider is optional. MAUSAM continues running on open meteorological data without requiring an API key.
+                Optional integration disabled. Core MAUSAM services are operating using public data sources.
               </p>
             </div>
 

@@ -81,6 +81,12 @@ function getProviderBadgeStyle(status: ProviderStatusCode): { label: string; bad
         badgeClass: 'bg-[var(--m-accent-soft)] text-[var(--m-accent)] border-[var(--m-accent)]/35',
         dotClass: 'bg-[var(--m-accent)]',
       };
+    case 'DISABLED':
+      return {
+        label: 'DISABLED (OPTIONAL)',
+        badgeClass: 'bg-[var(--m-surface-2)] text-[var(--m-text-muted)] border-[var(--m-border)]',
+        dotClass: 'bg-[var(--m-text-muted)]',
+      };
     case 'NOT_REPORTED':
     default:
       return {
@@ -384,14 +390,14 @@ export const ApiDebugPage: React.FC = () => {
         <DataPanel className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-mono font-semibold uppercase text-[var(--m-text-muted)]">
-              Not Configured
+              Optional / Disabled
             </span>
             <Server className="w-4 h-4 text-[var(--m-accent)]" />
           </div>
           <MetricValue
-            label="Optional Credentials"
+            label="Disabled Integrations"
             value={health ? health.summary.notConfigured : null}
-            hint="Optional institutional/commercial keys"
+            hint="Core MAUSAM feeds operate keyless"
             unavailableLabel={loading ? 'Probing…' : 'Not reported'}
           />
         </DataPanel>
@@ -478,14 +484,12 @@ export const ApiDebugPage: React.FC = () => {
                       <td className="py-3 px-3 whitespace-nowrap text-[11px]">
                         {p.status === 'NOT_REPORTED' ? (
                           <span className="text-[var(--m-text-muted)]">Not reported</span>
+                        ) : p.status === 'DISABLED' || p.status === 'NOT_CONFIGURED' ? (
+                          <span className="text-[var(--m-text-muted)]">Optional (Disabled)</span>
                         ) : p.isConfigured ? (
-                          <span className="text-[var(--m-ok)]">
-                            {p.requiredKey ? 'Key Set' : 'Keyless'}
-                          </span>
+                          <span className="text-[var(--m-ok)]">Keyless</span>
                         ) : (
-                          <span className="text-[var(--m-text-muted)]">
-                            Missing {p.requiredKey || 'Config'}
-                          </span>
+                          <span className="text-[var(--m-text-muted)]">Optional (Disabled)</span>
                         )}
                       </td>
                       <td className="py-3 px-3 whitespace-nowrap text-[11px]">
@@ -502,14 +506,16 @@ export const ApiDebugPage: React.FC = () => {
                         {p.last_failure ? formatTimestampIST(p.last_failure) : '—'}
                       </td>
                       <td className="py-3 px-4 max-w-xs">
-                        {p.error ? (
+                        {p.status === 'DISABLED' || p.status === 'NOT_CONFIGURED' ? (
+                          <span className="text-[var(--m-text-muted)] break-words text-[11px] font-sans">
+                            {p.message || p.reason || 'Optional integration disabled. Core MAUSAM services are operating using public data sources.'}
+                          </span>
+                        ) : p.error ? (
                           <span
                             className={`break-words text-[11px] ${
                               p.status === 'OPERATIONAL'
                                 ? 'text-[var(--m-ok)] font-sans'
-                                : p.status === 'NOT_CONFIGURED'
-                                  ? 'text-[var(--m-text-muted)] font-sans'
-                                  : 'text-[var(--m-danger)]'
+                                : 'text-[var(--m-danger)]'
                             }`}
                           >
                             {p.error}

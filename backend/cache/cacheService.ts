@@ -1,7 +1,9 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
-// Persistent Cache Service (Upstash Redis / Vercel KV REST API & Degraded Memory Fallback)
+// In-Memory Cache Service (Keyless Default, Optional Redis Disabled)
 // ====================================================================
+
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
 
 export type CacheCategory =
   | 'CURRENT_WEATHER'
@@ -66,18 +68,10 @@ export class CacheService {
   private redisProviderName: 'UPSTASH_REDIS' | 'VERCEL_KV' = 'UPSTASH_REDIS';
 
   private constructor() {
-    this.redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || null;
-    this.redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || null;
-    this.isRedisConfigured = !!(this.redisUrl && this.redisToken);
-    if (process.env.KV_REST_API_URL && !process.env.UPSTASH_REDIS_REST_URL) {
-      this.redisProviderName = 'VERCEL_KV';
-    }
-
-    if (this.isRedisConfigured) {
-      this.testRedisConnection();
-    } else {
-      console.log('[Mausam Cache] Upstash Redis / Vercel KV not configured. Using in-memory cache as degraded local fallback.');
-    }
+    this.redisUrl = null;
+    this.redisToken = null;
+    this.isRedisConfigured = MAUSAM_RUNTIME_CONFIG.redisEnabled;
+    this.isRedisConnected = false;
 
     // Run garbage collection every 2 minutes
     setInterval(() => this.pruneExpired(), 2 * 60 * 1000);

@@ -6,6 +6,10 @@
 
 import { serverCache } from './cacheService.ts';
 import { sachetService } from '../../../server/services/sachetService.ts';
+import {
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../../lib/providers/ai';
 
 export interface ProviderDiagnostic {
   id: string;
@@ -13,9 +17,12 @@ export interface ProviderDiagnostic {
   category: string;
   configured: boolean;
   operational: boolean;
-  status: 'OPERATIONAL' | 'DEGRADED' | 'NOT_CONFIGURED' | 'OFFLINE';
+  optional?: boolean;
+  requiredKey?: string | null;
+  status: 'OPERATIONAL' | 'DEGRADED' | 'NOT_CONFIGURED' | 'DISABLED' | 'OFFLINE';
   latencyMs: number | null;
   error?: string | null;
+  message?: string | null;
 }
 
 export class ProviderService {
@@ -43,8 +50,12 @@ export class ProviderService {
         category,
         configured: false,
         operational: false,
-        status: 'NOT_CONFIGURED',
+        optional: true,
+        requiredKey: null,
+        status: 'DISABLED',
         latencyMs: null,
+        error: null,
+        message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       };
     }
 
@@ -104,18 +115,8 @@ export class ProviderService {
       return cached.data;
     }
 
-    const imdEnabled = (process.env.IMD_API_ENABLED || 'false').trim().toLowerCase() === 'true';
-    const imdConfigured = Boolean(
-      imdEnabled &&
-        process.env.IMD_API_BASE_URL?.trim() &&
-        (process.env.IMD_API_KEY?.trim() || process.env.IMD_API_TOKEN?.trim())
-    );
-    const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
-    const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
-    const assistantLocalMode = assistantMode !== 'remote';
-    const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
-    const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
-    const cpcbConfigured = Boolean(process.env.CPCB_API_KEY?.trim());
+    const imdConfigured = MAUSAM_RUNTIME_CONFIG.officialImdEnabled;
+    const cpcbConfigured = MAUSAM_RUNTIME_CONFIG.directCpcbEnabled;
 
     const sachetProbe = (async (): Promise<ProviderDiagnostic> => {
       const start = performance.now();
@@ -185,59 +186,46 @@ export class ProviderService {
         true,
         3500
       ),
-      imdConfigured
-        ? this.safeProbe(
-            'imd',
-            'India Meteorological Department Gateway',
-            'GOVERNMENT_MET',
-            `${process.env.IMD_API_BASE_URL || 'https://api.imd.gov.in/api/v1'}/health`,
-            true
-          )
-        : Promise.resolve({
-            id: 'imd',
-            name: 'India Meteorological Department Gateway',
-            category: 'GOVERNMENT_MET',
-            configured: false,
-            operational: false,
-            status: 'NOT_CONFIGURED' as const,
-            latencyMs: null,
-          }),
-      cpcbConfigured
-        ? this.safeProbe(
-            'cpcb',
-            'Central Pollution Control Board',
-            'AIR_QUALITY',
-            `${process.env.CPCB_API_URL || 'https://app.cpcbccr.com/caaqms'}/health`,
-            true
-          )
-        : Promise.resolve({
-            id: 'cpcb',
-            name: 'Central Pollution Control Board',
-            category: 'AIR_QUALITY',
-            configured: false,
-            operational: false,
-            status: 'NOT_CONFIGURED' as const,
-            latencyMs: null,
-          }),
+      Promise.resolve<ProviderDiagnostic>({
+        id: 'imd',
+        name: 'India Meteorological Department Gateway',
+        category: 'GOVERNMENT_MET',
+        configured: imdConfigured,
+        operational: false,
+        optional: true,
+        requiredKey: null,
+        status: 'DISABLED',
+        latencyMs: null,
+        error: null,
+        message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+      }),
+      Promise.resolve<ProviderDiagnostic>({
+        id: 'cpcb',
+        name: 'Central Pollution Control Board',
+        category: 'AIR_QUALITY',
+        configured: cpcbConfigured,
+        operational: false,
+        optional: true,
+        requiredKey: null,
+        status: 'DISABLED',
+        latencyMs: null,
+        error: null,
+        message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+      }),
     ]);
 
     const assistant: ProviderDiagnostic = {
       id: 'assistant',
       name: 'MAUSAM Assistant',
       category: 'AI_ASSISTANT',
-      configured: assistantConfigured,
-      operational: assistantLocalMode,
-      status: assistantLocalMode
-        ? 'OPERATIONAL'
-        : assistantConfigured
-          ? 'DEGRADED'
-          : 'NOT_CONFIGURED',
+      configured: true,
+      operational: true,
+      optional: false,
+      requiredKey: null,
+      status: 'OPERATIONAL',
       latencyMs: null,
-      error: assistantLocalMode
-        ? 'Grounded local assistant active. No API key required.'
-        : assistantConfigured
-          ? 'Remote assistant configured. Live availability is verified during an actual request.'
-          : 'Remote assistant is optional. Grounded local mode remains available.',
+      error: null,
+      message: 'Grounded local assistant active. No API key required.',
     };
 
     const providersMap: Record<string, ProviderDiagnostic> = {
@@ -295,7 +283,7 @@ export class ProviderService {
       const isOperational = diag.status === 'OPERATIONAL';
       const isConfigured = diag.configured;
       const status = !isConfigured
-        ? 'NOT_CONFIGURED'
+        ? 'DISABLED'
         : isOperational
         ? 'OPERATIONAL'
         : diag.status === 'DEGRADED'
@@ -309,7 +297,8 @@ export class ProviderService {
         status,
         role,
         isConfigured,
-        requiredKey,
+        optional: diag.optional ?? !isConfigured,
+        requiredKey: null,
         latency: diag.latencyMs,
         last_success: isOperational ? nowIso : null,
         last_failure: !isOperational && isConfigured ? nowIso : null,
@@ -319,7 +308,8 @@ export class ProviderService {
         failed_requests: !isOperational && isConfigured ? 1 : 0,
         cache_hits: isOperational ? 48 : 0,
         cache_misses: isOperational ? 16 : 0,
-        error: diag.error || null,
+        error: isConfigured ? (diag.error || null) : null,
+        message: diag.message || (!isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null),
         source,
         endpoint,
         attribution,
@@ -380,11 +370,11 @@ export class ProviderService {
       'India Meteorological Department Gateway',
       'GOVERNMENT',
       p.imd,
-      'Official National Synoptic Warnings & Forecasts',
+      'Optional Authenticated IMD Surface Feed',
       'IMD',
-      'https://api.imd.gov.in',
+      'Optional direct integration (disabled)',
       'India Meteorological Department',
-      'IMD_API_KEY',
+      null,
       'https://mausam.imd.gov.in'
     );
 
@@ -393,11 +383,11 @@ export class ProviderService {
       'Central Pollution Control Board',
       'GOVERNMENT',
       p.cpcb,
-      'National Air Quality Index (NAQI) Telemetry',
+      'Optional Direct CPCB Station NAQI Feed',
       'CPCB',
-      'https://app.cpcbccr.com',
+      'Optional direct integration (disabled; Open-Meteo Air Quality active)',
       'CPCB Ministry of Environment & Climate Change',
-      'CPCB_API_KEY',
+      null,
       'https://cpcb.nic.in'
     );
 
@@ -405,10 +395,11 @@ export class ProviderService {
       code: 'INCOIS',
       name: 'Indian National Centre for Ocean Information Services',
       category: 'GOVERNMENT' as const,
-      status: 'NOT_CONFIGURED' as const,
-      role: 'High Wave, Ocean Currents & Tsunami Advisories',
+      status: 'DISABLED' as const,
+      role: 'Optional Direct INCOIS Marine Telemetry',
       isConfigured: false,
-      requiredKey: 'INCOIS_API_KEY',
+      optional: true,
+      requiredKey: null,
       latency: null,
       last_success: null,
       last_failure: null,
@@ -418,9 +409,10 @@ export class ProviderService {
       failed_requests: 0,
       cache_hits: 0,
       cache_misses: 0,
-      error: 'Optional provider key not configured',
+      error: null,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       source: 'INCOIS',
-      endpoint: 'https://incois.gov.in',
+      endpoint: 'Optional direct integration (disabled; Open-Meteo Marine active)',
       attribution: 'INCOIS Ministry of Earth Sciences',
     };
 
@@ -428,10 +420,11 @@ export class ProviderService {
       code: 'ACCUWEATHER',
       name: 'AccuWeather Commercial Forecast API',
       category: 'COMMERCIAL' as const,
-      status: 'NOT_CONFIGURED' as const,
-      role: 'MinuteCast & Extended Radar Forecasts',
+      status: 'DISABLED' as const,
+      role: 'Optional Secondary Commercial Verification',
       isConfigured: false,
-      requiredKey: 'ACCUWEATHER_API_KEY',
+      optional: true,
+      requiredKey: null,
       latency: null,
       last_success: null,
       last_failure: null,
@@ -441,9 +434,10 @@ export class ProviderService {
       failed_requests: 0,
       cache_hits: 0,
       cache_misses: 0,
-      error: 'Optional commercial key not configured',
+      error: null,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       source: 'AccuWeather',
-      endpoint: 'https://dataservice.accuweather.com',
+      endpoint: 'Optional commercial integration (disabled)',
       attribution: 'AccuWeather Inc.',
     };
 
@@ -451,10 +445,11 @@ export class ProviderService {
       code: 'GOOGLE_WEATHER',
       name: 'Google Weather API',
       category: 'COMMERCIAL' as const,
-      status: 'NOT_CONFIGURED' as const,
-      role: 'Hyperlocal Precipitation Probability',
+      status: 'DISABLED' as const,
+      role: 'Optional Secondary Commercial Verification',
       isConfigured: false,
-      requiredKey: 'GOOGLE_WEATHER_API_KEY',
+      optional: true,
+      requiredKey: null,
       latency: null,
       last_success: null,
       last_failure: null,
@@ -464,22 +459,18 @@ export class ProviderService {
       failed_requests: 0,
       cache_hits: 0,
       cache_misses: 0,
-      error: 'Optional commercial key not configured',
+      error: null,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       source: 'Google',
-      endpoint: 'https://weather.googleapis.com',
+      endpoint: 'Optional commercial integration (disabled)',
       attribution: 'Google Weather',
     };
 
-    const operationalProviders = [openMeteoDetail, sachetDetail, radarDetail, imdDetail, cpcbDetail].filter(
-      (d) => d.status === 'OPERATIONAL'
-    );
-    const degradedProviders = [openMeteoDetail, sachetDetail, radarDetail, imdDetail, cpcbDetail].filter(
-      (d) => d.status === 'DEGRADED'
-    );
-    const unavailableProviders = [openMeteoDetail, sachetDetail, radarDetail, imdDetail, cpcbDetail].filter(
-      (d) => d.status === 'UNAVAILABLE'
-    );
-    const notConfiguredCount = 3; // incois, accuweather, googleWeather
+    const coreList = [openMeteoDetail, sachetDetail, radarDetail];
+    const operationalProviders = coreList.filter((d) => d.status === 'OPERATIONAL');
+    const degradedProviders = coreList.filter((d) => d.status === 'DEGRADED');
+    const unavailableProviders = coreList.filter((d) => d.status === 'UNAVAILABLE');
+    const notConfiguredCount = 5; // imd, cpcb, incois, accuweather, googleWeather
 
     const overallStatus =
       operationalProviders.length >= 2
@@ -503,7 +494,7 @@ export class ProviderService {
       cache: {
         configured: true,
         connected: true,
-        provider: 'Development Fallback (In-Memory)',
+        provider: 'In-Memory Cache',
         totalEntries: serverCache.getEntryCount(),
         hits: 142,
         misses: 18,

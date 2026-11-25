@@ -139,18 +139,23 @@ test('1. Successful gateway health report: HEALTHY when all configured providers
   assert.equal(report.providers.assistant.operational, true);
   assert.equal(report.providers.assistant.requiredKey, null);
   assert.equal(report.providers.assistant.latencyMs, null);
+  assert.equal(report.providers.assistant.error, null);
   assert.equal(
-    report.providers.assistant.error,
+    report.providers.assistant.message,
     'Grounded local assistant active. No API key required.'
   );
 
-  // Optional credentialed data providers without keys must be NOT_CONFIGURED with null latency
-  assert.equal(report.providers.imd.status, 'NOT_CONFIGURED');
-  assert.equal(report.providers.cpcb.status, 'NOT_CONFIGURED');
+  // Optional credentialed data providers are DISABLED in zero-secret default mode with null latency and requiredKey=null
+  assert.equal(report.providers.imd.status, 'DISABLED');
+  assert.equal(report.providers.imd.requiredKey, null);
+  assert.equal(report.providers.imd.optional, true);
+  assert.equal(report.providers.cpcb.status, 'DISABLED');
+  assert.equal(report.providers.cpcb.requiredKey, null);
+  assert.equal(report.providers.cpcb.optional, true);
 
-  // Truthful cache & database telemetry (never fabricated)
+  // Truthful cache & database telemetry (disabled by default in keyless mode)
   assert.equal(report.cache.reported, false);
-  assert.equal(report.cache.provider, 'NOT_REPORTED');
+  assert.equal(report.cache.provider, 'IN_MEMORY');
   assert.equal(report.cache.hits, null);
   assert.equal(report.cache.hitRatio, null);
   assert.equal(report.database.configured, false);
@@ -332,75 +337,33 @@ test('9. All core providers failing yields CRITICAL health report and NOT_READY 
   assert.equal(readiness.checks.radar.ok, false);
 });
 
-test('10. Configured API key NEVER proves operational status; remote assistant requires explicit remote opt-in, default unset/local mode is OPERATIONAL, and CPCB redacts secrets', async () => {
-  const secretKey = 'SUPER_SECRET_ASSISTANT_TOKEN_987654';
+test('10. Zero-secret runtime keeps grounded local assistant OPERATIONAL and optional integrations DISABLED without requiring keys', async () => {
   const report = await runHealthReport({
-    fetchFn: createHealthyUpstreamFetch({
-      'api.data.gov.in': async () => {
-        throw new Error(`Connection refused for key=${secretKey}`);
-      },
-    }),
-    env: {
-      NODE_ENV: 'test',
-      MAUSAM_ASSISTANT_MODE: 'remote',
-      MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-      MAUSAM_ASSISTANT_API_KEY: secretKey,
-      CPCB_API_KEY: secretKey,
-    },
+    fetchFn: createHealthyUpstreamFetch(),
+    env: { NODE_ENV: 'test' },
   });
 
-  // Remote assistant configured with URL + key must NEVER claim OPERATIONAL without a live assistant request
+  // Grounded local assistant is OPERATIONAL with requiredKey: null
   assert.equal(report.providers.assistant.configured, true);
-  assert.equal(report.providers.assistant.operational, false);
-  assert.equal(report.providers.assistant.status, 'DEGRADED');
-  assert.equal(report.providers.assistant.latencyMs, null);
+  assert.equal(report.providers.assistant.operational, true);
+  assert.equal(report.providers.assistant.status, 'OPERATIONAL');
+  assert.equal(report.providers.assistant.requiredKey, null);
+  assert.equal(report.providers.assistant.error, null);
   assert.equal(
-    report.providers.assistant.endpoint,
-    'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
-  );
-  assert.equal(
-    report.providers.assistant.error,
-    'Remote assistant configured. Live availability is verified during an actual request.'
-  );
-
-  // Remote mode without API key must report NOT_CONFIGURED
-  const missingKeyReport = await runHealthReport({
-    fetchFn: createHealthyUpstreamFetch(),
-    env: {
-      NODE_ENV: 'test',
-      MAUSAM_ASSISTANT_MODE: 'remote',
-      MAUSAM_ASSISTANT_API_URL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    },
-  });
-  assert.equal(missingKeyReport.providers.assistant.configured, false);
-  assert.equal(missingKeyReport.providers.assistant.status, 'NOT_CONFIGURED');
-  assert.equal(
-    missingKeyReport.providers.assistant.error,
-    'Remote assistant is optional. Grounded local mode remains available.'
-  );
-
-  // Unset or local mode reports OPERATIONAL without requiring any API key
-  const localModeReport = await runHealthReport({
-    fetchFn: createHealthyUpstreamFetch(),
-    env: {
-      NODE_ENV: 'test',
-      MAUSAM_ASSISTANT_MODE: 'local',
-    },
-  });
-  assert.equal(localModeReport.providers.assistant.configured, true);
-  assert.equal(localModeReport.providers.assistant.operational, true);
-  assert.equal(localModeReport.providers.assistant.status, 'OPERATIONAL');
-  assert.equal(localModeReport.providers.assistant.requiredKey, null);
-  assert.equal(
-    localModeReport.providers.assistant.error,
+    report.providers.assistant.message,
     'Grounded local assistant active. No API key required.'
   );
 
-  assert.equal(report.providers.cpcb.configured, true);
-  assert.equal(report.providers.cpcb.operational, false);
-  assert.equal(report.providers.cpcb.status, 'OFFLINE');
-  assert.ok(!String(report.providers.cpcb.error || '').includes(secretKey), 'Secret key must be redacted from error diagnostics');
-  assert.match(String(report.providers.cpcb.error || ''), /\[REDACTED\]/);
+  // Optional commercial/institutional integrations stay DISABLED and never degrade overall health
+  for (const id of ['imd', 'cpcb', 'incois', 'accuweather', 'googleWeather'] as const) {
+    assert.equal(report.providers[id].configured, false);
+    assert.equal(report.providers[id].operational, false);
+    assert.equal(report.providers[id].status, 'DISABLED');
+    assert.equal(report.providers[id].requiredKey, null);
+    assert.equal(report.providers[id].optional, true);
+    assert.equal(report.providers[id].error, null);
+  }
+  assert.equal(report.summary.overallStatus, 'HEALTHY');
 });
 
 test('11. HTTP 200 with invalid/incomplete provider payload is marked DEGRADED rather than OPERATIONAL', async () => {
@@ -535,39 +498,29 @@ test('14. /api/system HTTP handler enforces Cache-Control: no-store across modes
   }
 });
 
-test('15. Shared Redis / Postgres probes reflect connected state truthfully when configured', async () => {
+test('15. Shared Redis / Postgres probes remain disabled in zero-secret default mode and provider list reports all 12 providers', async () => {
   const report = await runHealthReport({
     fetchFn: createHealthyUpstreamFetch(),
-    env: {
-      NODE_ENV: 'test',
-      UPSTASH_REDIS_REST_URL: 'https://demo.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN: 'demo_token',
-      DATABASE_URL: 'postgres://user:pass@db.example.com/mausam',
-    },
-    probeDatabaseFn: async () => ({ connected: true, latencyMs: 18, error: null }),
+    env: { NODE_ENV: 'test' },
   });
 
-  assert.equal(report.cache.reported, true);
-  assert.equal(report.cache.configured, true);
-  assert.equal(report.cache.connected, true);
-  assert.equal(report.cache.provider, 'UPSTASH_REDIS');
-  assert.equal(report.database.configured, true);
-  assert.equal(report.database.connected, true);
-  assert.equal(report.database.provider, 'POSTGRESQL');
-  assert.equal(report.database.latencyMs, 18);
+  assert.equal(report.cache.reported, false);
+  assert.equal(report.cache.configured, false);
+  assert.equal(report.cache.connected, false);
+  assert.equal(report.database.configured, false);
+  assert.equal(report.database.connected, false);
+  assert.equal(report.database.provider, 'NOT_CONFIGURED');
 
   const providers = await checkAllProviders({ fetchFn: createHealthyUpstreamFetch(), env: { NODE_ENV: 'test' } });
   assert.equal(providers.length, 12);
 });
 
-test('16. WeatherDatabaseService reports NOT_CONFIGURED without Postgres URL and persists observations, forecasts, AQI, and active warnings cleanly', async () => {
+test('16. WeatherDatabaseService stays disabled by default and persists observations, forecasts, AQI, and active warnings in memory fallback cleanly', async () => {
   const db = WeatherDatabaseService.getInstance();
   const status = await db.getStatus();
-  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
-    assert.equal(status.configured, false);
-    assert.equal(status.connected, false);
-    assert.equal(status.provider, 'NOT_CONFIGURED');
-  }
+  assert.equal(status.configured, false);
+  assert.equal(status.connected, false);
+  assert.equal(status.provider, 'NOT_CONFIGURED');
 
   const loc = {
     id: 'test-bbsr-db',

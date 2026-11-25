@@ -492,12 +492,12 @@ export class CentralDataResolver {
         fallbackProvider: fallbackUsed ? aqiData.source : undefined,
         reason: fallbackUsed
           ? !CPCBProvider.isConfigured()
-            ? 'Direct CPCB CAAQMS not configured; switched to public-domain Open-Meteo CAMS proxy'
+            ? 'Optional direct CPCB integration disabled. Core MAUSAM air quality services are operating using public Open-Meteo CAMS data.'
             : CPCBProvider.isAuthCooldownActive()
             ? 'Direct CPCB CAAQMS authentication failed (401/403); switched to public-domain Open-Meteo CAMS proxy'
             : 'Direct CPCB CAAQMS unavailable; switched to public-domain Open-Meteo CAMS proxy'
           : undefined,
-        nextAction: !CPCBProvider.isConfigured() ? 'Configure CPCB_API_KEY to enable direct CAAQMS telemetry.' : undefined,
+        nextAction: undefined,
         data: aqiData,
         error: null,
       };

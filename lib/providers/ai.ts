@@ -1,15 +1,27 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
-// Provider-Neutral Server-Side Meteorological Assistant Service
-// Supports Google's OpenAI-compatible Gemini endpoint or any
-// OpenAI-compatible Chat Completions endpoint via explicit opt-in:
-//   MAUSAM_ASSISTANT_MODE      (local | offline | remote) — defaults to local
-//   MAUSAM_ASSISTANT_API_URL   (optional; required only in remote mode)
-//   MAUSAM_ASSISTANT_API_KEY   (optional; required only in remote mode)
-//   MAUSAM_ASSISTANT_MODEL
-// Defaults to grounded local telemetry with zero API keys required —
-// never prompts for keys, never fabricates metrics, and never leaks secrets.
+// Zero-Secret Runtime Configuration & Grounded Local Assistant Service
+// Locked to keyless local grounded mode by default — zero external API
+// keys, zero secret environment variable reads, zero fabricated metrics.
 // ====================================================================
+
+export const MAUSAM_RUNTIME_CONFIG = {
+  assistantMode: 'local' as const,
+  remoteAssistantEnabled: false,
+  officialImdEnabled: false,
+  directCpcbEnabled: false,
+  directIncoisEnabled: false,
+  accuweatherEnabled: false,
+  googleWeatherEnabled: false,
+  redisEnabled: false,
+  databaseEnabled: false,
+  worldTidesEnabled: false,
+  azureMapsEnabled: false,
+  wrfDirectEnabled: false,
+} as const;
+
+export const OPTIONAL_INTEGRATION_DISABLED_MESSAGE =
+  'Optional integration disabled. Core MAUSAM services are operating using public data sources.';
 
 export interface AskMausamParams {
   prompt: string;
@@ -52,7 +64,7 @@ export interface AssistantCompletionResult {
   error?: string;
 }
 
-export const DEFAULT_ASSISTANT_MODEL = 'gemini-3.8-flash';
+export const DEFAULT_ASSISTANT_MODEL = 'grounded-local';
 
 const PRIVATE_HOST_PATTERNS: RegExp[] = [
   /^localhost$/i,
@@ -70,34 +82,21 @@ const PRIVATE_HOST_PATTERNS: RegExp[] = [
 
 export type AssistantMode = 'auto' | 'remote' | 'local' | 'offline';
 
-export function getAssistantMode(env: NodeJS.ProcessEnv = process.env): AssistantMode {
-  const raw = (env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
-
-  if (raw === 'remote') return 'remote';
-  if (raw === 'offline') return 'offline';
-  if (raw === 'local') return 'local';
-
-  // Unknown, 'auto', or unset configuration must never force an API-key prompt.
-  return 'local';
+export function getAssistantMode(_env?: Record<string, string | undefined>): AssistantMode {
+  return MAUSAM_RUNTIME_CONFIG.assistantMode;
 }
 
-export function isAssistantLocalMode(env: NodeJS.ProcessEnv = process.env): boolean {
-  const mode = getAssistantMode(env);
-  return mode === 'local' || mode === 'offline';
+export function isAssistantLocalMode(_env?: Record<string, string | undefined>): boolean {
+  return MAUSAM_RUNTIME_CONFIG.assistantMode === 'local';
 }
 
-export function isRemoteAssistantEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return (
-    getAssistantMode(env) === 'remote' &&
-    Boolean(getAssistantEndpoint(env) && env.MAUSAM_ASSISTANT_API_KEY?.trim())
-  );
+export function isRemoteAssistantEnabled(_env?: Record<string, string | undefined>): boolean {
+  return MAUSAM_RUNTIME_CONFIG.remoteAssistantEnabled;
 }
 
 /**
- * Validates and normalizes the configured assistant endpoint URL.
- * Enforces HTTPS, rejects embedded credentials, query strings, fragments,
- * and private/loopback/metadata destinations, and constructs the canonical
- * OpenAI-compatible `/chat/completions` URL.
+ * Validates and normalizes an HTTPS assistant endpoint URL.
+ * Retained for helper compatibility; remote gateway calls are disabled in keyless mode.
  */
 export function validateAssistantEndpointUrl(rawUrl: string): {
   valid: boolean;
@@ -106,14 +105,14 @@ export function validateAssistantEndpointUrl(rawUrl: string): {
 } {
   const trimmed = (rawUrl || '').trim();
   if (!trimmed) {
-    return { valid: false, reason: 'MAUSAM_ASSISTANT_API_URL is empty' };
+    return { valid: false, reason: 'Assistant endpoint URL is empty' };
   }
 
   let url: URL;
   try {
     url = new URL(trimmed);
   } catch {
-    return { valid: false, reason: 'MAUSAM_ASSISTANT_API_URL is not a valid URL' };
+    return { valid: false, reason: 'Assistant endpoint URL is not a valid URL' };
   }
 
   if (url.protocol !== 'https:') {
@@ -151,35 +150,14 @@ export function validateAssistantEndpointUrl(rawUrl: string): {
   return { valid: true, normalizedUrl: url.toString() };
 }
 
-export function getAssistantEndpoint(env: NodeJS.ProcessEnv = process.env): string | undefined {
-  const raw = env.MAUSAM_ASSISTANT_API_URL?.trim();
-  if (!raw) return undefined;
-  const check = validateAssistantEndpointUrl(raw);
-  return check.valid ? check.normalizedUrl : undefined;
+export function getAssistantEndpoint(_env?: Record<string, string | undefined>): string | undefined {
+  return undefined;
 }
 
 export function resolveAssistantConfig(
-  env: NodeJS.ProcessEnv = process.env
+  _env?: Record<string, string | undefined>
 ): AssistantConfig | null {
-  const mode = getAssistantMode(env);
-  if (mode === 'local' || mode === 'offline') {
-    return null;
-  }
-  const endpoint = getAssistantEndpoint(env);
-  const apiKey = (env.MAUSAM_ASSISTANT_API_KEY || '').trim();
-  const model = (env.MAUSAM_ASSISTANT_MODEL || DEFAULT_ASSISTANT_MODEL).trim();
-  if (!endpoint || !apiKey) return null;
-  return {
-    mode,
-    apiUrl: endpoint,
-    apiKey,
-    model: model || DEFAULT_ASSISTANT_MODEL,
-  };
-}
-
-function redactSecret(text: string, secret: string): string {
-  if (!secret || secret.length < 4) return text;
-  return text.split(secret).join('[REDACTED]');
+  return null;
 }
 
 function buildDeterministicTelemetrySummary(
@@ -190,11 +168,7 @@ function buildDeterministicTelemetrySummary(
   const { location, observation, airQuality, metadata } = params;
   const city = location?.city || location?.name || 'India';
   const state = location?.state || 'National';
-  const resolvedSource =
-    metadata?.source ||
-    (process.env.IMD_API_ENABLED === 'true' && (process.env.IMD_API_KEY || process.env.IMD_API_TOKEN)
-      ? 'India Meteorological Department (IMD)'
-      : 'Open-Meteo');
+  const resolvedSource = metadata?.source || 'Open-Meteo';
 
   const hasTemp =
     observation &&
@@ -234,256 +208,56 @@ function buildDeterministicTelemetrySummary(
 }
 
 export class MausamAssistantService {
-  public static readonly providerName = 'MAUSAM Meteorological Assistant (Provider-Neutral)';
-  public readonly name = 'MAUSAM Meteorological Assistant (Provider-Neutral)';
+  public static readonly providerName = 'MAUSAM Meteorological Assistant (Grounded Local)';
+  public readonly name = 'MAUSAM Meteorological Assistant (Grounded Local)';
 
-  public static isConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-    if (isAssistantLocalMode(env)) {
-      return true;
-    }
-
-    return Boolean(getAssistantEndpoint(env) && env.MAUSAM_ASSISTANT_API_KEY?.trim());
+  public static isConfigured(_env?: Record<string, string | undefined>): boolean {
+    return true;
   }
 
-  public static isRemoteEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-    return isRemoteAssistantEnabled(env);
+  public static isRemoteEnabled(_env?: Record<string, string | undefined>): boolean {
+    return MAUSAM_RUNTIME_CONFIG.remoteAssistantEnabled;
   }
 
-  public static async completeChat(options: {
+  public static async completeChat(_options: {
     systemInstruction: string;
     prompt: string;
     temperature?: number;
     timeoutMs?: number;
-    env?: NodeJS.ProcessEnv;
+    env?: Record<string, string | undefined>;
     fetchImpl?: typeof fetch;
   }): Promise<AssistantCompletionResult> {
-    const env = options.env ?? process.env;
-
-    if (isAssistantLocalMode(env)) {
-      return {
-        ok: false,
-        text: '',
-        model: 'local',
-        error: 'Grounded local mode is active; remote assistant calls are disabled.',
-      };
-    }
-
-    const endpoint = getAssistantEndpoint(env);
-    const apiKey = env.MAUSAM_ASSISTANT_API_KEY?.trim();
-
-    if (!endpoint || !apiKey) {
-      return {
-        ok: false,
-        text: '',
-        model: 'unconfigured',
-        error: !endpoint
-          ? 'MAUSAM_ASSISTANT_API_URL is missing or invalid.'
-          : 'MAUSAM_ASSISTANT_API_KEY is missing.',
-      };
-    }
-
-    const model = env.MAUSAM_ASSISTANT_MODEL?.trim() || DEFAULT_ASSISTANT_MODEL;
-    const fetchFn = options.fetchImpl ?? fetch;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 12000);
-
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      };
-
-      const body: Record<string, unknown> = {
-        messages: [
-          {
-            role: 'system',
-            content: options.systemInstruction,
-          },
-          {
-            role: 'user',
-            content:
-              options.prompt?.trim() ||
-              'Summarize the verified weather context for this location.',
-          },
-        ],
-        temperature: options.temperature ?? 0.2,
-        model,
-      };
-
-      const res = await fetchFn(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-
-      if (!res.ok) {
-        const errBody = await res.text().catch(() => '');
-        return {
-          ok: false,
-          text: '',
-          model,
-          statusCode: res.status,
-          error: redactSecret(
-            `Assistant endpoint returned HTTP ${res.status}${errBody ? `: ${errBody.slice(0, 160)}` : ''}`,
-            apiKey
-          ),
-        };
-      }
-
-      const json = (await res.json()) as any;
-      const content =
-        json?.choices?.[0]?.message?.content ??
-        json?.output_text ??
-        json?.response ??
-        '';
-      const text = typeof content === 'string' ? content.trim() : '';
-      if (!text) {
-        return {
-          ok: false,
-          text: '',
-          model,
-          statusCode: res.status,
-          error: 'Assistant endpoint returned an empty completion',
-        };
-      }
-
-      return {
-        ok: true,
-        text,
-        model,
-        statusCode: res.status,
-      };
-    } catch (err: any) {
-      return {
-        ok: false,
-        text: '',
-        model,
-        error: redactSecret(err?.message || 'Assistant network error', apiKey),
-      };
-    } finally {
-      clearTimeout(timer);
-    }
+    return {
+      ok: false,
+      text: '',
+      model: 'local',
+      error: 'Grounded local mode is active; remote assistant calls are disabled.',
+    };
   }
 
   public static async checkHealth(
-    env: NodeJS.ProcessEnv = process.env
+    _env?: Record<string, string | undefined>
   ): Promise<{
     configured: boolean;
     operational: boolean;
     latencyMs: number | null;
     error?: string;
   }> {
-    if (isAssistantLocalMode(env)) {
-      return {
-        configured: true,
-        operational: true,
-        latencyMs: null,
-        error: 'Grounded local assistant active. No API key required.',
-      };
-    }
-
-    const endpoint = getAssistantEndpoint(env);
-    const apiKey = env.MAUSAM_ASSISTANT_API_KEY?.trim();
-
-    if (!endpoint || !apiKey) {
-      return {
-        configured: false,
-        operational: false,
-        latencyMs: null,
-        error: 'Remote assistant is optional. Grounded local mode remains available.',
-      };
-    }
-
-    // Do not consume tokens from the diagnostics page.
-    // Actual availability is verified during an assistant request.
     return {
       configured: true,
-      operational: false,
+      operational: true,
       latencyMs: null,
-      error:
-        'Remote assistant configured. Live availability is verified during an actual request.',
+      error: 'Grounded local assistant active. No API key required.',
     };
   }
 
   public static async askMausam(
     params: AskMausamParams,
-    deps?: { env?: NodeJS.ProcessEnv; fetchImpl?: typeof fetch }
+    _deps?: { env?: Record<string, string | undefined>; fetchImpl?: typeof fetch }
   ): Promise<AskMausamResult> {
-    const env = deps?.env ?? process.env;
-    const mode = getAssistantMode(env);
-
-    // Default behaviour: no Gemini call and no API key required.
-    if (mode === 'local' || mode === 'offline') {
-      return buildDeterministicTelemetrySummary(
-        params,
-        'Grounded local assistant active. Using verified surface telemetry.'
-      );
-    }
-
-    const endpoint = getAssistantEndpoint(env);
-    const apiKey = env.MAUSAM_ASSISTANT_API_KEY?.trim();
-
-    // Remote mode is explicitly opt-in. Missing credentials fall back locally.
-    if (!endpoint || !apiKey) {
-      return buildDeterministicTelemetrySummary(
-        params,
-        'Remote assistant is not configured. Grounded local mode is active.',
-        'Remote assistant is not configured. Grounded local mode is active.'
-      );
-    }
-
-    const { location, observation, airQuality, metadata, lat, lng, prompt } = params;
-    const city = location?.city || location?.name || 'India';
-    const state = location?.state || 'National';
-    const resolvedSource =
-      metadata?.source ||
-      (env.IMD_API_ENABLED === 'true' && (env.IMD_API_KEY || env.IMD_API_TOKEN)
-        ? 'India Meteorological Department (IMD)'
-        : 'Open-Meteo');
-
-    const coordLine =
-      typeof lat === 'number' && Number.isFinite(lat) && typeof lng === 'number' && Number.isFinite(lng)
-        ? `(${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)`
-        : '';
-    const obsSummary =
-      observation && typeof observation.temperatureC === 'number' && Number.isFinite(observation.temperatureC)
-        ? `${observation.temperatureC}°C, ${observation.condition || 'Observed'}, Humidity ${observation.relativeHumidity ?? 'Unavailable'}%, Wind ${observation.windSpeedKmh ?? 'Unavailable'} km/h`
-        : 'Current surface weather data unavailable';
-    const aqiSummary =
-      airQuality && typeof airQuality.aqi === 'number' && Number.isFinite(airQuality.aqi)
-        ? `AQI ${airQuality.aqi} (${airQuality.category || 'Monitored'})`
-        : 'Air Quality data unavailable';
-
-    const systemInstruction = `You are Ask MAUSAM, the meteorological intelligence assistant for India.
-Location: ${city}, ${state} ${coordLine}.
-Current weather: ${obsSummary}.
-Air Quality: ${aqiSummary}.
-Data Source: ${resolvedSource}.
-Provide accurate, concise meteorological answers. If a measurement is unavailable, state that clearly without guessing or fabricating numbers. Always attribute the actual data source.`;
-
-    const completion = await this.completeChat({
-      systemInstruction,
-      prompt: prompt?.trim() || 'Summarize the verified weather context for this location.',
-      temperature: 0.2,
-      env,
-      fetchImpl: deps?.fetchImpl,
-    });
-
-    if (completion.ok && completion.text) {
-      return {
-        response: completion.text,
-        source: resolvedSource,
-        groundingSources: [],
-        modeUsed: `assistant (${completion.model})`,
-      };
-    }
-
     return buildDeterministicTelemetrySummary(
       params,
-      'Deterministic telemetry fallback (upstream assistant endpoint temporarily unavailable).',
-      completion.error
+      'Grounded local assistant active. Using verified surface telemetry.'
     );
   }
 }

@@ -5,6 +5,7 @@
 // ====================================================================
 
 import pg from 'pg';
+import { MAUSAM_RUNTIME_CONFIG } from '../../lib/providers/ai';
 import {
   POSTGRES_MIGRATION_DDL,
   SQL_QUERIES,
@@ -66,45 +67,12 @@ export class DatabaseService {
   }
 
   private initialize(): void {
-    const connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim();
-
-    if (!connectionString) {
-      this.isConfigured = false;
-      this.isConnected = false;
-      this.providerType = 'NOT_CONFIGURED';
-      this.lastLatencyMs = null;
-      return;
-    }
-
-    try {
-      this.isConfigured = true;
-      this.providerType = 'POSTGRESQL';
-      const disableSsl =
-        connectionString.includes('localhost') ||
-        connectionString.includes('127.0.0.1') ||
-        connectionString.includes('sslmode=disable');
-
-      this.pool = new Pool({
-        connectionString,
-        max: 10,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
-        ssl: disableSsl ? false : { rejectUnauthorized: false },
-      });
-
-      this.pool.on('error', (err) => {
-        console.warn('[Mausam DB] Unexpected PostgreSQL client error:', err.message);
-        this.isConnected = false;
-        this.lastError = err.message;
-      });
-
-      // Test connection and run schema migrations
-      this.testAndMigrate();
-    } catch (err: any) {
-      this.isConnected = false;
-      this.lastError = err.message;
-      console.warn('[Mausam DB] Failed to create PostgreSQL pool:', err.message);
-    }
+    // Database persistence is optional and disabled by default in keyless mode.
+    this.isConfigured = MAUSAM_RUNTIME_CONFIG.databaseEnabled;
+    this.isConnected = false;
+    this.providerType = 'NOT_CONFIGURED';
+    this.pool = null;
+    this.lastLatencyMs = null;
   }
 
   private async testAndMigrate(): Promise<void> {

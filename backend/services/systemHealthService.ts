@@ -14,8 +14,11 @@ import { INCOISProvider } from '../providers/incois';
 import { RadarProvider } from '../providers/radar';
 import { AccuWeatherProvider } from '../providers/accuweather';
 import { GoogleWeatherProvider } from '../providers/googleWeather';
+import {
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
 
-export type ProviderStatusCode = 'OPERATIONAL' | 'DEGRADED' | 'STALE' | 'NOT_CONFIGURED' | 'UNAVAILABLE';
+export type ProviderStatusCode = 'OPERATIONAL' | 'DEGRADED' | 'STALE' | 'NOT_CONFIGURED' | 'DISABLED' | 'UNAVAILABLE';
 
 export function getAppEnvironment(): 'DEVELOPMENT' | 'PREVIEW' | 'PRODUCTION' {
   if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production' || process.env.MAUSAM_ENV === 'production') {
@@ -46,8 +49,10 @@ export interface ProviderHealthDetail {
   fallback: string | null;
   currentDataSource: string | null;
   reason: string | null;
+  message?: string | null;
   nextAction: string | null;
   isConfigured: boolean;
+  optional?: boolean;
   requiredKey: string | null;
   latency: number | null; // in ms
   last_success: string | null;
@@ -285,23 +290,23 @@ export class SystemHealthService {
         name: 'India Meteorological Department (IMD)',
         category: 'GOVERNMENT',
         status: !imdHealth.configured
-          ? 'NOT_CONFIGURED'
+          ? 'DISABLED'
           : imdHealth.operational
           ? 'OPERATIONAL'
           : 'UNAVAILABLE',
-        role: 'Official Primary',
+        role: 'Optional Official Surface Feed',
         fallback: 'Open-Meteo',
         currentDataSource: imdHealth.operational ? 'IMD (Official Portal & AWS)' : 'Open-Meteo',
         reason: !imdHealth.configured
-          ? 'Official IMD credentials/access are not configured.'
+          ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE
           : !imdHealth.operational
           ? 'Real data could not be retrieved from IMD gateway.'
           : null,
-        nextAction: !imdHealth.configured
-          ? 'Configure IMD credentials/access to enable official IMD data.'
-          : null,
+        message: !imdHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null,
+        nextAction: null,
         isConfigured: imdHealth.configured,
-        requiredKey: 'IMD_API_KEY',
+        optional: true,
+        requiredKey: null,
         latency: imdHealth.latencyMs,
         last_success: imdHealth.operational ? checkTimestamp : this.providerMetrics.IMD.lastSuccess,
         last_failure: imdHealth.configured && !imdHealth.operational ? checkTimestamp : this.providerMetrics.IMD.lastFailure,
@@ -311,9 +316,9 @@ export class SystemHealthService {
         failed_requests: this.providerMetrics.IMD.failed,
         cache_hits: 0,
         cache_misses: 0,
-        error: imdHealth.error || (!imdHealth.configured ? 'Official IMD credentials/access not configured' : null),
+        error: imdHealth.configured && !imdHealth.operational ? (imdHealth.error || null) : null,
         source: 'India Meteorological Department (Ministry of Earth Sciences, Govt of India)',
-        endpoint: process.env.IMD_API_BASE_URL || 'https://city.imd.gov.in',
+        endpoint: 'Optional direct integration (disabled)',
         attribution: 'Official data source: India Meteorological Department (IMD), Ministry of Earth Sciences',
         attributionUrl: 'https://mausam.imd.gov.in',
       },
@@ -323,20 +328,20 @@ export class SystemHealthService {
         category: 'GOVERNMENT',
         status: cpcbHealth.configured
           ? (cpcbHealth.operational ? 'OPERATIONAL' : 'UNAVAILABLE')
-          : 'NOT_CONFIGURED',
-        role: 'Primary AQI',
+          : 'DISABLED',
+        role: 'Optional Direct AQI Feed',
         fallback: 'Open-Meteo CAMS Air Quality',
         currentDataSource: cpcbHealth.configured && cpcbHealth.operational ? 'CPCB CAAQMS / Indian NAQI' : 'Open-Meteo CAMS Air Quality',
         reason: !cpcbHealth.configured
-          ? 'CPCB direct CAAQMS credentials (CPCB_API_KEY) not configured.'
+          ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE
           : !cpcbHealth.operational
           ? 'Real data could not be retrieved from CPCB monitor network.'
           : null,
-        nextAction: !cpcbHealth.configured
-          ? 'Configure CPCB_API_KEY to enable direct CAAQMS observations.'
-          : null,
+        message: !cpcbHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null,
+        nextAction: null,
         isConfigured: cpcbHealth.configured,
-        requiredKey: 'CPCB_API_KEY',
+        optional: true,
+        requiredKey: null,
         latency: cpcbHealth.latencyMs,
         last_success: cpcbHealth.operational ? checkTimestamp : null,
         last_failure: cpcbHealth.configured && !cpcbHealth.operational ? checkTimestamp : null,
@@ -346,9 +351,9 @@ export class SystemHealthService {
         failed_requests: this.providerMetrics.CPCB.failed,
         cache_hits: 0,
         cache_misses: 0,
-        error: cpcbHealth.configured && !cpcbHealth.operational ? cpcbHealth.error : (!cpcbHealth.configured ? 'CPCB credentials not configured' : null),
-        source: cpcbHealth.configured ? 'CPCB CAAQMS Real-Time Network & NAQI Gateway' : 'Open-Meteo CAMS Air Quality (Indian NAQI Standard)',
-        endpoint: cpcbHealth.configured ? 'https://app.cpcbccr.com/caaqms' : 'https://air-quality-api.open-meteo.com/v1/air-quality',
+        error: cpcbHealth.configured && !cpcbHealth.operational ? (cpcbHealth.error || null) : null,
+        source: 'Open-Meteo CAMS Air Quality (Indian NAQI Standard)',
+        endpoint: 'https://air-quality-api.open-meteo.com/v1/air-quality',
         attribution: 'CPCB National Air Quality Index (NAQI) & CAMS Atmospheric Chemistry',
         attributionUrl: 'https://cpcb.nic.in',
       },
@@ -363,6 +368,7 @@ export class SystemHealthService {
         reason: sachetHealth.operational ? null : 'SACHET CAP feed temporarily unreachable; using cached warnings',
         nextAction: null,
         isConfigured: true,
+        optional: false,
         requiredKey: null,
         latency: sachetHealth.latencyMs,
         last_success: sachetHealth.operational ? checkTimestamp : this.providerMetrics.SACHET.lastSuccess,
@@ -384,23 +390,23 @@ export class SystemHealthService {
         name: 'INCOIS Coastal Oceanography',
         category: 'GOVERNMENT',
         status: !incoisHealth.configured
-          ? 'NOT_CONFIGURED'
+          ? 'DISABLED'
           : incoisHealth.operational
           ? 'OPERATIONAL'
           : 'UNAVAILABLE',
-        role: 'Official Ocean State',
+        role: 'Optional Ocean State Feed',
         fallback: 'Open-Meteo Marine Data',
         currentDataSource: incoisHealth.configured && incoisHealth.operational ? 'INCOIS' : 'Open-Meteo Marine Data',
         reason: !incoisHealth.configured
-          ? 'Official INCOIS credentials (INCOIS_API_KEY) not configured.'
+          ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE
           : incoisHealth.operational
           ? null
           : 'INCOIS coastal oceanography feed temporarily unreachable',
-        nextAction: !incoisHealth.configured
-          ? 'Optional: configure INCOIS credentials to enable direct INCOIS marine observation.'
-          : null,
+        message: !incoisHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null,
+        nextAction: null,
         isConfigured: incoisHealth.configured,
-        requiredKey: 'INCOIS_API_KEY',
+        optional: true,
+        requiredKey: null,
         latency: incoisHealth.latencyMs,
         last_success: incoisHealth.operational ? checkTimestamp : this.providerMetrics.INCOIS.lastSuccess,
         last_failure: incoisHealth.configured && !incoisHealth.operational ? checkTimestamp : this.providerMetrics.INCOIS.lastFailure,
@@ -410,9 +416,9 @@ export class SystemHealthService {
         failed_requests: this.providerMetrics.INCOIS.failed,
         cache_hits: 0,
         cache_misses: 0,
-        error: incoisHealth.error || null,
-        source: incoisHealth.configured ? 'Indian National Centre for Ocean Information Services (INCOIS)' : 'Open-Meteo Marine Data (Open Data)',
-        endpoint: incoisHealth.configured ? 'https://incois.gov.in' : 'https://marine-api.open-meteo.com/v1/marine',
+        error: incoisHealth.configured && !incoisHealth.operational ? (incoisHealth.error || null) : null,
+        source: 'Open-Meteo Marine Data (Open Data)',
+        endpoint: 'https://marine-api.open-meteo.com/v1/marine',
         attribution: 'INCOIS, Ministry of Earth Sciences & Open Marine under CC BY 4.0',
         attributionUrl: 'https://incois.gov.in',
       },
@@ -427,6 +433,7 @@ export class SystemHealthService {
         reason: radarHealth.operational ? null : 'Radar frame server temporarily unreachable; serving cached frames',
         nextAction: null,
         isConfigured: true,
+        optional: false,
         requiredKey: null,
         latency: radarHealth.latencyMs,
         last_success: radarHealth.operational ? checkTimestamp : this.providerMetrics.RADAR.lastSuccess,
@@ -448,17 +455,19 @@ export class SystemHealthService {
         name: 'AccuWeather Commercial API',
         category: 'COMMERCIAL',
         status: !accuHealth.configured
-          ? 'NOT_CONFIGURED'
+          ? 'DISABLED'
           : accuHealth.operational
           ? 'OPERATIONAL'
           : 'UNAVAILABLE',
-        role: 'Commercial Secondary',
+        role: 'Optional Commercial Secondary',
         fallback: 'Open-Meteo',
-        currentDataSource: accuHealth.operational ? 'AccuWeather (GFS Atmospheric Stream)' : 'None',
-        reason: !accuHealth.configured ? 'Optional commercial provider not configured.' : (!accuHealth.operational ? 'AccuWeather gateway unreachable' : null),
-        nextAction: !accuHealth.configured ? 'Optional: configure ACCUWEATHER_API_KEY if desired.' : null,
+        currentDataSource: accuHealth.operational ? 'AccuWeather' : 'Open-Meteo',
+        reason: !accuHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : (!accuHealth.operational ? 'AccuWeather gateway unreachable' : null),
+        message: !accuHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null,
+        nextAction: null,
         isConfigured: accuHealth.configured,
-        requiredKey: 'ACCUWEATHER_API_KEY',
+        optional: true,
+        requiredKey: null,
         latency: accuHealth.latencyMs,
         last_success: accuHealth.operational ? checkTimestamp : null,
         last_failure: accuHealth.configured && !accuHealth.operational ? checkTimestamp : null,
@@ -468,10 +477,10 @@ export class SystemHealthService {
         failed_requests: this.providerMetrics.ACCUWEATHER.failed,
         cache_hits: 0,
         cache_misses: 0,
-        error: accuHealth.error || null,
-        source: 'AccuWeather Commercial & GFS Model Stream Gateway',
-        endpoint: process.env.ACCUWEATHER_API_KEY ? 'https://dataservice.accuweather.com' : 'https://api.open-meteo.com/v1/forecast?models=gfs_seamless',
-        attribution: 'AccuWeather Commercial API & GFS Seamless Global Model',
+        error: accuHealth.configured && !accuHealth.operational ? (accuHealth.error || null) : null,
+        source: 'AccuWeather Commercial API (Optional)',
+        endpoint: 'Optional commercial integration (disabled)',
+        attribution: 'AccuWeather Commercial API',
         attributionUrl: 'https://developer.accuweather.com',
       },
       googleWeather: {
@@ -479,17 +488,19 @@ export class SystemHealthService {
         name: 'Google Weather Commercial API',
         category: 'COMMERCIAL',
         status: !googleHealth.configured
-          ? 'NOT_CONFIGURED'
+          ? 'DISABLED'
           : googleHealth.operational
           ? 'OPERATIONAL'
           : 'UNAVAILABLE',
-        role: 'Commercial Secondary',
+        role: 'Optional Commercial Secondary',
         fallback: 'Open-Meteo',
-        currentDataSource: googleHealth.operational ? 'Google Weather (ECMWF IFS Stream)' : 'None',
-        reason: !googleHealth.configured ? 'Optional commercial provider not configured.' : (!googleHealth.operational ? 'Google Weather gateway unreachable' : null),
-        nextAction: !googleHealth.configured ? 'Optional: configure GOOGLE_WEATHER_API_KEY if desired.' : null,
+        currentDataSource: googleHealth.operational ? 'Google Weather' : 'Open-Meteo',
+        reason: !googleHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : (!googleHealth.operational ? 'Google Weather gateway unreachable' : null),
+        message: !googleHealth.configured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : null,
+        nextAction: null,
         isConfigured: googleHealth.configured,
-        requiredKey: 'GOOGLE_WEATHER_API_KEY',
+        optional: true,
+        requiredKey: null,
         latency: googleHealth.latencyMs,
         last_success: googleHealth.operational ? checkTimestamp : null,
         last_failure: googleHealth.configured && !googleHealth.operational ? checkTimestamp : null,
@@ -499,10 +510,10 @@ export class SystemHealthService {
         failed_requests: this.providerMetrics.GOOGLE_WEATHER.failed,
         cache_hits: 0,
         cache_misses: 0,
-        error: googleHealth.error || null,
-        source: 'Google Maps Platform / Weather & ECMWF IFS Stream Gateway',
-        endpoint: process.env.GOOGLE_WEATHER_API_KEY ? 'https://weather.googleapis.com' : 'https://api.open-meteo.com/v1/forecast?models=ecmwf_ifs025',
-        attribution: 'Google Maps Platform Weather API & ECMWF High-Resolution IFS',
+        error: googleHealth.configured && !googleHealth.operational ? (googleHealth.error || null) : null,
+        source: 'Google Weather Commercial API (Optional)',
+        endpoint: 'Optional commercial integration (disabled)',
+        attribution: 'Google Maps Platform Weather API',
         attributionUrl: 'https://developers.google.com',
       },
     };
@@ -515,7 +526,7 @@ export class SystemHealthService {
     for (const p of Object.values(providers)) {
       if (p.status === 'OPERATIONAL') operational++;
       else if (p.status === 'DEGRADED') degraded++;
-      else if (p.status === 'NOT_CONFIGURED') notConfigured++;
+      else if (p.status === 'NOT_CONFIGURED' || p.status === 'DISABLED') notConfigured++;
       else if (p.status === 'UNAVAILABLE') unavailable++;
     }
 
@@ -623,8 +634,8 @@ export class SystemHealthService {
         status: health.providers.imd.status,
         lastSuccess: health.providers.imd.last_success,
         latency: health.providers.imd.latency,
-        errorCode: !health.providers.imd.isConfigured ? 'NOT_CONFIGURED' : (health.providers.imd.error ? 'IMD_ERROR' : null),
-        errorMessage: health.providers.imd.error,
+        errorCode: !health.providers.imd.isConfigured ? 'DISABLED' : (health.providers.imd.error ? 'IMD_ERROR' : null),
+        errorMessage: !health.providers.imd.isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : health.providers.imd.error,
         environment: env,
       },
       {
@@ -635,8 +646,8 @@ export class SystemHealthService {
         status: health.providers.cpcb.status,
         lastSuccess: health.providers.cpcb.last_success,
         latency: health.providers.cpcb.latency,
-        errorCode: !health.providers.cpcb.isConfigured ? 'NOT_CONFIGURED' : (health.providers.cpcb.error ? 'CPCB_ERROR' : null),
-        errorMessage: health.providers.cpcb.error,
+        errorCode: !health.providers.cpcb.isConfigured ? 'DISABLED' : (health.providers.cpcb.error ? 'CPCB_ERROR' : null),
+        errorMessage: !health.providers.cpcb.isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : health.providers.cpcb.error,
         environment: env,
       },
       {
@@ -659,8 +670,8 @@ export class SystemHealthService {
         status: health.providers.incois.status,
         lastSuccess: health.providers.incois.last_success,
         latency: health.providers.incois.latency,
-        errorCode: !health.providers.incois.isConfigured ? 'NOT_CONFIGURED' : (health.providers.incois.error ? 'INCOIS_ERROR' : null),
-        errorMessage: health.providers.incois.error,
+        errorCode: !health.providers.incois.isConfigured ? 'DISABLED' : (health.providers.incois.error ? 'INCOIS_ERROR' : null),
+        errorMessage: !health.providers.incois.isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : health.providers.incois.error,
         environment: env,
       },
       {
@@ -675,37 +686,18 @@ export class SystemHealthService {
         errorMessage: health.providers.radar.error,
         environment: env,
       },
-      (() => {
-        const assistantUrl = process.env.MAUSAM_ASSISTANT_API_URL?.trim();
-        const assistantMode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
-        const assistantLocalMode = assistantMode !== 'remote';
-        const assistantApiKey = process.env.MAUSAM_ASSISTANT_API_KEY?.trim();
-        const assistantConfigured = assistantLocalMode || Boolean(assistantUrl && assistantApiKey);
-        return {
-          provider: 'MAUSAM_ASSISTANT',
-          name: 'MAUSAM Assistant',
-          configured: assistantConfigured,
-          reachable: assistantLocalMode,
-          status: (assistantLocalMode
-            ? 'OPERATIONAL'
-            : assistantConfigured
-              ? 'DEGRADED'
-              : 'NOT_CONFIGURED') as ProviderStatusCode,
-          lastSuccess: null,
-          latency: null,
-          errorCode: assistantLocalMode
-            ? null
-            : assistantConfigured
-              ? 'PENDING_LIVE_REQUEST'
-              : 'NOT_CONFIGURED',
-          errorMessage: assistantLocalMode
-            ? 'Grounded local assistant active. No API key required.'
-            : assistantConfigured
-              ? 'Remote assistant configured. Live availability is verified during an actual request.'
-              : 'Remote assistant is optional. Grounded local mode remains available.',
-          environment: env,
-        };
-      })(),
+      {
+        provider: 'MAUSAM_ASSISTANT',
+        name: 'MAUSAM Assistant',
+        configured: true,
+        reachable: true,
+        status: 'OPERATIONAL' as ProviderStatusCode,
+        lastSuccess: health.timestamp,
+        latency: null,
+        errorCode: null,
+        errorMessage: 'Grounded local assistant active. No API key required.',
+        environment: env,
+      },
       {
         provider: 'ACCUWEATHER',
         name: health.providers.accuweather.name,
@@ -714,8 +706,8 @@ export class SystemHealthService {
         status: health.providers.accuweather.status,
         lastSuccess: health.providers.accuweather.last_success,
         latency: health.providers.accuweather.latency,
-        errorCode: !health.providers.accuweather.isConfigured ? 'NOT_CONFIGURED' : null,
-        errorMessage: health.providers.accuweather.error,
+        errorCode: !health.providers.accuweather.isConfigured ? 'DISABLED' : null,
+        errorMessage: !health.providers.accuweather.isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : health.providers.accuweather.error,
         environment: env,
       },
       {
@@ -726,8 +718,8 @@ export class SystemHealthService {
         status: health.providers.googleWeather.status,
         lastSuccess: health.providers.googleWeather.last_success,
         latency: health.providers.googleWeather.latency,
-        errorCode: !health.providers.googleWeather.isConfigured ? 'NOT_CONFIGURED' : null,
-        errorMessage: health.providers.googleWeather.error,
+        errorCode: !health.providers.googleWeather.isConfigured ? 'DISABLED' : null,
+        errorMessage: !health.providers.googleWeather.isConfigured ? OPTIONAL_INTEGRATION_DISABLED_MESSAGE : health.providers.googleWeather.error,
         environment: env,
       },
     ];
@@ -798,24 +790,12 @@ export class SystemHealthService {
         ok: true,
         message: health.providers.radar.status === 'OPERATIONAL' ? 'Doppler radar feed active' : 'Radar cache active',
       },
-      ai: (() => {
-        const mode = (process.env.MAUSAM_ASSISTANT_MODE || 'local').trim().toLowerCase();
-        const local = mode !== 'remote';
-        const remoteConfigured = Boolean(
-          process.env.MAUSAM_ASSISTANT_API_URL?.trim() &&
-            process.env.MAUSAM_ASSISTANT_API_KEY?.trim()
-        );
-        return {
-          status: local ? 'OPERATIONAL' : remoteConfigured ? 'CONFIGURED' : 'NOT_CONFIGURED',
-          required: false,
-          ok: true,
-          message: local
-            ? 'Grounded local assistant active. No API key required.'
-            : remoteConfigured
-              ? 'Remote assistant configured. Live availability is verified during an actual request.'
-              : 'Remote assistant is optional. Grounded local mode remains available.',
-        };
-      })(),
+      ai: {
+        status: 'OPERATIONAL',
+        required: false,
+        ok: true,
+        message: 'Grounded local assistant active. No API key required.',
+      },
     };
 
     let readinessStatus: 'READY' | 'DEGRADED' | 'NOT_READY';
@@ -824,12 +804,12 @@ export class SystemHealthService {
     if (!omOk) {
       readinessStatus = 'NOT_READY';
       message = 'Critical failure: Primary weather data provider (Open-Meteo) is unreachable.';
-    } else if (health.summary.operational >= 4) {
+    } else if (health.summary.operational >= 3) {
       readinessStatus = 'READY';
-      message = 'All critical and secondary weather and telemetry pipelines are ready.';
+      message = 'All core weather, warning, and radar pipelines are ready.';
     } else {
       readinessStatus = 'DEGRADED';
-      message = 'Core weather pipeline is operational. Some secondary or official feeds are running in fallback mode.';
+      message = 'Core weather pipeline is operational. Some secondary feeds are running in fallback mode.';
     }
 
     return {
@@ -948,7 +928,7 @@ export class SystemHealthService {
         category: 'GOVERNMENT_MET',
         status: 'SKIPPED',
         latencyMs: null,
-        message: 'IMD_API_KEY not configured. Running in open-data fallback mode.',
+        message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       });
     }
 
@@ -979,7 +959,7 @@ export class SystemHealthService {
         category: 'ENVIRONMENT',
         status: 'SKIPPED',
         latencyMs: null,
-        message: 'CPCB_API_KEY not configured. Using CAMS European/NAQI standard fallback.',
+        message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
       });
     }
 

@@ -5,7 +5,7 @@
 // ====================================================================
 
 export type ProviderCategory = 'GOVERNMENT' | 'COMMERCIAL' | 'OPEN_DATA';
-export type ProviderStatus = 'OPERATIONAL' | 'DEGRADED' | 'STALE' | 'NOT_CONFIGURED' | 'UNAVAILABLE';
+export type ProviderStatus = 'OPERATIONAL' | 'DEGRADED' | 'STALE' | 'NOT_CONFIGURED' | 'DISABLED' | 'UNAVAILABLE';
 export type ObservationStatus = 'LIVE' | 'RECENT' | 'STALE' | 'UNAVAILABLE';
 export type WarningSeverity = 'RED' | 'ORANGE' | 'YELLOW' | 'GREEN';
 export type ForecastType = 'HOURLY' | 'DAILY' | 'EXTENDED';

@@ -14,7 +14,7 @@ export interface CacheEntry<T = any> {
 class IMDCache {
   private store = new Map<string, CacheEntry>();
   private inFlight = new Map<string, Promise<any>>();
-  private defaultTTL = Number(process.env.IMD_CACHE_TTL_MS || 60000);
+  private defaultTTL = 60000;
   private stats = {
     hits: 0,
     misses: 0,

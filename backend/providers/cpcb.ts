@@ -1,146 +1,56 @@
 // ====================================================================
 // MAUSAM - Atmospheric Intelligence Platform
-// CPCB Provider Adapter (Central Pollution Control Board & Open AQI)
+// CPCB Provider Adapter (Keyless Public Open-Meteo Air Quality Fallback)
+// Optional direct CPCB authentication is disabled by default.
 // ====================================================================
 
 import { NormalizedAQI, GeoLocation } from '../normalization/types';
 import { AqiNormalizer } from '../normalization/aqiNormalizer';
 import { WeatherNormalizer } from '../normalization/weatherNormalizer';
 import {
-  officialTelemetryGateway,
-  redactSecrets,
-} from '../../src/services/weather/officialProxyGateway';
+  MAUSAM_RUNTIME_CONFIG,
+  OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+} from '../../lib/providers/ai';
 
 export class CPCBProvider {
   public static readonly providerName = 'Central Pollution Control Board (CPCB / NAQI)';
   public readonly name = 'Central Pollution Control Board (CPCB / NAQI)';
-  private static cpcbBaseUrl = process.env.CPCB_BASE_URL || 'https://app.cpcbccr.com/caaqms';
-  private static openMeteoAqUrl = process.env.OPEN_METEO_AIR_QUALITY_ENDPOINT || 'https://air-quality-api.open-meteo.com/v1';
+  private static openMeteoAqUrl = 'https://air-quality-api.open-meteo.com/v1';
 
   public static isConfigured(): boolean {
-    return Boolean(process.env.CPCB_API_KEY && process.env.CPCB_API_KEY.trim() !== '');
+    return MAUSAM_RUNTIME_CONFIG.directCpcbEnabled;
   }
 
   public static isAuthCooldownActive(): boolean {
-    return officialTelemetryGateway.isAuthCooldownActive('CPCB');
+    return false;
   }
 
   public static async checkHealth(): Promise<{
     configured: boolean;
     operational: boolean;
     latencyMs: number | null;
+    status: 'DISABLED';
+    requiredKey: null;
+    optional: true;
+    message: string;
     error?: string;
   }> {
-    if (!this.isConfigured()) {
-      return {
-        configured: false,
-        operational: false,
-        latencyMs: null,
-        error: 'CPCB API key (CPCB_API_KEY) not configured',
-      };
-    }
-
-    const start = Date.now();
-    try {
-      const apiKey = process.env.CPCB_API_KEY!;
-      const res = await fetch(`${this.cpcbBaseUrl}/health?token=${encodeURIComponent(apiKey)}`, {
-        headers: { 'User-Agent': 'MAUSAM-CPCB/3.0' },
-        signal: AbortSignal.timeout(4000),
-      });
-      const latencyMs = Date.now() - start;
-
-      if (res.status === 401 || res.status === 403) {
-        officialTelemetryGateway.markAuthFailure('CPCB', res.status);
-        return {
-          configured: true,
-          operational: false,
-          latencyMs,
-          error: `AUTH_ERROR: CPCB authentication failed (HTTP ${res.status})`,
-        };
-      }
-      if (res.status === 429) {
-        return {
-          configured: true,
-          operational: false,
-          latencyMs,
-          error: 'RATE_LIMITED: CPCB API quota exceeded (HTTP 429)',
-        };
-      }
-
-      return {
-        configured: true,
-        operational: res.ok,
-        latencyMs,
-        error: res.ok ? undefined : `HTTP ${res.status}`,
-      };
-    } catch (err: any) {
-      const latencyMs = Date.now() - start;
-      const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
-      return {
-        configured: true,
-        operational: false,
-        latencyMs: isTimeout ? latencyMs : null,
-        error: isTimeout
-          ? 'TIMEOUT: CPCB gateway timed out after 4000ms'
-          : redactSecrets(err.message || 'Connection failed', [process.env.CPCB_API_KEY]),
-      };
-    }
+    return {
+      configured: false,
+      operational: false,
+      latencyMs: null,
+      status: 'DISABLED',
+      requiredKey: null,
+      optional: true,
+      message: OPTIONAL_INTEGRATION_DISABLED_MESSAGE,
+    };
   }
 
   /**
-   * Fetch air quality.
-   * If CPCB_API_KEY is present and not in auth-error cooldown, attempts direct CPCB CAAQMS endpoint.
-   * On unconfigured, HTTP 401/403 authentication error, or upstream error, automatically switches to
-   * public-domain Open-Meteo CAMS Air Quality proxy with truthful source attribution.
+   * Fetch air quality via public-domain Open-Meteo CAMS Air Quality API
+   * mapped onto the Indian NAQI scale with truthful source attribution.
    */
   public static async fetchAQI(loc: GeoLocation): Promise<NormalizedAQI | null> {
-    const apiKey = process.env.CPCB_API_KEY?.trim();
-
-    // 1. Direct CPCB CAAQMS if authorized and not in auth-error cooldown
-    if (apiKey && !this.isAuthCooldownActive()) {
-      try {
-        const cpcbUrl = `${this.cpcbBaseUrl}/aqi_all_India?token=${encodeURIComponent(apiKey)}&lat=${loc.latitude}&lon=${loc.longitude}`;
-        const res = await fetch(cpcbUrl, { signal: AbortSignal.timeout(5000) });
-        if (res.status === 401 || res.status === 403) {
-          officialTelemetryGateway.markAuthFailure('CPCB', res.status);
-          console.warn(`[CPCB] Auth rejected (HTTP ${res.status}); switching to Open-Meteo CAMS proxy with cooldown.`);
-        } else if (res.ok) {
-          const json = await res.json();
-          if (json && typeof json.aqi === 'number') {
-            const cat = AqiNormalizer.calculateIndianCategory(json.aqi);
-            const observedAt = json.last_update || new Date().toISOString();
-            const { status: dataStatus } = WeatherNormalizer.computeDataStatus(observedAt);
-
-            return {
-              location: loc,
-              stationId: json.station_id || 'CPCB-CAAQMS',
-              stationName: json.station_name || `${loc.name} CAAQMS Station`,
-              observedAt,
-              fetchedAt: new Date().toISOString(),
-              dataStatus,
-              source: 'CPCB',
-              aqi: json.aqi,
-              category: cat,
-              dominantPollutant: json.dominant_pollutant || 'PM2.5',
-              pollutants: {
-                pm25: { code: 'pm25', label: 'PM2.5', concentration: json.pm25 ?? 0, unit: 'µg/m³' },
-                pm10: { code: 'pm10', label: 'PM10', concentration: json.pm10 ?? 0, unit: 'µg/m³' },
-                no2: { code: 'no2', label: 'NO₂', concentration: json.no2 ?? 0, unit: 'µg/m³' },
-                so2: { code: 'so2', label: 'SO₂', concentration: json.so2 ?? 0, unit: 'µg/m³' },
-                co: { code: 'co', label: 'CO', concentration: json.co ?? 0, unit: 'mg/m³' },
-                o3: { code: 'o3', label: 'Ozone', concentration: json.o3 ?? 0, unit: 'µg/m³' },
-              },
-              healthAdvisory: AqiNormalizer.getIndianHealthAdvisory(cat),
-              isIndianStandard: true,
-            };
-          }
-        }
-      } catch (err: any) {
-        console.warn('[CPCB] Direct fetch failed:', redactSecrets(err?.message || 'Error', [apiKey]));
-      }
-    }
-
-    // 2. Public-Domain Open Atmospheric Chemistry (Open-Meteo CAMS Model Proxy)
     try {
       const url = `${this.openMeteoAqUrl}/air-quality?latitude=${loc.latitude}&longitude=${loc.longitude}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust&timezone=auto`;
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });

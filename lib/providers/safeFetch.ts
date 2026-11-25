@@ -48,19 +48,16 @@ export async function safeProviderFetch<T = any>(
     headers = {},
   } = config;
 
-  // 1. Check if required key is configured (Server-side check)
-  if (requiredKey && typeof process !== 'undefined' && process.env) {
-    const keyVal = process.env[requiredKey];
-    if (!keyVal || keyVal.trim() === '') {
-      return {
-        success: false,
-        data: null,
-        status: null,
-        error: `${providerName} is not configured: ${requiredKey} is missing`,
-        errorCode: 'NOT_CONFIGURED',
-        latencyMs: 0,
-      };
-    }
+  // 1. Optional credentialed providers are disabled in zero-secret keyless mode
+  if (requiredKey) {
+    return {
+      success: false,
+      data: null,
+      status: null,
+      error: `${providerName}: Optional integration disabled. Core MAUSAM services are operating using public data sources.`,
+      errorCode: 'NOT_CONFIGURED',
+      latencyMs: 0,
+    };
   }
 
   const startTime = Date.now();
